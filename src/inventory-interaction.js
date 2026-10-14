@@ -33,3 +33,21 @@ export function quantityFocusAfterCommit(before,{entityId,nextTargetId,trigger,v
   return before.slice(index+1).find(id=>visibleIds.includes(id))
     || before.slice(0,index).reverse().find(id=>visibleIds.includes(id)) || 'inventory-search';
 }
+
+
+export function groupQuantityEntries(state, filters = {}, families = []) {
+  const visible = visibleQuantityEntries(state, filters);
+  return families.map(family => ({
+    family: structuredClone(family),
+    items: visible.filter(entity => entity.familyId === family.id && entity.map === 'items'),
+    addons: visible.filter(entity => entity.familyId === family.id && entity.map === 'addons'),
+  }));
+}
+
+export function stepQuantityInput(state, id, delta) {
+  const accepted = acceptQuantityInput(state, id);
+  if (accepted.error) return accepted;
+  if (!Number.isSafeInteger(delta)) throw new Error('Quantity step must be a safe integer.');
+  const quantity = Math.max(0, Math.min(Number.MAX_SAFE_INTEGER, accepted.quantity + delta));
+  return acceptQuantityInput(updateQuantityInput(accepted.state, id, String(quantity)), id);
+}

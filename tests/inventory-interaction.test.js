@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createQuantityInteraction, updateQuantityInput, acceptQuantityInput, visibleQuantityEntries, regroupQuantityEntries, quantityFocusAfterCommit } from '../src/inventory-interaction.js';
+import { createQuantityInteraction, updateQuantityInput, acceptQuantityInput, visibleQuantityEntries, regroupQuantityEntries, quantityFocusAfterCommit, groupQuantityEntries, stepQuantityInput } from '../src/inventory-interaction.js';
 const entities = [{id:'b',order:1,name:'Beta',familyId:'key'}, {id:'a',order:0,name:'Alpha',familyId:'key'}, {id:'c',order:2,name:'Gamma',familyId:'map'}];
 test('snapshot positive first canonical order stays frozen until successful regroup', () => {
  const base=createQuantityInteraction(entities,{b:2});
@@ -30,4 +30,56 @@ test('focus preserves blur destination and Enter uses old next previous then fil
  assert.equal(quantityFocusAfterCommit(before,{entityId:'b',trigger:'enter',visibleIds:['a','c']}),'c');
  assert.equal(quantityFocusAfterCommit(before,{entityId:'b',trigger:'enter',visibleIds:['a']}),'a');
  assert.equal(quantityFocusAfterCommit(before,{entityId:'b',trigger:'enter',visibleIds:[]}),'inventory-search');
+});
+
+
+test('family grouping keeps verified family order and family-local stock order', () => {
+  const familyEntities = [
+    {id:'map-zero',order:5,name:'Map Zero',familyId:'map',map:'items'},
+    {id:'key-addon-zero',order:3,name:'Key Add-on Zero',familyId:'key',map:'addons'},
+    {id:'key-zero',order:1,name:'Key Zero',familyId:'key',map:'items'},
+    {id:'key-positive',order:0,name:'Key Positive',familyId:'key',map:'items'},
+    {id:'key-addon-positive',order:2,name:'Key Add-on Positive',familyId:'key',map:'addons'},
+    {id:'map-positive',order:4,name:'Map Positive',familyId:'map',map:'items'},
+  ];
+  const families = [{id:'key',displayName:'Keys'},{id:'map',displayName:'Maps'}];
+  const state = createQuantityInteraction(familyEntities,{
+    'key-positive':2,'key-addon-positive':1,'map-positive':3,
+  });
+  const grouped = groupQuantityEntries(state, {}, families);
+  assert.deepEqual(grouped.map(group => group.family.id), ['key','map']);
+  assert.deepEqual(grouped[0].items.map(entity => entity.id), ['key-positive','key-zero']);
+  assert.deepEqual(grouped[0].addons.map(entity => entity.id), ['key-addon-positive','key-addon-zero']);
+  assert.deepEqual(grouped[1].items.map(entity => entity.id), ['map-positive','map-zero']);
+});
+
+test('family grouping keeps pending and invalid zero-stock edits visible without reordering them', () => {
+  const familyEntities = [
+    {id:'key-positive',order:0,name:'Key Positive',familyId:'key',map:'items'},
+    {id:'key-zero',order:1,name:'Key Zero',familyId:'key',map:'items'},
+  ];
+  const families = [{id:'key',displayName:'Keys'}];
+  const base = createQuantityInteraction(familyEntities,{'key-positive':2});
+  const pending = updateQuantityInput(base,'key-zero','4');
+  assert.deepEqual(groupQuantityEntries(pending,{inStock:true},families)[0].items.map(entity=>entity.id),['key-positive','key-zero']);
+  const invalid = acceptQuantityInput(updateQuantityInput(base,'key-zero','bad'),'key-zero').state;
+  assert.equal(invalid.raw['key-zero'],'bad');
+  assert.deepEqual(groupQuantityEntries(invalid,{inStock:true},families)[0].items.map(entity=>entity.id),['key-positive','key-zero']);
+});
+
+test('quantity stepping shares validation and respects zero and safe-integer boundaries', () => {
+  const one = [{id:'a',order:0,name:'Alpha',familyId:'key',map:'items'}];
+  const base = createQuantityInteraction(one,{});
+  const incremented = stepQuantityInput(base,'a',1);
+  assert.equal(incremented.error,null);
+  assert.equal(incremented.quantity,1);
+  assert.equal(incremented.state.raw.a,'1');
+  const zero = stepQuantityInput(base,'a',-1);
+  assert.equal(zero.quantity,0);
+  const maxState = createQuantityInteraction(one,{a:Number.MAX_SAFE_INTEGER});
+  assert.equal(stepQuantityInput(maxState,'a',1).quantity,Number.MAX_SAFE_INTEGER);
+  const invalidState = updateQuantityInput(base,'a','bad');
+  const invalid = stepQuantityInput(invalidState,'a',1);
+  assert.ok(invalid.error);
+  assert.equal(invalid.state.raw.a,'bad');
 });
