@@ -1,7 +1,7 @@
 # Character Workspace Visual Redesign Design
 
 Status: APPROVED DIRECTION — REVISED SPEC FOR OWNER CHECKPOINT REVIEW
-Date: 2026-10-14  
+Date: 2026-10-14
 Scope: Character Workspace presentation and interaction design only. No production code, routes, schema, persistence semantics, Dashboard behavior, queue behavior, or Killer inventory data are changed by this document.
 
 ## Revision checkpoint
