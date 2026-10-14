@@ -2328,6 +2328,7 @@ footer span {
 .character-workspace-header { margin-bottom:30px; padding-bottom:18px; border-bottom:1px solid var(--border); }
 .character-workspace-back { display:inline-flex; min-height:44px; align-items:center; color:var(--muted); font-size:12px; }
 .character-workspace-hero { display:flex; align-items:center; justify-content:space-between; gap:24px; margin:8px 0 16px; }
+.character-workspace-summary { min-width:0; }
 .character-workspace-identity { margin:0; }
 .character-workspace-title { min-width:0; }
 .character-workspace-title .eyebrow { margin-bottom:5px; }
@@ -2336,7 +2337,7 @@ footer span {
 .status-chip.is-owned { color:var(--text); border-color:#535056; background:#242427; }
 .status-chip.is-favorite { color:var(--gold); border-color:#58492f; background:#211d16; }
 .character-workspace-edit { min-height:44px; display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; }
-.character-workspace-progress { display:flex; gap:34px; margin:0 0 18px 98px; }
+.character-workspace-progress { display:flex; gap:34px; margin:16px 0 0 98px; }
 .character-workspace-progress>div { display:grid; gap:4px; min-width:92px; }
 .character-workspace-progress span { color:var(--muted); font-size:9px; letter-spacing:1.45px; }
 .character-workspace-progress strong { font-size:18px; font-weight:600; font-variant-numeric:tabular-nums; }
@@ -2380,6 +2381,7 @@ footer span {
 }
 @media(max-width:600px){
   .character-workspace-hero{align-items:flex-start; flex-direction:column; gap:14px;}
+  .character-workspace-summary{width:100%;}
   .character-workspace-edit{width:100%;}
   .character-workspace-progress{margin-left:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;}
   .character-workspace-progress>div{min-width:0; padding:10px 12px; border:1px solid var(--border); border-radius:4px;}

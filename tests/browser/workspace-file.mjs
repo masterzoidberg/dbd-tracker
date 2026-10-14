@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright-core';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { inventoryEntities, survivorInventorySource } from '../../data/inventory-catalog.js';
 
 export const workspaceHashes = [
   'character/meg-thomas/overview', 'character/meg-thomas', 'character/meg-thomas/perks',
@@ -62,6 +63,31 @@ try {
     await page.locator('[data-current-focus] a').click();
     await page.locator('[data-character-workspace]').waitFor();
   } else assert.equal(await page.locator('#edit-bloodweb').isDisabled(), true);
+  assert.equal(writer,true,'Direct-file quantity save verification requires real writer access');
+  await page.goto(url+'#character/meg-thomas/items-addons');
+  await page.locator('[data-stock-family]').waitFor();
+  const families=survivorInventorySource.itemFamilies;
+  for(const family of families){
+    await page.locator('#stock-family-nav-'+family.id).click();
+    assert.equal(await page.locator('[data-stock-family]').getAttribute('data-stock-family'),family.id);
+  }
+  const decoded=await page.evaluate(async paths=>Promise.all(paths.map(async path=>{
+    const image=new Image();image.src=path;await image.decode();return image.naturalWidth>0;
+  })),inventoryEntities.map(e=>e.imagePath));
+  assert.equal(decoded.filter(Boolean).length,92,'All background inventory images decode directly from disk');
+  await page.locator('#stock-family-nav-'+families[0].id).click();
+  const item=inventoryEntities.find(e=>e.familyId===families[0].id&&e.map==='items');
+  await page.locator('[data-inventory-quantity="'+item.id+'"]').fill('4');
+  await page.locator('[data-inventory-quantity="'+item.id+'"]').press('Enter');
+  const inventorySaved=await page.evaluate(()=>localStorage.dbdTrackerData);
+  assert.equal(JSON.parse(inventorySaved).characters['meg-thomas'].inventory.items[item.id],4);
+  await page.close();
+  const reopened=await context.newPage();reopened.on('pageerror',e=>errors.push(e.message));
+  await reopened.goto(url+'#character/meg-thomas/items-addons');
+  await reopened.locator('[data-inventory-quantity="'+item.id+'"]').waitFor();
+  await reopened.waitForFunction(()=>document.querySelector('#save-status').textContent==='Saved locally');
+  assert.equal(await reopened.locator('[data-inventory-quantity="'+item.id+'"]').inputValue(),'4');
+  assert.equal(await reopened.evaluate(()=>localStorage.dbdTrackerData),inventorySaved,'Close/reopen retains direct-file quantity save');
   assert.deepEqual(errors, []);
-  console.log('Direct-file workspace PASS; writer=' + writer + '; genuine 200% zoom OUTSTANDING');
+  console.log('Direct-file workspace PASS; writer=' + writer + '; 92/92 inventory images; family navigation/quantity save/reopen PASS; genuine 200% zoom OUTSTANDING');
 } finally { await browser.close(); }

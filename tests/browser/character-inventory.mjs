@@ -39,6 +39,13 @@ const card = (page, id) => page.locator(`.perk-card[data-perk="${id}"]`);
 export async function characterInventoryRegression(page, origin) {
   await seed(page, origin);
 
+  const workspace=page.locator('[data-character-workspace]');
+  assert.equal(await workspace.locator('[data-character-header]').count(),1);
+  assert.equal(await workspace.locator('h1').count(),1,'Shared identity supplies the only h1');
+  assert.equal(await workspace.locator('.character-portrait').count(),1,'Perks cannot repeat the character portrait');
+  assert.equal(await workspace.getByRole('heading',{name:'Perks',exact:true}).count(),1,'Normal Perks has a simple section heading');
+  assert.equal(await workspace.getByRole('link',{name:'Update Inventory',exact:true}).count(),1);
+
   // Normal mode is an effective inventory, not a missing-perk filter.
   assert.equal(await page.locator('#character-inventory-search').count(), 0);
   assert.match(await page.locator('.character-inventory-intro').textContent(), /\d+ perks tracked/);

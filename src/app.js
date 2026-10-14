@@ -409,7 +409,7 @@ function characterInventory(id) {
   const rows = characterNormalInventory(save, id);
   const maxed = rows.filter(row => row.effectiveTier === 3).length;
   const upgradable = rows.filter(row => bloodwebEligible(save, id, row.perk)).length;
-  return `<a class="back-link" href="#${character.role}s">← ${character.role === 'survivor' ? 'Survivors' : 'Killers'}</a>${pageHeading('CHARACTER INVENTORY', `<span class="character-title">${characterArtwork(character, 80)}<span>${esc(character.name)}</span></span>`, 'The tracker\'s effective inventory for this character.', `<a class="primary button-link character-inventory-update-action" href="${characterWorkspaceHref(id, 'perks', 'update')}">Update Inventory</a>`)}<section class="character-inventory-intro panel"><div><strong>${rows.length} perks tracked</strong><span>${maxed} maxed${upgradable ? ` · ${upgradable} can upgrade` : ''}</span></div><p>Compare this character with the perk grid in Dead by Daylight. The Update Inventory workspace keeps the candidate set focused on perks that can reasonably appear here.</p><a class="character-inventory-helper-link" href="${characterWorkspaceHref(id, 'perks', 'update')}">Compare and sync this character with your in-game perk inventory →</a><div class="character-inventory-size">${characterInventoryCardSizeControl()}</div></section><section class="character-inventory-grid ${characterInventoryGridClass()}" aria-label="${esc(character.name)} effective perk inventory">${rows.length ? rows.map(row => characterPerkCard(row, id)).join('') : empty('No effective perks are currently tracked for this character.')}</section>`;
+  return `<div class="section-title"><h2>Perks</h2><a class="primary button-link character-inventory-update-action" href="${characterWorkspaceHref(id, 'perks', 'update')}">Update Inventory</a></div><section class="character-inventory-intro"><div><strong>${rows.length} perks tracked</strong><span>${maxed} maxed${upgradable ? ` · ${upgradable} can upgrade` : ''}</span></div><p>Your effective perk inventory. Use Update Inventory to compare and sync with Dead by Daylight.</p><div class="character-inventory-size">${characterInventoryCardSizeControl()}</div></section><section class="character-inventory-grid ${characterInventoryGridClass()}" aria-label="${esc(character.name)} effective perk inventory">${rows.length ? rows.map(row => characterPerkCard(row, id)).join('') : empty('No effective perks are currently tracked for this character.')}</section>`;
 }
 
 function characterInventoryUpdate(id) {
@@ -516,13 +516,13 @@ function characterWorkspaceHeader(character, descriptor) {
   const roleLabel = character.role === 'survivor' ? 'Survivor' : 'Killer';
   return '<header class="character-workspace-header" data-character-header>'
     + '<a class="character-workspace-back" href="#' + character.role + 's">← ' + collectionLabel + '</a>'
-    + '<div class="character-workspace-hero"><div class="character-workspace-identity">' + characterArtwork(character, 80)
+    + '<div class="character-workspace-hero"><div class="character-workspace-summary"><div class="character-workspace-identity">' + characterArtwork(character, 80)
     + '<div class="character-workspace-title"><div class="eyebrow">' + roleLabel.toUpperCase() + '</div><h1>' + esc(character.name) + '</h1>'
     + '<div class="character-workspace-status"><span class="status-chip ' + (progress.owned ? 'is-owned' : 'is-unowned') + '">' + (progress.owned ? 'Owned' : 'Not owned') + '</span>'
     + '<span class="status-chip ' + (progress.favorite ? 'is-favorite' : '') + '">' + (progress.favorite ? 'Favorite ★' : 'Not favorite') + '</span></div></div></div>'
-    + '<a class="primary button-link character-workspace-edit" href="' + characterWorkspaceHref(character.id, 'edit') + '">Edit Character</a></div>'
     + '<div class="character-workspace-progress" aria-label="Character progression"><div data-character-progress="prestige"><span>PRESTIGE</span><strong>P' + progress.prestige + '</strong></div>'
-    + '<div data-character-progress="bloodweb"><span>BLOODWEB</span><strong>' + progress.bloodwebLevel + ' / 50</strong></div></div>'
+    + '<div data-character-progress="bloodweb"><span>BLOODWEB</span><strong>' + progress.bloodwebLevel + ' / 50</strong></div></div></div>'
+    + '<a class="primary button-link character-workspace-edit" href="' + characterWorkspaceHref(character.id, 'edit') + '">Edit Character</a></div>'
     + '<nav class="character-workspace-nav" aria-label="Character workspace">' + sections.map(([section, label]) =>
       '<a data-workspace-section="' + section + '" href="' + characterWorkspaceHref(character.id, section) + '"'
       + (descriptor.section === section ? ' aria-current="page"' : '') + '>' + label + '</a>').join('') + '</nav></header>';

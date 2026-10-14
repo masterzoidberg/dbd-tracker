@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { freshSave } from '../../src/model.js';
 
 export async function characterWorkspaceRegression(page, origin) {
+  await characterWorkspaceResponsive(page,origin);
   const { workspaceLayouts } = await import('./workspace-layouts.mjs');
   await workspaceLayouts(page, origin);
   const save = freshSave();
@@ -83,6 +84,49 @@ export async function characterWorkspaceRegression(page, origin) {
   await page.waitForURL('**/#character/meg-thomas/overview');
   assert.equal(await page.locator('#detail').isVisible(), false);
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before);
+}
+export async function characterWorkspaceResponsive(page,origin){
+  const save=freshSave();
+  Object.assign(save.characters['meg-thomas'],{owned:true,favorite:true,prestige:3,bloodwebLevel:27,notes:'Long notes '.repeat(60)});
+  await page.evaluate(s=>localStorage.setItem('dbdTrackerData',JSON.stringify(s)),save);
+  await page.goto(origin+'/#character/meg-thomas/overview');await page.reload();
+  for(const width of [320,500,760,1100,1440,1600]){
+    await page.setViewportSize({width,height:900});
+    const edges=[];
+    for(const section of ['overview','perks','items-addons']){
+      await page.goto(origin+'/#character/meg-thomas/'+section);
+      await page.locator('[data-workspace-section="'+section+'"][aria-current="page"]').waitFor();
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Workspace overflow '+width+'/'+section);
+      const header=page.locator('[data-character-header]');
+      assert.equal(await header.count(),1);assert.equal(await page.locator('[data-character-workspace] h1').count(),1);
+      assert.equal(await page.locator('[data-character-workspace] .character-portrait').count(),1);
+      assert.equal(await header.locator('[data-character-progress]').count(),2);
+      assert.ok(await header.locator('.character-portrait').isVisible());
+      assert.ok((await header.locator('.character-workspace-edit').boundingBox()).height>=44);
+      assert.equal(await header.evaluate(n=>{
+        const progress=n.querySelector('.character-workspace-progress'), edit=n.querySelector('.character-workspace-edit');
+        return Boolean(progress.compareDocumentPosition(edit)&Node.DOCUMENT_POSITION_FOLLOWING);
+      }),true,'Progress precedes Edit Character in logical DOM order');
+      const bounds=await header.boundingBox();edges.push([bounds.x,bounds.width]);
+      const levels=await page.locator('[data-character-workspace] :is(h1,h2,h3,h4,h5,h6)').evaluateAll(nodes=>nodes.map(n=>Number(n.tagName.slice(1))));
+      for(let i=1;i<levels.length;i++)assert.ok(levels[i]<=levels[i-1]+1,'No skipped heading levels '+section);
+      const navigation=header.locator('[data-workspace-section="'+section+'"]');await navigation.focus();
+      assert.ok(await navigation.evaluate(n=>{const s=getComputedStyle(n);return s.outlineStyle!=='none'&&parseFloat(s.outlineWidth)>0;}),'Visible navigation focus');
+      if(section==='overview'){
+        assert.deepEqual(await page.locator('[data-overview-section]').evaluateAll(nodes=>nodes.map(n=>n.dataset.overviewSection)),['native-perks','progress','perks','inventory','notes']);
+      }
+      if(section==='items-addons'){
+        assert.equal(await page.getByRole('navigation',{name:'Item families'}).locator('[aria-pressed="true"]').count(),1);
+        const field=page.locator('[data-inventory-quantity]').first();
+        assert.match(await field.getAttribute('aria-describedby'),/^stock-error-/);
+        const plus=page.locator('[data-stock-step][data-delta="1"]').first();
+        assert.match(await plus.getAttribute('aria-label'),/^Increase quantity of /);
+        if(width<=500)assert.ok(await page.locator('.stock-family-nav').evaluate(n=>n.scrollWidth>n.clientWidth));
+      }
+    }
+    assert.deepEqual(edges[0],edges[1],'Shared edges Overview/Perks '+width);assert.deepEqual(edges[1],edges[2],'Shared edges Perks/Inventory '+width);
+  }
+  await page.setViewportSize({width:1440,height:900});
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const { smokeStage } = await import('./smoke.mjs');
