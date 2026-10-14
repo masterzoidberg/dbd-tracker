@@ -10,3 +10,4 @@ Pre-flight: Task 3 family sections/filter/collapse → Task 4 Details/rarity and
 Pre-flight: Task 4 bounded Details dialog → Task 5 focus handling: opener restoration remains presentation-only and independent of writer access.
 
 Task 1 COMPLETE at `41d61e2`: added pure `groupQuantityEntries` and `stepQuantityInput` helpers plus focused tests. RED: missing export failure observed. GREEN: focused 6/6 pass; full `npm test` 243/243 pass, 0 fail. No schema/storage/model changes.
+Task 2 COMPLETE at `1f59725`: shared identity/header and Overview dashboard composition implemented. RED: new header hook absent. First GREEN exposed a legacy copy assertion (`Native perks` vs approved `Native Perks`); root cause was copy-only capitalization, expectation updated, rerun passed. Chrome workspace smoke AUTOMATED PASS; full `npm test` 243/243 pass, 0 fail. No routes/schema/persistence changed.
