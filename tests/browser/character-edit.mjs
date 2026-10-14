@@ -2,8 +2,35 @@ import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { freshSave } from '../../src/model.js';
+import { inventoryEntities } from '../../data/inventory-catalog.js';
+
+export async function characterEditStepperRegression(page,origin){
+ const item=inventoryEntities.find(e=>e.map==='items');
+ const save=freshSave();save.characters['meg-thomas'].inventory.items['survivor-item-future-unresolved']=7;
+ await page.evaluate(s=>localStorage.setItem('dbdTrackerData',JSON.stringify(s)),save);
+ await page.goto(origin+'/#character/meg-thomas/edit');await page.reload();
+ const field=page.locator('[data-inventory-quantity="'+item.id+'"]');
+ const plus=page.getByRole('button',{name:'Increase quantity of '+item.name,exact:true});
+ const minus=page.getByRole('button',{name:'Decrease quantity of '+item.name,exact:true});
+ const bytes=()=>page.evaluate(()=>localStorage.dbdTrackerData);
+ const before=await bytes();
+ await field.fill('3');await plus.click();
+ assert.equal(await field.inputValue(),'4');assert.equal(await bytes(),before,'Draft steps never autosave');
+ assert.match(await page.locator('#stock-error-'+item.id).textContent(),/Unsaved draft/);
+ assert.equal(await field.evaluate(n=>document.activeElement===n),true);
+ await minus.click();assert.equal(await field.inputValue(),'3');assert.equal(await bytes(),before);
+ await field.fill('abc');assert.equal(await plus.isDisabled(),true);assert.equal(await minus.isDisabled(),true);
+ await field.press('Enter');assert.equal(await field.inputValue(),'abc');assert.equal(await bytes(),before);
+ await field.fill('0');await field.press('Enter');await plus.click();
+ assert.equal(await field.inputValue(),'1');assert.equal(await bytes(),before);
+ await page.getByRole('button',{name:'Save Character',exact:true}).click();
+ await page.waitForURL('**/#character/meg-thomas/overview');
+ const inventory=JSON.parse(await bytes()).characters['meg-thomas'].inventory;
+ assert.equal(inventory.items[item.id],1);assert.equal(inventory.items['survivor-item-future-unresolved'],7);
+}
 
 export async function characterEditRegression(page, origin) {
+  await characterEditStepperRegression(page,origin);
   page.setDefaultTimeout(5000);
   const save = freshSave();
   save.prestigeQueue = [{ characterId: 'meg-thomas', targetPrestige: 9 }];
@@ -99,6 +126,7 @@ export async function characterEditRegression(page, origin) {
   assert.equal(await page.locator('#edit-notes').inputValue(), 'Conflict draft');
   assert.match(await page.locator('[data-edit-errors]').textContent(), /changed|conflict/i);
   assert.equal(await page.getByRole('button', { name: 'Save Character', exact: true }).isDisabled(), true);
+  assert.equal(await page.locator('[data-stock-step]:not([disabled])').count(),0,'Conflicted draft disables steppers');
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await page.getByRole('button', { name: 'Discard', exact: true }).click();
   await page.waitForURL('**/#character/meg-thomas/overview');

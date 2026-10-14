@@ -4,7 +4,7 @@ import { TrackerStorage } from './storage.js';
 import { parseCharacterWorkspaceRoute, characterWorkspaceHref } from './character-workspace.js';
 import {inventoryEntities,inventoryEntityById,inventoryCatalogStatus,survivorInventorySource} from '../data/inventory-catalog.js';
 import {inventoryIconPath} from './assets.js';
-import {createQuantityInteraction,updateQuantityInput,acceptQuantityInput,visibleQuantityEntries,regroupQuantityEntries,quantityFocusAfterCommit,groupQuantityEntries} from './inventory-interaction.js';
+import {createQuantityInteraction,updateQuantityInput,acceptQuantityInput,regroupQuantityEntries,quantityFocusAfterCommit,groupQuantityEntries,stepQuantityInput} from './inventory-interaction.js';
 import { createCharacterEditSession, updateCharacterEditSession, buildCharacterEditCandidate, characterEditPreview } from './character-edit.js';
 import { EditorGuard } from './editor.js';
 import { setupView } from './setup.js';
@@ -112,6 +112,7 @@ function editorPresentation() {
   document.querySelectorAll('[data-edit-field], [data-edit-perk], [data-edit-correction], [data-inventory-quantity], [data-action="character-edit-save"]').forEach(control => {
     control.disabled = !editing || storageBlocked || Boolean(characterEditSession?.conflicted);
   });
+  updateStockStepControls();
   if (characterEditSession) {
     $('#detail-content').querySelectorAll('select, [data-action="account-unlock-tier"], [data-action="cycle"]').forEach(control => { control.disabled = true; });
   }
@@ -660,7 +661,10 @@ function stockView(id,mode) {
     return '<article data-stock-card="'+entity.id+'" data-stock-rarity="'+esc(entity.rarity)+'" class="stock-card inventory-rarity-'+raritySlug+' '+((stockSession.baseline[entity.id]||0)>0?'':'zero-stock')+'">'
       +'<div class="stock-card-media">'+(art?'<img src="'+esc(art)+'" alt="" loading="lazy" data-inventory-icon>':'<span aria-hidden="true" class="stock-art-fallback">◇</span>')+'</div>'
       +'<h3>'+esc(entity.name)+'</h3><div class="stock-card-meta">'+inventoryRarityBadge(entity)+'<small>'+esc(inventoryFamily(entity).displayName)+'</small></div>'
-      +'<label for="quantity-'+entity.id+'">Quantity of '+esc(entity.name)+'</label><input id="quantity-'+entity.id+'" data-inventory-quantity="'+entity.id+'" inputmode="numeric" type="text" value="'+esc(stockSession.raw[entity.id])+'" aria-invalid="'+Boolean(error)+'" aria-describedby="stock-error-'+entity.id+'">'
+      +'<label for="quantity-'+entity.id+'">Quantity of '+esc(entity.name)+'</label><div class="stock-quantity-control">'
+      +'<button type="button" id="stock-decrement-'+entity.id+'" data-action="stock-step" data-stock-step data-id="'+entity.id+'" data-delta="-1" aria-label="Decrease quantity of '+esc(entity.name)+'">−</button>'
+      +'<input id="quantity-'+entity.id+'" data-inventory-quantity="'+entity.id+'" inputmode="numeric" type="text" value="'+esc(stockSession.raw[entity.id])+'" aria-invalid="'+Boolean(error)+'" aria-describedby="stock-error-'+entity.id+'">'
+      +'<button type="button" id="stock-increment-'+entity.id+'" data-action="stock-step" data-stock-step data-id="'+entity.id+'" data-delta="1" aria-label="Increase quantity of '+esc(entity.name)+'">+</button></div>'
       +'<p id="stock-error-'+entity.id+'" data-stock-error role="status">'+esc(error|| (stockSession.pending[entity.id]?(mode==='draft'?'Unsaved draft':'Pending change'):''))+'</p>'
       +'<button type="button" id="stock-details-'+entity.id+'" class="stock-details-action" data-action="stock-details" data-id="'+entity.id+'">Details</button></article>';
   };
@@ -684,6 +688,18 @@ function stockView(id,mode) {
     +'<div class="stock-families">'+familyMarkup+'</div>'+(!visibleGroups.length?'<p class="empty">No matching stock entries.</p>':'')
     +(unresolved.length?'<section class="unresolved-stock" data-unresolved-stock><h2 id="inventory-unresolved">Imported records not in current catalog</h2><p class="muted">Preserved exactly and read-only until the runtime catalog can resolve them.</p><ul>'+unresolved.map(([unknown,quantity])=>'<li><code>'+esc(unknown)+'</code><span>Quantity '+quantity+'</span><small>Read-only</small></li>').join('')+'</ul></section>':'')+'</section>';
 }
+function updateStockStepControls(id=null) {
+  const blocked=!initialized||editor.state!=='editing'||storageBlocked||Boolean(characterEditSession?.conflicted);
+  for(const input of document.querySelectorAll('[data-inventory-quantity]')){
+    const entityId=input.dataset.inventoryQuantity;
+    if(id && entityId!==id)continue;
+    const result=acceptQuantityInput(stockSession,entityId);
+    input.closest('.stock-quantity-control').querySelectorAll('[data-stock-step]').forEach(control=>{
+      control.disabled=blocked||Boolean(result.error)
+        || (control.dataset.delta==='-1'?result.quantity===0:result.quantity===Number.MAX_SAFE_INTEGER);
+    });
+  }
+}
 function stockInput(target) {
   store.assertWriter();
   const id=target.dataset.inventoryQuantity;
@@ -691,14 +707,34 @@ function stockInput(target) {
   if(characterEditSession) {
     characterEditSession=updateCharacterEditSession(characterEditSession,{field:'quantity',map:inventoryEntityById[id].map,id,text:target.value},save);
   }
+  updateStockStepControls(id);
+}
+function stepStock(button) {
+  store.assertWriter();
+  if(storageBlocked||characterEditSession?.conflicted)return false;
+  const id=button.dataset.id;
+  if(stockBlurPending?.id===id)stockBlurPending=null;
+  const result=stepQuantityInput(stockSession,id,Number(button.dataset.delta));
+  stockSession=result.state;
+  if(result.error){render();$('#quantity-'+id)?.focus({preventScroll:true});return false;}
+  if(characterEditSession){
+    characterEditSession=updateCharacterEditSession(characterEditSession,{field:'quantity',map:inventoryEntityById[id].map,id,text:String(result.quantity)},save);
+  }
+  return acceptStock(id,'step');
+}
+function stockFocusOrder() {
+  return groupQuantityEntries(stockSession,stockFilters,survivorInventorySource.itemFamilies)
+    .filter(group=>!stockCollapsedFamilies.has(group.family.id)||stockFilters.search||stockForcedFamilies.has(group.family.id))
+    .flatMap(group=>[...group.items,...group.addons]).map(entity=>entity.id);
 }
 function acceptStock(id,trigger,nextTargetId=null) {
   if(!stockSession)return;
+  if(stockBlurPending?.id===id&&stockBlurPending.key===stockSessionKey)stockBlurPending=null;
   const result=acceptQuantityInput(stockSession,id);stockSession=result.state;
   if(result.error){render();if(trigger==='enter')$('#quantity-'+id)?.focus({preventScroll:true});return false;}
-  if(stockSession.mode==='draft'){render();return true;}
+  if(stockSession.mode==='draft'){render();if(trigger==='step')$('#quantity-'+id)?.focus({preventScroll:true});return true;}
   const characterId=stockSessionKey.split('/')[0], entity=inventoryEntityById[id];
-  const before=visibleQuantityEntries(stockSession,stockFilters).map(e=>e.id);
+  const before=stockFocusOrder();
   try {
     store.assertWriter();
     if((save.characters[characterId].inventory[entity.map][id]||0)!==result.quantity) {
@@ -715,13 +751,15 @@ function acceptStock(id,trigger,nextTargetId=null) {
       stockSession.raw[other]=previous.raw[other];stockSession.pending[other]=true;
       if(previous.errors[other])stockSession.errors[other]=previous.errors[other];
     }
-    const visible=visibleQuantityEntries(stockSession,stockFilters).map(e=>e.id);
-    const availableDestinations=[...visible,...['inventory-search','inventory-map','inventory-rarity','inventory-in-stock','inventory-unresolved'],...visible.map(entityId=>'stock-details-'+entityId)];
+    if(trigger!=='blur')stockForcedFamilies.add(entity.familyId);
+    const visible=stockFocusOrder();
+    const stepDestinations=[...document.querySelectorAll('[data-stock-step]:not(:disabled)')].filter(control=>visible.includes(control.dataset.id)).map(control=>control.id);
+    const availableDestinations=[...visible,...['inventory-search','inventory-map','inventory-rarity','inventory-in-stock','inventory-unresolved'],...visible.map(entityId=>'stock-details-'+entityId),...stepDestinations];
     const destination=quantityFocusAfterCommit(before,{entityId:id,nextTargetId,trigger,visibleIds:availableDestinations});
     render(); ($('#quantity-'+destination)||document.getElementById(destination))?.focus({preventScroll:true});
     message('Quantity saved: '+entity.name+' '+result.quantity+'.');
     return true;
-  }catch(error){stockSession.errors[id]='Not saved. '+error.message;render();if(trigger==='enter')$('#quantity-'+id)?.focus({preventScroll:true});return false;}
+  }catch(error){stockSession.errors[id]='Not saved. '+error.message;render();if(trigger==='enter'||trigger==='step')$('#quantity-'+id)?.focus({preventScroll:true});return false;}
 }
 function saveCharacterEdit({ navigate = true } = {}) {
   if (!characterEditSession) return false;
@@ -1009,6 +1047,7 @@ async function handleClick(event) {
   const button = event.target.closest('[data-action]');
   if (!button) return;
   const { action, id, character, perk, mode, family } = button.dataset;
+  if(action==='stock-step'){stepStock(button);return;}
   if(action==='stock-family-toggle'){stockForcedFamilies.delete(family);if(stockCollapsedFamilies.has(family))stockCollapsedFamilies.delete(family);else stockCollapsedFamilies.add(family);render();document.querySelector('[data-action="stock-family-toggle"][data-family="'+family+'"]')?.focus();return;}
   if(action==='stock-collapse-all'){stockCollapsedFamilies=new Set(survivorInventorySource.itemFamilies.map(entry=>entry.id));stockForcedFamilies.clear();render();document.querySelector('[data-action="stock-collapse-all"]')?.focus();return;}
   if(action==='stock-expand-all'){stockCollapsedFamilies.clear();stockForcedFamilies.clear();render();document.querySelector('[data-action="stock-expand-all"]')?.focus();return;}
@@ -1342,10 +1381,16 @@ document.addEventListener('keydown', event => {
   if (event.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) && !$('#detail').open && !$('#confirmation').open) { event.preventDefault(); (setupOpen ? $('#setup-search') : $('#search'))?.focus(); }
 });
 document.addEventListener('focusout',event=>{
-  if(stockRendering||!event.target.dataset.inventoryQuantity)return;
-  const id=event.target.dataset.inventoryQuantity, key=stockSessionKey;
+  if(stockRendering)return;
+  const id=event.target.dataset.inventoryQuantity||(event.target.hasAttribute('data-stock-step')?event.target.dataset.id:null);
+  if(!id)return;
+  const key=stockSessionKey;
   const related=event.relatedTarget, destination=related?.dataset.inventoryQuantity||related?.id;
-  stockBlurPending={id,key,destination};
+  if(event.target.dataset.inventoryQuantity)stockBlurPending={id,key,destination};
+  // Moving within the quantity control defers blur until activation or leaving the control.
+  if(related?.dataset.inventoryQuantity===id || (related?.hasAttribute('data-stock-step')&&related.dataset.id===id))return;
+  if(stockBlurPending?.id!==id||stockBlurPending.key!==key)return;
+  stockBlurPending.destination=destination;
   setTimeout(()=>{if(stockBlurPending?.id===id&&stockBlurPending?.key===key){
     stockBlurPending=null;if(stockSessionKey===key&&stockSession)acceptStock(id,'blur',destination);
   }},0);

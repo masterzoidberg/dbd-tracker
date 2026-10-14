@@ -3,7 +3,109 @@ import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {freshSave} from '../../src/model.js';
 import {inventoryEntities,inventoryEntityById,inventoryCatalogStatus,survivorInventorySource} from '../../data/inventory-catalog.js';
+export async function quantityStepperRegression(page,origin){
+ page.setDefaultTimeout(6000);
+ const [zero,max]=inventoryEntities.filter(e=>e.map==='items');
+ const save=freshSave();save.characters['meg-thomas'].inventory.items[max.id]=Number.MAX_SAFE_INTEGER;
+ await page.evaluate(s=>localStorage.setItem('dbdTrackerData',JSON.stringify(s)),save);
+ await page.goto(origin+'/#character/meg-thomas/items-addons');await page.reload();
+ const card=entity=>page.locator('[data-stock-card="'+entity.id+'"]');
+ const decrease=entity=>card(entity).getByRole('button',{name:'Decrease quantity of '+entity.name,exact:true});
+ const increase=entity=>card(entity).getByRole('button',{name:'Increase quantity of '+entity.name,exact:true});
+ await card(zero).waitFor();
+ assert.equal(await decrease(zero).count(),1,'Quantity decrement must exist with an entity-specific accessible name');
+ assert.equal(await increase(zero).count(),1,'Quantity increment must exist with an entity-specific accessible name');
+ assert.equal(await card(zero).getByRole('textbox',{name:'Quantity of '+zero.name,exact:true}).count(),1);
+ assert.equal(await decrease(zero).isDisabled(),true,'Decrement disabled at zero');
+ assert.equal(await increase(zero).isDisabled(),false);
+ assert.equal(await increase(max).isDisabled(),true,'Increment disabled at MAX_SAFE_INTEGER');
+ assert.equal(await decrease(max).isDisabled(),false);
+ for(const control of [decrease(zero),increase(zero),card(zero).getByRole('textbox')]){
+  const box=await control.boundingBox();assert.ok(box.height>=44&&box.width>=44,'Practical quantity targets');
+ }
+ const field=entity=>card(entity).getByRole('textbox');
+ const bytes=()=>page.evaluate(()=>localStorage.getItem('dbdTrackerData'));
+ const quantity=async entity=>JSON.parse(await bytes()).characters['meg-thomas'].inventory.items[entity.id]||0;
+ await page.evaluate(()=>{
+  window.stepWrites=[];window.stepSetItem=Storage.prototype.setItem;
+  Storage.prototype.setItem=function(key,value){if(key==='dbdTrackerData')window.stepWrites.push(value);return window.stepSetItem.call(this,key,value);};
+ });
+ const writes=()=>page.evaluate(()=>window.stepWrites.length);
+ // Pointer down/up are separated: a pending field must not commit during the button press.
+ await field(zero).fill('3');
+ const plusBox=await increase(zero).boundingBox();
+ await page.mouse.move(plusBox.x+plusBox.width/2,plusBox.y+plusBox.height/2);await page.mouse.down();
+ await page.waitForTimeout(60);assert.equal(await writes(),0,'No intermediate blur commit before activation');
+ await page.mouse.up();
+ assert.equal(await quantity(zero),4,'Step uses pending typed value');
+ assert.equal(await writes(),1,'One pointer activation produces one commit');
+ assert.equal(await field(zero).evaluate(n=>n===document.activeElement),true,'Focus returns to editable field');
+ await decrease(zero).click();assert.equal(await quantity(zero),3);
+ await field(zero).fill('1');await field(zero).press('Tab');
+ assert.equal(await increase(zero).evaluate(n=>n===document.activeElement),true);
+ const keyboardWrites=await writes();await increase(zero).press('Enter');
+ assert.equal(await quantity(zero),2);assert.equal(await writes(),keyboardWrites+1,'Keyboard activation commits pending value once');
+ await increase(zero).focus();const spaceWrites=await writes();await increase(zero).press('Space');
+ assert.equal(await quantity(zero),3);assert.equal(await writes(),spaceWrites+1,'Space activation commits once');
+ await field(zero).fill('1');await field(zero).press('Enter');
+ await decrease(zero).click();assert.equal(await quantity(zero),0);
+ assert.equal(await decrease(zero).isDisabled(),true);
+ assert.equal(await field(zero).evaluate(n=>n===document.activeElement),true,'Zero boundary cannot focus disabled decrement');
+ for(const raw of ['abc','1.5']){
+  const before=await bytes();await field(zero).fill(raw);
+  assert.equal(await decrease(zero).isDisabled(),true);assert.equal(await increase(zero).isDisabled(),true);
+  await increase(zero).evaluate(n=>n.click());await decrease(zero).evaluate(n=>n.click());
+  assert.equal(await field(zero).inputValue(),raw);assert.equal(await bytes(),before);
+  await field(zero).press('Enter');assert.equal(await field(zero).getAttribute('aria-invalid'),'true');
+ }
+ await field(zero).fill('0');await field(zero).press('Enter');
+ await field(max).fill(String(Number.MAX_SAFE_INTEGER-1));await field(max).press('Enter');
+ await increase(max).click();assert.equal(await quantity(max),Number.MAX_SAFE_INTEGER);
+ assert.equal(await increase(max).isDisabled(),true);assert.equal(await field(max).evaluate(n=>n===document.activeElement),true);
+ // Tabbing past the stepper without activating it still commits the pending typed edit.
+ await field(zero).fill('6');await field(zero).press('Tab');
+ const departureWrites=await writes();await increase(zero).press('Tab');
+ await page.waitForFunction(id=>JSON.parse(localStorage.dbdTrackerData).characters['meg-thomas'].inventory.items[id]===6,zero.id);
+ assert.equal(await writes(),departureWrites+1,'Leaving the control resolves deferred blur once');
+ await field(zero).fill('0');await field(zero).press('Enter');
+ // Save failure retains the attempted raw value; Enter retries through the ordinary path.
+ const failureBytes=await bytes();
+ await page.evaluate(()=>{window.failureSetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='dbdTrackerData')throw Error('Synthetic step failure');return window.failureSetItem.call(this,k,v);};});
+ await increase(zero).click();assert.equal(await bytes(),failureBytes);assert.equal(await field(zero).inputValue(),'1');
+ assert.match(await card(zero).locator('[data-stock-error]').textContent(),/Not saved/);
+ assert.equal(await field(zero).evaluate(n=>n===document.activeElement),true,'Failed step keeps an editable retry focus');
+ await page.evaluate(()=>{Storage.prototype.setItem=window.failureSetItem;delete window.failureSetItem;});
+ await field(zero).press('Enter');assert.equal(await quantity(zero),1);
+ await decrease(zero).click();
+ await field(zero).fill('5');await decrease(max).focus();
+ await page.waitForFunction(id=>JSON.parse(localStorage.dbdTrackerData).characters['meg-thomas'].inventory.items[id]===5,zero.id);
+ assert.equal(await decrease(max).evaluate(n=>n===document.activeElement),true,'Blur respects another card step button destination');
+ await field(zero).fill('0');await field(zero).press('Enter');
+ await page.evaluate(()=>{Storage.prototype.setItem=window.stepSetItem;delete window.stepSetItem;});
+ const reader=await page.context().newPage();
+ try{
+  await reader.goto(origin+'/#character/meg-thomas/items-addons');
+  await reader.waitForFunction(()=>document.querySelector('#save-status').textContent==='Read-only');
+  const readerButton=(entity,verb)=>reader.getByRole('button',{name:verb+' quantity of '+entity.name,exact:true});
+  assert.equal(await readerButton(zero,'Increase').isDisabled(),true);
+  assert.equal(await readerButton(max,'Decrease').isDisabled(),true);
+  const readerBytes=await reader.evaluate(()=>localStorage.dbdTrackerData);
+  await readerButton(zero,'Increase').dispatchEvent('click');
+  assert.equal(await reader.evaluate(()=>localStorage.dbdTrackerData),readerBytes,'Forced read-only activation cannot write');
+  await page.goto('about:blank');
+  await reader.waitForFunction(async()=>!(await navigator.locks.query()).held.some(l=>l.name==='dbdTracker-editor'));
+  await reader.getByRole('button',{name:'Enable editing',exact:true}).click();
+  await reader.waitForFunction(()=>document.querySelector('#save-status').textContent!=='Read-only');
+  assert.equal(await readerButton(zero,'Decrease').isDisabled(),true,'Writer acquisition preserves zero boundary');
+  assert.equal(await readerButton(zero,'Increase').isDisabled(),false);
+  assert.equal(await readerButton(max,'Increase').isDisabled(),true,'Writer acquisition preserves MAX boundary');
+  assert.equal(await readerButton(max,'Decrease').isDisabled(),false);
+ }finally{await reader.close();}
+ await page.goto(origin+'/#character/meg-thomas/items-addons');
+}
 export async function inventoryRegression(page,origin){
+ await quantityStepperRegression(page,origin);
+ await quantityStepperFocusRegression(page,origin);
  page.setDefaultTimeout(6000);
  assert.equal(inventoryCatalogStatus.survivor,'ready');
  const item=inventoryEntities.find(e=>e.map==='items'), addon=inventoryEntities.find(e=>e.map==='addons');
@@ -87,7 +189,7 @@ export async function inventoryRegression(page,origin){
   assert.match(await source.getAttribute('rel'),/noopener/);
   assert.match(await source.getAttribute('rel'),/noreferrer/);
   await page.getByRole('button',{name:'Close details',exact:true}).click();
-  assert.equal(await itemDetails.evaluate(node=>document.activeElement===node),true,'Details close restores exact opener');
+  await page.waitForFunction(id=>document.activeElement?.id==='stock-details-'+id,item.id);
 
   const addonDetails=page.locator('[data-stock-card="'+addon.id+'"] [data-action="stock-details"]');
   await addonDetails.click();
@@ -121,7 +223,7 @@ export async function inventoryRegression(page,origin){
  await page.locator('#inventory-in-stock').uncheck();
  await page.locator('#inventory-filters').evaluate(el=>el.open=true);
  await page.locator('#inventory-map').selectOption('addons');
- await field(addon.id).fill('9'); await field(addon.id).press('Tab');
+ await field(addon.id).fill('9'); await field(addon.id).press('Tab'); await page.keyboard.press('Tab');
  await page.waitForFunction(id=>JSON.parse(localStorage.dbdTrackerData).characters['meg-thomas'].inventory.addons[id]===9,addon.id);
  await page.evaluate(()=>{window.stockSetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='dbdTrackerData')throw Error('stock fixture failure');return window.stockSetItem.call(this,k,v);};});
  const failBefore=await bytes();
@@ -223,6 +325,41 @@ export async function inventoryRegression(page,origin){
   await page.locator('[data-stock-card="'+item.id+'"] .stock-art-fallback').waitFor();
   assert.equal(await page.locator('[data-stock-card="'+item.id+'"] img').count(),0);
   await page.unroute(broken);
+}
+export async function quantityStepperFocusRegression(page,origin){
+ page.setDefaultTimeout(6000);
+ const item=inventoryEntities.find(e=>e.map==='items');
+ const neighbor=inventoryEntities.find(e=>e.map==='addons'&&e.familyId===item.familyId);
+ const other=inventoryEntities.find(e=>e.map==='items'&&e.familyId!==item.familyId);
+ const save=freshSave();
+ save.characters['meg-thomas'].inventory.items[item.id]=1;
+ save.characters['meg-thomas'].inventory.items[other.id]=2;
+ save.characters['meg-thomas'].inventory.addons[neighbor.id]=3;
+ await page.evaluate(s=>localStorage.setItem('dbdTrackerData',JSON.stringify(s)),save);
+ await page.goto(origin+'/#character/meg-thomas/items-addons');await page.reload();
+ const field=id=>page.locator('[data-inventory-quantity="'+id+'"]');
+ const decrease=page.getByRole('button',{name:'Decrease quantity of '+item.name,exact:true});
+ await page.locator('#inventory-in-stock').check();
+ await decrease.click();
+ assert.equal(await field(item.id).count(),0,'Committed zero disappears under In Stock');
+ assert.equal(await field(neighbor.id).evaluate(n=>n===document.activeElement),true,'Fallback follows rendered family/subsection order, not global Item order');
+ await page.locator('#inventory-in-stock').uncheck();
+ await field(item.id).fill('abc');await field(item.id).press('Enter');
+ const toggle=page.locator('[data-stock-family="'+item.familyId+'"] [data-action="stock-family-toggle"]');
+ await toggle.click();assert.equal(await toggle.getAttribute('aria-expanded'),'false');
+ await page.locator('[data-stock-error-summary] [data-id="'+item.id+'"]').click();
+ assert.equal(await toggle.getAttribute('aria-expanded'),'true');
+ assert.equal(await field(item.id).inputValue(),'abc');
+ assert.equal(await field(item.id).evaluate(n=>n===document.activeElement),true);
+ await field(item.id).fill('1');await field(item.id).press('Enter');
+ // Restore the default view after error navigation sets Type to Items.
+ await page.locator('#inventory-filters').evaluate(n=>n.open=true);await page.locator('#inventory-map').selectOption('');
+ await page.locator('#inventory-in-stock').check();
+ await field(item.id).fill('0');await field(item.id).press('Enter');
+ assert.equal(await field(neighbor.id).evaluate(n=>n===document.activeElement),true,'Typed zero uses the same family-local fallback');
+ await page.locator('#inventory-search').fill(other.name);
+ await field(other.id).fill('0');await field(other.id).press('Enter');
+ assert.equal(await page.locator('#inventory-search').evaluate(n=>n===document.activeElement),true,'Last visible zero falls back to Search');
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const {smokeStage}=await import('./smoke.mjs');
