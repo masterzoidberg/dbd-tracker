@@ -8,3 +8,5 @@ Pre-flight: Task 1 `stepQuantityInput` → Task 5 quantity stepper: signatures a
 Pre-flight: Task 2 shared header/Overview → Task 6 responsive/Perks verification: shared workspace scope aligns.
 Pre-flight: Task 3 family sections/filter/collapse → Task 4 Details/rarity and Task 5 focus/stepper: later tasks extend the same card renderer without changing persistence.
 Pre-flight: Task 4 bounded Details dialog → Task 5 focus handling: opener restoration remains presentation-only and independent of writer access.
+
+Task 1 COMPLETE at `41d61e2`: added pure `groupQuantityEntries` and `stepQuantityInput` helpers plus focused tests. RED: missing export failure observed. GREEN: focused 6/6 pass; full `npm test` 243/243 pass, 0 fail. No schema/storage/model changes.
