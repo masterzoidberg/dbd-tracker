@@ -54,6 +54,7 @@ let stockBlurPending = null;
 let stockFilters = {map:'',rarity:'',search:'',inStock:false};
 let stockCollapsedFamilies = new Set();
 let stockForcedFamilies = new Set();
+let stockDetailOpener = null;
 let workspaceHistoryIndex = 0;
 let committedWorkspaceHash = location.hash || '#dashboard';
 let restoringWorkspaceHistory = null;
@@ -180,6 +181,9 @@ function pageHeading(eyebrow, title, subtitle, right = '') {
   return `<div class="page-heading"><div><div class="eyebrow">${eyebrow}</div><h1>${title}</h1><p>${subtitle}</p></div>${right}</div>`;
 }
 function sectionTitle(title, right = '') { return `<div class="section-title"><h2>${title}</h2>${right}</div>`; }
+function inventoryRaritySlug(rarity) { return String(rarity).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+function inventoryRarityBadge(entity) { const slug=inventoryRaritySlug(entity.rarity); return '<span class="inventory-rarity-badge inventory-rarity-'+slug+'" data-rarity="'+esc(entity.rarity)+'">'+esc(entity.rarity)+'</span>'; }
+function inventoryFamily(entity) { return survivorInventorySource.itemFamilies.find(family=>family.id===entity.familyId) || {id:entity.familyId,displayName:entity.familyId}; }
 function empty(text = 'No matches. Try a different search or filter.') { return `<div class="empty">${text}</div>`; }
 function searchInput(placeholder) { return `<label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="${placeholder}" aria-label="${placeholder}" value="${esc(filters.search)}"><kbd>/</kbd></label>`; }
 function selectControl(id, label, options, selected) { return `<label class="select-label"><span>${label}</span><select id="${id}">${options.map(([value, name]) => `<option value="${value}" ${selected === value ? 'selected' : ''}>${name}</option>`).join('')}</select></label>`; }
@@ -652,15 +656,13 @@ function stockView(id,mode) {
   const secondaryCount=Number(Boolean(stockFilters.map))+Number(Boolean(stockFilters.rarity));
   const renderCard=entity=>{
     const art=inventoryIconPath(entity.id,assetManifest), error=stockSession.errors[entity.id];
-    return '<article data-stock-card="'+entity.id+'" class="stock-card '+((stockSession.baseline[entity.id]||0)>0?'':'zero-stock')+'">'
+    const raritySlug=inventoryRaritySlug(entity.rarity);
+    return '<article data-stock-card="'+entity.id+'" data-stock-rarity="'+esc(entity.rarity)+'" class="stock-card inventory-rarity-'+raritySlug+' '+((stockSession.baseline[entity.id]||0)>0?'':'zero-stock')+'">'
       +'<div class="stock-card-media">'+(art?'<img src="'+esc(art)+'" alt="" loading="lazy" data-inventory-icon>':'<span aria-hidden="true" class="stock-art-fallback">◇</span>')+'</div>'
-      +'<h3>'+esc(entity.name)+'</h3><small>'+esc(entity.rarity)+' · '+esc(entity.familyId)+'</small>'
+      +'<h3>'+esc(entity.name)+'</h3><div class="stock-card-meta">'+inventoryRarityBadge(entity)+'<small>'+esc(inventoryFamily(entity).displayName)+'</small></div>'
       +'<label for="quantity-'+entity.id+'">Quantity of '+esc(entity.name)+'</label><input id="quantity-'+entity.id+'" data-inventory-quantity="'+entity.id+'" inputmode="numeric" type="text" value="'+esc(stockSession.raw[entity.id])+'" aria-invalid="'+Boolean(error)+'" aria-describedby="stock-error-'+entity.id+'">'
       +'<p id="stock-error-'+entity.id+'" data-stock-error role="status">'+esc(error|| (stockSession.pending[entity.id]?(mode==='draft'?'Unsaved draft':'Pending change'):''))+'</p>'
-      +'<details><summary id="stock-reference-'+entity.id+'">Reference and compatibility</summary><p>'+esc(entity.effect)+'</p>'
-      +(entity.map==='addons'?'<p>Compatible with '+esc(entity.compatibleItemIds.map(itemId=>inventoryEntityById[itemId].name).join(', '))+'.</p>':'')
-      +(entity.needsVerification?'<p>Optional metadata needs verification: '+esc(entity.notes)+'</p>':'')
-      +'<p>Research sources: '+entity.provenance.references.map((url,index)=>'<a id="stock-source-'+entity.id+'-'+index+'" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Source '+(index+1)+'</a>').join(' · ')+'</p></details></article>';
+      +'<button type="button" id="stock-details-'+entity.id+'" class="stock-details-action" data-action="stock-details" data-id="'+entity.id+'">Details</button></article>';
   };
   const familyMarkup=visibleGroups.map(group=>{
     const catalogAddonCount=inventoryEntities.filter(entity=>entity.familyId===group.family.id&&entity.map==='addons').length;
@@ -714,8 +716,7 @@ function acceptStock(id,trigger,nextTargetId=null) {
       if(previous.errors[other])stockSession.errors[other]=previous.errors[other];
     }
     const visible=visibleQuantityEntries(stockSession,stockFilters).map(e=>e.id);
-    const availableDestinations=[...visible,...['inventory-search','inventory-map','inventory-family','inventory-rarity','inventory-in-stock','inventory-unresolved'],...visible.map(entityId=>'stock-reference-'+entityId),
-      ...visible.flatMap(entityId=>inventoryEntityById[entityId].provenance.references.map((url,index)=>'stock-source-'+entityId+'-'+index))];
+    const availableDestinations=[...visible,...['inventory-search','inventory-map','inventory-rarity','inventory-in-stock','inventory-unresolved'],...visible.map(entityId=>'stock-details-'+entityId)];
     const destination=quantityFocusAfterCommit(before,{entityId:id,nextTargetId,trigger,visibleIds:availableDestinations});
     render(); ($('#quantity-'+destination)||document.getElementById(destination))?.focus({preventScroll:true});
     message('Quantity saved: '+entity.name+' '+result.quantity+'.');
@@ -839,6 +840,28 @@ function render() {
 function dialogHeader(eyebrow, title, artwork = '') {
   return `<div class="dialog-heading"><div><span class="eyebrow">${eyebrow}</span><h2 id="detail-title"${artwork ? ' class="perk-detail-title"' : ''}>${artwork}${esc(title)}</h2></div><button class="close-dialog" data-action="close" aria-label="Close details">×</button></div>`;
 }
+function inventoryDetail(id) {
+  const entity=inventoryEntityById[id];
+  if(!entity) return dialogHeader('INVENTORY DETAILS','Unavailable inventory record')+'<p class="muted">This record is not in the current verified catalog.</p>';
+  const family=inventoryFamily(entity), art=inventoryIconPath(entity.id,assetManifest);
+  const compatible=entity.map==='addons' ? entity.compatibleItemIds.map(itemId=>inventoryEntityById[itemId]?.name).filter(Boolean) : [];
+  return dialogHeader(entity.map==='addons'?'ADD-ON DETAILS':'ITEM DETAILS',entity.name)
+    +'<div class="stock-detail-body"><div class="stock-detail-hero"><div class="stock-detail-media">'+(art?'<img src="'+esc(art)+'" alt="" data-inventory-detail-icon>':'<span class="stock-art-fallback" aria-hidden="true">◇</span>')+'</div>'
+    +'<div class="stock-detail-meta">'+inventoryRarityBadge(entity)+'<span>'+esc(family.displayName)+'</span></div></div>'
+    +'<section><h3>Effect</h3><p>'+esc(entity.effect)+'</p></section>'
+    +(compatible.length?'<section><h3>Compatible Items</h3><ul>'+compatible.map(name=>'<li>'+esc(name)+'</li>').join('')+'</ul></section>':'')
+    +(entity.needsVerification||entity.notes?'<section><h3>Qualification notes</h3><p>'+esc(entity.notes||'Optional catalog metadata remains qualified.')+'</p></section>':'')
+    +'<section><h3>Research sources</h3><div class="stock-detail-sources">'+entity.provenance.references.map((url,index)=>'<a data-stock-source href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Source '+(index+1)+'</a>').join(' · ')+'</div></section></div>';
+}
+function openStockDetail(id, opener) {
+  closeFilters();
+  $('#detail-message').hidden=true;$('#detail-message').textContent='';
+  stockDetailOpener={id:opener?.id||'',entityId:id};
+  modal={type:'stock',id};
+  $('#detail-content').innerHTML=inventoryDetail(id);
+  if(!$('#detail').open)$('#detail').showModal();
+  editorPresentation();
+}
 function perkDetail(id) {
   const perk = perkById[id], stats = perkStats(save, perk), source = save.characters[perk.sourceCharacterId];
   const override = save.perkOverrides[id] || {};
@@ -872,7 +895,7 @@ function refreshDetail() {
   if (parseCharacterWorkspaceRoute(route())?.section === 'setup' && characterSetup) { render(); return; }
   if (!modal || !$('#detail').open) return;
   const scrollTop = $('#detail').scrollTop;
-  preserveRender($('#detail-content'), perkDetail(modal.id));
+  preserveRender($('#detail-content'), modal.type==='stock' ? inventoryDetail(modal.id) : perkDetail(modal.id));
   $('#detail').scrollTop = scrollTop;
   editorPresentation();
 }
@@ -1151,6 +1174,7 @@ async function handleClick(event) {
     window.scrollTo(0, 0);
     return;
   }
+  if (action === 'stock-details') return openStockDetail(id, button);
   if (action === 'export') return exportFile();
   if (action === 'raw-export') return download(store.original(), 'dbd-tracker-original-data.txt', 'text/plain;charset=utf-8');
   if (action === 'import') return $('#import-file').click();
@@ -1327,6 +1351,7 @@ document.addEventListener('focusout',event=>{
   }},0);
 });
 $('#detail').addEventListener('close', () => {
+  if(stockDetailOpener){const opener=stockDetailOpener;stockDetailOpener=null;(document.getElementById(opener.id)||$('#inventory-search')||$('#main'))?.focus({preventScroll:true});}
   if(queueOpener){const opener=queueOpener;queueOpener=null;queueTargetEditor=null;(document.getElementById(opener.id)||$('[data-action="queue-add"][data-id="'+(opener.dataset.id||'')+'"]')||$('#queue-add'))?.focus({preventScroll:true});}
   modal = null;
   if (parseCharacterWorkspaceRoute(route())?.section !== 'setup') { characterSetup = null; setupQueue = null; }

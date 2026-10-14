@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {freshSave} from '../../src/model.js';
-import {inventoryEntities,inventoryCatalogStatus,survivorInventorySource} from '../../data/inventory-catalog.js';
+import {inventoryEntities,inventoryEntityById,inventoryCatalogStatus,survivorInventorySource} from '../../data/inventory-catalog.js';
 export async function inventoryRegression(page,origin){
  page.setDefaultTimeout(6000);
  assert.equal(inventoryCatalogStatus.survivor,'ready');
@@ -14,6 +14,19 @@ export async function inventoryRegression(page,origin){
  const field=id=>page.locator('[data-inventory-quantity="'+id+'"]');
  const order=()=>page.locator('[data-stock-card]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockCard));
  await field(item.id).waitFor();
+  const banquet=inventoryEntities.find(entity=>entity.name.includes('Banquet')&&entity.rarity==='Event');
+  assert.ok(banquet,'Qualified Banquet entity remains displayed as Event');
+  const banquetCard=page.locator('[data-stock-card="'+banquet.id+'"]');
+  assert.equal(await banquetCard.getAttribute('data-stock-rarity'),'Event');
+  assert.equal(await banquetCard.locator('.inventory-rarity-badge').textContent(),'Event');
+  assert.match(await banquetCard.getAttribute('class'),/inventory-rarity-event/);
+  await page.locator('#inventory-filters').evaluate(el=>el.open=true);
+  await page.locator('#inventory-rarity').selectOption('Event');
+  assert.equal(await banquetCard.count(),1,'Event filter includes Banquet by displayed rarity');
+  assert.equal(await page.locator('[data-stock-card]:not([data-stock-rarity="Event"])').count(),0);
+  await page.locator('#inventory-filters').evaluate(el=>el.open=true);
+  await page.locator('#inventory-rarity').selectOption('');
+
   const presentationBytes=await bytes();
   const familyIds=survivorInventorySource.itemFamilies.map(f=>f.id);
   assert.deepEqual(await page.locator('[data-stock-family]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockFamily)),familyIds,'Verified family source order');
@@ -59,16 +72,37 @@ export async function inventoryRegression(page,origin){
   assert.equal(committedFamilyItems[0],item.id,'Positive stock moves to the front of its family Items subsection after commit');
  assert.equal(await field(item.id).evaluate(n=>document.activeElement===n),true);
   let committed=await bytes();
+  const itemDetails=page.locator('[data-stock-card="'+item.id+'"] [data-action="stock-details"]');
+  assert.equal(await page.locator('[data-stock-card="'+item.id+'"] details').count(),0,'Card no longer carries persistent reference disclosure');
+  assert.equal(await page.getByText('Reference and compatibility',{exact:true}).count(),0);
   await field(item.id).fill('6');
-  await page.locator('[data-stock-card="'+item.id+'"] summary').click();
+  await itemDetails.click();
   await page.waitForFunction(id=>JSON.parse(localStorage.dbdTrackerData).characters['meg-thomas'].inventory.items[id]===6,item.id);
-  assert.equal(await page.locator('[data-stock-card="'+item.id+'"] details').getAttribute('open'),'');
-  assert.equal(await page.locator('[data-stock-card="'+item.id+'"] summary').evaluate(n=>document.activeElement===n),true,'Blur respects reference disclosure destination: '+await page.evaluate(()=>document.activeElement.outerHTML.slice(0,180)));
-  await field(item.id).fill('7');
-  await page.locator('[data-stock-card="'+item.id+'"] details a').first().focus();
-  await page.waitForFunction(id=>JSON.parse(localStorage.dbdTrackerData).characters['meg-thomas'].inventory.items[id]===7,item.id);
-  assert.equal(await page.locator('[data-stock-card="'+item.id+'"] details a').first().evaluate(n=>document.activeElement===n),true,'Blur respects reference link destination');
+  assert.equal(await page.locator('#detail').isVisible(),true);
+  assert.match(await page.locator('#detail-content').textContent(),new RegExp(item.name));
+  assert.match(await page.locator('#detail-content').textContent(),new RegExp(item.rarity));
+  assert.ok((await page.locator('#detail-content').textContent()).includes(item.effect.slice(0,24)),'Effect summary appears in Details');
+  const source=page.locator('#detail [data-stock-source]').first();
+  assert.equal(await source.getAttribute('target'),'_blank');
+  assert.match(await source.getAttribute('rel'),/noopener/);
+  assert.match(await source.getAttribute('rel'),/noreferrer/);
+  await page.getByRole('button',{name:'Close details',exact:true}).click();
+  assert.equal(await itemDetails.evaluate(node=>document.activeElement===node),true,'Details close restores exact opener');
+
+  const addonDetails=page.locator('[data-stock-card="'+addon.id+'"] [data-action="stock-details"]');
+  await addonDetails.click();
+  const addonText=await page.locator('#detail-content').textContent();
+  for(const compatibleId of addon.compatibleItemIds) assert.ok(addonText.includes(inventoryEntityById[compatibleId].name),'Exact compatible Item shown');
+  await page.getByRole('button',{name:'Close details',exact:true}).click();
+
+  const beforeInvalidDetails=await bytes();
+  await field(item.id).fill('bad');
+  await itemDetails.click();
+  assert.equal(await bytes(),beforeInvalidDetails,'Opening Details cannot persist invalid raw quantity');
+  await page.getByRole('button',{name:'Close details',exact:true}).click();
+  assert.equal(await field(item.id).inputValue(),'bad','Details cannot normalize or clear invalid raw text');
   await field(item.id).fill('5'); await field(item.id).press('Enter');
+
   const sameQuantity=JSON.parse(await bytes());
   assert.equal(sameQuantity.characters['meg-thomas'].inventory.items[item.id],5);
   committed=await bytes();
@@ -173,6 +207,12 @@ export async function inventoryRegression(page,origin){
   await reader.goto(origin+'/#character/meg-thomas/items-addons');
   await reader.waitForFunction(()=>document.querySelector('#save-status').textContent==='Read-only');
   assert.equal(await reader.locator('[data-inventory-quantity]').first().isDisabled(),true);
+  const readerDetails=reader.locator('[data-stock-card="'+item.id+'"] [data-action="stock-details"]');
+  assert.equal(await readerDetails.isDisabled(),false,'Details stays available without writer access');
+  await readerDetails.click();
+  assert.equal(await reader.locator('#detail').isVisible(),true);
+  await reader.getByRole('button',{name:'Close details',exact:true}).click();
+  assert.equal(await readerDetails.evaluate(node=>document.activeElement===node),true);
   await page.goto(origin+'/#character/meg-thomas/items-addons');
   await field(item.id).fill('14');await field(item.id).press('Enter');
   await reader.waitForFunction(id=>document.querySelector('[data-inventory-quantity="'+id+'"]').value==='14',item.id);
