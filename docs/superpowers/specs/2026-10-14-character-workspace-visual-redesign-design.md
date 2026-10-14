@@ -1,8 +1,14 @@
 # Character Workspace Visual Redesign Design
 
-Status: DRAFT FOR OWNER REVIEW  
+Status: APPROVED DIRECTION — REVISED SPEC FOR OWNER CHECKPOINT REVIEW
 Date: 2026-10-14  
 Scope: Character Workspace presentation and interaction design only. No production code, routes, schema, persistence semantics, Dashboard behavior, queue behavior, or Killer inventory data are changed by this document.
+
+## Revision checkpoint
+
+Tasks 1–5 are implemented; Task 5 is complete at `e0f4a728d39acefe70bea2dcc53491c75d9e835b`. The approved artwork baseline is `5d5d7e43749acd5cfc448e33eb08365a97d1c2ea`: all 92 supported Survivor inventory entities resolve to verified background artwork. Do not reopen that mapping absent a concrete defect.
+
+This revision supersedes the earlier multi-family inventory document with selected-family navigation and artwork-led cards. It changes only Survivor Items & Add-ons presentation, including that surface inside Edit Character; Overview, Perks and all Task 5 quantity contracts retain their existing approved direction. Task 5A implementation and Task 6 remain paused pending owner review of these documents. No production change is part of this revision.
 
 ## Decision summary
 
@@ -12,12 +18,12 @@ The approved direction is:
 
 - Use one shared character header across Overview, Perks, and Items & Add-ons or Power & Add-ons.
 - Keep the Perks card grid and its effective-inventory behavior as the visual benchmark rather than redesigning it for novelty.
-- Make Survivor inventory family-first: family, then Items, then Add-ons.
+- Display exactly one verified Survivor Item family at a time, selected through a compact native-button family switcher in canonical catalog order; render Items before Add-ons within that family.
 - Within each Items or Add-ons subsection, order positive stock first, zero stock second, then canonical catalog order inside each stock group.
 - Keep zero stock visible and editable by default.
 - Make quantity the primary inventory-card interaction.
 - Replace repeated card-level reference prose with a compact Details action and bounded dialog.
-- Use verified rarity as a restrained visual accent with an always-visible text label.
+- Make the canonical background artwork visually prominent; retain catalog-authoritative text such as `Common · Item` and reduce redundant borders/badges and repeated card-level family labels.
 - Move unresolved imported inventory IDs into a dedicated read-only region outside verified families.
 - Recompose Overview as a compact character dashboard using native perk imagery, setup context, truthful collection summaries, and Notes.
 - Preserve existing routes, schema v2, save identity, sparse quantity persistence, raw invalid input behavior, writer locking, Edit Character draft semantics, compatibility routes, and Killer data deferral.
@@ -54,26 +60,15 @@ This design does not:
 - create new completion percentages, scores, inferred stock, or other unsupported analytics;
 - make the entire inventory card clickable;
 - require a sticky inventory toolbar;
-- require +/- quantity buttons if they cannot be added without preserving raw input, commit, and focus semantics.
+- change the completed Task 5 +/- controls or their raw input, commit and focus semantics.
 
 ## 2. Current-state problem statement
 
-The current Character Workspace is functionally correct but visually uneven.
+Tasks 1–5 established the shared header, Overview composition, family-local ordering, Details dialog and focus-safe quantity controls. The present inventory implementation still renders seven verified families in one tall document. Its manual section controls add presentation/focus state without making navigation concise.
 
-The shared workspace header is structurally minimal. It compresses role, ownership, favorite state, Prestige, and Bloodweb into one sentence and does not yet give Edit Character a consistent workspace-level position. Overview presents most content as consecutive full-width bordered panels. Inventory presents all visible entities in one grid and repeats the same structural prose on every card: name, rarity/family text, a full quantity label, input, pending/error line, and a persistent Reference and compatibility disclosure. This creates a long, repetitive surface even though the underlying data already has meaningful family relationships.
+The canonical artwork now includes the game's colored background presentation. Current card artwork remains approximately 96px and is visually secondary to repeated text and strong rarity decoration. This refinement makes one selected family the content scope and gives the artwork more of the card's useful space.
 
-The Perks page is the strongest internal reference because its cards use recognizable artwork, predictable rhythm, concise metadata, and a consistent grid. The redesign should reuse those principles without conflating perk tier styling with inventory rarity styling.
-
-The existing code already has the right underlying boundaries:
-
-- `src/character-workspace.js` owns canonical workspace route interpretation.
-- `src/app.js` owns the current shared header, Overview, Perks, stock view, detail dialogs, and event wiring.
-- `src/inventory-interaction.js` preserves raw quantity text, pending/error state, visible-entry filtering, regrouping, and focus destination logic.
-- `src/inventory-quantities.js` validates non-negative whole safe integers and sparse positive persistence.
-- `data/inventory-catalog.js` exposes verified `familyId`, `rarity`, compatibility, effect, provenance, and canonical entity order.
-- `styles.css` already defines the Ledger shell, focus treatment, perk-card language, workspace selectors, and stock-card selectors.
-
-The redesign should therefore reshape presentation around existing truth rather than add a new domain model.
+The existing boundaries remain appropriate: `src/app.js` owns rendering and UI state; `src/inventory-interaction.js` owns raw/pending/error snapshots, grouping, stepping and focus helpers; quantity validation, schema, persistence, routing and verified catalog relationships retain their existing authorities. No new domain model or asset mapping is needed.
 
 ## 3. Shared Character Workspace visual system
 
@@ -118,8 +113,8 @@ Do not wrap every heading and paragraph in a bordered panel. Spacing, alignment,
 Inventory rarity and perk tier may share broad color families, but they must not share the same component language.
 
 - Perk tier remains expressed through the existing tier/diamond treatment.
-- Inventory rarity uses a small text badge plus a thin card/accent treatment.
-- Define inventory-specific tokens such as `--inventory-rarity-common`, `--inventory-rarity-uncommon`, and so on rather than reusing `--perk-tier-*` tokens.
+- Inventory cards use visible catalog rarity/type text and canonical background artwork. Strong rarity borders and repeated badge decoration are unnecessary.
+- Any optional secondary accent remains restrained and inventory-specific; do not reuse `--perk-tier-*` tokens or infer catalog rarity from artwork color.
 
 ## 4. Shared character header design
 
@@ -190,92 +185,68 @@ The DOM order must remain logical without relying on visual CSS reordering: brea
 
 ## 5. Inventory page architecture
 
-The Survivor Items & Add-ons page becomes a family-first document rather than a flat stock grid.
+The Survivor inventory is one selected-family workspace. Do not render other verified families beneath it or create navigation from artwork folders.
 
 ### Page sequence
 
 ```text
 Shared Character Header
-
 Items & Add-ons
-Short page-purpose line
-
-[ Search................ ] [ In Stock ] [ Filters (n) ] [ Jump to family ]
-[ Collapse all ] [ Expand all ]
+[ Search selected family........ ] [ In Stock ] [ Filters (n) ]
+[ Keys ] [ Firecrackers ] [ Flashlights* ] [ Fog Vials ]
+[ Maps ] [ Med-Kits ] [ Toolboxes ]
 
 FLASHLIGHTS
-  Items
-    [cards]
-  Add-ons
-    [cards]
-
-MED-KITS
-  Items
-    [cards]
-  Add-ons
-    [cards]
-
-...
+7 Items · 14 Add-ons
+Items
+[cards]
+Add-ons
+[cards]
 
 Imported records not in current catalog
-  [read-only rows]
+[read-only rows, when present]
 ```
 
-The family list comes only from the verified runtime catalog. No visual subfamilies are invented from naming conventions, effects, or common DBD terminology.
+The selected family heading supplies card context. Heading counts are verified catalog totals for that family, not owned quantities or filtered matches; label them accordingly. Changing family replaces this single content region. The unresolved region remains separate and discoverable regardless of the selected family or verified filters.
 
-The verified family order is the canonical `itemFamilies` source order. The redesign does not sort families alphabetically unless the verified catalog itself establishes that order.
+## 6. Selected-family behavior
 
-## 6. Family section behavior
+### State and default
 
-Each verified family is one semantic section with one family heading and up to two named subsections.
+- Use a simple `selectedFamilyId` in session/page-local UI state, separate from the save document.
+- Default to `survivorInventorySource.itemFamilies[0].id`; no hardcoded family name or artwork-directory-derived family.
+- Navigation order comes directly from verified `itemFamilies` order. Currently: Keys, Firecrackers, Flashlights, Fog Vials, Maps, Med-Kits, Toolboxes.
+- Reset selection when the character/page session key changes. Rerenders and quantity commits retain it. Resolve an invalid selection to the first verified family.
+- The interaction snapshot still retains resolved entities' raw/pending/error state across family visits. Changing the selected family must not recreate that snapshot or discard hidden edits.
+- Family selection has no durable save, URL, schema-v2 or export representation.
 
-### Default state
+### Navigation control
 
-- All families are expanded when the page is first entered.
-- Collapse state is presentation-only UI state and is not written into schema v2.
-- Collapse state should remain in memory for the active character/page session.
-- It does not need account persistence or JSON export.
+Use `<nav aria-label="Item families">` with native `button type="button"` controls and exactly one `aria-pressed="true"`. Selection uses shape/border/emphasis as well as color. Maintain visible focus and approximately 44px targets. Do not use tablist/tab/tabpanel roles or imply arrow-key tab behavior; ordinary Tab, Shift+Tab, Enter and Space are sufficient.
 
-### Collapse controls
+After activation, focus remains on the selected family button. Keep a keyboard-focused button visible within the navigation strip without creating page overflow. No jump-to-family control or Family filter is needed.
 
-Each family heading includes an explicit expand/collapse control using a native button with `aria-expanded` and an associated region.
+### Switching with an edit in progress
 
-Secondary page controls provide:
+On the detailed page, resolve the active pending quantity using the existing Task 5 validation/commit path before hiding its family. A valid edit may autosave because the quantity editor was left; selecting a family by itself never changes storage. Invalid input or a save failure blocks the switch, retains the current family/raw value, shows the existing error and focuses the editable quantity field. Do not add a second commit or timestamp through navigation/blur sequencing.
 
-- Collapse all
-- Expand all
+Inside Edit Character, family switches retain draft values, raw invalid text and errors in memory without saving. Errors remain reachable through the page-level summary, including errors outside the selected family. Save Character remains the only persistence boundary. Read-only users may navigate families and open Details while quantity editing stays disabled.
 
-These apply only to verified family sections, not the unresolved imported-record region.
+### Catalog-empty Add-ons
 
-### Search and forced reveal
-
-User collapse intent and forced visibility are separate concepts.
-
-- A non-empty search may temporarily force open any family containing a match.
-- Search-driven opening must not overwrite the remembered user-collapsed state.
-- Clearing search restores the user's prior collapse choices where practical.
-- An error target, validation summary action, focus restoration target, or Jump-to-family destination must be revealed before focus/scroll is moved to it.
-
-### Families with no Add-ons
-
-If a verified family has no compatible Add-ons in the catalog, render one truthful line under the Add-ons subsection:
+When the selected family has no compatible Add-ons in the verified catalog, show its Add-ons subsection with:
 
 > No compatible Add-ons in this catalog.
 
-Do not render an empty grid.
+No empty grid is rendered. In the unfiltered Firecrackers view, show Items followed by this Add-ons line. With Type=Add-ons the truthful catalog-empty line remains available; Type=Items may hide Add-ons. Derive this from catalog truth, never a family-name exception.
 
-In the unfiltered default view this applies to Firecrackers. The implementation must use catalog truth rather than a hardcoded family-name exception.
+### Local no-results state
 
-### Families with no matches after active filtering
-
-- With no search/filter restrictions, all verified families remain visible.
-- With search or secondary filters active, families with no matching verified entries may be omitted to reduce dead space.
-- If the Type filter explicitly selects Add-ons, a family that genuinely has no Add-ons may still show the truthful empty line if the family remains part of the rendered family set.
-- No-results messaging belongs at page level when no verified family has a visible result.
+Keep the selected family heading/navigation present even when filters yield no cards. Show a truthful empty state such as `No matches in Flashlights.`; do not automatically switch families, hide navigation choices or render other families. Distinguish catalog-empty Add-ons from Add-ons excluded by filters. Clearing Search restores the selected family's search scope while any other active filters remain in effect.
 
 ## 7. Item/Add-on subsection behavior
 
-Within every family:
+Within the selected family:
 
 1. Items subsection
 2. Add-ons subsection
@@ -302,56 +273,43 @@ The page must preserve the existing rule that cards do not jump while the user i
 
 ### In Stock filter exception for active edits
 
-When In Stock is active, pending or invalid entries must remain visible until their edit is resolved. The UI must not make a field disappear while the user is fixing it.
+When In Stock is active, pending or invalid entries in the selected family remain visible until resolved. Deliberate family navigation preserves their interaction state; the page-level error summary keeps hidden-family errors discoverable. In Stock itself must not remove a field while the user is fixing it.
 
 ## 8. Inventory card anatomy
 
-Cards borrow the strengths of Perks cards: image-led identity, predictable rhythm, concise metadata, and limited prose.
-
-### Visual anatomy
+Cards are artwork-led, with predictable geometry and concise metadata. Quantity remains their primary interaction; Details stays secondary.
 
 ```text
 ┌──────────────────────────────┐
-│          [ artwork ]         │
 │                              │
-│ Sport Flashlight             │
-│ [RARE]                       │
+│       [ large game art ]     │
 │                              │
+│ Broken Key                   │
+│ Common · Item                │
 │ QUANTITY                     │
-│ [ - ] [      3      ] [ + ] │
-│                              │
-│ Pending / error text         │
-│                              │
-│                  [ Details ] │
+│ [ - ] [      0      ] [ + ]   │
+│ pending/error status         │
+│                    Details   │
 └──────────────────────────────┘
+
+Add-on example: Blood Amber / Ultra Rare · Add-on
 ```
-
-### Hierarchy
-
-1. artwork;
-2. entity name;
-3. quantity interaction as the dominant control area;
-4. rarity badge/accent;
-5. Details action;
-6. compact state/error metadata.
-
-Rarity may appear visually above quantity, but quantity remains the primary interactive element.
 
 ### Artwork
 
-- Increase inventory artwork materially from the current 64px treatment.
-- Use a dedicated media area so cards align even when source artwork has different intrinsic dimensions.
-- A practical target is roughly 84 to 112px depending on card width, with `object-fit: contain` behavior.
-- Missing artwork continues to use the existing non-blocking fallback.
-- Artwork is decorative when the entity name is already present, so empty `alt` or equivalent decorative semantics remain appropriate.
+- Use the canonical verified background artwork from the approved asset baseline. Do not replace/reclassify assets in this refinement.
+- Determine sizing from the existing card/container geometry. Normal desktop cards should move materially beyond the current 96px thumbnail toward the upper end of roughly 96–128px, where space permits.
+- Use a predictable media area and `object-fit: contain`; display the complete icon square without cropping. Scale gracefully on narrow cards.
+- Let the artwork earn its space; do not enlarge cards solely through empty vertical padding.
+- Preserve the non-blocking missing/broken-art fallback. Artwork remains decorative with empty alt text when the nearby name identifies the entity.
 
-### Card geometry
+### Metadata and geometry
 
-- Use a practical minimum card width around 220px.
-- Use `auto-fit`/`minmax` or an equivalent container-driven grid rather than fixed card counts.
-- Positive and zero stock use identical card geometry.
-- A quantity crossing zero cannot change card dimensions.
-- The entire card is not a button or link.
+- Show the entity name and visible catalog rarity plus kind: `Common · Item`, `Very Rare · Add-on`, `Event · Item`.
+- Do not prominently repeat the selected family's name on every card; retain family context in Details.
+- Use a practical minimum card width around 220px with container-driven `auto-fit/minmax` sizing and one usable column where space is limited.
+- Positive and zero stock retain identical geometry and readable content. Crossing zero must not change card dimensions.
+- Preserve the existing labeled text input, +/- controls, dedicated pending/error region and explicit Details button. The entire card is not clickable.
 
 ## 9. Quantity interaction design
 
@@ -374,15 +332,15 @@ Preserve:
 - no persistence before Save Character in Edit Character;
 - read-only unresolved imported IDs.
 
-### Optional compact stepper
+### Completed Task 5 compact stepper
 
-The preferred visual control is:
+The completed control, preserved by this refinement, is:
 
 ```text
 [-] [ editable numeric field ] [+]
 ```
 
-The stepper is only implementation-complete if all of the following remain true:
+Task 5 is complete; all of the following remain required regression contracts:
 
 - direct typing remains first-class;
 - decrement is disabled at zero;
@@ -393,7 +351,7 @@ The stepper is only implementation-complete if all of the following remain true:
 - focus remains deterministic after a successful change;
 - practical targets are about 44px.
 
-If those conditions cannot be met cleanly in the implementation batch, ship the redesigned card with direct numeric typing only and defer +/- without blocking the visual redesign.
+Preserve the completed composite-control rule: focus moving between the field and its same-entity step buttons defers blur; activation consumes the pending raw value and commits once; leaving the composite commits normally. Clear consumed pending blur state. Enter/Space and pointer activation retain their tested behavior. Do not remove +/- or reopen its optional status during this refinement.
 
 ### Labeling
 
@@ -405,46 +363,20 @@ If writer access is unavailable, quantity controls follow the existing editor-di
 
 ## 10. Rarity system
 
-Use verified catalog rarity only.
-
-### Conceptual mapping
-
-| Rarity | Accent family |
-| --- | --- |
-| Common | brown/tan |
-| Uncommon | yellow |
-| Rare | green |
-| Very Rare | purple |
-| Ultra Rare | red |
-| Event | gold/event |
+Catalog rarity remains authoritative. The game's colored background artwork is supplemental and may differ from the project's retained presentation bucket; never derive rarity, filter membership, order or compatibility from its color.
 
 ### Treatment
 
-Use rarity in restrained ways:
+Every card retains visible text such as `Rare · Add-on` or `Event · Item`. Simplify the current badges/strong colored card border; prefer a neutral card surface with the artwork providing the visual signal. A restrained secondary accent is optional, not required. Do not introduce another saturated artwork backing or full-card rarity treatment.
 
-- small text badge;
-- thin top/side border or inset accent;
-- subtle artwork/media backing;
-- optional tiny marker.
-
-Do not fill the full card with saturated rarity color.
-
-### Accessibility and distinction
-
-- Rarity text is always visible.
-- Color is supplemental.
-- Text contrast must remain readable on the dark Ledger surface.
-- Inventory rarity tokens are separate from perk tier tokens.
-- Rarity badge geometry differs from perk tier badges so green/purple/gold do not imply perk Tier II/III/I.
+Text contrast remains readable; color is never the only indicator. Any remaining inventory accent tokens/geometry stay distinct from Perks tier styling, which is unchanged.
 
 ### Qualified Banquet metadata
 
-For the known Banquet records:
-
-- displayed rarity remains Event;
-- Event controls filter membership and presentation;
-- optional inferred/underlying rarity may appear only in Details when the verified runtime metadata supports that qualification;
-- inferred rarity never controls ordering, filtering, displayed rarity, or card accent.
+- Displayed rarity remains Event, including cards whose game artwork uses another background color.
+- Event controls filter membership and visible text.
+- Underlying-rarity qualifications appear only in Details when supported by verified runtime metadata.
+- No artwork refresh or UI refinement changes catalog rarity or uses underlying rarity to order/filter cards.
 
 ## 11. Details and progressive disclosure
 
@@ -472,7 +404,7 @@ Do not invent lore, compatibility, effect interpretation, rarity, or unverified 
 ### Dialog behavior
 
 - Opening Details does not require writer access.
-- Opening Details does not commit, normalize, or clear quantity text.
+- Details itself does not commit, normalize or clear quantity text. Moving focus from an active quantity into the dialog still follows Task 5's ordinary blur validation/commit rule once; no separate Details write is introduced, and invalid raw text remains intact.
 - The quantity field is not moved into the dialog.
 - Escape/close follows the existing dialog convention.
 - Closing restores focus to the exact originating Details control when it still exists.
@@ -499,7 +431,7 @@ The region is:
 - visually separate from verified family content;
 - outside rarity/family claims;
 - visible whenever unresolved records exist;
-- excluded from family Collapse all / Expand all behavior.
+- displayed after selected-family content and unaffected by family selection or verified search/filter restrictions.
 
 Do not silently discard, rename, infer family/rarity, or make unknown IDs editable.
 
@@ -507,59 +439,26 @@ Secondary verified filters do not assign metadata to unresolved records. The unr
 
 ## 13. Search, filter, and family navigation behavior
 
-### Immediately visible controls
+Search and In Stock are directly visible; Type/Rarity remain in a compact Filters disclosure with active-count summary. Place the family switcher below these controls. Family is navigation and must not reappear inside Filters.
 
-Always visible near the top of the inventory page:
+### Selected-family Search
 
-- Search;
-- In Stock;
-- Filters disclosure button;
-- optional Jump to family control when useful;
-- Collapse all / Expand all as secondary controls.
+Search is case-insensitive over verified entity name and effect text, only within `selectedFamilyId`. Use a label/nearby scope cue that makes the selected-family scope clear. Never render all-family search results or change selection because another family matches.
 
-### Search
+Retain Search text, In Stock, Type and Rarity when changing family. This makes the rule consistent across controls; a new family can truthfully have no results. Clearing Search restores that family's search scope, without clearing other filters. A future global-search feature is outside this revision.
 
-Preserve the current search basis unless implementation review finds an existing tested dependency that requires a narrower contract:
+### Filters and ordering
 
-- case-insensitive entity name;
-- case-insensitive verified effect text.
-
-Search narrows verified cards without changing saved data or order.
-
-### In Stock
-
-In Stock is a Boolean presentation filter.
-
-- Positive baseline stock passes.
-- Pending/error rows remain visible so edits are not stranded.
-- Zero stock remains visible when In Stock is off.
-
-### Filters disclosure
-
-Move secondary filters into a compact disclosure. The initial implementation should keep the useful existing axes without making the toolbar dominant:
-
-- Type: All / Items / Add-ons;
-- Rarity: All / one verified rarity.
-
-Family is already the primary page structure. The old family dropdown should not be required in the normal redesign. If implementation evidence shows a family filter still materially helps, it may live in this disclosure, but it must not replace family sections.
-
-The disclosure trigger should show an active-count summary such as `Filters (1)` when a secondary filter is active.
-
-### Jump to family
-
-Jump to family is approved but optional for the first implementation batch.
-
-If implemented:
-
-- it is navigation, not a filter;
-- it lists verified family names;
-- selecting a family opens it if needed and scrolls/focuses its heading;
-- it does not clear search or filters;
-- destinations that are not currently renderable because of active search/filter constraints should be disabled or omitted rather than silently clearing user state.
+- In Stock passes positive baseline quantities and the existing pending/error exception in the selected family.
+- Type: All / Items / Add-ons; Rarity: All / one verified catalog rarity.
+- Neither filtering nor Search hides family navigation buttons or changes their canonical order.
+- Render Items before Add-ons; inside each subsection preserve positive → zero → canonical order. Rarity never controls order.
+- Selection/filter/search state is UI-only and never written into schema v2.
+- The unresolved-import region stays visible when records exist, independently of these verified scopes.
 
 ### Sticky behavior
 
-Do not make the toolbar sticky in the first implementation. Revisit only after real testing shows a material benefit and confirms no harm at 200% zoom, short viewport heights, visible focus, and mobile widths.
+Keep the toolbar non-sticky. No sticky controls or global search are part of this refinement.
 
 ## 14. Overview composition
 
@@ -716,7 +615,9 @@ Use container-driven card sizing around a practical 220px minimum.
 - Search should take the largest share of horizontal space.
 - In Stock remains directly reachable.
 - Filters can wrap to another row.
-- Collapse/Expand controls are secondary and may move below the primary controls.
+- Desktop family buttons may wrap as one compact navigation area; at 760px controls/navigation may wrap without forcing narrow cards.
+- At 500px and 320px use a single-row horizontally scrollable family strip with full-size native controls. Its internal scroll is acceptable; page-level horizontal overflow is not.
+- Keep selected/focused family buttons visible within the strip, with usable pointer/touch scrolling and a visible scroll affordance. Do not default to a dropdown or seven undersized controls.
 - No horizontal page scroll is acceptable at the required widths.
 
 ### 200% zoom
@@ -731,14 +632,14 @@ The implementation must preserve or improve:
 - semantic descending section headings;
 - native buttons, inputs, checkboxes, selects, and details/dialog primitives where appropriate;
 - `aria-current` for workspace navigation;
-- `aria-expanded` for family collapse controls;
-- accessible names for quantity inputs and optional +/- buttons;
+- a labeled Item families navigation with one native `aria-pressed="true"` button;
+- accessible names for quantity inputs and the completed +/- buttons;
 - visible `:focus-visible` treatment using the Ledger gold focus language;
 - non-color-only rarity, stock, error, and selected states;
 - practical 44px interaction targets;
 - error text associated with the relevant quantity input;
 - keyboard reachability for Details, family controls, filters, and all quantity controls;
-- deterministic focus restoration after dialog close, save/regroup, error navigation, and forced family reveal;
+- deterministic focus restoration after dialog close, save/regroup, error navigation, and deliberate selected-family changes;
 - no focus hidden under a future sticky toolbar, which is one reason stickiness is deferred.
 
 Decorative artwork stays excluded from the accessibility tree when the adjacent text already names the entity.
@@ -747,9 +648,10 @@ Decorative artwork stays excluded from the accessibility tree when the adjacent 
 
 ### Family controls
 
-- Enter/Space toggles a family button using native behavior.
-- Collapse must never discard pending raw input state.
-- If focus is inside a family and the user collapses it through that family's control, focus remains on the family toggle.
+- Use native Tab/Shift+Tab navigation and Enter/Space activation. Keep focus on the activated selected-family button and scroll it into the navigation strip's visible area.
+- Do not introduce tab roles without the full expected keyboard model; the initial model is native buttons in a labeled nav.
+- Detailed-page switching resolves the active pending quantity once before replacing content; invalid/save-failed edits block switching and focus their retained field.
+- Edit Character switching retains hidden raw draft state without autosaving. Read-only navigation remains available.
 
 ### Search
 
@@ -764,18 +666,20 @@ Preserve the existing focus contract:
 - Blur validates/commits without hijacking a legitimate next focus target.
 - After regrouping, restore to the edited quantity field when still visible.
 - If it is hidden by active filters, use the next deterministic visible destination or search control.
-- If the containing family is collapsed by user state but focus must return inside it, temporarily reveal the family first.
+- Ordinary regroup/fallback stays within the selected family; if its last visible card disappears, focus Search. Explicit error/validation navigation first selects the target family, then renders and focuses the quantity field.
 
 ### Error summary
 
-Keep or improve the existing page-level error summary.
+Keep the existing page-level error summary outside the selected-family region. It includes known errors across the interaction snapshot, including hidden-family draft errors.
 
 Selecting an error:
 
 1. clears only the minimum presentation filters needed to reveal the bad field when required by existing behavior;
-2. expands the containing family;
+2. selects the verified family containing the error;
 3. scrolls/focuses the quantity input;
 4. preserves the raw invalid text.
+
+This explicit correction action may select an error's family even when another retained invalid field exists; it preserves all raw/error state and never treats navigation as an invalid-value commit. The ordinary family-button switch guard must not make cross-family errors unreachable.
 
 ### Details dialog
 
@@ -835,18 +739,23 @@ Invalid
 Pending
 ```
 
-Optional +/- buttons enter the same validation/commit path and are unavailable while raw text is invalid.
+The completed +/- buttons enter the same validation/commit path and are unavailable while raw text is invalid.
 
-### Family collapse
+### Family selection
 
 ```text
-Expanded by default
-  -> user collapses
-User-collapsed
-  -> search/error/focus requires entity
-Temporarily forced open
-  -> search/focus condition ends
-Return to remembered user-collapsed state
+First verified family (session entry)
+  -> activate another verified family button
+Resolve active detailed edit once
+  -> invalid/save failure: retain family and raw field, focus error
+  -> success/no pending edit: replace selected-family content
+Retain Search / In Stock / Type / Rarity
+  -> matching selected-family cards or truthful local empty state
+
+Edit Character family change
+  -> preserve raw draft/errors in memory; no persistence
+Explicit error-summary action
+  -> select target family, minimally reveal field, render/focus
 ```
 
 ### Details
@@ -862,14 +771,14 @@ Close/Escape
 ### Search/filter
 
 ```text
-Full verified family set
-  -> search/filter
-Narrowed family/subsection/card set
-  -> clear controls
-Return to full set with remembered family collapse state
+Selected family's verified entries
+  -> Search / In Stock / Type / Rarity
+Narrowed selected-family subsection/card set
+  -> clear Search
+Selected family's entries under remaining active filters
 ```
 
-No transition writes to schema v2 unless it is an existing quantity commit or an existing Edit Character save.
+No presentation transition writes to schema v2. Only an existing quantity commit or Save Character writes durable data; navigation itself does not.
 
 ## 21. Data/model boundaries
 
@@ -877,13 +786,10 @@ No transition writes to schema v2 unless it is an existing quantity commit or an
 
 The following are presentation-only and must not enter the save document:
 
-- family expanded/collapsed state;
-- Collapse all / Expand all state;
+- selectedFamilyId and the family strip scroll position;
 - search query;
 - In Stock filter;
 - Type/Rarity filters;
-- optional Jump-to-family selection;
-- temporary forced-open families;
 - Details dialog open state;
 - visual rarity tokens/classes.
 
@@ -915,14 +821,13 @@ This section identifies likely implementation areas without constituting an impl
 
 ### `src/app.js`
 
-Expected presentation changes:
+Task 5A presentation changes and preserved boundaries:
 
-- evolve `characterWorkspaceHeader()` into the shared identity/header contract;
-- recompose `characterOverview()`;
-- simplify the normal `characterInventory()` Perks page intro while preserving its grid and routes;
-- replace the flat `stockView()` renderer with family sections and compact cards;
-- add Details-dialog rendering/action wiring using existing dialog infrastructure;
-- add in-memory family collapse state and forced-open behavior;
+- retain the completed `characterWorkspaceHeader()` and `characterOverview()` without redesign;
+- leave the approved limited `characterInventory()` Perks intro cleanup to Task 6;
+- refine the existing `stockView()` renderer to one selected-family content region and artwork-led cards;
+- preserve the existing bounded Details-dialog rendering/action wiring;
+- replace accordion-only presentation state/actions with session-local selectedFamilyId and native family navigation;
 - adapt stock filter controls;
 - preserve existing stock input, commit, error, and focus behavior.
 
@@ -930,9 +835,9 @@ The implementation should consider extracting view helpers if `src/app.js` becom
 
 ### `src/inventory-interaction.js`
 
-The current interaction state globally orders positive stock before zero stock. The redesigned presentation needs family-local grouping without changing persistence semantics.
+Task 1 already supplies family grouping and stepping helpers; Task 5 already adapts focus to rendered family/subsection order. Reuse these and restrict visibility/focus candidates to the selected family without changing their raw/pending/error or persistence contracts.
 
-Prefer a pure presentation selector/helper that:
+Reuse the completed pure presentation selector/helper that:
 
 - groups visible resolved entities by verified family;
 - separates Items and Add-ons;
@@ -947,16 +852,12 @@ No schema/domain change is required. Existing adapted fields already provide the
 
 ### `styles.css`
 
-Expected additions/refinements:
+Task 5A additions/refinements (existing header/Overview styles remain unchanged):
 
-- shared workspace-header layout;
-- header status/progress treatments;
-- workspace navigation polish;
-- Overview dashboard composition;
-- family section and subsection styling;
+- selected-family navigation/section and subsection styling;
 - responsive inventory card grid;
 - larger inventory artwork area;
-- inventory-specific rarity tokens/classes;
+- simpler visible rarity/type metadata and reduced redundant rarity decoration;
 - compact quantity-control layout;
 - zero-stock visual quieting;
 - Details action/dialog content styling;
@@ -998,7 +899,7 @@ Likely suites include `tests/inventory-interaction.test.js`, `tests/inventory-ca
 Update or extend:
 
 - `tests/browser/character-workspace.mjs` for the shared header and route-local navigation;
-- `tests/browser/inventory.mjs` for family sections, ordering, filters, zero stock, errors, Details, unresolved records, and focus;
+- `tests/browser/inventory.mjs` for exactly one family, canonical native-button navigation, selected-family search/filters, local empty states, image prominence, concise rarity/type text, zero stock, error-directed selection, Details, unresolved records and focus;
 - `tests/browser/character-inventory.mjs` only where the shared header/Perks intro changes selectors or expected structure;
 - `tests/browser/character-edit.mjs` to ensure draft quantity semantics remain intact;
 - artwork/portrait coverage where selectors change.
@@ -1018,7 +919,7 @@ Check:
 
 - no horizontal page overflow;
 - quantity controls remain usable;
-- family headings and toolbars wrap cleanly;
+- desktop navigation/toolbars wrap cleanly; the 500px/320px family strip scrolls internally while selected/focused controls remain visible;
 - Overview stacks in correct order;
 - dialog remains inside viewport;
 - active focus is visible.
@@ -1031,17 +932,21 @@ This design-spec commit itself does not require production runtime verification 
 
 ## 24. Risks and edge cases
 
-### Very long inventory page
+### Family switch with a pending edit
 
-Expanded-by-default families remain long. Family grouping, Collapse all, search, and In Stock address navigation without hiding zero stock by default. Sticky controls are deferred until evidence justifies them.
+Hiding the active field before its blur path resolves can lose raw input or commit twice. Preserve Task 5 composite-control handling; gate detailed family switching on its single existing commit result. Invalid/save-failed edits keep the current family. Draft switching never persists and retains hidden raw/errors.
 
-### Search versus collapse intent
+### Search retained across family visits
 
-Search could permanently destroy the user's collapse choices if the state model is naive. Keep user state and forced-open state separate.
+Retained Search may produce a local empty view in a new family. Scope the Search label clearly, keep navigation/heading visible, and allow clearing Search without silently switching family or clearing other filters.
+
+### Narrow family-strip focus
+
+Horizontal navigation can conceal focused buttons or widen the page. Keep the strip a bounded scroll container with full-size controls, native keyboard access and visible focus; verify 320px and genuine zoom.
 
 ### Quantity blur plus +/- click
 
-A stepper can accidentally commit twice if blur fires before button handling. This is the primary reason +/- is conditional. Do not ship it without a tested single-commit path.
+A stepper can accidentally commit twice if blur fires before button handling. Task 5 already has the tested single-commit path. Family navigation and new card markup must preserve it, including pending typed values and pointer/Enter/Space activation.
 
 ### Invalid raw value plus stepper
 
@@ -1049,7 +954,7 @@ Never coerce invalid text just because +/- was pressed. Disable or ignore step a
 
 ### Focus after card regroup
 
-A successful zero-to-positive or positive-to-zero save can move the card. The interaction must reveal its family and restore focus deterministically after render.
+A successful zero-to-positive or positive-to-zero save can move the card. Ordinary commits retain the selected family and restore its edited input or a deterministic visible same-family fallback after render. Explicit error navigation selects the target family before focus.
 
 ### In Stock filter plus zero commit
 
@@ -1061,7 +966,7 @@ Use catalog-derived emptiness, not family-name branching, so the behavior remain
 
 ### Rarity color collision with perk tiers
 
-Use inventory-specific geometry/tokens and visible rarity text. Do not reuse tier badge classes.
+Keep visible catalog rarity/type text; background artwork is supplemental and any optional accent remains inventory-specific. Do not reuse tier badge classes.
 
 ### Event/qualified rarity
 
@@ -1099,25 +1004,22 @@ The visual redesign is ready for owner acceptance when all of the following are 
 
 ### Inventory structure
 
-- Verified families render as clear sections in canonical family order.
-- Every family renders Items before Add-ons.
-- Positive stock precedes zero stock inside each subsection.
-- Canonical order is preserved inside positive and zero groups.
-- Families are expanded by default and independently collapsible.
-- Collapse all / Expand all work.
-- Search can reveal matching content without permanently discarding collapse intent.
-- Catalog-empty Add-ons subsections show a truthful line instead of an empty grid.
+- Exactly one verified family is rendered, with a selected heading and catalog-total counts.
+- All verified family choices remain in canonical order; default is the first catalog family, with one native aria-pressed selection.
+- No per-family accordion controls/state or multi-family vertical document remains.
+- Items precede Add-ons; positive precedes zero and canonical order is retained within each subgroup.
+- Search/filters scope only the selected family, retain values across family visits and leave navigation present on no results.
+- Catalog-empty Add-ons show the truthful line without an empty grid.
+- Unresolved imports remain separate, read-only and discoverable under any family/filter selection.
 
 ### Inventory cards
 
-- Cards use materially larger artwork than the current 64px presentation.
-- Quantity is the primary interaction.
-- Zero and positive cards retain the same geometry.
-- Zero cards are quieter but fully readable/editable.
-- Rarity has a text label plus restrained accent.
-- Inventory rarity styling is visually distinct from perk tier styling.
-- Details replaces repeated persistent reference/compatibility blocks.
-- Details is keyboard accessible, read-only, and restores focus.
+- Canonical background artwork is prominent and materially larger than the current 96px desktop thumbnail where geometry permits, approximately 96–128px with normal cards toward the upper end.
+- Media is predictable, uncropped and contain-scaled; extra empty padding does not substitute for image prominence.
+- Quantity remains the primary interaction; positive/zero cards retain the same geometry.
+- Visible catalog rarity/kind text remains; prominent repeated family labels and strong rarity borders are reduced.
+- Banquet remains Event regardless of its artwork color or qualified underlying rarity.
+- Details stays bounded, keyboard accessible, read-only and restores focus or Search if its opener is absent.
 
 ### Quantity semantics
 
@@ -1130,12 +1032,13 @@ The visual redesign is ready for owner acceptance when all of the following are 
 - Regroup occurs only after successful stable commit.
 - Edit Character remains draft-only until Save Character.
 - Unresolved imported IDs remain read-only.
-- Optional +/- is either fully compliant with this spec or deferred.
+- Completed Task 5 +/- controls and writer/boundary/invalid disabling remain intact, with no duplicate commit.
+- Family switches preserve active edit resolution, hidden draft state and deterministic focus as specified in section 6.
 
 ### Toolbar and filtering
 
 - Search and In Stock are directly visible.
-- Secondary Type/Rarity filtering is compactly disclosed.
+- Secondary Type/Rarity filtering is compactly disclosed and scoped to the selected family; Family is never added to this disclosure.
 - No required sticky toolbar is introduced.
 - No filter state is persisted into schema v2.
 
@@ -1165,7 +1068,7 @@ The visual redesign is ready for owner acceptance when all of the following are 
 - Quantity controls have entity-specific accessible labels.
 - Practical interaction targets remain about 44px.
 - Layout is usable at 320, 500, 760, 1100, 1440, and 1600.
-- No page-level horizontal overflow appears at those targets.
+- No page-level horizontal overflow appears at those targets; the bounded family strip may scroll horizontally at 500/320px.
 - Genuine browser 200% zoom remains usable.
 
 ### Data boundaries
@@ -1183,83 +1086,57 @@ The visual redesign is ready for owner acceptance when all of the following are 
 ### Desktop Inventory
 
 ```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ ← Survivors                                                                 │
-│                                                                             │
-│ [portrait]  MEG THOMAS        [Owned] [Favorite]     [ Edit Character ]    │
-│             Survivor                                                       │
-│             PRESTIGE P3        BLOODWEB 27 / 50                            │
-│                                                                             │
-│ [ Overview ] [ Perks ] [ Items & Add-ons ]                                 │
-└─────────────────────────────────────────────────────────────────────────────┘
-
+[Shared character header / workspace navigation]
 Items & Add-ons
-Track the quantities currently recorded for this Survivor.
+[ Search selected family................ ] [ In Stock ] [ Filters (1) ]
+[ Keys ] [ Firecrackers ] [ Flashlights* ] [ Fog Vials ] [ Maps ]
+[ Med-Kits ] [ Toolboxes ]
 
-[ Search inventory............................. ] [✓ In Stock] [Filters (1)]
-[Jump to family ▾]                    [Collapse all] [Expand all]
-
-▼ FLASHLIGHTS
-  Items
-  ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐
-  │    [ artwork ]   │ │    [ artwork ]   │ │    [ artwork ]   │
-  │ Sport Flashlight │ │ Utility Flash... │ │ Flashlight       │
-  │ [RARE]           │ │ [EVENT]          │ │ [COMMON]         │
-  │ QUANTITY         │ │ QUANTITY         │ │ QUANTITY         │
-  │ [-] [ 3 ] [+]    │ │ [-] [ 1 ] [+]    │ │ [-] [ 0 ] [+]    │
-  │          Details │ │          Details │ │          Details │
-  └──────────────────┘ └──────────────────┘ └──────────────────┘
-
-  Add-ons
-  ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐ ...
-
-▼ FIRECRACKERS
-  Items
-  [cards]
-  Add-ons
-  No compatible Add-ons in this catalog.
-
-...
+FLASHLIGHTS
+7 Items · 14 Add-ons (catalog totals)
+Items
+┌─────────────────────┐ ┌─────────────────────┐
+│   [large game art]  │ │   [large game art]  │
+│ Sport Flashlight    │ │ Utility Flashlight  │
+│ Rare · Item         │ │ Very Rare · Item    │
+│ QUANTITY            │ │ QUANTITY            │
+│ [-] [ 3 ] [+]       │ │ [-] [ 0 ] [+]       │
+│             Details │ │             Details │
+└─────────────────────┘ └─────────────────────┘
+Add-ons
+[Flashlight Add-on cards]
 
 Imported records not in current catalog
-──────────────────────────────────────────────────────────────────────────────
-raw-id-name                                      quantity 2        read-only
+raw-id                       Quantity 2   Read-only
+
+* selected button has shape/border state plus aria-pressed=true
+Selecting Med-Kits replaces this content; no other family follows it.
 ```
 
 ### Narrow/mobile Inventory
 
 ```text
-← Survivors
-
-[portrait] MEG THOMAS
-           Survivor
-           [Owned] [Favorite]
-
-PRESTIGE P3       BLOODWEB 27 / 50
-[ Edit Character ]
-
-[ Overview ] [ Perks ]
-[ Items & Add-ons ]
-
+[Shared character header]
 Items & Add-ons
-
-[ Search inventory............. ]
-[✓ In Stock] [Filters (1)]
-[Collapse all] [Expand all]
-
-▼ FLASHLIGHTS
-  Items
-  ┌────────────────────────────┐
-  │         [ artwork ]        │
-  │ Sport Flashlight           │
-  │ [RARE]                     │
-  │ QUANTITY                   │
-  │ [ - ] [      3      ] [ + ]│
-  │                    Details │
-  └────────────────────────────┘
-
-  Add-ons
-  [one-card column]
+[ Search selected family..... ]
+[ In Stock ] [ Filters (1) ]
+┌ bounded horizontal scroll strip ┐
+│ [Keys*] [Firecrackers] [Flash…] →│
+└────────────────────────────────┘
+KEYS
+3 Items · 5 Add-ons (catalog totals)
+Items
+┌──────────────────────────────┐
+│       [large game art]       │
+│ Broken Key                   │
+│ Common · Item                │
+│ QUANTITY                     │
+│ [ - ] [      0      ] [ + ]   │
+│                    Details   │
+└──────────────────────────────┘
+Add-ons
+[one-column Key Add-on cards]
+[Unresolved imported records, if present]
 ```
 
 ### Desktop Overview
@@ -1347,10 +1224,10 @@ PRESTIGE P#      BLOODWEB ## / 50
 
 ```text
 ┌──────────────────────────────┐
-│          artwork             │
+│       large game artwork     │
 │                              │
 │ Entity Name                  │
-│ [RARITY]                     │
+│ Catalog rarity · Item/Add-on │
 │                              │
 │ QUANTITY                     │
 │ [ - ] [ raw text field ] [ + ]
@@ -1366,8 +1243,8 @@ PRESTIGE P#      BLOODWEB ## / 50
 
 - header layout and badges;
 - Overview composition;
-- family section grouping;
-- family collapse UI;
+- one selected-family content region;
+- native family-switcher navigation and session-local selection;
 - family-local rendering order;
 - inventory card visual hierarchy;
 - rarity visual tokens;
@@ -1397,29 +1274,25 @@ PRESTIGE P#      BLOODWEB ## / 50
 
 ## Self-review
 
-### Placeholder scan
+### Scope and authority
 
-No implementation requirement is left as TBD/TODO. Optional features are explicitly identified as optional rather than unresolved: +/- steppers, Jump to family, and sticky toolbar. Sticky behavior is intentionally deferred.
+Tasks 1–5 and the 92-entity artwork mapping remain completed history. This revision specifies Task 5A's presentation change only; Overview/Perks keep their approved direction and Task 6 remains paused. No production code was changed by this document.
 
 ### Internal consistency
 
-No schema or persistence change is required. The only deliberate refinement of an earlier presentation rule is family-local positive/zero ordering, which is explicitly limited to rendering. Zero stock remains visible by default while In Stock remains an opt-in filter. Family collapse is presentation-only and cannot hide error/focus targets when they must be revealed.
+Selected-family state, strip scrolling and search/filters remain presentation-only. One family supplies both Item and Add-on context; search never creates an all-family document. Catalog rarity stays authoritative; artwork color is supplemental, including Banquet. Existing schema, routes, persistence, quantity and draft boundaries are unchanged.
 
-### Scope check
+### Explicit rulings
 
-This design is focused enough for one later implementation plan covering shared header, Overview presentation, Perks intro cleanup, and Survivor inventory presentation. Killer production inventory remains outside scope.
+- Default/reset uses the first catalog family and the current character/page session key.
+- Search, In Stock, Type and Rarity retain their values across family changes; no-result states remain local.
+- Detailed switching resolves an active quantity once, blocking on invalid input or save failure; draft switching preserves raw state without persistence.
+- Explicit error navigation selects the target family and clears only the filters needed to reveal its field.
+- Native buttons in a labeled nav provide ordinary keyboard behavior; narrow strips scroll internally with full-size controls.
+- Existing canonical artwork is enlarged based on card geometry; catalog rarity/type text remains while strong duplicate decoration and repeated family metadata are reduced.
+- Unknown IDs remain outside family classification and visible when present.
+- No global search, dropdown fallback, sticky toolbar, new artwork mapping or new runtime family is introduced.
 
-### Ambiguity check
-
-The following choices are explicit:
-
-- shared header status fields are display-only; Edit Character remains the editor;
-- family order comes from the verified catalog;
-- Item/Add-on order is family-local;
-- search-driven family opening does not overwrite user collapse intent;
-- family is primary structure, so Type/Rarity are the required secondary filters;
-- unresolved records remain outside verified filters/families;
-- +/- is not required if it threatens settled input/commit/focus semantics;
-- toolbar stickiness is not part of the first implementation.
+No contradiction remains between selected-family scope and Task 5's quantity contract. Owner review of this revised checkpoint is required before implementation.
 
 No material design question blocks implementation planning after owner approval.
