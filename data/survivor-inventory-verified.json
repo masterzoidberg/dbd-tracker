@@ -578,7 +578,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/key/items/broken-key.png",
-      "imageSha256": "5f572d12b7d3ee92d0ffe0f3e014c9e51a41aab5342b3ea826c8b3d0c46af904",
+      "imageSha256": "0e4f83a16750f93541d04ae9a58da3e2058182a86aa44dbf141f7cf3ad5ff306",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -735,7 +735,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/key/items/dull-key.png",
-      "imageSha256": "0ac084a760a42641d51afc2c87c1818aca31cda7f0dc21d759a0c0ddbad07fa1",
+      "imageSha256": "f37f0ba80ac41fff3fb41880f24c6edd9f3ca149fb240b09f69a48d63b814955",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -892,7 +892,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/key/items/skeleton-key.png",
-      "imageSha256": "06c3b281d190c7d4936cd27782301f6c227e881c956dd1c77c1f17b819c2b70f",
+      "imageSha256": "1e5b0f9828079cab1764a7ed7c2650d8cfa2bb31727bc889233d85c0a1f870ab",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -1059,7 +1059,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/firecracker/items/chinese-firecracker.png",
-      "imageSha256": "7a278388d03898416bd037bdc4fa69075e933a5e8fb2a5a7764f0bc47979a5ff",
+      "imageSha256": "0d2893ba733339fa6cc4809d5ed1ae305c3a4f067c6620db69aed442be99c278",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -1236,7 +1236,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/firecracker/items/third-year-party-starter.png",
-      "imageSha256": "e16f232a57a4b2d1a1be8a7951c7859e0049a979411c9989b93178f4d76d937d",
+      "imageSha256": "64d3d3c6d50a6ce81a1123a874543355cb1be89b7c90f9a48cd2f085fd6f2dad",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -1413,7 +1413,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/firecracker/items/winter-party-starter.png",
-      "imageSha256": "01d082de137de403cc50dd80699c3330eb16ae12647ff2ac36314f7cc4fca553",
+      "imageSha256": "ea0777adcd58bf99af98f0707ac8270afa9866aa7335619ffea5ac0fc7405930",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -1553,7 +1553,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/items/flashlight.png",
-      "imageSha256": "badde858adb767d33e994b0ea0074ca1907581d65ee9a3dfb1cf7a951a41076b",
+      "imageSha256": "f76d9eb86f837283fbe4a3c903d8a1d666803f461bea8592d83a141828043614",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -1656,7 +1656,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/items/sport-flashlight.png",
-      "imageSha256": "53ffebed4d52de0e5919d47379bd861be2d1b468431f5deb2ddd43b0b24cb248",
+      "imageSha256": "f38d7da25642773f6db06d91c416a2f078ec11dbc1b45e63855e5c26d82af613",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -1759,7 +1759,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/items/utility-flashlight.png",
-      "imageSha256": "dae5eb535e2a200bc794c731703480662a62365e27eb6751c058bae88bc91e38",
+      "imageSha256": "2ce38f3d5ef48f018917776cc5c40c72ba8dfa5d3629b964e3654bef683e2b30",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -1901,7 +1901,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/items/anniversary-flashlight.png",
-      "imageSha256": "eb62b8824323791a47fb16704ef65c02b9cdec438728bee804e9fb58bb99c8a9",
+      "imageSha256": "5bedc7d6aac3c7c99eb0c970f8283421a2fa0f869c80783191c253080293b1b8",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -2070,7 +2070,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/items/banquet-flashlight.png",
-      "imageSha256": "aaa722e11d596ea93b86bf21b8da06916f3fc4001b220d8f3c4843b2389f3082",
+      "imageSha256": "6b917e1fb94b4b00d1f5ead5abbadd83b96d13a07d865b168fd6b9be470ff312",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -2239,7 +2239,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/items/masquerade-flashlight.png",
-      "imageSha256": "f62157f9e0b7134466dc6b8007f30b8fd08ad0be32885b513846807826d7a2e8",
+      "imageSha256": "856054210e42375744ed085acd8fda96ebda5e7b34dc24c9d83ddaf52c8f26f3",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -2398,7 +2398,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/items/will-o-wisp.png",
-      "imageSha256": "cc032ac80c7c3b7c026a5d684a49205b19769611f30654779de33520fc51dbec",
+      "imageSha256": "d1d23ed845d47507d198c51d630d56711ac017819b525f5ba4cc0c5f0e766d5b",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -2538,7 +2538,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/fog-vial/items/apprentices-fog-vial.png",
-      "imageSha256": "5ff03861ba36615558683c2cf591d93b51b1cfee5a8d3eeb349b709348e1618f",
+      "imageSha256": "188e304c3dd6303fd7a63e9260ac3d41997e74ef32149f1a54c0d19c5fbc1ed8",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -2677,7 +2677,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/fog-vial/items/artisans-fog-vial.png",
-      "imageSha256": "9f8952779e3f2b768693728f82d9656f89c7c1b944355952b1a44f52411f517b",
+      "imageSha256": "16446662a4604f9bd4c2073f618c32c7889b89a123f024ba9a91917de3cb8f59",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -2816,7 +2816,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/fog-vial/items/vigos-fog-vial.png",
-      "imageSha256": "112ae112de891b18b570a9212f7f89094e7ae742ab69d04d9ce55a99491622c3",
+      "imageSha256": "c22cf57f63ea2eeb372e84073e7eff541b01d29127fa84593c8e054eab87ba02",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -2946,7 +2946,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/map/items/cryptic-map.png",
-      "imageSha256": "57036fb245a860c56fe99fa3413d11d10b1ceb67fbefeba3dd1609da47473f9c",
+      "imageSha256": "5de316d4de0a63cf49061becec42879af0abe6e6a1692e7ac55aed57dc6b0f8c",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -3067,7 +3067,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/map/items/scribbled-map.png",
-      "imageSha256": "350230b10ca4a12447c6ab904b2e765617bd417e441cfd79371b13ecc4c9f559",
+      "imageSha256": "1c8efccb636d6868868e28c72204187f33ab38ec82156f8438e0cb593430243f",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -3200,7 +3200,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/map/items/annotated-map.png",
-      "imageSha256": "9dfc08657a444324842cec718eab35737ca98f7507605ef37e56a01791bbe54a",
+      "imageSha256": "b6e0d9772a9ff18f63c0c43af1671932ece73ade070e4aa4a841be0fb61cc453",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -3359,7 +3359,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/map/items/bloodsense-map.png",
-      "imageSha256": "a83f546f4412a066122c6ca479c4f914d3823e86ab932c8f61f7090851fefc02",
+      "imageSha256": "7ab3eaa6d171d4fa846ba8e8636b76ad6ebc7a3a2962e7deada346e270ff60c3",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Bloodsense_Map",
@@ -3508,7 +3508,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/items/camping-aid-kit.png",
-      "imageSha256": "3ccfba40a76e20e35242569bc43fc5c2057a2901f2e7156fbcc7a0bda0533aa5",
+      "imageSha256": "32fb20822fd8d075053e8bc33aaa795ba2b2b5d4fe518b70b2f3ac0311179c27",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -3629,7 +3629,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/items/first-aid-kit.png",
-      "imageSha256": "52196e8cf18f3a94d38043453e81dec8a82a01af5169f7c05a6aa99376f4b905",
+      "imageSha256": "7bee82aaa99822e1087b5f02c19236d496771358827172ccca03e1b51d2e1906",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -3750,7 +3750,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/items/emergency-med-kit.png",
-      "imageSha256": "afd9d394e665593c508ebeab2703e714044d461ef0df245857ea499dcce4a3ad",
+      "imageSha256": "9ff67754171f626baa8c895217a3e068327c30eb81c3b86b78e0aa0f07f7b871",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -3871,7 +3871,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/items/ranger-med-kit.png",
-      "imageSha256": "eea7dae5607b46d946b77659788d010e1eec9e75ccae89b0606c97e03532c3fc",
+      "imageSha256": "ab7f5a65db147f4291c208881f6d0e669f54338edd1702ef1a7509a63cfd9b1d",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -4011,7 +4011,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/items/all-hallows-eve-lunchbox.png",
-      "imageSha256": "48c14db7f79248ebf658d939bed6f67e2d0e0247b388874b8cf4be71ad3ca9ea",
+      "imageSha256": "3919d1f3a3696e8c7a04c908862bc9699251dc75def48b9b89355b105e63910c",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -4190,7 +4190,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/items/anniversary-med-kit.png",
-      "imageSha256": "69efa29d47b74b6e59775cd91d417158c95686d2c018cc55d75427204bb88915",
+      "imageSha256": "58b4668231ae1694718ee4b80ad576ffc415167ae68660f2de6768a670f4a013",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -4377,7 +4377,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/items/banquet-med-kit.png",
-      "imageSha256": "283e8d1cc42b89843c023ca7a80ccd9e93baa8d61521a36e88415e0cdf3a3e03",
+      "imageSha256": "6506a30cdc7f32fd2619e49f664ab4ea3da97a1ff4bafbce6b9f1702ddd39de1",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -4564,7 +4564,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/items/masquerade-med-kit.png",
-      "imageSha256": "d47351dadffc3a311406363a1cbcf4c258caef6cb55c2187697ac66810f50e38",
+      "imageSha256": "928d3a1c6392c17f29171b58f9ac94494eef081820e4be305769a32786fba63b",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -4722,7 +4722,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/items/worn-out-tools.png",
-      "imageSha256": "c2a8126e9eba5a15972fadb731512803cd3b75c0b7d0c6f5bdbe3ea7119f730c",
+      "imageSha256": "125d2fcd1f6ac4a1db295bc88ce2dd340f99d87644f48e9dae96334ec1563e52",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -4843,7 +4843,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/items/toolbox.png",
-      "imageSha256": "266bdae8220ee73e526e5fc7b9eb2b9d1f69bdf39a383b3cad78678f27cad142",
+      "imageSha256": "ac53479bb5adfd5ffa73f619d427bb63c824c28815cee374e9282ba37d65d0c7",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -4964,7 +4964,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/items/commodious-toolbox.png",
-      "imageSha256": "f104543b29544875ed94f9c63c7f0f3c4f0dc0a2d766e67d395362098c0ca571",
+      "imageSha256": "4b03ea832c1fa5050a6436a351786f06134aca8d331e5aab85ad964a0d57c515",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -5085,7 +5085,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/items/mechanics-toolbox.png",
-      "imageSha256": "0aafd0ee9df5a9db6c08c0d284f70ae4d2f41b1990e486ee4e903eafbf275f73",
+      "imageSha256": "1b76a2f846ef385c423e7a41977e34d4687ba9c2536abbc6059fd284a89e7332",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -5206,7 +5206,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/items/alexs-toolbox.png",
-      "imageSha256": "3c867e297cede10f0e1cb95a645111878cdd830fb60d7cdf47efa012ea7c5678",
+      "imageSha256": "e7bcc0aebdd54082c09fa37af635d852d3e2c0bac4a3403b4d859fb80cb9dc4b",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -5327,7 +5327,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/items/engineers-toolbox.png",
-      "imageSha256": "784935a74fdc6ce2e1c6706328157fd6ed349231efd580058bf31296a311882d",
+      "imageSha256": "35b62062d117aa792b9c1cef0e409d389d3c8f3444a63b94518e26fd372162c9",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -5485,7 +5485,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/items/anniversary-toolbox.png",
-      "imageSha256": "0a27a6fea76f7a8c75ef2a11be6e45badc6c5a5f8262986de8341c756df348a7",
+      "imageSha256": "6289d6b3f297c4eb741702b59233e056039dbdde606f5141d15b3eaf039499f8",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -5681,7 +5681,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/items/banquet-toolbox.png",
-      "imageSha256": "354165d10ac48839e211e97a773e35d3df2a1300ab20d75eeeea3c1edf2fb64d",
+      "imageSha256": "5f21aa2871a8e5c8ebd77a5104b34971c7525b6c81dfbb0f860a47cee9f5af60",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -5877,7 +5877,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/items/festive-toolbox.png",
-      "imageSha256": "26f162d2135efe2f58dc708ebe46c4210c46802aab755d7ad1e0c716e006e08d",
+      "imageSha256": "21bacefa692976a4dedfa6a98f2eeda22922b580c4c9f98cbdaeaa7c83cfee09",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -6072,7 +6072,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/items/masquerade-toolbox.png",
-      "imageSha256": "9710d9c28c1cd6f90c8deb610bd75170acfe3913ea861cb2440385c2fd998ef4",
+      "imageSha256": "0d922f08ce30ca5a398c0f8453d9575e6daeac181503747077010bb81e560871",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Items",
@@ -6229,7 +6229,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/addons/battery.png",
-      "imageSha256": "b758b7cf26a5d12943bcee16b0e2c7463745b59454ba1dc6698c4125bbe4c1ab",
+      "imageSha256": "81e2dc262791f83e7807dd84be0f33e5652493267e454842ddbd7a1426dfbe59",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -6339,7 +6339,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/addons/leather-grip.png",
-      "imageSha256": "7de509f12e672fe0721bfe27013dcd3d2dd49df9ae7b7722c5f928d152a14ec0",
+      "imageSha256": "c7a9e7c14a881f772952fca17fe60225a1144f15b39aad220f22addb9056d8a4",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -6449,7 +6449,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/addons/power-bulb.png",
-      "imageSha256": "89b12fa52d8f9ff1dc52f94b7f62c46147e4cd9ef2b1dd1ddd740f88ad32aada",
+      "imageSha256": "d479532067bb8e4abacdb64c8dcb69a49d9785a87e5bf3a0a00c89d5d9cd9c1f",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -6559,7 +6559,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/addons/wide-lens.png",
-      "imageSha256": "9ca5bc55a448b93111015a9a83dc73d8a69816a526057141d49792bd49c02cc6",
+      "imageSha256": "0e6d26bfc7b6969d6f00967ec7c7a3f86b6789b726820eb570b7b071901cdb07",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -6669,7 +6669,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/addons/focus-lens.png",
-      "imageSha256": "3352409b66885e8b4a1693013f0a8ba9cd815cb46abb7da1f94c06baf6ba971e",
+      "imageSha256": "aac614839a116e3fbb4863cc58d4727920b3a830e71f6ed26d5bcb0a7b22da07",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -6779,7 +6779,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/addons/heavy-duty-battery.png",
-      "imageSha256": "f1fc2a0a126570aabf41831cceac10b24c8331e3d63b17ce658b4a4516954022",
+      "imageSha256": "61133d6e872e68ab328672c91e51a92ba5e7fe05792265105e992527340da8b6",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -6889,7 +6889,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/addons/low-amp-filament.png",
-      "imageSha256": "22fb56fd8b69051b57b1d1d1b43ff2477207f96dc6a83fc79601b8e6fa45cb49",
+      "imageSha256": "29237f5d81b18198df8de4ef4183a8b2f13efaf7053ba4e6721935201e6e43f1",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -6999,7 +6999,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/addons/rubber-grip.png",
-      "imageSha256": "395fbab3c7d201f6871f9f04f6341f1b64e1d058e07438ac931410d3dd32fe44",
+      "imageSha256": "888526175cdf05bf2e3b1b5763986451b394d7cb377c5185179a5a36a3beb859",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -7109,7 +7109,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/addons/tir-optic.png",
-      "imageSha256": "f7210592d9ac2408a1e8e671134ef6749e04615392646d14e1fa32de66f97ff7",
+      "imageSha256": "d54ba26aeff6ec81fd8e9dc410dd3fd8781ea8d72b9d2b9a8e4e57182645debc",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -7219,7 +7219,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/addons/intense-halogen.png",
-      "imageSha256": "6c68f9857d568d1518dbf936c6c04e2af16b286eddc3c752cd07e280bf0d0f63",
+      "imageSha256": "622fd3fcb70b3df586a1951a118c66189a23d8377cf77320e54e22f6ad0b2e27",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -7329,7 +7329,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/addons/long-life-battery.png",
-      "imageSha256": "ae4848fa72aa3451de1657923df43675441c3d674a418ca17bc82dcc9a499041",
+      "imageSha256": "f66152725f24ce15f5b303560edda76d027cd8795a1775b2b0be3844d5044070",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -7439,7 +7439,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/addons/high-end-sapphire-lens.png",
-      "imageSha256": "822440a4bc18a773fa35a49f7754a3a07fdac93ed87e39b1170604bbe41b45a0",
+      "imageSha256": "097ae240155493240d18fd8c5db924be1f3fe3f60fc9f2c82b4cb15fc445c6b2",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -7549,7 +7549,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/addons/odd-bulb.png",
-      "imageSha256": "967a82aa5c8c1830c8702bb4f05579797db4734a5a46951fb03b85c1ad217276",
+      "imageSha256": "211beaf5aad100ef94fa66f9b7c670de7d05b047ab3924392df84d3ea7f8c7ca",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -7695,7 +7695,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/flashlight/addons/broken-bulb.png",
-      "imageSha256": "2f4b4b0defaea8c78ec328cb6de78ffdcb1d6eb461f87477ce12eaa9643ccb4d",
+      "imageSha256": "490ce6eec0897eda4169c26a4cd01fb9761385f0a2841627c10a99ccaea17625",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -7862,7 +7862,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/key/addons/friendship-charm.png",
-      "imageSha256": "f02928d16352f143815ae19658fbc8e1809ac0aca64926096c60b8739dffc13b",
+      "imageSha256": "c12facbaabb3372e7908b0a5aa329fec9213f21f00b8cdf02ace5a5958b28dab",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -8012,7 +8012,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/key/addons/shrill-whistle.png",
-      "imageSha256": "8b1daab2f4e8074a17f43a4d65cd129c8b3bdebaa90bbbf57f57465dd6b7cb4e",
+      "imageSha256": "bc53d7eab3d38c880b7427a59dd6649ba13763a3fd10d787fb03c921f76c1e1a",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -8159,7 +8159,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/key/addons/braided-bauble.png",
-      "imageSha256": "7ad0a208006e9982a42409080cec4d72627f013421966e18bffe251bb9dcf696",
+      "imageSha256": "bd250e389ca2e38ab431fe49d42bc31a8c246c41e309f9f5805eea0c3cce76fe",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -8296,7 +8296,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/key/addons/unique-wedding-ring.png",
-      "imageSha256": "699b52c529162293a97f3ccf4f76375b6c32f7b4fd2a1b04337dbe95bb23ca50",
+      "imageSha256": "7b00bb9d2f69051ff9c30776b3175c52cb1d0e65406a6b182ca948f437b4012c",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -8424,7 +8424,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/key/addons/blood-amber.png",
-      "imageSha256": "2f449fa59385cb227c4d0b56dd452682a724d3233c59442bd8a47a6f5c25e3fb",
+      "imageSha256": "5d128c354e60379f16e486f1c4c7c02959066703a50d97c9aafea35c8b837c6f",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -8564,7 +8564,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/map/addons/glowing-ink.png",
-      "imageSha256": "4c086e993293382448aaacb17ca5e416ea091c7df4471b5bae14b738665a3151",
+      "imageSha256": "fb1134957a32a08f839cd498682c3846e9690e0e977dfd9fa1fccb2339a1cf27",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -8714,7 +8714,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/map/addons/gnarled-compass.png",
-      "imageSha256": "cea6b6149096e1f100d5f97e54bb2f7682c1e9613044fcdf2f6b872b01d6a3da",
+      "imageSha256": "d882c25e1313c70bd4a9af964919c1c22f0e470cec0780f409942cf217c24b51",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -8864,7 +8864,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/map/addons/battered-tape.png",
-      "imageSha256": "9795c4d9288af5f0fab324ceaa51ceb8d8503ae2950c5d8f8002c49713d0bd5f",
+      "imageSha256": "28e8b596cf53bcf6f41e41bbf412eca0c43e87e02a3830965a932e014c5b448e",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -9002,7 +9002,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/map/addons/sharpened-flint.png",
-      "imageSha256": "cbae8b9f2877ecbc4de29ca071631356081826c7265fc8b30dd486b4309cb07b",
+      "imageSha256": "efca6321bb5e95a8a33ca7bd5eb8c4afaa0e768beedabf8594847a32c851d81a",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -9139,7 +9139,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/map/addons/crimson-stamp.png",
-      "imageSha256": "82bc3a274469f3bae13d513b7ccbf4e7defc37b2233e6959d0aa21a857e2ed17",
+      "imageSha256": "7c4db8885d0d979d57dd0463cc7b457074bfecd2ebd5d1871184a665d3c2f0e2",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -9276,7 +9276,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/addons/bandages.png",
-      "imageSha256": "7464d9a0654f3f77ff4c2dba6788522e10a653d92e815014e11f65d067738230",
+      "imageSha256": "5c721b05cdf8a0cfce6c8650d9ae960b980b457915588a89fa392834914c4920",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -9404,7 +9404,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/addons/butterfly-tape.png",
-      "imageSha256": "df1df231f3222568d53076704d08b78e0f94b9fafc533de0dd52f2a462ae82c0",
+      "imageSha256": "be63b004b4b35f151acceda24ae91684f621a826f270e72a7e4de458254e1a61",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -9532,7 +9532,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/addons/rubber-gloves.png",
-      "imageSha256": "2b82de27653c310d1c27fa7ccd87c6a26c5f5b575ef93d32d36832ee6c36ca73",
+      "imageSha256": "0cb5a305ee167141d70142c1ef49e4ededd6fe6a6894652375f75bac4c40b59e",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -9660,7 +9660,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/addons/medical-scissors.png",
-      "imageSha256": "4bf31c480633fb0d1a5fa4192d30fab12085964e695cf9031943095b88e728ce",
+      "imageSha256": "b18e7ce6c8eaaeb3db36ee9b3a3623ad7bf62d8384393da1209b6294f6bc3096",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -9788,7 +9788,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/addons/needle-and-thread.png",
-      "imageSha256": "211ceef0f513442ee9783d5ecbab2115ed88a6a59a77cead84d8ae5cd94b5341",
+      "imageSha256": "a11df629f5c3395996e656e46830bcf6a01cc1fa450c3bdc850bf23657e27bf2",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -9916,7 +9916,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/addons/self-adherent-wrap.png",
-      "imageSha256": "d33e6f408d49cb58713650db533e28301ad4676177ba6a434a857f15ae0768e7",
+      "imageSha256": "2acd22b015f88f6a71bcd92707c9112021a718b6fdb7c5c475bf9c4fa51aea8e",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -10044,7 +10044,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/addons/sponge.png",
-      "imageSha256": "fc53271d3122896648902d103c39c41352a1769713d6d2fe5cf06d4bc7b3633f",
+      "imageSha256": "50d4dd4137bfea06884ed5be2e3064eea642a13e905de1d0c9111334b9518e7b",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -10172,7 +10172,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/addons/gauze-roll.png",
-      "imageSha256": "d0f8da0c23e41a08f24041703a446334b279babc915904ead0cbc4d462a93a3d",
+      "imageSha256": "3bc702322328db9ca5a10bf625e1c763e779ff49e612df212e825fb70dd86f93",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -10300,7 +10300,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/addons/surgical-suture.png",
-      "imageSha256": "9d23fc7c998dad171682ee46274d11c38ed2575a77279b3cf3d9cb2d78e1e376",
+      "imageSha256": "c078c70fda28650cedb4e6e1cad95b0596e8620e20d10f817f871c933e223560",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -10428,7 +10428,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/addons/abdominal-dressing.png",
-      "imageSha256": "8123e66260989c925d010f8f6702c1503ba792eb7c4a8361ab27313d3b9a1a3f",
+      "imageSha256": "4e9e1367bf6fbfeff5246e21f413b5acf03f822b636aabc984f9d542f9fad303",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -10565,7 +10565,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/addons/styptic-agent.png",
-      "imageSha256": "36d61b3250e25779ae641ae7257daed5a3b8d65228089a8dd0922cebfd97681c",
+      "imageSha256": "8283cece58a8b656eae7a65dc0a0f4333260241a1ba20719dd9cd1b1d6f42d94",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -10724,7 +10724,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/addons/anti-exhaustion-syringe.png",
-      "imageSha256": "bc8a815bec594ded5b60ba7a9592aa5d554b38d4be039790827a42ef9e7b6876",
+      "imageSha256": "aa6ed9be1a42ed7d311d8c258e93eb90cfd82bfd0ec0bad3f98cea9eb7b60100",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -10871,7 +10871,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/med-kit/addons/gel-dressings.png",
-      "imageSha256": "dc48ea29d71bbcae606639a2c4d32b76c8fd96d5b069ab8d283c1dc501fd8bd3",
+      "imageSha256": "ff04cebeebb29fcd9329310ad1bc3a9e1bc8730c9c31a7126dbfb2f01141d4a0",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -11181,7 +11181,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/addons/clean-rag.png",
-      "imageSha256": "cc190b81aaa6a5836ecc0840bf582ccb5a1d641ffef2b10e1d3eef4b3bbc5f60",
+      "imageSha256": "700f2778e34d72725a8904297b13c1e52623bd1ce6218959a575b2da58eba227",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -11309,7 +11309,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/addons/instructions.png",
-      "imageSha256": "29dfee42a0cd9621026dc9d8f9dfbf57b1ba6eade8f01a04ac0a168560bcb719",
+      "imageSha256": "5ca629728f983c9d9246345a2fc151ca5bea45748caf7136e38eaa0aa42d70fe",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -11437,7 +11437,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/addons/scraps.png",
-      "imageSha256": "3dae0563654c0869a347211e22481df3400546a717efb9e0104d534a269dae72",
+      "imageSha256": "bd650ec286a15c0d7201ae703b77ad9f3fbba45c56ea639343acb8ecbd99bb82",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -11565,7 +11565,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/addons/cutting-wire.png",
-      "imageSha256": "36833ccb501073568cc8f8ac07dc70bf12e4847fdcbfaad8be60fa2d08aaefc1",
+      "imageSha256": "cf0f54a7a27885db2afd207c90c3655551e3e4635acd6e32ac515b20c55a8d6d",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -11693,7 +11693,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/addons/protective-gloves.png",
-      "imageSha256": "2db7d1f227a16cadf1a9395f54881d3e005513b3a2b392ca26b66aa8c40264ed",
+      "imageSha256": "fa8a13a933be45423d98df8880ef085a0029aecdb1cfbf49ea3e0bd2765007e8",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -11821,7 +11821,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/addons/socket-swivels.png",
-      "imageSha256": "594312be4ee35e4b8409d901f4aaa5a63391a712bac65d99dfe18a6c6bb0698d",
+      "imageSha256": "94f91774ea28676b736a10dafd0a7b1f884657bf4a0fb24c36ea8e2c4c5ce396",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -11949,7 +11949,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/addons/spring-clamp.png",
-      "imageSha256": "a74c73c31ef74723926279e8ce4e31df86a07b320ac96bccc185e9e8bd543bf0",
+      "imageSha256": "4880d0e0341e91b7e983ccb6d827f60096c4de0cb8e7f57e80c5d8cce64269ca",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -12077,7 +12077,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/addons/wire-spool.png",
-      "imageSha256": "5a2a2f547e1ad7d9e2c6441bbf00c2c3ecd2876d07ea9b49a3deaeef47719038",
+      "imageSha256": "ddeb51f76c8e2aed0f31c9816ad0c6f5ce9a1e75e53296d3521bc304a49c54b6",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -12205,7 +12205,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/addons/grip-wrench.png",
-      "imageSha256": "de2b001ca4298f8e5b9895af4d45f2f3818287d10a1050c85f20049eb09288ff",
+      "imageSha256": "176815da8cf08f6a7606e31c0d71c01216fd93a5da177b72b8b4b20091707fdd",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -12333,7 +12333,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/addons/hacksaw.png",
-      "imageSha256": "c3c8855b5e2f6039d0391e12b5d871b7b31c32aed37b67c59be06f1f995a9c35",
+      "imageSha256": "86f7f074d8a6384d99090f9e1806c0a1e19038f24515165bd0ead46f5226ced8",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -12461,7 +12461,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/toolbox/addons/brand-new-part.png",
-      "imageSha256": "7bb177745b2c3b52534fcc4cd5ee44e047ef953d92cd1e0d1190d77fad0bb3f4",
+      "imageSha256": "17f3b26e2e4d8cdbda15ff6efc6499845dd7be2d0f0af6c11e447347d59c1d3c",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -12598,7 +12598,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/fog-vial/addons/volcanic-stone.png",
-      "imageSha256": "7d1548095c99b709ea541a461936dcc92f6bd6bef8df6add484caa40d361c382",
+      "imageSha256": "a57976dfb4fc6b41071b07b7f323c8e1cbc8df8ed27308a1c96490afc377a73c",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -12744,7 +12744,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/fog-vial/addons/reactive-compound.png",
-      "imageSha256": "12c7ce76637c046b92b32ebe2e291e2d11637b89fccebeaa2bb39db974a99ec6",
+      "imageSha256": "9ed7b57912e707732b62045d9f4d1b6ce45b88d86d5122b761261d2d5334d3f5",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -12890,7 +12890,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/fog-vial/addons/oily-sap.png",
-      "imageSha256": "8c4da80e567acb6e0fb88fc417af239f33bfa042cf125c3e9e9d8b77d67f5aef",
+      "imageSha256": "2c449f919805a2c012c3d8d488e511352c493280b096ab1d384f588c0f18c8d4",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -13036,7 +13036,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/fog-vial/addons/mushroom-formula.png",
-      "imageSha256": "15c2753ffefa0af6965538e9cd2dff6e4793b19b4e975f731ede377d87a40ef2",
+      "imageSha256": "779b43b3b2bce4022d1e37aa72ccf43935bf963d8d2973b112c079d68e277b14",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
@@ -13182,7 +13182,7 @@
       "description": null,
       "compatibleSourceItemIds": [],
       "imagePath": "images/survivor-items-addons/fog-vial/addons/potent-extract.png",
-      "imageSha256": "f4cb7084d4dc69fd6cee1bcacf20cb788a197b2042f09de9682bfaeffbb28323",
+      "imageSha256": "5fa3ecc1e4dfc42ec959d817f7b8cbd1d5efef5a6e36d1a7f094fac7d6890e98",
       "provenance": {
         "references": [
           "https://deadbydaylight.wiki.gg/wiki/Add-ons",
