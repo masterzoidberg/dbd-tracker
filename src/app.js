@@ -675,7 +675,7 @@ function stockView(id,mode) {
   }).join('');
   return '<section data-stock-workspace><div class="stock-page-heading"><div><h2>Survivor Items &amp; Add-ons</h2><p>'+(mode==='detail'?'Track the quantities currently recorded for this Survivor. Quantities save on Enter or leaving the field.':'Stock changes stay in this draft until Save Character.')+'</p></div><p class="muted">Survivor inventory '+esc(survivorInventorySource.patch)+' · research '+esc(survivorInventorySource.verifiedAt)+'.</p></div>'
     +'<div class="stock-toolbar"><div class="stock-primary-controls"><label class="stock-search">Search '+esc(visibleGroups[0].family.displayName)+'<input id="inventory-search" type="search" value="'+esc(stockFilters.search)+'"></label><label class="stock-in-stock"><input id="inventory-in-stock" type="checkbox"'+(stockFilters.inStock?' checked':'')+'> In Stock</label>'
-    +'<details id="inventory-filters"><summary>Filters'+(secondaryCount?' ('+secondaryCount+')':'')+'</summary><div class="stock-secondary-filters">'+select('inventory-map','Type',[['','All'],['items','Items'],['addons','Add-ons']],stockFilters.map)+select('inventory-rarity','Rarity',[['','All rarities'],...[...new Set(inventoryEntities.map(e=>e.rarity))].map(r=>[r,r])],stockFilters.rarity)+'</div></details></div>'
+    +'<details id="inventory-filters"><summary id="inventory-filters-toggle">Filters'+(secondaryCount?' ('+secondaryCount+')':'')+'</summary><div class="stock-secondary-filters">'+select('inventory-map','Type',[['','All'],['items','Items'],['addons','Add-ons']],stockFilters.map)+select('inventory-rarity','Rarity',[['','All rarities'],...[...new Set(inventoryEntities.map(e=>e.rarity))].map(r=>[r,r])],stockFilters.rarity)+'</div></details></div>'
     +'</div><nav class="stock-family-nav" aria-label="Item families">'+survivorInventorySource.itemFamilies.map(family=>'<button type="button" id="stock-family-nav-'+esc(family.id)+'" data-action="stock-family-select" data-family="'+esc(family.id)+'" aria-pressed="'+(family.id===selectedFamilyId)+'">'+esc(family.displayName)+'</button>').join('')+'</nav>'
     +(Object.keys(stockSession.errors).length?'<div role="alert" data-stock-error-summary>'+Object.entries(stockSession.errors).map(([entityId,error])=>'<p><button type="button" data-action="stock-error-focus" data-id="'+entityId+'">Fix quantity of '+esc(inventoryEntityById[entityId].name)+'</button>: '+esc(error)+'</p>').join('')+'</div>':'')
     +'<div class="stock-families">'+familyMarkup+'</div>'+(visibleGroups.every(group=>!group.items.length&&!group.addons.length)?'<p class="empty">No matches in '+esc(visibleGroups[0].family.displayName)+'.</p>':'')
@@ -777,7 +777,7 @@ function acceptStock(id,trigger,nextTargetId=null) {
     }
     const visible=stockFocusOrder();
     const stepDestinations=[...document.querySelectorAll('[data-stock-step]:not(:disabled)')].filter(control=>visible.includes(control.dataset.id)).map(control=>control.id);
-    const availableDestinations=[...visible,...['inventory-search','inventory-map','inventory-rarity','inventory-in-stock','inventory-unresolved'],...visible.map(entityId=>'stock-details-'+entityId),...stepDestinations];
+    const availableDestinations=[...visible,...['inventory-search','inventory-map','inventory-rarity','inventory-in-stock','inventory-filters-toggle','inventory-unresolved'],...visible.map(entityId=>'stock-details-'+entityId),...stepDestinations];
     const destination=quantityFocusAfterCommit(before,{entityId:id,nextTargetId,trigger,visibleIds:availableDestinations});
     render(); ($('#quantity-'+destination)||document.getElementById(destination))?.focus({preventScroll:true});
     message('Quantity saved: '+entity.name+' '+result.quantity+'.');
@@ -1069,6 +1069,12 @@ async function handleClick(event) {
     event.preventDefault(); await requestWorkspaceNavigation(link.getAttribute('href')); return;
   }
   if (setupOpen && event.target.closest('nav a')) { setupOpen = false; render(); }
+  if(event.target.closest('#inventory-filters-toggle')&&stockBlurPending?.key===stockSessionKey){
+    event.preventDefault();const open=!$('#inventory-filters').open;
+    const pending=stockBlurPending;stockBlurPending=null;
+    acceptStock(pending.id,'blur','inventory-filters-toggle');
+    $('#inventory-filters').open=open;$('#inventory-filters-toggle').focus({preventScroll:true});return;
+  }
   const button = event.target.closest('[data-action]');
   if (!button) return;
   const { action, id, character, perk, mode, family } = button.dataset;
@@ -1407,13 +1413,13 @@ document.addEventListener('focusin',event=>{
 });
 document.addEventListener('focusout',event=>{
   if(stockRendering)return;
-  const id=event.target.dataset.inventoryQuantity||((event.target.hasAttribute('data-stock-step')||event.target.dataset.action==='stock-details')?event.target.dataset.id:null);
+  const id=event.target.dataset.inventoryQuantity||((event.target.hasAttribute('data-stock-step')||event.target.dataset.action==='stock-details')?event.target.dataset.id:((event.target.dataset.action==='stock-family-select'||event.target.dataset.action==='stock-error-focus'||event.target.id==='inventory-filters-toggle')?stockBlurPending?.id:null));
   if(!id)return;
   const key=stockSessionKey;
   const related=event.relatedTarget, destination=related?.dataset.inventoryQuantity||related?.id;
   if(event.target.dataset.inventoryQuantity)stockBlurPending={id,key,destination};
   // Family activation resolves pending edits itself before replacing their content.
-  if(related?.dataset.action==='stock-family-select'||related?.dataset.action==='stock-error-focus')return;
+  if(related?.dataset.action==='stock-family-select'||related?.dataset.action==='stock-error-focus'||related?.id==='inventory-filters-toggle')return;
   // Inventory reference reading retains raw edits without an implicit quantity write.
   if(related?.dataset.action==='stock-details'||(modal?.type==='stock'&&$('#detail').open))return;
   // Moving within the quantity control defers blur until activation or leaving the control.

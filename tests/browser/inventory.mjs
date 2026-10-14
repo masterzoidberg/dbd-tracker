@@ -64,6 +64,14 @@ export async function familyTransitionsRegression(page,origin){
  const field=id=>page.locator('[data-inventory-quantity="'+id+'"]');
  const current=()=>page.locator('[data-stock-family]').getAttribute('data-stock-family');
  const bytes=()=>page.evaluate(()=>localStorage.dbdTrackerData);
+ await field(first.id).fill('37');await select(first.familyId).focus();await page.locator('#inventory-search').focus();
+ await page.waitForFunction(id=>JSON.parse(localStorage.dbdTrackerData).characters['meg-thomas'].inventory.items[id]===37,first.id);
+ await field(first.id).fill('39');await page.locator('#inventory-filters summary').click();
+ await page.waitForFunction(()=>document.querySelector('#inventory-filters').open);
+ assert.equal(await page.locator('#inventory-filters summary').evaluate(n=>n===document.activeElement),true,'Filters retains focus after quantity commit');
+ await field(first.id).fill('40');await page.locator('#inventory-filters summary').focus();await page.locator('#inventory-filters summary').press('Enter');
+ assert.equal(await page.locator('#inventory-filters').evaluate(n=>n.open),false,'Keyboard Filters toggles after quantity commit');
+ await field(first.id).fill('0');await field(first.id).press('Enter');
  await page.locator('#inventory-search').fill(second.name);
  assert.equal(await page.locator('[data-stock-card]').count(),0,'Other-family search matches cannot leak into selection');
  assert.equal(await current(),first.familyId);assert.match(await page.locator('.stock-family-heading').textContent(),new RegExp(families[0].displayName));
