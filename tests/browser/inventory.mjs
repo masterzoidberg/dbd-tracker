@@ -3,6 +3,167 @@ import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {freshSave} from '../../src/model.js';
 import {inventoryEntities,inventoryEntityById,inventoryCatalogStatus,survivorInventorySource} from '../../data/inventory-catalog.js';
+export async function familyNavigationRegression(page,origin){
+ page.setDefaultTimeout(6000);
+ await page.evaluate(s=>localStorage.setItem('dbdTrackerData',JSON.stringify(s)),freshSave());
+ await page.goto(origin+'/#character/meg-thomas/items-addons');await page.reload();
+ await page.locator('[data-stock-workspace]').waitFor();
+ const families=survivorInventorySource.itemFamilies;
+ const nav=page.getByRole('navigation',{name:'Item families',exact:true});
+ assert.equal(await nav.count(),1,'A native Item families navigator replaces the all-family document');
+ assert.deepEqual(await nav.locator('button').evaluateAll(nodes=>nodes.map(n=>n.dataset.family)),families.map(f=>f.id));
+ assert.equal(await page.locator('[role="tablist"], [role="tab"], [role="tabpanel"]').count(),0);
+ assert.equal(await page.locator('[data-stock-family]').count(),1);
+ assert.equal(await page.locator('[data-stock-family]').getAttribute('data-stock-family'),families[0].id);
+ const before=await page.evaluate(()=>localStorage.dbdTrackerData);
+ for(const [index,family] of families.entries()){
+  const button=nav.getByRole('button',{name:family.displayName,exact:true});
+  await button.focus();await button.press(index%2?'Space':'Enter');
+  assert.equal(await nav.locator('[aria-pressed="true"]').count(),1);
+  assert.equal(await button.getAttribute('aria-pressed'),'true');
+  assert.equal(await button.evaluate(n=>document.activeElement===n),true);
+  assert.equal(await page.locator('[data-stock-family]').count(),1);
+  assert.equal(await page.locator('[data-stock-family]').getAttribute('data-stock-family'),family.id);
+  const familyItems=inventoryEntities.filter(e=>e.familyId===family.id&&e.map==='items').length;
+  const familyAddons=inventoryEntities.filter(e=>e.familyId===family.id&&e.map==='addons').length;
+  assert.equal(await page.locator('.stock-family-heading p').textContent(),familyItems+' Items · '+familyAddons+' Add-ons (catalog totals)');
+  for(const map of ['items','addons']){
+   assert.deepEqual(await page.locator('[data-stock-subsection="'+map+'"] [data-stock-card]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockCard)),inventoryEntities.filter(e=>e.familyId===family.id&&e.map===map).map(e=>e.id));
+  }
+  assert.equal(await page.evaluate(()=>localStorage.dbdTrackerData),before,'Family selection cannot persist');
+ }
+ await page.locator('#inventory-search').fill('unlikely-search-token');
+ assert.equal(await page.locator('[data-stock-family]').getAttribute('data-stock-family'),families.at(-1).id,'Rerender retains selection');
+ await page.locator('#inventory-search').fill('');
+ const reader=await page.context().newPage();
+ try{
+  await reader.goto(origin+'/#character/meg-thomas/items-addons');
+  await reader.waitForFunction(()=>document.querySelector('#save-status').textContent==='Read-only');
+  const readerNav=reader.getByRole('navigation',{name:'Item families'});
+  await readerNav.getByRole('button',{name:families.at(-1).displayName,exact:true}).click();
+  assert.equal(await reader.locator('[data-stock-family]').getAttribute('data-stock-family'),families.at(-1).id);
+  assert.equal(await reader.locator('[data-inventory-quantity]').first().isDisabled(),true);
+  assert.equal(await reader.locator('[data-action="stock-details"]').first().isEnabled(),true);
+ }finally{await reader.close();}
+ await page.goto(origin+'/#character/feng-min/items-addons');
+ await page.locator('[data-stock-workspace]').waitFor();
+ assert.equal(await page.locator('[data-stock-family]').getAttribute('data-stock-family'),families[0].id,'New character session resets selection');
+ await page.locator('#stock-family-nav-'+families.at(-1).id).click();
+ await page.getByRole('link',{name:'Edit Character',exact:true}).click();
+ assert.equal(await page.locator('[data-stock-family]').getAttribute('data-stock-family'),families[0].id,'New page stock session resets selection');
+}
+export async function familyTransitionsRegression(page,origin){
+ page.setDefaultTimeout(6000);
+ const families=survivorInventorySource.itemFamilies;
+ const first=inventoryEntities.find(e=>e.familyId===families[0].id&&e.map==='items');
+ const second=inventoryEntities.find(e=>e.familyId!==first.familyId&&e.map==='items');
+ const save=freshSave();save.characters['meg-thomas'].inventory.items['survivor-item-future-unresolved']=7;
+ await page.evaluate(s=>localStorage.setItem('dbdTrackerData',JSON.stringify(s)),save);
+ await page.goto(origin+'/#character/meg-thomas/items-addons');await page.reload();
+ const select=id=>page.locator('#stock-family-nav-'+id);
+ const field=id=>page.locator('[data-inventory-quantity="'+id+'"]');
+ const current=()=>page.locator('[data-stock-family]').getAttribute('data-stock-family');
+ const bytes=()=>page.evaluate(()=>localStorage.dbdTrackerData);
+ await page.locator('#inventory-search').fill(second.name);
+ assert.equal(await page.locator('[data-stock-card]').count(),0,'Other-family search matches cannot leak into selection');
+ assert.equal(await current(),first.familyId);assert.match(await page.locator('.stock-family-heading').textContent(),new RegExp(families[0].displayName));
+ assert.equal(await page.getByRole('searchbox',{name:'Search '+families[0].displayName,exact:true}).count(),1,'Search communicates selected-family scope');
+ assert.match(await page.locator('[data-stock-workspace] .empty').textContent(),/No matches in/);
+ await select(second.familyId).click();assert.equal(await field(second.id).count(),1);assert.equal(await page.locator('#inventory-search').inputValue(),second.name);
+ await page.locator('#inventory-filters').evaluate(n=>n.open=true);
+ await page.locator('#inventory-map').selectOption('items');
+ await page.locator('#inventory-filters').evaluate(n=>n.open=true);await page.locator('#inventory-rarity').selectOption(second.rarity);
+ await page.locator('#inventory-in-stock').check();await select(first.familyId).click();
+ assert.equal(await page.locator('#inventory-map').inputValue(),'items');assert.equal(await page.locator('#inventory-rarity').inputValue(),second.rarity);
+ assert.equal(await page.locator('#inventory-in-stock').isChecked(),true);assert.equal(await page.locator('#inventory-search').inputValue(),second.name);
+ await page.locator('#inventory-search').fill('');assert.equal(await page.locator('#inventory-rarity').inputValue(),second.rarity);assert.equal(await page.locator('#inventory-in-stock').isChecked(),true);
+ assert.equal(await page.locator('#inventory-family').count(),0);
+ await page.locator('#inventory-in-stock').uncheck();await page.locator('#inventory-filters').evaluate(n=>n.open=true);await page.locator('#inventory-rarity').selectOption('');
+ await page.locator('#inventory-filters').evaluate(n=>n.open=true);await page.locator('#inventory-map').selectOption('');
+ const noAddonFamily=families.find(f=>!inventoryEntities.some(e=>e.familyId===f.id&&e.map==='addons'));
+ await select(noAddonFamily.id).click();
+ assert.match(await page.locator('[data-stock-subsection="addons"]').textContent(),/No compatible Add-ons in this catalog./);
+ assert.equal(await page.locator('[data-stock-subsection="addons"] .stock-grid').count(),0);
+ assert.deepEqual(await page.locator('[data-stock-subsection]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockSubsection)),['items','addons']);
+ await select(first.familyId).click();
+ const orderedItems=inventoryEntities.filter(e=>e.familyId===first.familyId&&e.map==='items');
+ const laterItem=orderedItems.at(-1);
+ await field(laterItem.id).fill('2');
+ assert.deepEqual(await page.locator('[data-stock-subsection="items"] [data-stock-card]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockCard)),orderedItems.map(e=>e.id),'Pending raw typing cannot reorder cards');
+ await field(laterItem.id).press('Enter');
+ assert.deepEqual(await page.locator('[data-stock-subsection="items"] [data-stock-card]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockCard)),[laterItem.id,...orderedItems.filter(e=>e.id!==laterItem.id).map(e=>e.id)],'Stable commit uses positive then zero canonical order');
+ await field(laterItem.id).fill('0');await field(laterItem.id).press('Enter');
+ await page.evaluate(()=>{window.familyWrites=0;window.familySetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='dbdTrackerData')window.familyWrites++;return window.familySetItem.call(this,k,v);};});
+ await field(first.id).fill('3');await select(second.familyId).click();
+ assert.equal(await current(),second.familyId);assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].inventory.items[first.id],3);
+ assert.equal(await page.evaluate(()=>window.familyWrites),1,'Valid pending switch persists exactly once');
+ await select(first.familyId).click();await field(first.id).fill('abc');await select(second.familyId).click();
+ assert.equal(await current(),first.familyId,'Invalid quantity blocks ordinary family navigation');
+ assert.equal(await field(first.id).inputValue(),'abc');assert.equal(await field(first.id).evaluate(n=>n===document.activeElement),true);
+ assert.equal(await field(first.id).getAttribute('aria-invalid'),'true');assert.equal(await page.evaluate(()=>window.familyWrites),1);
+ await field(first.id).fill('4');
+ await page.evaluate(()=>{Storage.prototype.setItem=function(k,v){if(k==='dbdTrackerData')throw Error('Synthetic family switch save failure');return window.familySetItem.call(this,k,v);};});
+ await select(second.familyId).click();assert.equal(await current(),first.familyId,'Failed save blocks family switch');
+ assert.equal(await field(first.id).inputValue(),'4');assert.equal(await field(first.id).evaluate(n=>n===document.activeElement),true);
+ assert.match(await page.locator('#stock-error-'+first.id).textContent(),/Not saved/);
+ await page.evaluate(()=>{Storage.prototype.setItem=window.familySetItem;delete window.familySetItem;});
+ await field(first.id).press('Enter');await select(second.familyId).click();assert.equal(await current(),second.familyId);
+ assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].inventory.items['survivor-item-future-unresolved'],7);
+ assert.equal(await page.locator('[data-unresolved-stock]').isVisible(),true);
+}
+export async function artworkCardsRegression(page,origin){
+ page.setDefaultTimeout(6000);
+ const item=inventoryEntities.find(e=>e.map==='items');
+ const save=freshSave();save.characters['meg-thomas'].inventory.items['survivor-item-future-unresolved']=7;
+ await page.evaluate(s=>localStorage.setItem('dbdTrackerData',JSON.stringify(s)),save);
+ await page.goto(origin+'/#character/meg-thomas/items-addons');await page.reload();
+ const card=page.locator('[data-stock-card="'+item.id+'"]');
+ const field=card.locator('[data-inventory-quantity]');
+ const art=card.locator('img');await art.waitFor();
+ const box=await art.boundingBox();assert.ok(box.width>96&&box.width<=128&&box.height===box.width,'Desktop background artwork materially exceeds the old 96px thumbnail without distortion');
+ assert.equal(await art.getAttribute('src'),item.imagePath);assert.equal(await art.getAttribute('alt'),'');
+ assert.equal(await art.evaluate(n=>getComputedStyle(n).objectFit),'contain');
+ assert.ok((await card.locator('.stock-card-media').boundingBox()).height-box.height<=48,'Artwork earns media height instead of blank padding');
+ assert.equal(await card.locator('.stock-card-meta').textContent(),item.rarity+' · Item');
+ assert.ok(await card.evaluate(n=>parseFloat(getComputedStyle(n).borderLeftWidth)<=1),'Strong rarity border is removed');
+ const zeroHeight=(await card.boundingBox()).height;
+ await card.getByRole('button',{name:'Increase quantity of '+item.name,exact:true}).click();
+ assert.equal((await card.boundingBox()).height,zeroHeight,'Stock sign does not alter card geometry');
+ const bytes=()=>page.evaluate(()=>localStorage.dbdTrackerData);
+ const before=await bytes();await field.fill('7');
+ await card.getByRole('button',{name:'Details',exact:true}).click();
+ assert.equal(await bytes(),before,'Opening reference Details cannot commit pending quantity');
+ await page.getByRole('button',{name:'Close details',exact:true}).click();
+ await page.waitForFunction(id=>document.activeElement.id==='stock-details-'+id,item.id);
+ assert.equal(await field.inputValue(),'7');await field.press('Enter');
+ await card.getByRole('button',{name:'Details',exact:true}).click();
+ await page.locator('#inventory-search').evaluate(n=>{n.value='no-matching-card';n.dispatchEvent(new Event('input',{bubbles:true}));});
+ await page.getByRole('button',{name:'Close details',exact:true}).click();
+ await page.waitForFunction(()=>document.activeElement.id==='inventory-search');
+ await page.locator('#inventory-search').fill('');
+ const families=survivorInventorySource.itemFamilies;
+ for(const width of [320,500,760,1100,1440,1600]){
+  await page.setViewportSize({width,height:900});
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No page overflow '+width);
+  const nav=page.getByRole('navigation',{name:'Item families'});
+  if(width<=500){
+   assert.equal(await nav.evaluate(n=>getComputedStyle(n).flexWrap),'nowrap');
+   assert.ok(await nav.evaluate(n=>n.scrollWidth>n.clientWidth),'Family strip has bounded internal scrolling');
+   const last=nav.getByRole('button',{name:families.at(-1).displayName,exact:true});await last.focus();await last.press('Enter');
+   const visible=await last.evaluate(n=>{const parent=n.parentElement.getBoundingClientRect(),r=n.getBoundingClientRect();return r.left>=parent.left-1&&r.right<=parent.right+1;});
+   assert.equal(visible,true,'Focused/selected family is visible inside strip');
+   const target=await last.boundingBox();assert.ok(target.width>=44&&target.height>=44);
+   const first=nav.getByRole('button',{name:families[0].displayName,exact:true});await first.focus();await first.press('Space');
+   const positions=await page.locator('[data-stock-subsection="items"] [data-stock-card]').evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect().left));
+   assert.equal(new Set(positions).size,1,'Narrow cards form one usable column');
+  }
+  for(const control of [field,card.locator('[data-stock-step]').first()]){
+   const target=await control.boundingBox();assert.ok(target.width>=44&&target.height>=44,'Quantity target '+width);
+  }
+  assert.equal(await page.locator('[data-unresolved-stock]').isVisible(),true);
+ }
+ await page.setViewportSize({width:1440,height:900});
+}
 export async function quantityStepperRegression(page,origin){
  page.setDefaultTimeout(6000);
  const [zero,max]=inventoryEntities.filter(e=>e.map==='items');
@@ -64,7 +225,7 @@ export async function quantityStepperRegression(page,origin){
  assert.equal(await increase(max).isDisabled(),true);assert.equal(await field(max).evaluate(n=>n===document.activeElement),true);
  // Tabbing past the stepper without activating it still commits the pending typed edit.
  await field(zero).fill('6');await field(zero).press('Tab');
- const departureWrites=await writes();await increase(zero).press('Tab');
+ const departureWrites=await writes();await increase(zero).press('Tab');await page.keyboard.press('Tab');
  await page.waitForFunction(id=>JSON.parse(localStorage.dbdTrackerData).characters['meg-thomas'].inventory.items[id]===6,zero.id);
  assert.equal(await writes(),departureWrites+1,'Leaving the control resolves deferred blur once');
  await field(zero).fill('0');await field(zero).press('Enter');
@@ -104,11 +265,14 @@ export async function quantityStepperRegression(page,origin){
  await page.goto(origin+'/#character/meg-thomas/items-addons');
 }
 export async function inventoryRegression(page,origin){
+ await familyNavigationRegression(page,origin);
+ await familyTransitionsRegression(page,origin);
+ await artworkCardsRegression(page,origin);
  await quantityStepperRegression(page,origin);
  await quantityStepperFocusRegression(page,origin);
  page.setDefaultTimeout(6000);
  assert.equal(inventoryCatalogStatus.survivor,'ready');
- const item=inventoryEntities.find(e=>e.map==='items'), addon=inventoryEntities.find(e=>e.map==='addons');
+ const item=inventoryEntities.find(e=>e.map==='items'), addon=inventoryEntities.find(e=>e.map==='addons'&&e.familyId===item.familyId);
  const save=freshSave(); save.characters['meg-thomas'].inventory.items['survivor-item-future-unresolved']=11;
  await page.evaluate(s=>localStorage.setItem('dbdTrackerData',JSON.stringify(s)),save);
  await page.goto(origin+'/#character/meg-thomas/items-addons'); await page.reload();
@@ -118,10 +282,10 @@ export async function inventoryRegression(page,origin){
  await field(item.id).waitFor();
   const banquet=inventoryEntities.find(entity=>entity.name.includes('Banquet')&&entity.rarity==='Event');
   assert.ok(banquet,'Qualified Banquet entity remains displayed as Event');
+  await page.locator('#stock-family-nav-'+banquet.familyId).click();
   const banquetCard=page.locator('[data-stock-card="'+banquet.id+'"]');
   assert.equal(await banquetCard.getAttribute('data-stock-rarity'),'Event');
-  assert.equal(await banquetCard.locator('.inventory-rarity-badge').textContent(),'Event');
-  assert.match(await banquetCard.getAttribute('class'),/inventory-rarity-event/);
+  assert.equal(await banquetCard.locator('.stock-card-meta').textContent(),'Event · Item');
   await page.locator('#inventory-filters').evaluate(el=>el.open=true);
   await page.locator('#inventory-rarity').selectOption('Event');
   assert.equal(await banquetCard.count(),1,'Event filter includes Banquet by displayed rarity');
@@ -129,38 +293,12 @@ export async function inventoryRegression(page,origin){
   await page.locator('#inventory-filters').evaluate(el=>el.open=true);
   await page.locator('#inventory-rarity').selectOption('');
 
-  const presentationBytes=await bytes();
-  const familyIds=survivorInventorySource.itemFamilies.map(f=>f.id);
-  assert.deepEqual(await page.locator('[data-stock-family]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockFamily)),familyIds,'Verified family source order');
-  for(const familyId of familyIds){
-    const family=page.locator('[data-stock-family="'+familyId+'"]');
-    assert.equal(await family.count(),1);
-    const subsections=await family.locator('[data-stock-subsection]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockSubsection));
-    assert.deepEqual(subsections,['items','addons'],'Items precede Add-ons in '+familyId);
-    assert.equal(await family.locator('[data-action="stock-family-toggle"]').getAttribute('aria-expanded'),'true');
-  }
-  const emptyAddonFamily=survivorInventorySource.itemFamilies.find(f=>!inventoryEntities.some(e=>e.familyId===f.id&&e.map==='addons'));
-  assert.ok(emptyAddonFamily);
-  assert.match(await page.locator('[data-stock-family="'+emptyAddonFamily.id+'"] [data-stock-subsection="addons"]').textContent(),/No compatible Add-ons in this catalog./);
-  assert.equal(await page.locator('#inventory-family').count(),0,'Family is structure, not a required dropdown');
+  await page.locator('#stock-family-nav-'+item.familyId).click();
+  assert.equal(await page.locator('[data-action="stock-family-toggle"], [data-action="stock-collapse-all"], [data-action="stock-expand-all"]').count(),0,'Obsolete accordion actions are absent');
+  assert.equal(await page.locator('#inventory-family').count(),0,'Family is navigation');
   assert.equal(await page.locator('#inventory-search').isVisible(),true);
   assert.equal(await page.locator('#inventory-in-stock').isVisible(),true);
   assert.equal(await page.locator('#inventory-filters').count(),1);
-  assert.match(await page.locator('#inventory-filters summary').textContent(),/Filters/);
-
-  const familyToggle=page.locator('[data-stock-family="'+item.familyId+'"] [data-action="stock-family-toggle"]');
-  await familyToggle.click();
-  assert.equal(await familyToggle.getAttribute('aria-expanded'),'false');
-  await page.locator('#inventory-search').fill(item.name);
-  assert.equal(await familyToggle.getAttribute('aria-expanded'),'true','Search temporarily reveals collapsed matching family');
-  await page.locator('#inventory-search').fill('');
-  assert.equal(await familyToggle.getAttribute('aria-expanded'),'false','Clearing search restores collapse intent');
-  assert.equal(await bytes(),presentationBytes,'Collapse/search presentation state never persists');
-  await page.getByRole('button',{name:'Expand all',exact:true}).click();
-  assert.equal(await familyToggle.getAttribute('aria-expanded'),'true');
-  await page.getByRole('button',{name:'Collapse all',exact:true}).click();
-  assert.equal(await page.locator('[data-action="stock-family-toggle"][aria-expanded="false"]').count(),familyIds.length);
-  await page.getByRole('button',{name:'Expand all',exact:true}).click();
   const decoded=await page.evaluate(async paths=>Promise.all(paths.map(async path=>{
     const image=new Image();image.src=path;try{await image.decode();return image.naturalWidth>0;}catch{return false;}
   })),inventoryEntities.map(e=>e.imagePath).filter(Boolean));
@@ -179,7 +317,7 @@ export async function inventoryRegression(page,origin){
   assert.equal(await page.getByText('Reference and compatibility',{exact:true}).count(),0);
   await field(item.id).fill('6');
   await itemDetails.click();
-  await page.waitForFunction(id=>JSON.parse(localStorage.dbdTrackerData).characters['meg-thomas'].inventory.items[id]===6,item.id);
+  assert.equal(await bytes(),committed,'Details reference reading retains the pending value without committing');
   assert.equal(await page.locator('#detail').isVisible(),true);
   assert.match(await page.locator('#detail-content').textContent(),new RegExp(item.name));
   assert.match(await page.locator('#detail-content').textContent(),new RegExp(item.rarity));
@@ -223,7 +361,7 @@ export async function inventoryRegression(page,origin){
  await page.locator('#inventory-in-stock').uncheck();
  await page.locator('#inventory-filters').evaluate(el=>el.open=true);
  await page.locator('#inventory-map').selectOption('addons');
- await field(addon.id).fill('9'); await field(addon.id).press('Tab'); await page.keyboard.press('Tab');
+ await field(addon.id).fill('9'); await field(addon.id).press('Tab'); await page.keyboard.press('Tab'); await page.keyboard.press('Tab');
  await page.waitForFunction(id=>JSON.parse(localStorage.dbdTrackerData).characters['meg-thomas'].inventory.addons[id]===9,addon.id);
  await page.evaluate(()=>{window.stockSetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='dbdTrackerData')throw Error('stock fixture failure');return window.stockSetItem.call(this,k,v);};});
  const failBefore=await bytes();
@@ -288,7 +426,9 @@ export async function inventoryRegression(page,origin){
   await field(item.id).fill('9');
   await page.getByRole('button',{name:'Cancel',exact:true}).click();
   await page.getByRole('button',{name:'Discard',exact:true}).click();
+  await page.waitForURL('**/#character/meg-thomas/overview');
  await page.goto(origin+'/#character/the-doctor/power-addons');
+ await page.waitForFunction(()=>document.querySelector('[data-character-workspace] h1')?.textContent==='The Doctor');
  assert.equal(await page.locator('[data-inventory-quantity]').count(),0);
   await page.goto(origin+'/#character/meg-thomas/items-addons');
   await field(item.id).fill(String(Number.MAX_SAFE_INTEGER));
@@ -345,10 +485,9 @@ export async function quantityStepperFocusRegression(page,origin){
  assert.equal(await field(neighbor.id).evaluate(n=>n===document.activeElement),true,'Fallback follows rendered family/subsection order, not global Item order');
  await page.locator('#inventory-in-stock').uncheck();
  await field(item.id).fill('abc');await field(item.id).press('Enter');
- const toggle=page.locator('[data-stock-family="'+item.familyId+'"] [data-action="stock-family-toggle"]');
- await toggle.click();assert.equal(await toggle.getAttribute('aria-expanded'),'false');
+ await page.locator('#inventory-search').fill('hide-error-field');
  await page.locator('[data-stock-error-summary] [data-id="'+item.id+'"]').click();
- assert.equal(await toggle.getAttribute('aria-expanded'),'true');
+ assert.equal(await page.locator('[data-stock-family]').getAttribute('data-stock-family'),item.familyId);
  assert.equal(await field(item.id).inputValue(),'abc');
  assert.equal(await field(item.id).evaluate(n=>n===document.activeElement),true);
  await field(item.id).fill('1');await field(item.id).press('Enter');
@@ -358,6 +497,7 @@ export async function quantityStepperFocusRegression(page,origin){
  await field(item.id).fill('0');await field(item.id).press('Enter');
  assert.equal(await field(neighbor.id).evaluate(n=>n===document.activeElement),true,'Typed zero uses the same family-local fallback');
  await page.locator('#inventory-search').fill(other.name);
+ await page.locator('#stock-family-nav-'+other.familyId).click();
  await field(other.id).fill('0');await field(other.id).press('Enter');
  assert.equal(await page.locator('#inventory-search').evaluate(n=>n===document.activeElement),true,'Last visible zero falls back to Search');
 }

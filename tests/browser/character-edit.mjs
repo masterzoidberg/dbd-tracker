@@ -30,6 +30,7 @@ export async function characterEditStepperRegression(page,origin){
 }
 
 export async function characterEditRegression(page, origin) {
+  await characterEditFamilyRegression(page,origin);
   await characterEditStepperRegression(page,origin);
   page.setDefaultTimeout(5000);
   const save = freshSave();
@@ -167,6 +168,44 @@ export async function characterEditRegression(page, origin) {
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await page.getByRole('button', { name: 'Discard', exact: true }).click();
   await page.waitForURL('**/#character/meg-thomas/overview');
+}
+export async function characterEditFamilyRegression(page,origin){
+ page.setDefaultTimeout(6000);
+ const first=inventoryEntities.find(e=>e.map==='items');
+ const second=inventoryEntities.find(e=>e.map==='items'&&e.familyId!==first.familyId);
+ await page.evaluate(s=>localStorage.setItem('dbdTrackerData',JSON.stringify(s)),freshSave());
+ await page.goto(origin+'/#character/meg-thomas/edit');await page.reload();
+ const field=id=>page.locator('[data-inventory-quantity="'+id+'"]');
+ const family=id=>page.locator('#stock-family-nav-'+id);
+ const bytes=()=>page.evaluate(()=>localStorage.dbdTrackerData);
+ const before=await bytes();
+ await field(first.id).fill('04');await family(second.familyId).click();await family(first.familyId).click();
+ assert.equal(await field(first.id).inputValue(),'04');assert.equal(await bytes(),before,'Family visits preserve raw drafts without autosave');
+ await field(first.id).fill('key-invalid');await family(second.familyId).click();
+ await field(second.id).fill('second-invalid');await field(second.id).press('Enter');
+ assert.equal(await page.locator('[data-stock-error-summary] button').count(),2,'Errors remain discoverable across hidden families');
+ await page.locator('#inventory-filters').evaluate(n=>n.open=true);await page.locator('#inventory-map').selectOption('items');
+ await page.locator('#inventory-in-stock').check();await page.locator('#inventory-search').fill('no-match');
+ const error=id=>page.locator('[data-action="stock-error-focus"][data-id="'+id+'"]');
+ await error(first.id).click();
+ assert.equal(await page.locator('[data-stock-family]').getAttribute('data-stock-family'),first.familyId);
+ assert.equal(await field(first.id).inputValue(),'key-invalid');assert.equal(await field(first.id).evaluate(n=>n===document.activeElement),true);
+ assert.equal(await page.locator('#inventory-map').inputValue(),'items','Error reveal retains an already compatible Type');
+ assert.equal(await page.locator('#inventory-in-stock').isChecked(),true,'Invalid row exception makes In Stock compatible');
+ assert.equal(await page.locator('#inventory-search').inputValue(),'');
+ await field(first.id).fill('key-invalid-edited');
+ await error(second.id).click();assert.equal(await field(second.id).inputValue(),'second-invalid');
+ assert.equal(await page.locator('[data-stock-error-summary] button').count(),2);
+ await error(first.id).click();assert.equal(await field(first.id).inputValue(),'key-invalid-edited','Error navigation retains edits made since the last validation');
+ assert.equal(await bytes(),before);
+ await page.getByRole('button',{name:'Save Character',exact:true}).click();
+ const errorTarget=await page.evaluate(()=>document.activeElement.dataset.inventoryQuantity);
+ assert.ok([first.id,second.id].includes(errorTarget),'Save validation selects and focuses a retained bad quantity');
+ await error(first.id).click();
+ await field(first.id).fill('2');await family(second.familyId).click();await field(second.id).fill('3');
+ await page.getByRole('button',{name:'Save Character',exact:true}).click();await page.waitForURL('**/#character/meg-thomas/overview');
+ const saved=JSON.parse(await bytes()).characters['meg-thomas'].inventory.items;
+ assert.equal(saved[first.id],2);assert.equal(saved[second.id],3);
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const { smokeStage } = await import('./smoke.mjs');
