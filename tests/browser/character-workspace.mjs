@@ -16,11 +16,36 @@ export async function characterWorkspaceRegression(page, origin) {
   assert.equal(await page.locator('[data-character-workspace] h1').textContent(), 'Meg Thomas');
   assert.equal(await page.locator('[data-workspace-section="overview"]').getAttribute('aria-current'), 'page');
   const text = await page.locator('[data-character-workspace]').textContent();
-  for (const label of ['Survivor', 'Not owned', 'Favorite', 'P2', '43', 'Keep these notes', 'Native perks']) assert.ok(text.includes(label), label);
+  for (const label of ['Survivor', 'Not owned', 'Favorite', 'P2', '43', 'Keep these notes', 'Native Perks']) assert.ok(text.includes(label), label);
   assert.match(text,/38 Items.*54 Add-ons/);
   assert.equal(await page.getByRole('link', { name: 'Edit Character', exact: true }).getAttribute('href'), '#character/meg-thomas/edit');
   assert.equal(await page.locator('[data-inventory-quantity]').count(), 0);
   assert.equal(await page.locator('[data-character-workspace] .character-inventory-grid').count(), 0);
+  // Shared header is the only normal workspace identity block.
+  const workspace = page.locator('[data-character-workspace]');
+  assert.equal(await workspace.locator('[data-character-header]').count(), 1);
+  assert.equal(await workspace.locator('h1').count(), 1);
+  assert.equal(await workspace.locator('.character-workspace-edit').count(), 1);
+  assert.equal(await workspace.locator('[data-character-progress="prestige"]').getByText('PRESTIGE',{exact:true}).count(), 1);
+  assert.equal(await workspace.locator('[data-character-progress="bloodweb"]').getByText('BLOODWEB',{exact:true}).count(), 1);
+  assert.equal(await workspace.locator('.character-workspace-nav').count(), 1);
+  assert.equal(await workspace.locator('.character-portrait').count(), 1, 'Overview must not repeat character portrait');
+
+  // Overview is grouped by meaning instead of a full-width panel stack.
+  for (const section of ['native-perks','progress','perks','inventory','notes'])
+    assert.equal(await workspace.locator('[data-overview-section="'+section+'"]').count(), 1, section);
+  const nativeSection = workspace.locator('[data-overview-section="native-perks"]');
+  assert.ok(await nativeSection.locator('[data-perk-icon]').count() > 0, 'Native perks reuse artwork');
+  assert.match(await nativeSection.textContent(), /Personal record:/);
+  const inventorySummary = await workspace.locator('[data-overview-section="inventory"]').textContent();
+  assert.match(inventorySummary,/No quantities recorded yet./);
+  assert.match(inventorySummary,/1 imported record not in current catalog/i);
+  assert.doesNotMatch(inventorySummary,/No stock/i);
+
+  await page.setViewportSize({width:320,height:900});
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Workspace header/Overview overflow at 320');
+  assert.ok((await page.locator('.character-workspace-edit').boundingBox()).height>=44,'Edit Character remains a practical target');
+  await page.setViewportSize({width:1440,height:900});
   for (const hash of ['#character/the-doctor/power-addons']) {
     await page.goto(origin + '/' + hash);
     await page.locator('[data-character-workspace]').waitFor();

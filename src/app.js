@@ -506,10 +506,17 @@ function characterWorkspaceHeader(character, descriptor) {
   const progress = save.characters[character.id];
   const sections = [['overview', 'Overview'], ['perks', 'Perks'],
     character.role === 'survivor' ? ['items-addons', 'Items & Add-ons'] : ['power-addons', 'Power & Add-ons']];
-  return '<header class="character-workspace-header"><a href="#' + character.role + 's">← ' + (character.role === 'survivor' ? 'Survivors' : 'Killers') + '</a>'
-    + '<div class="character-workspace-identity">' + characterArtwork(character, 80) + '<div><h1>' + esc(character.name) + '</h1>'
-    + '<p>' + (character.role === 'survivor' ? 'Survivor' : 'Killer') + ' · ' + (progress.owned ? 'Owned' : 'Not owned')
-    + ' · ' + (progress.favorite ? 'Favorite ★' : 'Not favorite') + ' · P' + progress.prestige + ' · Bloodweb ' + progress.bloodwebLevel + ' / 50</p></div></div>'
+  const collectionLabel = character.role === 'survivor' ? 'Survivors' : 'Killers';
+  const roleLabel = character.role === 'survivor' ? 'Survivor' : 'Killer';
+  return '<header class="character-workspace-header" data-character-header>'
+    + '<a class="character-workspace-back" href="#' + character.role + 's">← ' + collectionLabel + '</a>'
+    + '<div class="character-workspace-hero"><div class="character-workspace-identity">' + characterArtwork(character, 80)
+    + '<div class="character-workspace-title"><div class="eyebrow">' + roleLabel.toUpperCase() + '</div><h1>' + esc(character.name) + '</h1>'
+    + '<div class="character-workspace-status"><span class="status-chip ' + (progress.owned ? 'is-owned' : 'is-unowned') + '">' + (progress.owned ? 'Owned' : 'Not owned') + '</span>'
+    + '<span class="status-chip ' + (progress.favorite ? 'is-favorite' : '') + '">' + (progress.favorite ? 'Favorite ★' : 'Not favorite') + '</span></div></div></div>'
+    + '<a class="primary button-link character-workspace-edit" href="' + characterWorkspaceHref(character.id, 'edit') + '">Edit Character</a></div>'
+    + '<div class="character-workspace-progress" aria-label="Character progression"><div data-character-progress="prestige"><span>PRESTIGE</span><strong>P' + progress.prestige + '</strong></div>'
+    + '<div data-character-progress="bloodweb"><span>BLOODWEB</span><strong>' + progress.bloodwebLevel + ' / 50</strong></div></div>'
     + '<nav class="character-workspace-nav" aria-label="Character workspace">' + sections.map(([section, label]) =>
       '<a data-workspace-section="' + section + '" href="' + characterWorkspaceHref(character.id, section) + '"'
       + (descriptor.section === section ? ' aria-current="page"' : '') + '>' + label + '</a>').join('') + '</nav></header>';
@@ -517,25 +524,37 @@ function characterWorkspaceHeader(character, descriptor) {
 function characterOverview(id) {
   const character = characterById[id], progress = save.characters[id], stats = characterStats(save, id);
   const stock = Object.entries({...progress.inventory.items,...progress.inventory.addons});
-  const unresolved=stock.filter(([entityId])=>!Object.hasOwn(inventoryEntityById,entityId)).length;
-  return '<section class="panel"><h2>Progression</h2><p>P' + progress.prestige + ' · Bloodweb ' + progress.bloodwebLevel
-    + ' / 50. Native, Prestige, Shrine and Legacy minimums remain separate from personal records.</p>'
-    + '<a class="primary button-link" href="' + characterWorkspaceHref(id, 'edit') + '">Edit Character</a>'
-    + (progress.owned ? '<p><a href="' + characterWorkspaceHref(id, 'setup') + '">'
-      + (progress.setupComplete ? 'Review initial setup' : 'Start initial setup') + '</a></p>' : '')
-    + '</section><section class="panel"><h2>Native perks</h2>'
-    + character.nativePerkIds.map(perkId => '<div class="native-row"><button data-action="perk" data-id="' + perkId + '">'
-      + esc(perkName(save, perkById[perkId])) + '</button>' + badge(inventoryTier(save, id, perkId))
-      + '<small>Personal record: ' + (recordedTier(save, id, perkId) || 'None') + ' · ' + esc(ownedUnlockSource(save, id, perkById[perkId])) + '</small></div>').join('')
-    + '</section><section class="panel"><h2>Perk summary</h2><p>' + stats.owned + ' effective owned · ' + stats.tier3
-    + ' Tier III. Personal acquisitions and automatic minimums are distinct.</p><a href="' + characterWorkspaceHref(id, 'perks') + '">View Perks</a></section>'
-    + '<section class="panel"><h2>' + (character.role === 'survivor' ? 'Items & Add-ons' : 'Power & Add-ons') + '</h2>'
-    + (character.role==='survivor'&&inventoryCatalogStatus.survivor==='ready'
-      ? '<p>38 Items · 54 Add-ons · Survivor inventory '+esc(survivorInventorySource.patch)+'. '+(stock.length?stock.length+' stocked entries recorded.':'No quantities recorded yet.')+'</p>'
-      : '<p>Verified inventory and Power reference data is not yet available.</p>')
-    + (unresolved?'<p>'+unresolved+' unresolved stock records preserved.</p>':'')
-    + '<a href="' + characterWorkspaceHref(id, character.role === 'survivor' ? 'items-addons' : 'power-addons') + '">View details</a></section>'
-    + '<section class="panel"><h2>Notes</h2><p class="character-notes">' + esc(progress.notes || 'No notes recorded.') + '</p></section>';
+  const knownStock = stock.filter(([entityId]) => Object.hasOwn(inventoryEntityById, entityId));
+  const unresolved = stock.length - knownStock.length;
+  const nativeCards = character.nativePerkIds.map(perkId => {
+    const perk = perkById[perkId], tier = inventoryTier(save, id, perkId);
+    return '<article class="overview-native-perk">' + perkArtwork(perk, 64)
+      + '<div class="overview-native-copy"><div class="overview-native-title"><button data-action="perk" data-id="' + perkId + '">' + esc(perkName(save, perk)) + '</button>' + badge(tier) + '</div>'
+      + '<small>Personal record: ' + (recordedTier(save, id, perkId) || 'None') + ' · ' + esc(ownedUnlockSource(save, id, perk)) + '</small></div></article>';
+  }).join('');
+  const setup = progress.owned
+    ? '<div class="overview-context ' + (progress.setupComplete ? 'is-complete' : 'needs-attention') + '"><strong>' + (progress.setupComplete ? 'Initial setup complete' : 'Initial setup incomplete') + '</strong>'
+      + '<p>' + (progress.setupComplete ? 'Review the saved Bloodweb setup when you need to reconcile older progress.' : 'Record the starting Bloodweb context before relying on setup-specific progression details.') + '</p>'
+      + '<a href="' + characterWorkspaceHref(id, 'setup') + '">' + (progress.setupComplete ? 'Review initial setup' : 'Start initial setup') + '</a></div>'
+    : '<p class="muted">This character is not marked Owned. Initial setup remains optional until ownership changes.</p>';
+  const inventorySummary = character.role === 'survivor' && inventoryCatalogStatus.survivor === 'ready'
+    ? '<p>38 Items · 54 Add-ons · Survivor inventory ' + esc(survivorInventorySource.patch) + '.</p>'
+      + '<strong class="overview-summary-value">' + (knownStock.length ? knownStock.length + ' stocked ' + (knownStock.length === 1 ? 'entry' : 'entries') + ' recorded.' : 'No quantities recorded yet.') + '</strong>'
+      + (unresolved ? '<p class="overview-unresolved">' + unresolved + ' imported ' + (unresolved === 1 ? 'record' : 'records') + ' not in current catalog.</p>' : '')
+      + '<a href="' + characterWorkspaceHref(id, 'items-addons') + '">View Items & Add-ons</a>'
+    : '<p>Verified inventory and Power reference data is not yet available.</p><a href="' + characterWorkspaceHref(id, 'power-addons') + '">View Power & Add-ons</a>';
+  return '<div class="character-overview">'
+    + '<div class="character-overview-grid">'
+    + '<section class="character-overview-section overview-native" data-overview-section="native-perks"><div class="section-title"><h2>Native Perks</h2></div><div class="overview-native-grid">' + nativeCards + '</div></section>'
+    + '<section class="character-overview-section overview-progress" data-overview-section="progress"><div class="section-title"><h2>Progress / setup</h2></div>' + setup
+      + '<p class="muted overview-helper">Personal records remain separate from Native, Prestige, Shrine and Legacy minimums.</p></section>'
+    + '<section class="character-overview-summary" data-overview-section="perks"><div><div class="eyebrow">PERKS</div><h2>Perk inventory</h2></div>'
+      + '<div class="overview-summary-number"><strong>' + stats.owned + '</strong><span>effective owned</span></div><div class="overview-summary-number"><strong>' + stats.tier3 + '</strong><span>Tier III</span></div>'
+      + '<a href="' + characterWorkspaceHref(id, 'perks') + '">View Perks</a></section>'
+    + '<section class="character-overview-summary" data-overview-section="inventory"><div><div class="eyebrow">COLLECTION</div><h2>' + (character.role === 'survivor' ? 'Items & Add-ons' : 'Power & Add-ons') + '</h2></div>' + inventorySummary + '</section>'
+    + '</div>'
+    + '<section class="character-overview-notes" data-overview-section="notes"><div class="section-title"><h2>Notes</h2></div><p class="character-notes">' + esc(progress.notes || 'No notes recorded.') + '</p></section>'
+    + '</div>';
 }
 function characterWorkspaceUnavailable() {
   return '<section class="panel"><h1>Character/section unavailable</h1><p>This character or section cannot be resolved.</p><a href="#survivors">Survivors</a> · <a href="#killers">Killers</a> · <a href="#dashboard">Dashboard</a></section>';
