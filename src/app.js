@@ -4,7 +4,7 @@ import { TrackerStorage } from './storage.js';
 import { parseCharacterWorkspaceRoute, characterWorkspaceHref } from './character-workspace.js';
 import {inventoryEntities,inventoryEntityById,inventoryCatalogStatus,survivorInventorySource} from '../data/inventory-catalog.js';
 import {inventoryIconPath} from './assets.js';
-import {createQuantityInteraction,updateQuantityInput,acceptQuantityInput,visibleQuantityEntries,regroupQuantityEntries,quantityFocusAfterCommit} from './inventory-interaction.js';
+import {createQuantityInteraction,updateQuantityInput,acceptQuantityInput,visibleQuantityEntries,regroupQuantityEntries,quantityFocusAfterCommit,groupQuantityEntries} from './inventory-interaction.js';
 import { createCharacterEditSession, updateCharacterEditSession, buildCharacterEditCandidate, characterEditPreview } from './character-edit.js';
 import { EditorGuard } from './editor.js';
 import { setupView } from './setup.js';
@@ -51,7 +51,9 @@ let stockSession = null;
 let stockSessionKey = '';
 let stockRendering = false;
 let stockBlurPending = null;
-let stockFilters = {map:'items',family:'',rarity:'',search:'',inStock:false};
+let stockFilters = {map:'',rarity:'',search:'',inStock:false};
+let stockCollapsedFamilies = new Set();
+let stockForcedFamilies = new Set();
 let workspaceHistoryIndex = 0;
 let committedWorkspaceHash = location.hash || '#dashboard';
 let restoringWorkspaceHistory = null;
@@ -635,32 +637,50 @@ function stockView(id,mode) {
   const key=id+'/'+(mode==='draft'?'edit':'items-addons');
   if(stockSessionKey!==key || !stockSession){
     stockSession=createQuantityInteraction(inventoryEntities,{...inventory.items,...inventory.addons},{mode});
-    stockSessionKey=key;stockFilters={map:'items',family:'',rarity:'',search:'',inStock:false};
+    stockSessionKey=key;stockFilters={map:'',rarity:'',search:'',inStock:false};
+    stockCollapsedFamilies=new Set();stockForcedFamilies=new Set();
   }
   const select=(id,label,options,value)=>'<label>'+label+'<select id="'+id+'">'+options.map(([v,n])=>'<option value="'+esc(v)+'"'+(value===v?' selected':'')+'>'+esc(n)+'</option>').join('')+'</select></label>';
   const unresolved=Object.entries({...inventory.items,...inventory.addons}).filter(([entityId])=>!Object.hasOwn(inventoryEntityById,entityId));
-  return '<section data-stock-workspace><h2>Survivor Items &amp; Add-ons</h2><p>'+ (mode==='detail'?'Quantities save on Enter or leaving the field.':'Stock changes stay in this draft until Save Character.')+'</p>'
-    +'<p class="muted">Survivor inventory '+esc(survivorInventorySource.patch)+' · research '+esc(survivorInventorySource.verifiedAt)+'. Separately versioned from the Perk catalog.</p>'
-    +'<div class="stock-filters">'+select('inventory-map','Inventory type',[['items','Items'],['addons','Item Add-ons']],stockFilters.map)
-    +select('inventory-family','Item family',[['','All families'],...survivorInventorySource.itemFamilies.map(f=>[f.id,f.displayName])],stockFilters.family)
-    +select('inventory-rarity','Rarity',[['','All rarities'],...[...new Set(inventoryEntities.map(e=>e.rarity))].map(r=>[r,r])],stockFilters.rarity)
-    +'<label>Search inventory<input id="inventory-search" type="search" value="'+esc(stockFilters.search)+'"></label>'
-    +'<label><input id="inventory-in-stock" type="checkbox"'+(stockFilters.inStock?' checked':'')+'> In Stock</label></div>'
-    + (Object.keys(stockSession.errors).length?'<div role="alert" data-stock-error-summary>'+Object.entries(stockSession.errors).map(([entityId,error])=>'<p><button type="button" data-action="stock-error-focus" data-id="'+entityId+'">Fix quantity of '+esc(inventoryEntityById[entityId].name)+'</button>: '+esc(error)+'</p>').join('')+'</div>':'')
-    +'<div class="stock-grid">'+visibleQuantityEntries(stockSession,stockFilters).map(entity=>{
-      const art=inventoryIconPath(entity.id,assetManifest), error=stockSession.errors[entity.id];
-      return '<article data-stock-card="'+entity.id+'" class="stock-card '+((stockSession.baseline[entity.id]||0)>0?'':'zero-stock')+'">'
-        +(art?'<img src="'+esc(art)+'" alt="" loading="lazy" data-inventory-icon>':'<span aria-hidden="true" class="stock-art-fallback">◇</span>')
-        +'<h3>'+esc(entity.name)+'</h3><small>'+esc(entity.rarity)+' · '+esc(entity.familyId)+'</small>'
-        +'<label for="quantity-'+entity.id+'">Quantity of '+esc(entity.name)+'</label><input id="quantity-'+entity.id+'" data-inventory-quantity="'+entity.id
-        +'" type="text" inputmode="numeric" value="'+esc(stockSession.raw[entity.id])+'" aria-invalid="'+Boolean(error)+'" aria-describedby="stock-error-'+entity.id+'">'
-        +'<p id="stock-error-'+entity.id+'" data-stock-error role="status">'+esc(error|| (stockSession.pending[entity.id]?'Pending change':''))+'</p>'
-        +'<details><summary id="stock-reference-'+entity.id+'">Reference and compatibility</summary><p>'+esc(entity.effect)+'</p>'
-        +(entity.map==='addons'?'<p>Compatible with '+esc(entity.compatibleItemIds.map(itemId=>inventoryEntityById[itemId].name).join(', '))+'.</p>':'')
-        +(entity.needsVerification?'<p>Optional metadata needs verification: '+esc(entity.notes)+'</p>':'')
-        +'<p>Research sources: '+entity.provenance.references.map((url,index)=>'<a id="stock-source-'+entity.id+'-'+index+'" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Source '+(index+1)+'</a>').join(' · ')+'</p></details></article>';
-    }).join('')+'</div>'+(!visibleQuantityEntries(stockSession,stockFilters).length?'<p>No matching stock entries.'+(stockFilters.family==='firecracker'&&stockFilters.map==='addons'?' Firecrackers have no usable Add-ons.':'')+'</p>':'')
-    +(unresolved.length?'<details data-unresolved-stock><summary id="inventory-unresolved">'+unresolved.length+' unresolved stock records preserved (read-only)</summary><ul>'+unresolved.map(([unknown,quantity])=>'<li>'+esc(unknown)+': '+quantity+'</li>').join('')+'</ul></details>':'')+'</section>';
+  const grouped=groupQuantityEntries(stockSession,stockFilters,survivorInventorySource.itemFamilies);
+  const hasNarrowing=Boolean(stockFilters.search||stockFilters.map||stockFilters.rarity||stockFilters.inStock);
+  const visibleGroups=grouped.filter(group=>{
+    if(group.items.length||group.addons.length)return true;
+    const hasCatalogAddons=inventoryEntities.some(entity=>entity.familyId===group.family.id&&entity.map==='addons');
+    return !hasNarrowing || (stockFilters.map==='addons'&&!stockFilters.search&&!stockFilters.rarity&&!stockFilters.inStock&&!hasCatalogAddons);
+  });
+  const secondaryCount=Number(Boolean(stockFilters.map))+Number(Boolean(stockFilters.rarity));
+  const renderCard=entity=>{
+    const art=inventoryIconPath(entity.id,assetManifest), error=stockSession.errors[entity.id];
+    return '<article data-stock-card="'+entity.id+'" class="stock-card '+((stockSession.baseline[entity.id]||0)>0?'':'zero-stock')+'">'
+      +'<div class="stock-card-media">'+(art?'<img src="'+esc(art)+'" alt="" loading="lazy" data-inventory-icon>':'<span aria-hidden="true" class="stock-art-fallback">◇</span>')+'</div>'
+      +'<h3>'+esc(entity.name)+'</h3><small>'+esc(entity.rarity)+' · '+esc(entity.familyId)+'</small>'
+      +'<label for="quantity-'+entity.id+'">Quantity of '+esc(entity.name)+'</label><input id="quantity-'+entity.id+'" data-inventory-quantity="'+entity.id+'" inputmode="numeric" type="text" value="'+esc(stockSession.raw[entity.id])+'" aria-invalid="'+Boolean(error)+'" aria-describedby="stock-error-'+entity.id+'">'
+      +'<p id="stock-error-'+entity.id+'" data-stock-error role="status">'+esc(error|| (stockSession.pending[entity.id]?(mode==='draft'?'Unsaved draft':'Pending change'):''))+'</p>'
+      +'<details><summary id="stock-reference-'+entity.id+'">Reference and compatibility</summary><p>'+esc(entity.effect)+'</p>'
+      +(entity.map==='addons'?'<p>Compatible with '+esc(entity.compatibleItemIds.map(itemId=>inventoryEntityById[itemId].name).join(', '))+'.</p>':'')
+      +(entity.needsVerification?'<p>Optional metadata needs verification: '+esc(entity.notes)+'</p>':'')
+      +'<p>Research sources: '+entity.provenance.references.map((url,index)=>'<a id="stock-source-'+entity.id+'-'+index+'" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Source '+(index+1)+'</a>').join(' · ')+'</p></details></article>';
+  };
+  const familyMarkup=visibleGroups.map(group=>{
+    const catalogAddonCount=inventoryEntities.filter(entity=>entity.familyId===group.family.id&&entity.map==='addons').length;
+    const searchForces=Boolean(stockFilters.search)&&Boolean(group.items.length||group.addons.length);
+    const expanded=!stockCollapsedFamilies.has(group.family.id)||searchForces||stockForcedFamilies.has(group.family.id);
+    const showItems=!stockFilters.map||stockFilters.map==='items';
+    const showAddons=!stockFilters.map||stockFilters.map==='addons';
+    return '<section class="stock-family" data-stock-family="'+esc(group.family.id)+'"><div class="stock-family-heading"><button type="button" data-action="stock-family-toggle" data-family="'+esc(group.family.id)+'" aria-expanded="'+expanded+'" aria-controls="stock-family-content-'+esc(group.family.id)+'"><span aria-hidden="true">'+(expanded?'▾':'▸')+'</span><span>'+esc(group.family.displayName)+'</span></button><span>'+((group.items.length+group.addons.length)||'')+'</span></div>'
+      +'<div class="stock-family-content" id="stock-family-content-'+esc(group.family.id)+'"'+(expanded?'':' hidden')+'>'
+      +(showItems?'<section class="stock-subsection" data-stock-subsection="items"><h3>Items</h3>'+(group.items.length?'<div class="stock-grid">'+group.items.map(renderCard).join('')+'</div>':'<p class="stock-empty-line">No matching Items.</p>')+'</section>':'<section data-stock-subsection="items" hidden></section>')
+      +(showAddons?'<section class="stock-subsection" data-stock-subsection="addons"><h3>Add-ons</h3>'+(group.addons.length?'<div class="stock-grid">'+group.addons.map(renderCard).join('')+'</div>':(!catalogAddonCount?'<p class="stock-empty-line">No compatible Add-ons in this catalog.</p>':'<p class="stock-empty-line">No matching Add-ons.</p>'))+'</section>':'<section data-stock-subsection="addons" hidden></section>')
+      +'</div></section>';
+  }).join('');
+  return '<section data-stock-workspace><div class="stock-page-heading"><div><h2>Survivor Items &amp; Add-ons</h2><p>'+(mode==='detail'?'Track the quantities currently recorded for this Survivor. Quantities save on Enter or leaving the field.':'Stock changes stay in this draft until Save Character.')+'</p></div><p class="muted">Survivor inventory '+esc(survivorInventorySource.patch)+' · research '+esc(survivorInventorySource.verifiedAt)+'.</p></div>'
+    +'<div class="stock-toolbar"><div class="stock-primary-controls"><label class="stock-search">Search inventory<input id="inventory-search" type="search" value="'+esc(stockFilters.search)+'"></label><label class="stock-in-stock"><input id="inventory-in-stock" type="checkbox"'+(stockFilters.inStock?' checked':'')+'> In Stock</label>'
+    +'<details id="inventory-filters"><summary>Filters'+(secondaryCount?' ('+secondaryCount+')':'')+'</summary><div class="stock-secondary-filters">'+select('inventory-map','Type',[['','All'],['items','Items'],['addons','Add-ons']],stockFilters.map)+select('inventory-rarity','Rarity',[['','All rarities'],...[...new Set(inventoryEntities.map(e=>e.rarity))].map(r=>[r,r])],stockFilters.rarity)+'</div></details></div>'
+    +'<div class="stock-family-actions"><button type="button" data-action="stock-collapse-all">Collapse all</button><button type="button" data-action="stock-expand-all">Expand all</button></div></div>'
+    +(Object.keys(stockSession.errors).length?'<div role="alert" data-stock-error-summary>'+Object.entries(stockSession.errors).map(([entityId,error])=>'<p><button type="button" data-action="stock-error-focus" data-id="'+entityId+'">Fix quantity of '+esc(inventoryEntityById[entityId].name)+'</button>: '+esc(error)+'</p>').join('')+'</div>':'')
+    +'<div class="stock-families">'+familyMarkup+'</div>'+(!visibleGroups.length?'<p class="empty">No matching stock entries.</p>':'')
+    +(unresolved.length?'<section class="unresolved-stock" data-unresolved-stock><h2 id="inventory-unresolved">Imported records not in current catalog</h2><p class="muted">Preserved exactly and read-only until the runtime catalog can resolve them.</p><ul>'+unresolved.map(([unknown,quantity])=>'<li><code>'+esc(unknown)+'</code><span>Quantity '+quantity+'</span><small>Read-only</small></li>').join('')+'</ul></section>':'')+'</section>';
 }
 function stockInput(target) {
   store.assertWriter();
@@ -710,7 +730,7 @@ function saveCharacterEdit({ navigate = true } = {}) {
     characterEditSession = { ...characterEditSession, errors: result.errors, conflicted: result.conflict };
     render();
     const first = result.errors[0];
-    if(first.field==='quantity'){stockFilters={...stockFilters,map:inventoryEntityById[first.id].map,family:'',rarity:'',search:'',inStock:false};render();}
+    if(first.field==='quantity'){stockFilters={...stockFilters,map:inventoryEntityById[first.id].map,rarity:'',search:'',inStock:false};stockForcedFamilies.add(inventoryEntityById[first.id].familyId);render();}
     const control = first.field === 'quantity' ? $('#quantity-'+first.id) : first.field === 'perk' ? $('[data-edit-perk="' + first.id + '"]')
       : $('[data-edit-field="' + first.field + '"]');
     (control || $('[data-edit-errors]'))?.focus();
@@ -965,12 +985,15 @@ async function handleClick(event) {
   if (setupOpen && event.target.closest('nav a')) { setupOpen = false; render(); }
   const button = event.target.closest('[data-action]');
   if (!button) return;
-  const { action, id, character, perk, mode } = button.dataset;
+  const { action, id, character, perk, mode, family } = button.dataset;
+  if(action==='stock-family-toggle'){stockForcedFamilies.delete(family);if(stockCollapsedFamilies.has(family))stockCollapsedFamilies.delete(family);else stockCollapsedFamilies.add(family);render();document.querySelector('[data-action="stock-family-toggle"][data-family="'+family+'"]')?.focus();return;}
+  if(action==='stock-collapse-all'){stockCollapsedFamilies=new Set(survivorInventorySource.itemFamilies.map(entry=>entry.id));stockForcedFamilies.clear();render();document.querySelector('[data-action="stock-collapse-all"]')?.focus();return;}
+  if(action==='stock-expand-all'){stockCollapsedFamilies.clear();stockForcedFamilies.clear();render();document.querySelector('[data-action="stock-expand-all"]')?.focus();return;}
   if(action==='queue-manage'){queueView.expanded=!queueView.expanded;render();$('[data-action="queue-manage"]')?.focus();return;}
   if(action==='queue-filter'){queueView.role=button.dataset.role;render();$('[data-action="queue-filter"][data-role="'+queueView.role+'"]')?.focus();return;}
   if(action==='stock-error-focus'){
-    stockFilters={map:inventoryEntityById[id].map,family:'',rarity:'',search:'',inStock:false};
-    render();$('#quantity-'+id)?.focus();return;
+    stockFilters={map:inventoryEntityById[id].map,rarity:'',search:'',inStock:false};
+    stockForcedFamilies.add(inventoryEntityById[id].familyId);render();$('#quantity-'+id)?.focus();return;
   }
   if (characterEditSession?.dirty && action !== 'character-edit-save' && action !== 'character-edit-cancel'
     && (requiresEditor(action) || action === 'character' || action === 'enable-editing')) {
@@ -1198,8 +1221,8 @@ document.addEventListener('input', event => {
 document.addEventListener('change', async event => {
   const target = event.target;
   try {
-    if(['inventory-map','inventory-family','inventory-rarity','inventory-in-stock'].includes(target.id)){
-      const key={'inventory-map':'map','inventory-family':'family','inventory-rarity':'rarity','inventory-in-stock':'inStock'}[target.id];
+    if(['inventory-map','inventory-rarity','inventory-in-stock'].includes(target.id)){
+      const key={'inventory-map':'map','inventory-rarity':'rarity','inventory-in-stock':'inStock'}[target.id];
       stockFilters={...stockFilters,[key]:target.type==='checkbox'?target.checked:target.value};render();return;
     }
     if(target.dataset.inventoryQuantity)return;

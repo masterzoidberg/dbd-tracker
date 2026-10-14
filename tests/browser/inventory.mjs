@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {freshSave} from '../../src/model.js';
-import {inventoryEntities,inventoryCatalogStatus} from '../../data/inventory-catalog.js';
+import {inventoryEntities,inventoryCatalogStatus,survivorInventorySource} from '../../data/inventory-catalog.js';
 export async function inventoryRegression(page,origin){
  page.setDefaultTimeout(6000);
  assert.equal(inventoryCatalogStatus.survivor,'ready');
@@ -14,6 +14,38 @@ export async function inventoryRegression(page,origin){
  const field=id=>page.locator('[data-inventory-quantity="'+id+'"]');
  const order=()=>page.locator('[data-stock-card]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockCard));
  await field(item.id).waitFor();
+  const presentationBytes=await bytes();
+  const familyIds=survivorInventorySource.itemFamilies.map(f=>f.id);
+  assert.deepEqual(await page.locator('[data-stock-family]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockFamily)),familyIds,'Verified family source order');
+  for(const familyId of familyIds){
+    const family=page.locator('[data-stock-family="'+familyId+'"]');
+    assert.equal(await family.count(),1);
+    const subsections=await family.locator('[data-stock-subsection]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockSubsection));
+    assert.deepEqual(subsections,['items','addons'],'Items precede Add-ons in '+familyId);
+    assert.equal(await family.locator('[data-action="stock-family-toggle"]').getAttribute('aria-expanded'),'true');
+  }
+  const emptyAddonFamily=survivorInventorySource.itemFamilies.find(f=>!inventoryEntities.some(e=>e.familyId===f.id&&e.map==='addons'));
+  assert.ok(emptyAddonFamily);
+  assert.match(await page.locator('[data-stock-family="'+emptyAddonFamily.id+'"] [data-stock-subsection="addons"]').textContent(),/No compatible Add-ons in this catalog./);
+  assert.equal(await page.locator('#inventory-family').count(),0,'Family is structure, not a required dropdown');
+  assert.equal(await page.locator('#inventory-search').isVisible(),true);
+  assert.equal(await page.locator('#inventory-in-stock').isVisible(),true);
+  assert.equal(await page.locator('#inventory-filters').count(),1);
+  assert.match(await page.locator('#inventory-filters summary').textContent(),/Filters/);
+
+  const familyToggle=page.locator('[data-stock-family="'+item.familyId+'"] [data-action="stock-family-toggle"]');
+  await familyToggle.click();
+  assert.equal(await familyToggle.getAttribute('aria-expanded'),'false');
+  await page.locator('#inventory-search').fill(item.name);
+  assert.equal(await familyToggle.getAttribute('aria-expanded'),'true','Search temporarily reveals collapsed matching family');
+  await page.locator('#inventory-search').fill('');
+  assert.equal(await familyToggle.getAttribute('aria-expanded'),'false','Clearing search restores collapse intent');
+  assert.equal(await bytes(),presentationBytes,'Collapse/search presentation state never persists');
+  await page.getByRole('button',{name:'Expand all',exact:true}).click();
+  assert.equal(await familyToggle.getAttribute('aria-expanded'),'true');
+  await page.getByRole('button',{name:'Collapse all',exact:true}).click();
+  assert.equal(await page.locator('[data-action="stock-family-toggle"][aria-expanded="false"]').count(),familyIds.length);
+  await page.getByRole('button',{name:'Expand all',exact:true}).click();
   const decoded=await page.evaluate(async paths=>Promise.all(paths.map(async path=>{
     const image=new Image();image.src=path;try{await image.decode();return image.naturalWidth>0;}catch{return false;}
   })),inventoryEntities.map(e=>e.imagePath).filter(Boolean));
@@ -23,6 +55,8 @@ export async function inventoryRegression(page,origin){
  assert.equal(await bytes(),before); assert.deepEqual(await order(),beforeOrder);
  await field(item.id).press('Enter');
  assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].inventory.items[item.id],5);
+  const committedFamilyItems=await page.locator('[data-stock-family="'+item.familyId+'"] [data-stock-subsection="items"] [data-stock-card]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockCard));
+  assert.equal(committedFamilyItems[0],item.id,'Positive stock moves to the front of its family Items subsection after commit');
  assert.equal(await field(item.id).evaluate(n=>document.activeElement===n),true);
   let committed=await bytes();
   await field(item.id).fill('6');
@@ -51,6 +85,7 @@ export async function inventoryRegression(page,origin){
  await field(item.id).fill('0'); await page.locator('#inventory-in-stock').check();
  await page.waitForFunction(id=>!JSON.parse(localStorage.dbdTrackerData).characters['meg-thomas'].inventory.items[id],item.id);
  await page.locator('#inventory-in-stock').uncheck();
+ await page.locator('#inventory-filters').evaluate(el=>el.open=true);
  await page.locator('#inventory-map').selectOption('addons');
  await field(addon.id).fill('9'); await field(addon.id).press('Tab');
  await page.waitForFunction(id=>JSON.parse(localStorage.dbdTrackerData).characters['meg-thomas'].inventory.addons[id]===9,addon.id);
@@ -58,7 +93,7 @@ export async function inventoryRegression(page,origin){
  const failBefore=await bytes();
  await field(addon.id).fill('10'); await field(addon.id).press('Enter');
  assert.equal(await bytes(),failBefore); assert.equal(await field(addon.id).inputValue(),'10');
- assert.match(await page.locator('[data-stock-error]').first().textContent(),/Not saved/);
+ assert.match(await page.locator('#stock-error-'+addon.id).textContent(),/Not saved/);
  await page.evaluate(()=>{Storage.prototype.setItem=window.stockSetItem;});
  await field(addon.id).press('Enter');
   await field(addon.id).fill('11');
@@ -79,6 +114,7 @@ export async function inventoryRegression(page,origin){
   }
   await page.setViewportSize({width:1440,height:900});
  await field(item.id).fill('6'); await field(item.id).press('Enter');
+ await page.locator('#inventory-filters').evaluate(el=>el.open=true);
  await page.locator('#inventory-map').selectOption('addons');
  await field(addon.id).fill('12'); await field(addon.id).press('Tab');
  assert.equal(await bytes(),draftBefore);
