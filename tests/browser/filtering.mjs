@@ -1,0 +1,271 @@
+import assert from 'node:assert/strict';
+import { resolve } from 'node:path';
+import { freshSave, syncGlobalInventories, inventoryTier, bloodwebEligible } from '../../src/model.js';
+import { perks } from '../../data/catalog.js';
+import { getFilterContext, perkFilterDefinitions, matchesPerkFilterState, perkFacetCounts, normalizeFilterState } from '../../src/perk-filters.js';
+
+const fixture = freshSave();
+Object.assign(fixture.characters['meg-thomas'], { owned: true, setupComplete: true, prestige: 1, favorite: true, bloodwebLevel: 25 });
+fixture.characters['dwight-fairfield'].owned = true;
+const general = perks.find(p => p.role === 'survivor' && p.general && !p.sourceCharacterId);
+fixture.characters['meg-thomas'].perks[general.id] = 1;
+const historical = perks.find(p => p.role === 'survivor' && p.historicalAvailability?.manualOwnership);
+fixture.characters['meg-thomas'].perks[historical.id] = 2;
+fixture.perkOverrides[historical.id] = { shrineTier: 1, legacyTier: 2 };
+syncGlobalInventories(fixture);
+
+async function seed(page, origin, save = fixture, route = 'manage/meg-thomas/legacy') {
+  await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), save);
+  await page.goto(origin + '/#' + route);
+  await page.reload();
+  await page.locator('#search').waitFor();
+}
+async function navigate(page, route) {
+  await page.evaluate(route => { location.hash = route; }, route);
+  await page.waitForFunction(route => location.hash === '#' + route && document.querySelector('#breadcrumb').textContent === (route.startsWith('manage/') ? (route.includes('meg-thomas') || route.includes('dwight') ? 'SURVIVORS' : 'KILLERS') : route.replaceAll('-', ' ').toUpperCase()), route);
+}
+async function assertResults(page, context, state, save = fixture) {
+  const expected = perks.filter(p => matchesPerkFilterState(save, p, context, state)).map(p => p.id).sort();
+  assert.deepEqual(await page.locator('tbody [data-action="perk"]').evaluateAll(nodes => nodes.map(n => n.dataset.id).sort()), expected);
+  assert.ok((await page.locator('#perk-results').textContent()).startsWith(expected.length + ' PERKS'));
+}
+async function assertFacets(page, context, state) {
+  const counts = perkFacetCounts(fixture, context, state);
+  for (const [group, options] of Object.entries(counts)) for (const [option, count] of Object.entries(options)) {
+    assert.equal(Number(await page.locator(`[data-facet="${group}-${option}"]`).textContent()), count, `${group}/${option}`);
+  }
+}
+
+export async function filteringInteractions(page, origin) {
+  await seed(page, origin);
+  assert.equal(await page.locator('#quick-bloodweb-available').count(), 1, 'New quick views must replace flat perk filters');
+  const context = getFilterContext('manage/meg-thomas/legacy');
+  let state = normalizeFilterState(context);
+  const bytes = await page.evaluate(() => localStorage.getItem('dbdTrackerData'));
+  for (const quick of perkFilterDefinitions(context).quickViews) {
+    await page.locator('#quick-' + quick.id).click();
+    state.quick = quick.id;
+    await assertResults(page, context, state);
+  }
+  await page.locator('#quick-bloodweb-available').click();
+  state.quick = 'bloodweb-available';
+  await page.locator('#sort').selectOption('source'); state.sort = 'source';
+  await page.locator('#filters-trigger').click();
+  await assertFacets(page, context, state);
+  const checkbox = page.locator('#filter-effectiveTier-1');
+  await checkbox.evaluate(n => { window.testCheckbox = n; });
+  await checkbox.check(); state.groups.effectiveTier = ['1'];
+  await page.locator('#filter-effectiveTier-2').check(); state.groups.effectiveTier.push('2');
+  await page.locator('#filter-source-owned').check(); state.groups.source = ['owned'];
+  await assertFacets(page, context, state);
+  await assertResults(page, context, state);
+  assert.equal(await page.locator('#filters-trigger').textContent(), 'Filters (2)');
+  assert.equal(await page.locator('.filter-summary').count(), 2);
+  assert.equal(await checkbox.evaluate(n => n === window.testCheckbox), true, 'Checkbox DOM must survive filtering');
+  await page.locator('#perk-filter-panel').evaluate(n => { n.scrollTop = 100; });
+  const scroll = await page.locator('#perk-filter-panel').evaluate(n => n.scrollTop);
+  await page.locator('#filter-source-owned').focus();
+  await page.keyboard.press('Space'); delete state.groups.source;
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'filter-source-owned');
+  assert.equal(await page.locator('#perk-filter-panel').evaluate(n => n.scrollTop), scroll);
+  await page.keyboard.press('Escape');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'filters-trigger');
+  await page.locator('#summary-effectiveTier').click();
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'filter-effectiveTier-0');
+  await page.getByRole('button', { name: 'Close filters', exact: true }).click();
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'filters-trigger');
+  await page.locator('#filters-trigger').click();
+  await page.locator('#search').click();
+  assert.equal(await page.locator('#perk-filter-panel').evaluate(n => n.matches(':popover-open')), false);
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'search', 'Light dismiss preserves destination focus');
+  await page.locator('#search').fill('Meg'); state.search = 'Meg';
+  await page.locator('#search').evaluate(n => { n.focus(); n.setSelectionRange(1, 2); n.dispatchEvent(new Event('input', { bubbles: true })); });
+  assert.deepEqual(await page.locator('#search').evaluate(n => [n.selectionStart, n.selectionEnd]), [1, 2]);
+  await page.locator('#filters-trigger').click();
+  await assertFacets(page, context, state);
+  await page.locator('#filter-source-locked').check(); state.groups.source = ['locked'];
+  await assertResults(page, context, state);
+  assert.equal(await page.locator('#filter-source-locked').isEnabled(), true, 'Zero population stays removable');
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Clear Effective Tier', exact: true }).click(); delete state.groups.effectiveTier;
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'summary-source');
+  await page.getByRole('button', { name: 'Clear Source Character', exact: true }).click(); delete state.groups.source;
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'filters-trigger');
+  await page.locator('#filters-trigger').click();
+  await page.locator('#filter-origin-native').check(); state.groups.origin = ['native'];
+  await page.locator('#perk-filter-panel [data-action="clear-advanced"]').click(); state.groups = {};
+  assert.equal(await page.locator('#search').inputValue(), 'Meg');
+  assert.equal(await page.locator('#sort').inputValue(), 'source');
+  assert.equal(await page.locator('#quick-bloodweb-available').getAttribute('aria-pressed'), 'true');
+  await page.locator('#filter-origin-native').check();
+  await page.keyboard.press('Escape');
+  await page.locator('#quick-owned').click();
+  assert.equal(await page.locator('.filter-summary').count(), 0);
+  assert.equal(await page.locator('#search').inputValue(), 'Meg');
+  assert.equal(await page.locator('#sort').inputValue(), 'source');
+  await page.locator('#filters-trigger').click();
+  await page.locator('#filter-origin-native').focus();
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'filter-origin-general');
+  await page.keyboard.press('Escape');
+  await page.locator('#filters-trigger').click();
+  await navigate(page, 'killer-perks');
+  assert.equal(await page.locator('#perk-filter-panel').evaluate(n => n.matches(':popover-open')), false);
+  await navigate(page, 'manage/meg-thomas/legacy');
+  assert.equal(await page.locator('#search').inputValue(), 'Meg');
+  assert.equal(await page.locator('#quick-owned').getAttribute('aria-pressed'), 'true');
+  await navigate(page, 'manage/dwight-fairfield/legacy');
+  assert.equal(await page.locator('#search').inputValue(), '');
+  await navigate(page, 'survivor-perks');
+  state = normalizeFilterState(getFilterContext('survivor-perks'));
+  for (const quick of perkFilterDefinitions(getFilterContext('survivor-perks')).quickViews) {
+    await page.locator('#quick-' + quick.id).click(); state.quick = quick.id;
+    await assertResults(page, getFilterContext('survivor-perks'), state);
+  }
+  await page.locator('#filters-trigger').click();
+  await page.locator('#filter-globalTier-1').check(); state.groups.globalTier = ['1'];
+  await assertFacets(page, getFilterContext('survivor-perks'), state);
+  await page.keyboard.press('Escape');
+  await page.locator('#quick-all').click();
+  await page.locator(`[data-action="perk"][data-id="${historical.id}"]`).click();
+  assert.equal(await page.locator('.historical-detail-note').textContent(), historical.historicalAvailability.note);
+  await page.getByRole('button', { name: 'Close details', exact: true }).click();
+  await page.locator('#filters-trigger').click();
+  await page.locator('tbody [data-action="perk"]').first().click();
+  assert.equal(await page.locator('#perk-filter-panel').evaluate(n => n.matches(':popover-open')), false);
+  await page.getByRole('button', { name: 'Close details', exact: true }).click();
+  assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), bytes, 'UI state never writes progression');
+  await page.locator('#filters-trigger').click();
+  await page.locator('[data-action="character-setup-all"]').focus();
+  await page.keyboard.press('Enter');
+  assert.equal(await page.locator('#perk-filter-panel').evaluate(n => n.matches(':popover-open')), false, 'Setup closes filters');
+  await page.locator('[data-action="character-setup-exit"]').first().click();
+  await page.goto(origin + '/#survivor-perks');
+  await page.locator('#filters-trigger').click();
+  await page.evaluate(() => window.dispatchEvent(new StorageEvent('storage', { key: 'dbdTrackerData' })));
+  assert.equal(await page.locator('#perk-filter-panel').evaluate(n => n.matches(':popover-open')), false, 'Full save-context refresh closes filters');
+  await navigate(page, 'killer-perks');
+  await page.locator('#quick-owned-by-my-characters').click();
+  assert.ok((await page.locator('.empty').textContent()).includes('You do not own any killer characters yet'));
+  await page.locator('.empty a').click();
+  assert.equal(new URL(page.url()).hash, '#killers');
+}
+
+export async function focusAndLayouts(page, origin) {
+  await seed(page, origin);
+  await page.locator(`[data-action="perk"][data-id="${general.id}"]`).click();
+  const ids = await page.locator('[id]').evaluateAll(nodes => nodes.map(n => n.id));
+  assert.equal(new Set(ids).size, ids.length, 'Manager and detail controls need distinct stable IDs');
+  await page.getByRole('button', { name: 'Close details', exact: true }).click();
+  const eligible = perks.filter(p => p.role === 'survivor' && inventoryTier(fixture, 'meg-thomas', p.id) === 1 && bloodwebEligible(fixture, 'meg-thomas', p));
+  await page.locator('#quick-needs-upgrade').click();
+  const first = eligible.find(p => p.id === general.id) || eligible[0];
+  const action = page.locator(`#tier-meg-thomas-${first.id}`);
+  await action.click();
+  assert.equal(await page.evaluate(() => document.activeElement.id), `tier-meg-thomas-${first.id}`);
+  await action.click();
+  assert.equal(await action.count(), 0);
+  assert.equal(await page.evaluate(() => document.activeElement.disabled || document.activeElement === document.body), false, 'Disappearing action has usable focus');
+  await page.locator('#search').fill(first.name);
+  assert.equal(await page.locator('tbody tr').count(), 0);
+  await seed(page, origin);
+  await page.locator('#quick-needs-upgrade').click();
+  await page.locator('#search').fill(first.name);
+  await action.click(); await action.click();
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'perk-results', 'Last action falls back to result count');
+  await seed(page, origin);
+  await page.locator('#quick-all').click();
+  await action.click(); await action.click();
+  assert.equal(await action.isDisabled(), true);
+  assert.equal(await page.evaluate(() => document.activeElement.disabled || document.activeElement === document.body), false);
+  await seed(page, origin);
+  const before = await page.evaluate(() => localStorage.getItem('dbdTrackerData'));
+  await page.evaluate(() => { window.originalSetItem = Storage.prototype.setItem; Storage.prototype.setItem = function(key, value) { if (key === 'dbdTrackerData') throw new Error('fixture write failure'); return window.originalSetItem.call(this, key, value); }; });
+  await action.click();
+  assert.equal(await action.textContent(), 'I↑');
+  assert.equal(await page.evaluate(() => document.activeElement.id), `tier-meg-thomas-${first.id}`);
+  assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before);
+  assert.equal(await page.locator('#save-status').textContent(), 'Save failed');
+  await page.evaluate(() => { Storage.prototype.setItem = window.originalSetItem; });
+
+  for (const width of [500, 700, 900, 1440]) {
+    await page.setViewportSize({ width, height: 800 });
+    await seed(page, origin);
+    await page.locator('#filters-trigger').click();
+    const panel = await page.locator('#perk-filter-panel').boundingBox();
+    assert.ok(panel.x >= 0 && panel.y >= 0 && panel.x + panel.width <= width && panel.y + panel.height <= 800, `Panel bounds ${width}`);
+    await page.locator('#filter-source-owned').check();
+    await page.getByRole('button', { name: 'Close filters', exact: true }).click();
+    for (const route of ['manage/meg-thomas/legacy', 'survivor-perks', 'survivors', 'killers', 'dashboard']) {
+      await navigate(page, route);
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Shell overflow at ${width}/${route}`);
+      const boxes = await page.locator('.topbar button').evaluateAll(nodes => nodes.map(n => { const r = n.getBoundingClientRect(); return { x: r.x, y: r.y, right: r.right, bottom: r.bottom }; }));
+      assert.ok(boxes.every(b => b.x >= 0 && b.right <= width), `Topbar bounds ${width}`);
+      assert.ok(boxes[0].right <= boxes[1].x || boxes[0].bottom <= boxes[1].y || boxes[1].bottom <= boxes[0].y, `Topbar collision ${width}`);
+    }
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await seed(page, origin, fixture, 'survivors');
+  await page.locator('#search').fill('Meg');
+  await page.locator('#prestige-filter').selectOption('1');
+  await page.locator('[data-action="favorites-filter"]').click();
+  await page.locator('[data-action="filter"][data-filter="owned"]').click();
+  await page.locator('#sort').selectOption('bloodweb');
+  assert.equal(await page.locator('.character-card').count(), 1);
+  await navigate(page, 'killers'); assert.equal(await page.locator('#search').inputValue(), '');
+  await navigate(page, 'survivors');
+  assert.equal(await page.locator('.character-card').count(), 1);
+  assert.equal(await page.locator('#search').inputValue(), 'Meg');
+  assert.equal(await page.locator('#sort').inputValue(), 'bloodweb');
+  await page.locator('[data-action="ownership"]').click();
+  assert.equal(await page.locator('.character-card').count(), 0, 'Existing ownership predicate still combines with collection filters');
+}
+
+export async function filteringRegression(page, origin) {
+  await page.goto(origin + '/#manage/meg-thomas/legacy');
+  await page.locator('#search').fill('Meg');
+  const before = await page.locator('tbody').textContent();
+  await page.locator('.skip-link').focus();
+  await page.keyboard.press('Enter');
+  assert.equal(new URL(page.url()).hash, '#manage/meg-thomas/legacy', 'Skip must preserve route');
+  assert.equal(await page.locator('tbody').textContent(), before);
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'main');
+  await page.locator('#filters-trigger').click();
+  assert.equal(await page.locator('#perk-filter-panel').getAttribute('popover'), 'auto');
+  assert.equal(await page.locator('#perk-filter-panel').evaluate(n => n.closest('#main')), null);
+  await page.locator('[data-filter-group="effectiveTier"][data-option="1"]').check();
+  assert.equal(await page.locator('#filters-trigger').textContent(), 'Filters (1)');
+  assert.equal(await page.locator('.filter-summary').count(), 1);
+  assert.equal(await page.evaluate(() => document.activeElement.dataset.option), '1');
+  await page.keyboard.press('Escape');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'filters-trigger');
+  const bytes = await page.evaluate(() => localStorage.getItem('dbdTrackerData'));
+  await navigate(page, 'killer-perks');
+  await navigate(page, 'manage/meg-thomas/legacy');
+  assert.equal(await page.locator('#search').inputValue(), 'Meg');
+  assert.equal(await page.locator('.filter-summary').count(), 1);
+  assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), bytes);
+  await page.reload();
+  assert.equal(await page.locator('#search').inputValue(), '');
+  assert.equal(await page.locator('.filter-summary').count(), 0);
+  await navigate(page, 'survivor-perks');
+  await page.locator('#quick-globally-locked').click();
+  await page.locator('#search').fill('Bill');
+  const libraryRows = await page.locator('tbody').textContent();
+  await page.locator('.skip-link').focus();
+  await page.keyboard.press('Enter');
+  assert.equal(new URL(page.url()).hash, '#survivor-perks');
+  assert.equal(await page.locator('tbody').textContent(), libraryRows);
+  assert.equal(await page.locator('#quick-globally-locked').getAttribute('aria-pressed'), 'true');
+  assert.equal(await page.locator('#search').inputValue(), 'Bill');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'main');
+}
+
+if (process.argv[1]?.endsWith('filtering.mjs')) {
+  const { smokeStage } = await import('./smoke.mjs');
+  console.log(await smokeStage(resolve(process.argv[2] || 'release/runtime'), { channel: process.argv.includes('--chrome') ? 'chrome' : 'msedge', regression: async (page, origin) => {
+    await filteringInteractions(page, origin);
+    await filteringRegression(page, origin);
+    await focusAndLayouts(page, origin);
+  } }));
+}

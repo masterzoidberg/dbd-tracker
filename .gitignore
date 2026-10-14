@@ -1,0 +1,23 @@
+node_modules/
+release/
+
+# Private account exports; catalogs and tests/fixtures remain trackable.
+/data/dbd-tracker-2026-10-05-1502.json
+/data/dbd-tracker-*.json
+/dbd-tracker-*.json
+
+# Local archives, logs, caches, and machine-specific helpers.
+*.zip
+*.log
+*.lnk
+.superpowers/
+.env
+.env.*
+!.env.example
+playwright-report/
+test-results/
+.cache/
+
+# Original artwork delivery trees; canonical build/runtime assets are retained.
+/images/updated-images/
+/images/missing-perks/

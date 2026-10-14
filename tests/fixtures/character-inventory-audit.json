@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "setupComplete": false,
+  "updatedAt": "2026-01-01T00:00:00.000Z",
+  "exportedAt": "2026-01-01T00:00:00.000Z",
+  "characters": {
+    "the-doctor": {
+      "owned": true,
+      "prestige": 0,
+      "bloodwebLevel": 1,
+      "favorite": false,
+      "notes": "",
+      "perks": {},
+      "updatedAt": null
+    },
+    "the-cenobite": {
+      "owned": true,
+      "prestige": 0,
+      "bloodwebLevel": 1,
+      "favorite": false,
+      "notes": "",
+      "perks": {},
+      "updatedAt": null
+    }
+  },
+  "perkOverrides": {
+    "overcharge": { "shrineTier": 1 },
+    "hex-ruin": { "shrineTier": 1 },
+    "thanatophobia": { "shrineTier": 1 }
+  }
+}

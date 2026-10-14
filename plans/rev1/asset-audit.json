@@ -1,0 +1,6050 @@
+{
+  "files": [
+    {
+      "path": "images/killer-images/animatronic.png",
+      "bytes": 92282,
+      "format": "WebP",
+      "width": 512,
+      "height": 512,
+      "sha256": "f8fe0f3178116b6e4fbf4aede6b574a326612368d04d1055fb1bd2db3143db91"
+    },
+    {
+      "path": "images/killer-images/artist.png",
+      "bytes": 13707,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "07c155a468dd4e11c1f3d68dfa5803c8a557f0c49562f80dbc3e98d35ef4338f"
+    },
+    {
+      "path": "images/killer-images/blight.png",
+      "bytes": 14484,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "e15ff9f7c21a58abe81790a69b3788492290743589d7c194d3522f245e162ed8"
+    },
+    {
+      "path": "images/killer-images/cannibal.png",
+      "bytes": 14400,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "afa9a8d84b51993e69c3d4e77266a80e62b68f76e0ce275a8413070d0e7caa6a"
+    },
+    {
+      "path": "images/killer-images/cenobite.png",
+      "bytes": 15448,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "732b4a065ac49fa7e4ab6fc665806baeb935b325fd20a8fdbb6212a082d851f7"
+    },
+    {
+      "path": "images/killer-images/charles_lee_ray.png",
+      "bytes": 83088,
+      "format": "WebP",
+      "width": 512,
+      "height": 512,
+      "sha256": "462555cfea8f0da291d4f78292aa2582d4128c2910c7965af289dc82e0439ae3"
+    },
+    {
+      "path": "images/killer-images/danny_johnson.png",
+      "bytes": 86098,
+      "format": "WebP",
+      "width": 512,
+      "height": 512,
+      "sha256": "fd2539208ddfd0341da9cec91d06b602def1eb3585f57015e0e21452ad96e3db"
+    },
+    {
+      "path": "images/killer-images/dark_lord.png",
+      "bytes": 95632,
+      "format": "WebP",
+      "width": 512,
+      "height": 512,
+      "sha256": "660b665454bb8adc115639bb75c0ee07ec5bb36ff51783bdc171707db6b56569"
+    },
+    {
+      "path": "images/killer-images/deathslinger.png",
+      "bytes": 13153,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "5cd4368d8d1ad9f9c62be221a7aeeb382ab356fd4223e2ce168e083b60be4b70"
+    },
+    {
+      "path": "images/killer-images/demogorgon.png",
+      "bytes": 10124,
+      "format": "PNG",
+      "width": 73,
+      "height": 73,
+      "sha256": "104d1aecf1d076fa3524b88f27cb6004848100e1f0d1f21ea39999572b289146"
+    },
+    {
+      "path": "images/killer-images/doctor.png",
+      "bytes": 15627,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "f2727849abe05f70dac9a3c692c640279b15237bbef4dd61177394fffc0be45f"
+    },
+    {
+      "path": "images/killer-images/dredge.png",
+      "bytes": 19008,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "64b9c4c2615266774e424bce3aaa32a37ea2382f9aba54cb286674efa501d633"
+    },
+    {
+      "path": "images/killer-images/executioner.png",
+      "bytes": 14616,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "29f262383dc53da198f1554a08e2c4845445d7673c8f2eb2cf92efad104c6fa5"
+    },
+    {
+      "path": "images/killer-images/frank_julie_susie,_joey.png",
+      "bytes": 98500,
+      "format": "WebP",
+      "width": 512,
+      "height": 512,
+      "sha256": "2d1e9f8ea750256e2272b68bc43b9aea7fd7df41168862f24a7be25469e1a58c"
+    },
+    {
+      "path": "images/killer-images/ghoul.png",
+      "bytes": 80980,
+      "format": "WebP",
+      "width": 512,
+      "height": 512,
+      "sha256": "42b0349f103b6f68d53d9cd6de30b7c686bb5c1a77e3dd31703d16e9d1d9c7c2"
+    },
+    {
+      "path": "images/killer-images/hag.png",
+      "bytes": 14991,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "2ab6d3279fdebcb5dc266a28394af0b9e8f13d18a82c0a5d021224638e0e36f6"
+    },
+    {
+      "path": "images/killer-images/hillbilly.png",
+      "bytes": 14136,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "a3424fa79757332817a04ae3fb2244b235b5c235c9fe3762428d7c7a90ebc2a9"
+    },
+    {
+      "path": "images/killer-images/houndmaster.png",
+      "bytes": 97158,
+      "format": "WebP",
+      "width": 512,
+      "height": 512,
+      "sha256": "94cb0ab11f37374482db6371ed0176febc3fc1fc5714a577e8182ed5ae085f8a"
+    },
+    {
+      "path": "images/killer-images/huntress.png",
+      "bytes": 14351,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "ce880c1c5a5db79a3c254a1e2ab03a8fd4f44d2f86b1960ed31cce98dbe5c8a6"
+    },
+    {
+      "path": "images/killer-images/jeffrey_hawk.png",
+      "bytes": 104932,
+      "format": "WebP",
+      "width": 512,
+      "height": 512,
+      "sha256": "c15d3c1e8c74bb664b2744d2a70748caa162ba9c12ec5fcd6adccfa037d01ed9"
+    },
+    {
+      "path": "images/killer-images/knight.png",
+      "bytes": 19058,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "236fa59c6a4dc1289d696c88947e93b1116fb14cecff0dd724c50a6b65d83319"
+    },
+    {
+      "path": "images/killer-images/lich.png",
+      "bytes": 11487,
+      "format": "PNG",
+      "width": 73,
+      "height": 73,
+      "sha256": "cfef25753dfc46b514e7603293c585f6937a80f1a4caeb7542108408700fe2f6"
+    },
+    {
+      "path": "images/killer-images/mastermind.png",
+      "bytes": 15152,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "0680ef3c8a007a1f45cb82f3e8560fe39f84761a646187655d014bdbaa0fcba9"
+    },
+    {
+      "path": "images/killer-images/nemesis_t-type.png",
+      "bytes": 116420,
+      "format": "WebP",
+      "width": 512,
+      "height": 512,
+      "sha256": "b5386dfc11587172186537c448bf2aa4f7a2f7fd6488ab6ce407ba0bb34b35ec"
+    },
+    {
+      "path": "images/killer-images/nightmare.png",
+      "bytes": 12988,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "e76cb41edf02a0f4651bb66e5804329220ad25b5a47ceb51c77bc77f422b4c1d"
+    },
+    {
+      "path": "images/killer-images/nurse.png",
+      "bytes": 13954,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "cfe97d625f3110410142dfe5b1e83e8f2d4203fe5adc61c7c1cdce35b0ca206a"
+    },
+    {
+      "path": "images/killer-images/oni.png",
+      "bytes": 16579,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "84da99b285a6ea2f23eb447c2a74e98486c6f7c073fa5267fbaf575195957a23"
+    },
+    {
+      "path": "images/killer-images/onry.png",
+      "bytes": 13697,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "c042adcaa5c62ff7db6f525e8fd8ed56f8510ed36ee1f94c903bd5134ac93b10"
+    },
+    {
+      "path": "images/killer-images/pig.png",
+      "bytes": 12467,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "2ee5b45d0c935aab7fc78ab9a78921a14c983a204fee31032ce1dc6f2d1d3895"
+    },
+    {
+      "path": "images/killer-images/plague.png",
+      "bytes": 16563,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "724631505b896f8d99f7cea6dd1c48b877dae1e3c0e1bef1ad51675af6a54867"
+    },
+    {
+      "path": "images/killer-images/shape.png",
+      "bytes": 13679,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "ba1fd91413ab4497214d9d7d6ad451f3a143f245a27fb4a0c285bb25d0d59cb6"
+    },
+    {
+      "path": "images/killer-images/singularity.png",
+      "bytes": 10874,
+      "format": "PNG",
+      "width": 73,
+      "height": 73,
+      "sha256": "3d3421f68a3748a190c386f1eabe9c07669352a5440fac8773779a35b61d2dd2"
+    },
+    {
+      "path": "images/killer-images/skull_merchant.png",
+      "bytes": 18272,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "a6e443716e11d8f8c39c726aa340b39ea882f7e2d25384bb625fafb1c4572792"
+    },
+    {
+      "path": "images/killer-images/spirit.png",
+      "bytes": 13028,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "630752a527fa1f6757db70b2137d4f5142976305e75979ca0a3880dddfb6184b"
+    },
+    {
+      "path": "images/killer-images/trapper.png",
+      "bytes": 13700,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "a82cb22aeeef6032b388aeb56b95576a8bbb5812651ade06a2fc505f3ae8dd2f"
+    },
+    {
+      "path": "images/killer-images/trickster.png",
+      "bytes": 16200,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "a18ef2125f731f33e470195b4805fcd90636456fa8062d4f9dce399e5e9d2e91"
+    },
+    {
+      "path": "images/killer-images/twins.png",
+      "bytes": 16219,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "0ec4de18364c0ccc0e5547a9bc9cc60a287987569ab9a27fd8492cfcecf9fe1f"
+    },
+    {
+      "path": "images/killer-images/unknown.png",
+      "bytes": 10554,
+      "format": "PNG",
+      "width": 73,
+      "height": 73,
+      "sha256": "ca95d8b159dab5a98f5b61409520a0fff8abf67d40b64637b99b4b3fd2ba9241"
+    },
+    {
+      "path": "images/killer-images/wraith.png",
+      "bytes": 14319,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "be3b4d6b16cabc38744906c3cc050ec5612d024ddc6e95c1425fbcd1eeec8070"
+    },
+    {
+      "path": "images/killer-images/xenomorph.png",
+      "bytes": 9923,
+      "format": "PNG",
+      "width": 73,
+      "height": 73,
+      "sha256": "8540fd3179d435f0072e2867bd14261311b610851e05f5048a3f65a947f11387"
+    },
+    {
+      "path": "images/killer-perks/animatronic/haywire.png",
+      "bytes": 10752,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "f0cf2fd57a031e81f2314f55e823e4f24c5d0492992063b9bda91c07458c3931"
+    },
+    {
+      "path": "images/killer-perks/animatronic/help-wanted.png",
+      "bytes": 9953,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "4e75d2fc480144ff641d1a9b9e6fbde3ee5ef230f43db384b4df31fde4ef1e95"
+    },
+    {
+      "path": "images/killer-perks/animatronic/phantom-fear.png",
+      "bytes": 10265,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "c8335ed33b9497214a4e36ced185d305b94e0004575be56f9cfed7fcfdabf7ee"
+    },
+    {
+      "path": "images/killer-perks/artist/grim-embrace.png",
+      "bytes": 10239,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "240b070d4e9c5b4908bb836f0d28daffe5f4702a8a6f4c366261fadbc6f0f112"
+    },
+    {
+      "path": "images/killer-perks/artist/hex-pentimento.png",
+      "bytes": 10148,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "417fe710b0129ba6e9d15ada15fe07fd0062d9128503eb56fdefc3a3ea3163d0"
+    },
+    {
+      "path": "images/killer-perks/artist/scourge-hook-pain-resonance.png",
+      "bytes": 10225,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "30e5cf02236ad651c708c73a12c3594a01aa48cd414aa66c190f2e1f90a84438"
+    },
+    {
+      "path": "images/killer-perks/blight/dragons-grip.png",
+      "bytes": 11024,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "944e2f2c11f37b739da63d180599cb7d3755ed6ff697f0ebc6571460a2c386b1"
+    },
+    {
+      "path": "images/killer-perks/blight/hex-blood-favour.png",
+      "bytes": 10465,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "3fdbfb7b3cdb2b2375d431f2383bc2cc1b6867bec01c06d3eb8a1417e038a6ab"
+    },
+    {
+      "path": "images/killer-perks/blight/hex-undying.png",
+      "bytes": 10415,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "7eaf5b66c9b2222ee51d8bbee4a10c5dc9e1b85ba598e72190d28cbc98d92f88"
+    },
+    {
+      "path": "images/killer-perks/cannibal/barbecue-chilli.png",
+      "bytes": 10122,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "e8aea68bde4afb55560bc7e7a3a72e8b9692d6cff9917a5ba6118da2d575f830"
+    },
+    {
+      "path": "images/killer-perks/cannibal/franklins-demise.png",
+      "bytes": 9161,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "f29cf9c382d0770f564d1f94eae92c6146c440fced43c73ed25177ce3e417955"
+    },
+    {
+      "path": "images/killer-perks/cannibal/knock-out.png",
+      "bytes": 9685,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "6c181b6f1a85a1cfbcb649ce90b955533213334c9cc4140ab2d192aa1a0a2d62"
+    },
+    {
+      "path": "images/killer-perks/cenobite/hex-fortunes-fool.png",
+      "bytes": 9201,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "3f794fe2e61b06702dbb027010b15e67e78a18e79b2b9c096be1180b76beb89b"
+    },
+    {
+      "path": "images/killer-perks/cenobite/no-holds-barred.png",
+      "bytes": 9201,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "3f794fe2e61b06702dbb027010b15e67e78a18e79b2b9c096be1180b76beb89b"
+    },
+    {
+      "path": "images/killer-perks/cenobite/scourge-hook-weeping-wounds.png",
+      "bytes": 9201,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "3f794fe2e61b06702dbb027010b15e67e78a18e79b2b9c096be1180b76beb89b"
+    },
+    {
+      "path": "images/killer-perks/charles-lee-ray/batteries-included.png",
+      "bytes": 9679,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "cfb29d52906d010fbcd4a599304edd8322cdb308fc69abe28f96fa7111586ac4"
+    },
+    {
+      "path": "images/killer-perks/charles-lee-ray/friends-til-the-end.png",
+      "bytes": 9977,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "2bc760319ad74f0e293143ada1613161351475eea170e889b8653c49101c6959"
+    },
+    {
+      "path": "images/killer-perks/charles-lee-ray/hex-two-can-play.png",
+      "bytes": 10906,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "e257e4b4254ef6a7d5f3ced59534452a3bfdaf74180240909756d833686c4aef"
+    },
+    {
+      "path": "images/killer-perks/danny-johnson/furtive-chase.png",
+      "bytes": 10768,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "46fd4a756bc3b74b9856748123f561dec42c3c184564936284a2a79ad83518e2"
+    },
+    {
+      "path": "images/killer-perks/danny-johnson/im-all-ears.png",
+      "bytes": 9942,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "2a2980e9808f5618f80214cb6fd031d78849ff2445a2609bddad2d5f2fecf6b6"
+    },
+    {
+      "path": "images/killer-perks/danny-johnson/thrilling-tremors.png",
+      "bytes": 9994,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "6e2d7dae83122acb9757eea813c9ddf9f02f72ff4c42aa08fe545492aff0a25a"
+    },
+    {
+      "path": "images/killer-perks/dark-lord/dominance.png",
+      "bytes": 9845,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "cbe4a906b9d7c841272c896b7a9456b39d2cf1dc67f210605b6fe38bd41eb9fa"
+    },
+    {
+      "path": "images/killer-perks/dark-lord/hex-wretched-fate.png",
+      "bytes": 10254,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "a2058888407aa740c6fd551370385fc333f06ff0ac4642f77717f4b3339f88d5"
+    },
+    {
+      "path": "images/killer-perks/dark-lord/human-greed.png",
+      "bytes": 10268,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "810d0b86c5cc4d2d9d92cf708c57e892ca70dade6b57e0df8be7214a40382f0c"
+    },
+    {
+      "path": "images/killer-perks/deathslinger/dead-mans-switch.png",
+      "bytes": 10378,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "e4a8e4531d7a6a5d467b50c5571c11040a512aa1e44b9f252e4b85d8a2c4a11a"
+    },
+    {
+      "path": "images/killer-perks/deathslinger/gearhead.png",
+      "bytes": 9163,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "4a106146d856cf1e5ac8d354c20848f558448ebabce9b8b59a3a7c2fb8f83082"
+    },
+    {
+      "path": "images/killer-perks/deathslinger/hex-retribution.png",
+      "bytes": 10876,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "bd28aca4ea88cda8122267ccfb464ff2c20d6ea4d7aba0454ef869463efe6f76"
+    },
+    {
+      "path": "images/killer-perks/demogorgon/cruel-limits.png",
+      "bytes": 10455,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "696f42f21a879036bd5614f8178297cca04c0c010bc82bd280f5fcdd64f3686e"
+    },
+    {
+      "path": "images/killer-perks/demogorgon/mindbreaker.png",
+      "bytes": 10424,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "a5cbd82cc7461c3ad0f2b228936422ec6585e5ccf3efd2f6743d7ec71e472977"
+    },
+    {
+      "path": "images/killer-perks/demogorgon/surge.png",
+      "bytes": 11334,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "8d9fefe477593a65f188db5d6ef1c20132e1a68257fc481dc719b7b5aa730b70"
+    },
+    {
+      "path": "images/killer-perks/doctor/monitor-abuse.png",
+      "bytes": 10425,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "00eb6d5a207c34bbf135c30fb5be54b1ebd5e454d6b3fd9e49644ee710694c1a"
+    },
+    {
+      "path": "images/killer-perks/doctor/overcharge.png",
+      "bytes": 10250,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "89ad72eccdb0edf37c19a301830f23cddca3caeb71f4564fcaf69ae56edcc358"
+    },
+    {
+      "path": "images/killer-perks/doctor/overwhelming-presence.png",
+      "bytes": 9350,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "c7a450d8a513b59d2bcb976eb2ea77534cfaccc125c076d5bb9f6dad927fa188"
+    },
+    {
+      "path": "images/killer-perks/dredge/darkness-revealed.png",
+      "bytes": 10788,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "fc16b943f3936bbe833fc1da794fa4e7e2995f0db50a18b4dbf41cbf113e3a98"
+    },
+    {
+      "path": "images/killer-perks/dredge/dissolution.png",
+      "bytes": 9890,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "464e734a390b10ef02090f524c02464f115a919355eb38c194102ae30b7e1528"
+    },
+    {
+      "path": "images/killer-perks/dredge/septic-touch.png",
+      "bytes": 10728,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "5c3e1206073d6b3c3f2caa093c8dfcc5145bb86aad2105b30d5d427f155593d8"
+    },
+    {
+      "path": "images/killer-perks/executioner/deathbound.png",
+      "bytes": 9463,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "ba9e9136f03cf7f62f5e3cc313173e3e9eb6bcfa710e9d70279ead30d496e6f7"
+    },
+    {
+      "path": "images/killer-perks/executioner/forced-penance.png",
+      "bytes": 9606,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "e3d64a96b9b190b9344e30bfaca15154acff71f1a5ee5a270a646903a2cfd2d0"
+    },
+    {
+      "path": "images/killer-perks/executioner/trail-of-torment.png",
+      "bytes": 11036,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "4a96da295df80e713d0d2dcd676378565314382021697888ed4c4bfc2200abca"
+    },
+    {
+      "path": "images/killer-perks/frank-julie-susie-joey/discordance.png",
+      "bytes": 8822,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "8beb8a5f8df19c58ba1c6e9b377c581cf94d5f7310e2ae9cb342c8a923852c05"
+    },
+    {
+      "path": "images/killer-perks/frank-julie-susie-joey/iron-maiden.png",
+      "bytes": 9310,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "0446110547a7053f156bef8e691387b267df58c1497d2f678776c798d90ef16e"
+    },
+    {
+      "path": "images/killer-perks/frank-julie-susie-joey/mad-grit.png",
+      "bytes": 10688,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "6d15ed8c607a6aa9dc9f253919c49c08cc60d876ae8dcaf5e1f82f4a7b4bec33"
+    },
+    {
+      "path": "images/killer-perks/ghoul/forever-entwined.png",
+      "bytes": 11233,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "968a70a1d6910b9b20d135c6ef62217f52db7dab6a882339bc99e2c3756891f5"
+    },
+    {
+      "path": "images/killer-perks/ghoul/hex-nothing-but-misery.png",
+      "bytes": 10689,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "2260b2519643bc71cc9e2a12962310cbffaf97a09bc48b264a9ca45155d0a0a3"
+    },
+    {
+      "path": "images/killer-perks/ghoul/none-are-free.png",
+      "bytes": 10873,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "1f31c7ac2cb56b7953e9b60456af0122a55e38b4477a41baaa23586455bc649b"
+    },
+    {
+      "path": "images/killer-perks/hag/hex-devour-hope.png",
+      "bytes": 9323,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "597ac88dc82b8dba1b284c920ed88b0229330fc233fb452427119f2545a77c8a"
+    },
+    {
+      "path": "images/killer-perks/hag/hex-ruin.png",
+      "bytes": 9635,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "1763c0cb0886beec2f77cc9c6cd95d9df706c0ad80eacba54ab4b5c847231e4b"
+    },
+    {
+      "path": "images/killer-perks/hag/hex-the-third-seal.png",
+      "bytes": 9304,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "48255015f2048a81ed0cae1e8fdf029b97fa004b24406a4a378557a00ed01d30"
+    },
+    {
+      "path": "images/killer-perks/hillbilly/enduring.png",
+      "bytes": 10187,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "7d7cdd0fae4e466a7437ed8018bec8230729f4859f22f0febb4bed55ded86cbb"
+    },
+    {
+      "path": "images/killer-perks/hillbilly/lightborn.png",
+      "bytes": 9965,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "e3c4fe594c85b8998d4aaa3997b208d17a41765e649cb453d63fe76da4913c6c"
+    },
+    {
+      "path": "images/killer-perks/hillbilly/tinkerer.png",
+      "bytes": 8667,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "664f68169f5fd9567e0a7db1c85b253c87afc9e31609aa58e9d0c97cac9a5bb5"
+    },
+    {
+      "path": "images/killer-perks/houndmaster/all-shaking-thunder.png",
+      "bytes": 10562,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "9e5c9843c7c0c98a8e3029ab4d4411c7394858ea6c67e93d0c36d0ba244d80c7"
+    },
+    {
+      "path": "images/killer-perks/houndmaster/no-quarter.png",
+      "bytes": 11419,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "5bd0eebfd7388f7faa9c0e6e7885b6c62e9d6c462487d47cafd34e10c4fccc95"
+    },
+    {
+      "path": "images/killer-perks/houndmaster/scourge-hook-jagged-compass.png",
+      "bytes": 10571,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "d2caeab8f7e715321eae06be6bfc3a326010dff00861bd1a0e8c917aab5bf8fc"
+    },
+    {
+      "path": "images/killer-perks/huntress/beast-of-prey.png",
+      "bytes": 9640,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "0064af8b497b4a8d1ebc7ce25c411714fe6888eb7e405132fde50157339d5360"
+    },
+    {
+      "path": "images/killer-perks/huntress/hex-huntress-lullaby.png",
+      "bytes": 9514,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "00cbd73a0b27af30fcd2401af620e509ea3ec6d1c750c9e2b961d74e5a049ca4"
+    },
+    {
+      "path": "images/killer-perks/huntress/territorial-imperative.png",
+      "bytes": 9320,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "9a57084845863ba4217fccfc917234a93713f327e3888e789ce8a4289477870e"
+    },
+    {
+      "path": "images/killer-perks/jeffrey-hawk/bamboozle.png",
+      "bytes": 10194,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "70b9f0220be6910ca492b1ac190ece4854d8b9a85efeacd73210a2f154e5bcdb"
+    },
+    {
+      "path": "images/killer-perks/jeffrey-hawk/coulrophobia.png",
+      "bytes": 10822,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "a5ee37a21ce30a3a7daa956ac9d39673f892105f025735fa011da48b2671790b"
+    },
+    {
+      "path": "images/killer-perks/jeffrey-hawk/pop-goes-the-weasel.png",
+      "bytes": 9972,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "b4947bebbeae57aa7c6b06c13305fec6df60ebaca2361fd5e81fd025c6684e6d"
+    },
+    {
+      "path": "images/killer-perks/killer-perks.zip",
+      "bytes": 1343936,
+      "format": ".zip",
+      "sha256": "2e221d10748717991cb18ec5e694beb2684c58d960e75ab1ef3903415f736f53"
+    },
+    {
+      "path": "images/killer-perks/knight/hex-face-the-darkness.png",
+      "bytes": 10616,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "c64c77dd75546b79177cea86d61b17c4299027459df2a6eae7d55b8b68e1a7b1"
+    },
+    {
+      "path": "images/killer-perks/knight/hubris.png",
+      "bytes": 9500,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "bb292e001e9dcbadfefc8ef3db31f5f1c7f74d500845ede428dbec37fa9beacc"
+    },
+    {
+      "path": "images/killer-perks/knight/nowhere-to-hide.png",
+      "bytes": 10709,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "5b3d15806ef6694742079f16f53880921bf16a23b25f3dfa9d81b819f1917a47"
+    },
+    {
+      "path": "images/killer-perks/lich/dark-arrogance.png",
+      "bytes": 10616,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "5adf9a04e97dd9b50652535d264ae7bbad8d4d92b20c5a34fdfc9f663d146745"
+    },
+    {
+      "path": "images/killer-perks/lich/languid-touch.png",
+      "bytes": 11210,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "571c4e5a48199519f39ca6755d911a030953b55654e40a36ea7a1a6e513b30c5"
+    },
+    {
+      "path": "images/killer-perks/lich/weave-attunement.png",
+      "bytes": 11794,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "358f6acf423646425a2f6397a83a7bb0998b18e0a394ed0a96a6f870ba8314ff"
+    },
+    {
+      "path": "images/killer-perks/mastermind/awakened-awareness.png",
+      "bytes": 9689,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "a981fa27d486972f82285714bd5b5567832cfd06a9b93f4ae53fead0ebb36987"
+    },
+    {
+      "path": "images/killer-perks/mastermind/superior-anatomy.png",
+      "bytes": 10120,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "b7a8da623d28386c959b09e53c0474b57207a838e3ef02e7bd8593db286a81f3"
+    },
+    {
+      "path": "images/killer-perks/mastermind/terminus.png",
+      "bytes": 11021,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "8f8c4dfb794daa9e5359a691f362ffde35008f034c3bb6520c66583cc441c2a9"
+    },
+    {
+      "path": "images/killer-perks/nemesis-t-type/eruption.png",
+      "bytes": 10151,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "d5a6073dfe54ad6f40f3163534a5b1bcc802f0d63f9b761270123bee9795202d"
+    },
+    {
+      "path": "images/killer-perks/nemesis-t-type/hysteria.png",
+      "bytes": 10010,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "6954978980e99bd128851112ab18d1be64dcc3f9ccd29e6c4835ac806aabc670"
+    },
+    {
+      "path": "images/killer-perks/nemesis-t-type/lethal-pursuer.png",
+      "bytes": 10172,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "13998cef2384689906646466cfb352a6edfd4cada6c70ca967560746c53dc8f9"
+    },
+    {
+      "path": "images/killer-perks/nightmare/blood-warden.png",
+      "bytes": 10113,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "3b30b48ebf0c996e1224c705aa3f0782b7c7071b500d8aa5047ac0a04d4bd474"
+    },
+    {
+      "path": "images/killer-perks/nightmare/fire-up.png",
+      "bytes": 10010,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "75beceef1e3971c98bc8b43cfa35ef50892c6c3408557c013fdc1cd9979eaf24"
+    },
+    {
+      "path": "images/killer-perks/nightmare/remember-me.png",
+      "bytes": 9544,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "f90392ec30eb8ba94125a6fa6dc678c457d5395dc985b4e0727e14a4c99d01ee"
+    },
+    {
+      "path": "images/killer-perks/nurse/a-nurses-calling.png",
+      "bytes": 9404,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "0f24bc2ff3ba5e35b84ab294abf0ae3d5a58536fd3bd9711c57876e6a63d5bf3"
+    },
+    {
+      "path": "images/killer-perks/nurse/stridor.png",
+      "bytes": 10010,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "eb08fa8bbcdb63e7d3e03753fe0332046c9c580eed8cb4955cc24049d441794e"
+    },
+    {
+      "path": "images/killer-perks/nurse/thanatophobia.png",
+      "bytes": 9437,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "600ca80a826ba7c069c4e306d38df223d9eb24d6a36f15c6397d612b83ecc725"
+    },
+    {
+      "path": "images/killer-perks/oni/blood-echo.png",
+      "bytes": 10025,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "f33007af282317996271a9c6023f118bcc2090ac855c29814572048a267a685d"
+    },
+    {
+      "path": "images/killer-perks/oni/nemesis.png",
+      "bytes": 11056,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "358e25b8de87894d307e8fbffb0118f2e23cd0ad8e439d13ad5082392328b48a"
+    },
+    {
+      "path": "images/killer-perks/oni/zanshin-tactics.png",
+      "bytes": 10630,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "fc0815a0bba5a1ce2fc9f24fcd5061f08d4bee75c99e754cb579d4e0212819b3"
+    },
+    {
+      "path": "images/killer-perks/onryo/call-of-brine.png",
+      "bytes": 10408,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "bbd066583a0d21219297356ca08ad2032c0034553604522ed5180de6c93ccf98"
+    },
+    {
+      "path": "images/killer-perks/onryo/merciless-storm.png",
+      "bytes": 11181,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "9c75245a620b28631fe61eaf5a934cb3c488c0e3b5739dc973cb0bf3b53ac72f"
+    },
+    {
+      "path": "images/killer-perks/onryo/scourge-hook-floods-of-rage.png",
+      "bytes": 11059,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "7e97a78d21ae5d1ed65f3b864ae0d0209dc62ec5ae06d42a6920de23ecba51ba"
+    },
+    {
+      "path": "images/killer-perks/pig/make-your-choice.png",
+      "bytes": 9030,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "771becba9e09fc1a5f65381e9ab417506420ffa165fe4ba1262391b3314b64b7"
+    },
+    {
+      "path": "images/killer-perks/pig/scourge-hook-hangmans-trick.png",
+      "bytes": 8844,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "e9c4a585612d5ca9619ae5d012c6d1b151c683e4f93ff09f004b2771e2c317e1"
+    },
+    {
+      "path": "images/killer-perks/pig/surveillance.png",
+      "bytes": 9964,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "21472e5ccd0906c1194cd97072e20c690829e1bc8dfc4a91e5514433c51af7b0"
+    },
+    {
+      "path": "images/killer-perks/plague/corrupt-intervention.png",
+      "bytes": 10144,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "e52532326e93f474b1a6ffe1045285f34cc856b9da8352eca9fec4136e8ecdbc"
+    },
+    {
+      "path": "images/killer-perks/plague/dark-devotion.png",
+      "bytes": 11178,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "c16581514a271c3974380c499742fd24531cc68723571fdf94b7095ec0c812bf"
+    },
+    {
+      "path": "images/killer-perks/plague/infectious-fright.png",
+      "bytes": 10007,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "2b4090b897d910179866993f928476854c00fd57d7e455c2b52360f5638adfb4"
+    },
+    {
+      "path": "images/killer-perks/shape/dying-light.png",
+      "bytes": 9720,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "6ce41a4bcf4861c47592f8cca1011428dada6d27b23f98429c9e0c4a22a7e2dc"
+    },
+    {
+      "path": "images/killer-perks/shape/play-with-your-food.png",
+      "bytes": 9849,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "5a00c212b8c242f4478cea667473b81093daef9d326d65f5ec52a6d80d55f876"
+    },
+    {
+      "path": "images/killer-perks/shape/save-the-best-for-last.png",
+      "bytes": 10293,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "1671fd147efa1631b097c0a9dff195a6f74429944e77358313f05e3e61adfef0"
+    },
+    {
+      "path": "images/killer-perks/singularity/forced-hesitation.png",
+      "bytes": 11148,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "96c07d0bd2493dd12df666cae5dd5a87971e99752ab33f17c94c624239ec8b3c"
+    },
+    {
+      "path": "images/killer-perks/singularity/genetic-limits.png",
+      "bytes": 10394,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "f57d34ef8027502366a6177072f45003f8fdf087a34c40d10e94b2ee6c4ceb17"
+    },
+    {
+      "path": "images/killer-perks/singularity/machine-learning.png",
+      "bytes": 10234,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "fbc2a334dff7f0837cdbdd7146d060e2617c4e695e3b68e1a97a7bf080a17ebb"
+    },
+    {
+      "path": "images/killer-perks/skull-merchant/game-afoot.png",
+      "bytes": 10592,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "c534abfe8ddfb6932d70dbdd46b12788ef519312ca83e4d642f74b39b6a158a0"
+    },
+    {
+      "path": "images/killer-perks/skull-merchant/leverage.png",
+      "bytes": 10809,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "7455ae6d1ecef666660b0212e6b8d128ad70586aabc45afde8ece885b50a9aa2"
+    },
+    {
+      "path": "images/killer-perks/skull-merchant/thwack.png",
+      "bytes": 10823,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "567e7eeb1609d8b56bf3f3c6614a2eb91bfcef08f9392536cec1ba0504dc2e5d"
+    },
+    {
+      "path": "images/killer-perks/spirit/hex-haunted-ground.png",
+      "bytes": 10611,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "7e5f6327e2faf97148e2f8a32b2bee5319ee781042163d3ed329f1989b6cc325"
+    },
+    {
+      "path": "images/killer-perks/spirit/rancor.png",
+      "bytes": 10853,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "b2ca2709f5dc7ec26907d782b716377a61aa69970f33844669ba912b0f1444a4"
+    },
+    {
+      "path": "images/killer-perks/spirit/spirit-fury.png",
+      "bytes": 9893,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "68f2d41525646b52305976ae0f485a42eab82e259c5a1c57738782aa7997a842"
+    },
+    {
+      "path": "images/killer-perks/trapper/agitation.png",
+      "bytes": 9532,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "d613f407cdbda1256b54dca0857f1d3acf4c7f953edc89e24e27e0083950280c"
+    },
+    {
+      "path": "images/killer-perks/trapper/brutal-strength.png",
+      "bytes": 9103,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "926c4d07535cee0cbb22187a8210f6c1b1a56f3398f96614c5b1df93b180c0df"
+    },
+    {
+      "path": "images/killer-perks/trapper/unnerving-presence.png",
+      "bytes": 9886,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "377d399b9bc59fcfb8f805ba02dc4da33296dfaccd25f845a5642d1de6bc9b56"
+    },
+    {
+      "path": "images/killer-perks/trickster/hex-crowd-control.png",
+      "bytes": 12092,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "77643d450458240e08640422ab5c5aa4876c076ce9d7e006ae9f9d9056b3d140"
+    },
+    {
+      "path": "images/killer-perks/trickster/no-way-out.png",
+      "bytes": 10014,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "9fb4375acd55e1c0cb73100fa504be1d2023a5623d4977ffe2385a2d1fa4e4b1"
+    },
+    {
+      "path": "images/killer-perks/trickster/starstruck.png",
+      "bytes": 10829,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "6b54b648dd5bc49914ed3e33101b4c6a43511d493e3641975df5a6ab53f7af61"
+    },
+    {
+      "path": "images/killer-perks/twins/coup-de-grace.png",
+      "bytes": 9416,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "0659530426cdabda102ba6d02995d69ea303088970e9b11465b80f39853457be"
+    },
+    {
+      "path": "images/killer-perks/twins/hoarder.png",
+      "bytes": 10518,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "e8f6beb02071d371e490291f843329b74bedf068e9baaaf83f5ab0588d3bc978"
+    },
+    {
+      "path": "images/killer-perks/twins/oppression.png",
+      "bytes": 9796,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "cad39eb7299c602b63010db9219fc22a04d13db9e60594a9201e6827993467ef"
+    },
+    {
+      "path": "images/killer-perks/universal/bitter-murmur.png",
+      "bytes": 8921,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "45dd64c2b0f497342086e6893c0931d6d000b1a6f09416715170a7af8bd735b9"
+    },
+    {
+      "path": "images/killer-perks/universal/deerstalker.png",
+      "bytes": 9002,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "a1ad40bf3ddcc4cc6acb9b1cc62e7537c929308926e4b6c30343f73fac6f985a"
+    },
+    {
+      "path": "images/killer-perks/universal/distressing.png",
+      "bytes": 9427,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "0a41bec96bce2c731dc38e479eda4e60ddcaa6201294d582b1b372d5c92f1639"
+    },
+    {
+      "path": "images/killer-perks/universal/hex-no-one-escapes-death.png",
+      "bytes": 9392,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "7ed39c13c13487eeaa3f22729c572754919e02e6cee99e2ee2c7c257d7e709fa"
+    },
+    {
+      "path": "images/killer-perks/universal/hex-thrill-of-the-hunt.png",
+      "bytes": 9566,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "fa7504c35b233bd9e894b9dcd2b0c44aeaa96d77dc36eab6954524c3488a3abb"
+    },
+    {
+      "path": "images/killer-perks/universal/insidious.png",
+      "bytes": 8704,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "524206627e2c6755e16fee687dae49605325c40b0af306055a26e85c6e40ed0e"
+    },
+    {
+      "path": "images/killer-perks/universal/iron-grasp.png",
+      "bytes": 8876,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "d7e4e196d498fafe646452955ffbd2e705079f382519a4648039ce094a1682ec"
+    },
+    {
+      "path": "images/killer-perks/universal/scourge-hook-monstrous-shrine.png",
+      "bytes": 9569,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "19c95ea6dac750091bba0a4fd5c6c705438d182ab4e29f1e2ea18694ec6c1913"
+    },
+    {
+      "path": "images/killer-perks/universal/shattered-hope.png",
+      "bytes": 10711,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "5d128e310d9de743907db02fdba552ca0021ac0df0b912ec3e5c50530deda703"
+    },
+    {
+      "path": "images/killer-perks/universal/sloppy-butcher.png",
+      "bytes": 8945,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "5c40f27f8b4d0144bbf4a635c0010327ee76997ec654f9e4bbd64636cd49d16e"
+    },
+    {
+      "path": "images/killer-perks/universal/spies-from-the-shadows.png",
+      "bytes": 8593,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "6ba83ec7ced343569571ebab14066b027660513df76d8c30bef7e73c5db6b55c"
+    },
+    {
+      "path": "images/killer-perks/universal/unrelenting.png",
+      "bytes": 9488,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "b8158eb3ac6966110365c6d9018fe32288315024ac11c9912f7c89d8b6480d65"
+    },
+    {
+      "path": "images/killer-perks/universal/whispers.png",
+      "bytes": 9969,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "65ca5ece16a9056f11a1dbaea7cc2ba45d3c4d97033f426c610f4f2d69d45d36"
+    },
+    {
+      "path": "images/killer-perks/unknown/unbound.png",
+      "bytes": 11143,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "ff036fce9ffe040e859f0196c6b5763c388b3441c0489cea512b4403260748cc"
+    },
+    {
+      "path": "images/killer-perks/unknown/undone.png",
+      "bytes": 10694,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "08305c6a20cad8a508dd7bd545ad3171e8f7bfe67c870007c48f07e8e773e439"
+    },
+    {
+      "path": "images/killer-perks/unknown/unforeseen.png",
+      "bytes": 11587,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "c134c5404b28c989c87e1c669c399d670af89041f5d105286ab7846f1ac477a5"
+    },
+    {
+      "path": "images/killer-perks/wraith/bloodhound.png",
+      "bytes": 9246,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "36d16362feddf5a443f188fdf0f0d434b28771bb99395c610309b102cd453dad"
+    },
+    {
+      "path": "images/killer-perks/wraith/predator.png",
+      "bytes": 10108,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "d70f4b9acf74e145e3d4e435c3ec4cfe112e9da4691b634d098cd06834d93312"
+    },
+    {
+      "path": "images/killer-perks/wraith/shadowborn.png",
+      "bytes": 9606,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "df856d49cb69b86ec53bc46c4b7f6aa964482cad330246bdb2846d16dff552dc"
+    },
+    {
+      "path": "images/killer-perks/xenomorph/alien-instinct.png",
+      "bytes": 10617,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "8eff72729acc306427ee35a5e77f572feb4d31132303e0a17d84521aa2aed019"
+    },
+    {
+      "path": "images/killer-perks/xenomorph/rapid-brutality.png",
+      "bytes": 10561,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "c05e863270d5059d1e2a898ae92e6417df1a38eb8483c37a061f100cae555b8c"
+    },
+    {
+      "path": "images/killer-perks/xenomorph/ultimate-weapon.png",
+      "bytes": 10199,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "79645c76cafa46f80048dd26f7f552632d478e24ed730cbd76156f74093412ce"
+    },
+    {
+      "path": "images/perk_background2.png",
+      "bytes": 6177,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "4cefcbfb169aece9b38cc01b6ab89bc1b97d47e1bd130a7279021655af02ee1d"
+    },
+    {
+      "path": "images/survivor-images/ace_visconti.png",
+      "bytes": 14374,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "9cc28f1634d0e017c77b5b2728fd68d292c9b3a37f0a672ceef304f447f3a15c"
+    },
+    {
+      "path": "images/survivor-images/adam_francis.png",
+      "bytes": 13034,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "5ae03ee3663fd0b84ebca5f9e04046f901ffea9e202614d591ff557e05320de2"
+    },
+    {
+      "path": "images/survivor-images/ada_wong.png",
+      "bytes": 14118,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "01b2d406609f9d0e0e09417d2dfd16dec9276a66ac2d8df0c6b623a4560c6b2c"
+    },
+    {
+      "path": "images/survivor-images/alan_wake.png",
+      "bytes": 8959,
+      "format": "PNG",
+      "width": 73,
+      "height": 73,
+      "sha256": "9c890f7b9a39baf1373637b959f7003c015730523243ff183932aced2a490c82"
+    },
+    {
+      "path": "images/survivor-images/ash_williams.png",
+      "bytes": 75678,
+      "format": "WebP",
+      "width": 512,
+      "height": 512,
+      "sha256": "cf9c3dd1ad91157951f2470ddd4b06cee184db9c95f7c4b6a17a700ffa555519"
+    },
+    {
+      "path": "images/survivor-images/bill_overbeck.png",
+      "bytes": 77328,
+      "format": "WebP",
+      "width": 512,
+      "height": 512,
+      "sha256": "ec3319790b6e7e64d2434e06035cf9f8836156d7aa65f588005903068195c3f9"
+    },
+    {
+      "path": "images/survivor-images/cheryl_mason.png",
+      "bytes": 14555,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "e882739fca603723d2abf9806aae722000164c0ccb4fadbcf7f7e504a0e623f2"
+    },
+    {
+      "path": "images/survivor-images/claudette_morel.png",
+      "bytes": 14194,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "a001de485fb7bfa358df276ea7c7a044902fa919de82d3c35e0db64831e489f6"
+    },
+    {
+      "path": "images/survivor-images/david_king.png",
+      "bytes": 13171,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "8b3f0a71ac3ecee95343c761803b445995ad806e0f63d14b710643a923eb954c"
+    },
+    {
+      "path": "images/survivor-images/david_tapp.png",
+      "bytes": 73542,
+      "format": "WebP",
+      "width": 512,
+      "height": 512,
+      "sha256": "657abf1b6750a5ce80be779c7d7f60f25f9ab48df00275e3d1097f7d850c2a6a"
+    },
+    {
+      "path": "images/survivor-images/dwight_fairfield.png",
+      "bytes": 14048,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "f64c33bddb0d1b82e48a1306613367ec3e3f11bec22cf1396f848ca83941fc29"
+    },
+    {
+      "path": "images/survivor-images/ellen_ripley.png",
+      "bytes": 9720,
+      "format": "PNG",
+      "width": 73,
+      "height": 73,
+      "sha256": "2fd83984a077370337753eb4152c15c88baf1266c7749586451fd1e72d1a4ace"
+    },
+    {
+      "path": "images/survivor-images/felix_richter.png",
+      "bytes": 13659,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "28360cd46713105adab057db86097efdab2ad378704798d0b37643834c274ddd"
+    },
+    {
+      "path": "images/survivor-images/feng_min.png",
+      "bytes": 13430,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "0fa3799a1672d76e9426c924e1688794f371a45f169efcdf228e3d0b5d8737c6"
+    },
+    {
+      "path": "images/survivor-images/gabriel_soma.png",
+      "bytes": 9171,
+      "format": "PNG",
+      "width": 73,
+      "height": 73,
+      "sha256": "8c704365e47bac46d67da130278d71cc72eca2e1ef8552c97ff33dd95633c740"
+    },
+    {
+      "path": "images/survivor-images/haddie_kaur.png",
+      "bytes": 18061,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "fd7855191bd3a3f89b8948f06e7541b00f5ce4bf6ea42650528fa848ce9a91aa"
+    },
+    {
+      "path": "images/survivor-images/jake_park.png",
+      "bytes": 14028,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "a3d2398df30db3abebc0116957d1184e6a89ac1ffc0865376be99bae4eecb4c2"
+    },
+    {
+      "path": "images/survivor-images/jane_romero.png",
+      "bytes": 13569,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "1fcc40e66d424ad698021e8655e835889212d6e1540e9224ea2c1d7bae2e6fc0"
+    },
+    {
+      "path": "images/survivor-images/jeff_johansen.png",
+      "bytes": 100666,
+      "format": "WebP",
+      "width": 512,
+      "height": 512,
+      "sha256": "2ebc9b3424dbd9ef63d6f5da88d53839dac34e6ee0fb09738e8399dcc1e3e235"
+    },
+    {
+      "path": "images/survivor-images/jill_valentine.png",
+      "bytes": 13943,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "c123f9294870feda69986645e0b84d1a7bd695ac1ae722aecbabc2b31e999804"
+    },
+    {
+      "path": "images/survivor-images/jonah_vasquez.png",
+      "bytes": 13508,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "b7000eadcc411f83e9c7ac81f168c45730de596f59a8c25a3daa56f69c5a5bdc"
+    },
+    {
+      "path": "images/survivor-images/kate_denson.png",
+      "bytes": 14756,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "02266042e895e222f17a921b9d6cfba1d521ed72bf12a12c34762908d3933037"
+    },
+    {
+      "path": "images/survivor-images/lara_croft.png",
+      "bytes": 61804,
+      "format": "WebP",
+      "width": 512,
+      "height": 512,
+      "sha256": "8a533af9c8d0d1804ba7a21413d5d001aaeaaa083c80a6a001e0ac0f7bc8ae8c"
+    },
+    {
+      "path": "images/survivor-images/laurie_strode.png",
+      "bytes": 14524,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "87aa9b92a33aca13cc89e16f5ffcbb151a190b84ca52af37d565a9489b4f789b"
+    },
+    {
+      "path": "images/survivor-images/leon_scott_kennedy.png",
+      "bytes": 13657,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "9ef02fe52f5e572e4a1377afcfc6eca5551a4367cbab83e6951cb6a7a1ee7753"
+    },
+    {
+      "path": "images/survivor-images/lodie_rakoto.png",
+      "bytes": 15907,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "4f2c2858b108a8b9a7d597176d75f5ab396917b6f947fda4097ed796f1cf154a"
+    },
+    {
+      "path": "images/survivor-images/meg_thomas.png",
+      "bytes": 13806,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "cf169caee50793bbbea31c133b92e84dbe033cdc56d043711b913eb8237353c7"
+    },
+    {
+      "path": "images/survivor-images/mikaela_reid.png",
+      "bytes": 14209,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "1a20c6f81afbeddc2ea8b783eb7255181401dcb6c5d0effc2e00015c47b2dce8"
+    },
+    {
+      "path": "images/survivor-images/nancy_wheeler.png",
+      "bytes": 9310,
+      "format": "PNG",
+      "width": 73,
+      "height": 73,
+      "sha256": "69844f3114e13b4742fab38113f9f8e4ff833850d8e7dbda736fbe1a59d74254"
+    },
+    {
+      "path": "images/survivor-images/nea_karlsson.png",
+      "bytes": 13155,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "3ff8c89734c38300d3bb112e13b5dd01aa168674106b8de72a85b1418888a619"
+    },
+    {
+      "path": "images/survivor-images/nicolas_cage.png",
+      "bytes": 8706,
+      "format": "PNG",
+      "width": 73,
+      "height": 73,
+      "sha256": "2a7048d611a388878d5507a659922a177378f18488b7169dc723f8ae16cc6ce9"
+    },
+    {
+      "path": "images/survivor-images/quentin_smith.png",
+      "bytes": 13466,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "6af5ad0d88dddb212ee992c6e11d5862bf3c77387a3a90024554afb58cb90619"
+    },
+    {
+      "path": "images/survivor-images/rebecca_chambers.png",
+      "bytes": 15629,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "131fb4e95f30bd0cdc33ff3b58a6cb0ca838c73a9011f35eec8211e10e40a1fd"
+    },
+    {
+      "path": "images/survivor-images/renato_lyra.png",
+      "bytes": 17029,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "4967532234f9313a7d362049e201723189e40f3a1756dee264ec7211375776be"
+    },
+    {
+      "path": "images/survivor-images/sable_ward.png",
+      "bytes": 9713,
+      "format": "PNG",
+      "width": 73,
+      "height": 73,
+      "sha256": "a1217cf83cf220980594f844f1c559da5801303bb6c61b898da8393b0afffffd"
+    },
+    {
+      "path": "images/survivor-images/steve_harrington.png",
+      "bytes": 8673,
+      "format": "PNG",
+      "width": 73,
+      "height": 73,
+      "sha256": "6f0b4e3cac1b62d422fe7458c668b366916fe99e69c3b268e56d6be135233afb"
+    },
+    {
+      "path": "images/survivor-images/taurie_cain.png",
+      "bytes": 88708,
+      "format": "WebP",
+      "width": 512,
+      "height": 512,
+      "sha256": "1a1c9a38fe88d2186a5d0e95cc055af366e26aecfa33bebb518a0e92043422f5"
+    },
+    {
+      "path": "images/survivor-images/thalita_lyra.png",
+      "bytes": 17880,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "3eb4a608f0c6677e89c88a32c8105eef4109be11f1549ba06ed222abf0dabb32"
+    },
+    {
+      "path": "images/survivor-images/trevor_belmont.png",
+      "bytes": 76290,
+      "format": "WebP",
+      "width": 512,
+      "height": 512,
+      "sha256": "995663e79d56d4c6047d88f3e9623dddcd951eb96fdf0d9b7738b035320da989"
+    },
+    {
+      "path": "images/survivor-images/troupe.png",
+      "bytes": 105448,
+      "format": "WebP",
+      "width": 512,
+      "height": 512,
+      "sha256": "3e1d79eedd66517a8d7b0eebf54b98b8de2c4f28333ca918f679a0b47c6dfc81"
+    },
+    {
+      "path": "images/survivor-images/vittorio_toscano.png",
+      "bytes": 17407,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "00677996c3dc29d7127e56c9adcb67e75426db08fb7a9a09f4beab581bce0ce5"
+    },
+    {
+      "path": "images/survivor-images/yoichi_asakawa.png",
+      "bytes": 15336,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "5ee9dd9bc32316a4e28ed811aff149eaad379288bc9f9f7ac74602eeed263dbb"
+    },
+    {
+      "path": "images/survivor-images/yui_kimura.png",
+      "bytes": 14403,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "b178b6089dbae1a8b5a0b1bcff72bab6021d4e3bc95cd4961b3d7ad3a0a19a52"
+    },
+    {
+      "path": "images/survivor-images/yun-jin_lee.png",
+      "bytes": 15281,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "ae58e2f98d4f947337234d7c08390763e75fefdb6e1170e1c1f991c9edb856bf"
+    },
+    {
+      "path": "images/survivor-images/zarina_kassir.png",
+      "bytes": 13603,
+      "format": "PNG",
+      "width": 73,
+      "height": 101,
+      "sha256": "de29df617e7cadfb47f1e2654d59c0f86af60ca22c44696506cc9fc76e4db3f7"
+    },
+    {
+      "path": "images/survivor-perks/ace-visconti/ace-in-the-hole.png",
+      "bytes": 8663,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "7e4396a022546bdc9e55091cf26144ab6d1ebf048ca0b991c338d148093a6f7f"
+    },
+    {
+      "path": "images/survivor-perks/ace-visconti/open-handed.png",
+      "bytes": 8951,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "9d37365343b77a3a4304464022a7d51de6ca123ada3ed1526685b5ea065a6e2f"
+    },
+    {
+      "path": "images/survivor-perks/ace-visconti/up-the-ante.png",
+      "bytes": 8959,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "f4bfc9c9d598f32d94efa5f3279cfee56bb41474230978c1ab5f2cafcf733679"
+    },
+    {
+      "path": "images/survivor-perks/ada-wong/low-profile.png",
+      "bytes": 9126,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "18dc68e0cda99bcf30ac22698ab8698ba283abecf842f85fffccad5ebc9e926b"
+    },
+    {
+      "path": "images/survivor-perks/ada-wong/reactive-healing.png",
+      "bytes": 10431,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "10ef3ee9ab8efeb15597ea61cbbf3d9d2a2b099775c41b1dc813a015a2c3a7e8"
+    },
+    {
+      "path": "images/survivor-perks/ada-wong/wiretap.png",
+      "bytes": 10516,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "fc292e83b6c15a8b5b789ef7b670236ff0632e20f3338cb942b727e43e9da814"
+    },
+    {
+      "path": "images/survivor-perks/adam-francis/autodidact.png",
+      "bytes": 9765,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "8aae0404017e7f09f4b383d189bc698a0bd32df6d3a7fef0d9986edbd98bf396"
+    },
+    {
+      "path": "images/survivor-perks/adam-francis/deliverance.png",
+      "bytes": 11072,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "48e8a2f7316d9a32261ede09bea45fa98a2936b7da6205e77455ee1766096756"
+    },
+    {
+      "path": "images/survivor-perks/adam-francis/diversion.png",
+      "bytes": 8945,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "3250e8cd8fd22fce64d8dfd4dcaef492672e40be395a9b02f5872e97fa062ce2"
+    },
+    {
+      "path": "images/survivor-perks/alan-wake/boon-illumination.png",
+      "bytes": 10213,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "d5d4c604052b6882a42ea68eb3a7cf31174460b4453ba3b0154303f318961c33"
+    },
+    {
+      "path": "images/survivor-perks/alan-wake/champion-of-light.png",
+      "bytes": 10202,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "23d28e17aa99e7cc8b439fe1c05806711a1bf2103d6e066c452e4e918bd7be82"
+    },
+    {
+      "path": "images/survivor-perks/alan-wake/deadline.png",
+      "bytes": 11148,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "83ec875216d41209a66c45e13acf3f95b146968441a776737efb144859bbdb75"
+    },
+    {
+      "path": "images/survivor-perks/ash-williams/buckle-up.png",
+      "bytes": 9676,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "a3096cc8710b15e031503930662f50f0af14ce4c0e7e1129f1d9335f9239a7ed"
+    },
+    {
+      "path": "images/survivor-perks/ash-williams/flip-flop.png",
+      "bytes": 9382,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "7c24b465b933828e4db3aaa6ab34bab4aad0b7d6d3ce542c012f55c63a8a7a6b"
+    },
+    {
+      "path": "images/survivor-perks/ash-williams/mettle-of-man.png",
+      "bytes": 9606,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "bb5dd53dfcb462cc460c2d7c60d183a9203f7f1c8d6ac15abd84795c63044483"
+    },
+    {
+      "path": "images/survivor-perks/bill-overbeck/borrowed-time.png",
+      "bytes": 9147,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "47e6af77b7e635dad8a81848f64f423f60f23914dfeacc7350760b52f4bf32c9"
+    },
+    {
+      "path": "images/survivor-perks/bill-overbeck/left-behind.png",
+      "bytes": 9116,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "10657f2e3a36c2f912e8d4ea2ba5a6d8c8c1bd938b50a6f53029e0ff05323472"
+    },
+    {
+      "path": "images/survivor-perks/bill-overbeck/unbreakable.png",
+      "bytes": 9602,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "fd69b73fc286220449311a440455edfb33fa7c24e7fb45c43689d3863d91816b"
+    },
+    {
+      "path": "images/survivor-perks/cheryl-mason/blood-pact.png",
+      "bytes": 9857,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "b331bd6edb7065a012b9e9723824f68ae57fd85df1af77634ad3b42cdae09977"
+    },
+    {
+      "path": "images/survivor-perks/cheryl-mason/repressed-alliance.png",
+      "bytes": 9631,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "25dfe4ab232ee3b1dca89025c271953f6caf09281008a98e2a24215e63120eed"
+    },
+    {
+      "path": "images/survivor-perks/cheryl-mason/soul-guard.png",
+      "bytes": 9810,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "7aaad22f4301836b57f182dfb35a4e16ea7f894a5131a4d083ec309b75eccfbb"
+    },
+    {
+      "path": "images/survivor-perks/claudette-morel/botany-knowledge.png",
+      "bytes": 8825,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "827203c7dd692781a08054c24351c08ddbed673814ea08ba7584a00a59639360"
+    },
+    {
+      "path": "images/survivor-perks/claudette-morel/empathy.png",
+      "bytes": 9004,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "66a00ab922317752ffa3b7211e4fe18c5d5c43adf4dfeb5e5e1346fb2386bef0"
+    },
+    {
+      "path": "images/survivor-perks/claudette-morel/self-care.png",
+      "bytes": 9060,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "dd3687f754ef99001d261d854de92b1245e83f844faadd6ca99d1066570843d8"
+    },
+    {
+      "path": "images/survivor-perks/david-king/dead-hard.png",
+      "bytes": 8443,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "9d73b486325a08216ade9fc3d0bf4789b0fd52ed10fabf5905667fec6e963644"
+    },
+    {
+      "path": "images/survivor-perks/david-king/no-mither.png",
+      "bytes": 9722,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "f026da6a49ed4232130634d6480fc91c95b1d5da9eff0c0ffa773bdbbe2d481b"
+    },
+    {
+      "path": "images/survivor-perks/david-king/were-gonna-live-forever.png",
+      "bytes": 9329,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "1cd4f6da5101759ec2e334c17a827776072414edede80ab4f15d92090e7b4df5"
+    },
+    {
+      "path": "images/survivor-perks/david-tapp/detectives-hunch.png",
+      "bytes": 9368,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "6af190e1913be6ca487449e819b2ef7f2cde9771980ef2ee96553e7345f8ddd7"
+    },
+    {
+      "path": "images/survivor-perks/david-tapp/stake-out.png",
+      "bytes": 10241,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "217b33ffbf0073959f7a8b63491d2d31cc1353415ba6895ca1b3476041a11630"
+    },
+    {
+      "path": "images/survivor-perks/david-tapp/tenacity.png",
+      "bytes": 9376,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "302e7014c145cadc5b9e8e399a5db56a793ccfaacb695d0514730956b40b1f5a"
+    },
+    {
+      "path": "images/survivor-perks/dwight-fairfield/bond.png",
+      "bytes": 9097,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "9f5c4e1862293e067044eab163e9c945c6423a9c952585c1e682b7e9ab561f7f"
+    },
+    {
+      "path": "images/survivor-perks/dwight-fairfield/leader.png",
+      "bytes": 7741,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "e862db2880207e162e4ffd46efb8b663b33011cc0f81f998f0c2d3bdbd0ac9b0"
+    },
+    {
+      "path": "images/survivor-perks/dwight-fairfield/prove-thyself.png",
+      "bytes": 9563,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "ee42f4a85827f1a3fe4d529855eb1cca062e877623965314fd85be801331604d"
+    },
+    {
+      "path": "images/survivor-perks/ellen-ripley/chemical-trap.png",
+      "bytes": 11562,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "244dd44d8cfae7a6e5c54e758ff02e93a6e5a3a7e1d9727fcc00e024d488c153"
+    },
+    {
+      "path": "images/survivor-perks/ellen-ripley/light-footed.png",
+      "bytes": 10232,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "2004749f2c46e7ab9d561d6e91c3bc945532e460f597ffd0edb8641577c5067d"
+    },
+    {
+      "path": "images/survivor-perks/ellen-ripley/lucky-star.png",
+      "bytes": 10942,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "1a638a737aa5ddc559e3352d6e7d87b153693f3b2c78d8d6221b5126ddd6e9f2"
+    },
+    {
+      "path": "images/survivor-perks/elodie-rakoto/appraisal.png",
+      "bytes": 10260,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "a541c45e8de3b8ee9b34a469f90856bf5214ff325360e883e955618481d566c8"
+    },
+    {
+      "path": "images/survivor-perks/elodie-rakoto/deception.png",
+      "bytes": 9263,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "8a18a90f1fd8576c50134991c61b15e4f5b5a957acc74d245dcd4955b4bc7df0"
+    },
+    {
+      "path": "images/survivor-perks/elodie-rakoto/power-struggle.png",
+      "bytes": 10280,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "946fcf5bb2261721109250bb96a269dd3758eb319dc8eb02b36535c13e3c2c41"
+    },
+    {
+      "path": "images/survivor-perks/felix-richter/built-to-last.png",
+      "bytes": 9748,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "b7f23ab0d30febf257cd817a71d003e92ffb80dd4e72b82fe30e3f4f8cf7d514"
+    },
+    {
+      "path": "images/survivor-perks/felix-richter/desperate-measures.png",
+      "bytes": 9432,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "a867c08ea29908c962787c7ee1d1a5e856b48d1589fb1ff9ec78eef952af3133"
+    },
+    {
+      "path": "images/survivor-perks/felix-richter/visionary.png",
+      "bytes": 9599,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "b85c272d597eb8cfcb7edb1072479ba30120a9916b9d95713f2e48d25721a920"
+    },
+    {
+      "path": "images/survivor-perks/feng-min/alert.png",
+      "bytes": 9793,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "9fa9bbd35b50b592461eb63118f3530bb7d591446cb2745a9daf70c13a6193d2"
+    },
+    {
+      "path": "images/survivor-perks/feng-min/lithe.png",
+      "bytes": 9179,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "b43987d15d30e80b6dc0dc62bf7b2cc7acaa5a00234b749f45e4a9de3d6991f7"
+    },
+    {
+      "path": "images/survivor-perks/feng-min/technician.png",
+      "bytes": 9605,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "58aaff047eac98305baa7ea26e4197af9ea298331b46de12b163ffc1579a3eee"
+    },
+    {
+      "path": "images/survivor-perks/gabriel-soma/made-for-this.png",
+      "bytes": 10535,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "a67ee7aa9dc1aaaa1cdb2e46e777400895f6e2efd0bd283faa72c34ae405fe1b"
+    },
+    {
+      "path": "images/survivor-perks/gabriel-soma/scavenger.png",
+      "bytes": 9992,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "1e0badef1a725518a73b03ccfcc79a7e89469e3a32f4303c8b145b38bd8ca29d"
+    },
+    {
+      "path": "images/survivor-perks/gabriel-soma/troubleshooter.png",
+      "bytes": 10308,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "d791bbb36169006410eb1eb4821951b50d39f8dbc4b08c78cd550cd8a4c6e713"
+    },
+    {
+      "path": "images/survivor-perks/haddie-kaur/inner-focus.png",
+      "bytes": 10224,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "afa11333404cb4f490be188678b7012722d26e30bcd3c211af150de0484bd357"
+    },
+    {
+      "path": "images/survivor-perks/haddie-kaur/overzealous.png",
+      "bytes": 11411,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "459515cc61793e09356f02874961305b2a93d0b20363c5962152151dcd83bda6"
+    },
+    {
+      "path": "images/survivor-perks/haddie-kaur/residual-manifest.png",
+      "bytes": 9025,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "2203550ce31da5c70949f411614f84192634a1b9a59c9607151b26bbd2441a11"
+    },
+    {
+      "path": "images/survivor-perks/jake-park/calm-spirit.png",
+      "bytes": 9506,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "55eb74487c11d2e93f63c59ba13eea46366f9b529207687fe72872f186f7515b"
+    },
+    {
+      "path": "images/survivor-perks/jake-park/iron-will.png",
+      "bytes": 9339,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "ff9f264c8f77b6d7ce275ffb6f5a34198a69ed8c5c62996ff9fe935474f28ec9"
+    },
+    {
+      "path": "images/survivor-perks/jake-park/saboteur.png",
+      "bytes": 8702,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "114e7bb4042e40e7dc9931686bd43b1e19272b5b69dceffec8b9a80f7c3f52f3"
+    },
+    {
+      "path": "images/survivor-perks/jane-romero/head-on.png",
+      "bytes": 9888,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "94c24b5384196e9ebf6dac50908f1006aac4d3347110efaec4635d7c1a857c98"
+    },
+    {
+      "path": "images/survivor-perks/jane-romero/poised.png",
+      "bytes": 10493,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "4aff8577f4491fddcac65ce8bc299a91ba936b335dde1495ada73837ce8ea3fe"
+    },
+    {
+      "path": "images/survivor-perks/jane-romero/solidarity.png",
+      "bytes": 9558,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "fb6d841ace42817cef8dda09a2c6c9b2111295cba16387f5d85d39e893493a01"
+    },
+    {
+      "path": "images/survivor-perks/jeff-johansen/aftercare.png",
+      "bytes": 9374,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "4c0e1923973ac65f455d1cd930a0e18549838c591b6b3f964415556ef47183d2"
+    },
+    {
+      "path": "images/survivor-perks/jeff-johansen/breakdown.png",
+      "bytes": 9977,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "29ab779fa298de939ebe614364b4bd296133a241e8f08265dd2896a16b7e7254"
+    },
+    {
+      "path": "images/survivor-perks/jeff-johansen/distortion.png",
+      "bytes": 9081,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "7ff59c080ab484084ba275f5c51b1910f77d11510902e3a398d7c902488c70ee"
+    },
+    {
+      "path": "images/survivor-perks/jill-valentine/blast-mine.png",
+      "bytes": 10669,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "de9e6d18073eb97800befc81403bafa3db2bba14589931ad4fcaaeff1d8ace1a"
+    },
+    {
+      "path": "images/survivor-perks/jill-valentine/counterforce.png",
+      "bytes": 10203,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "35e143c19ffd7ce7d4ab64f790092b8285f48066a15c2c7b745bf01f2e16547f"
+    },
+    {
+      "path": "images/survivor-perks/jill-valentine/resurgence.png",
+      "bytes": 10184,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "10516deff0615006ab88b32b4dea3537da1842ec99922a582a63ac3018d8320f"
+    },
+    {
+      "path": "images/survivor-perks/jonah-vasquez/boon-exponential.png",
+      "bytes": 10303,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "7919fea65fb8f9b487aad7a268dda1593cb1733534ad6638b36371329e6965bc"
+    },
+    {
+      "path": "images/survivor-perks/jonah-vasquez/corrective-action.png",
+      "bytes": 10429,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "26d04c6b32c1280c97926f43a52eb0b683847e89ef2e1764728aa5daa1dc4a31"
+    },
+    {
+      "path": "images/survivor-perks/jonah-vasquez/overcome.png",
+      "bytes": 8950,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "1b9860b71f0ed0545df5048d1447c6fd8368bdf48c2e2ca726a2cdacadb950ce"
+    },
+    {
+      "path": "images/survivor-perks/kate-denson/boil-over.png",
+      "bytes": 8237,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "5e40fdcb2ccf6e2f403e7bbdc823ccd354c46b785fb462ed65b9b55687779287"
+    },
+    {
+      "path": "images/survivor-perks/kate-denson/dance-with-me.png",
+      "bytes": 9219,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "59defdbdda464ba0c3697392e3655ce30eceebb960a502d4539f36eb21b72952"
+    },
+    {
+      "path": "images/survivor-perks/kate-denson/windows-of-opportunity.png",
+      "bytes": 8803,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "e7d84bf7257590bf30251cd6c1ada9bc7426b6c46a838899eb25f971ea90e57c"
+    },
+    {
+      "path": "images/survivor-perks/lara-croft/finesse.png",
+      "bytes": 10288,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "d5bc8824f06a25dd6ef3877dc6438bb1d35b658807e62f70eca30cb48ee1a430"
+    },
+    {
+      "path": "images/survivor-perks/lara-croft/hardened.png",
+      "bytes": 11255,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "479245fda33a1b7dc69f8acbb9ed7b7e8c8e229ab05649e192e69c9b127c2b20"
+    },
+    {
+      "path": "images/survivor-perks/lara-croft/specialist.png",
+      "bytes": 10755,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "cd54fed6dc723f1838587e1b9ae8b997648a0dffec71b66cc87f1d75bf0603d3"
+    },
+    {
+      "path": "images/survivor-perks/laurie-strode/decisive-strike.png",
+      "bytes": 8573,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "2530df7d5b2dcababe0f21a437198b5a6ff35c898c41c19b6e5ae0f812a428f3"
+    },
+    {
+      "path": "images/survivor-perks/laurie-strode/object-of-obsession.png",
+      "bytes": 9041,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "b0ae877e517dcdad1c430b75caf9d0c31ade9bbf84adc9c75229de09792e3878"
+    },
+    {
+      "path": "images/survivor-perks/laurie-strode/sole-survivor.png",
+      "bytes": 9478,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "ae823b9d8244b4f1cbdf0dccfb19ec5f9e75a91b1065916c420e9e3f18e269fa"
+    },
+    {
+      "path": "images/survivor-perks/leon-scott-kennedy/bite-the-bullet.png",
+      "bytes": 10051,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "3a1c742bf6d493b7990f697762373235e5c7606725d8a1c82d093ca83d4f3cca"
+    },
+    {
+      "path": "images/survivor-perks/leon-scott-kennedy/flashbang.png",
+      "bytes": 9162,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "e1b7719632a3151c205853f56e2048d564a8e765b514c61a32269bae09211e5f"
+    },
+    {
+      "path": "images/survivor-perks/leon-scott-kennedy/rookie-spirit.png",
+      "bytes": 9994,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "df11b5e92cabf274f2aed46818056c7668336214f829de4b2651b1b4bc611e9b"
+    },
+    {
+      "path": "images/survivor-perks/meg-thomas/adrenaline.png",
+      "bytes": 9024,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "75f3dc68c1292438e009527704e11d227848e7d134824764e605564cb74be450"
+    },
+    {
+      "path": "images/survivor-perks/meg-thomas/quick-quiet.png",
+      "bytes": 8875,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "03443e4b50e58ca4cf02b0a6285aef1ea77a0e459dc1f938caa3800284aee940"
+    },
+    {
+      "path": "images/survivor-perks/meg-thomas/sprint-burst.png",
+      "bytes": 8966,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "87f94a2c416e6c6f00250fcace3185a481648a7449db64e5795e1ff2a839414c"
+    },
+    {
+      "path": "images/survivor-perks/mikaela-reid/boon-circle-of-healing.png",
+      "bytes": 10591,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "0ee84e4fdd1aea552e3a9e82b066d55638e1604fcd8f617b472ac53375af6c34"
+    },
+    {
+      "path": "images/survivor-perks/mikaela-reid/boon-shadow-step.png",
+      "bytes": 10598,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "ca44e7135060bb16ebeb448975fd2c473c37f06da9dfcd75ea6b0a68fefed580"
+    },
+    {
+      "path": "images/survivor-perks/mikaela-reid/clairvoyance.png",
+      "bytes": 10722,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "7fd762131d318e579743c1a1fd1f02763f32f398ecf47f9a0694c385b192116c"
+    },
+    {
+      "path": "images/survivor-perks/nancy-wheeler/better-together.png",
+      "bytes": 10228,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "aef011e2528c1ef243bb446c9fa95a474779077fd8dcdc98d20f4292325ffeb4"
+    },
+    {
+      "path": "images/survivor-perks/nancy-wheeler/fixated.png",
+      "bytes": 9554,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "fa6527d7fa10a9a8d90e7e3daaf7ab0a0dfbd310a39369bb7440e2a7fc41aabc"
+    },
+    {
+      "path": "images/survivor-perks/nancy-wheeler/inner-strength.png",
+      "bytes": 10727,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "080446728d5b1bd8df20b73206530c00dc31ecc433a34a623fc835d710244a8d"
+    },
+    {
+      "path": "images/survivor-perks/nea-karlsson/balanced-landing.png",
+      "bytes": 8835,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "d41e923642e2ed230527b5c1eaa5fb2d04f4213aba49a110917fdb853937c92a"
+    },
+    {
+      "path": "images/survivor-perks/nea-karlsson/streetwise.png",
+      "bytes": 9644,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "d8dc32d54356c91392c5721797de5d9646c345dd86b0908eb76a9c34d2b38af0"
+    },
+    {
+      "path": "images/survivor-perks/nea-karlsson/urban-evasion.png",
+      "bytes": 9887,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "a7af749437fdc8f73872d2553f740968fe79d6be1fc4f9d569313c92c27c01b0"
+    },
+    {
+      "path": "images/survivor-perks/nicolas-cage/dramaturgy.png",
+      "bytes": 10375,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "2e1f76d8f995d20d432a1213fc5646d6f425bbe1fd777f828979995809f9bd44"
+    },
+    {
+      "path": "images/survivor-perks/nicolas-cage/plot-twist.png",
+      "bytes": 10095,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "d0475b28d2ccbbcadf3e07c9b3cfc82929d7375da2ad97043d40835265155741"
+    },
+    {
+      "path": "images/survivor-perks/nicolas-cage/scene-partner.png",
+      "bytes": 10705,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "8f3b5d973c88eaf918a489d91869241e33e69108e6a9413cf320a8d53c2ce513"
+    },
+    {
+      "path": "images/survivor-perks/quentin-smith/pharmacy.png",
+      "bytes": 9394,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "b25e7efd474f5d7f4abeeaebaa591df843d8185a94bbaa243e11058e80a85a4b"
+    },
+    {
+      "path": "images/survivor-perks/quentin-smith/vigil.png",
+      "bytes": 9597,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "ebbb6fe7d5328f28c0912dc12fab7f415d6474042364f410a06fcd0d4f3248b8"
+    },
+    {
+      "path": "images/survivor-perks/quentin-smith/wake-up.png",
+      "bytes": 9752,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "f2f7dd87e6d269d836e23810d3554b1e43f4bf7d94819c2257ce100ae532fdc2"
+    },
+    {
+      "path": "images/survivor-perks/rebecca-chambers/better-than-new.png",
+      "bytes": 10313,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "46e498f69dc69e6148ddedb95de1064f6b416a87879efc1d19047413c93a71ae"
+    },
+    {
+      "path": "images/survivor-perks/rebecca-chambers/hyperfocus.png",
+      "bytes": 9591,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "2656e5014998dab8664e899ab3f9c01931f3c0e6af210de05d60ac574ecdcc11"
+    },
+    {
+      "path": "images/survivor-perks/rebecca-chambers/reassurance.png",
+      "bytes": 9862,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "fadafe81a909556f47224117b0d198571bcda939e2fad8de000cedf876617bd4"
+    },
+    {
+      "path": "images/survivor-perks/renato-lyra/background-player.png",
+      "bytes": 9581,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "14f66fa655af1228d0f4faac6a4f7dd53200691b774e5dba48103488859f833b"
+    },
+    {
+      "path": "images/survivor-perks/renato-lyra/blood-rush.png",
+      "bytes": 10660,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "f5c8b0d00e987d1520eaf5172d485b802f4617d7c22c529fdf452de8023f7b86"
+    },
+    {
+      "path": "images/survivor-perks/renato-lyra/teamwork-collective-stealth.png",
+      "bytes": 10144,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "afc083d75ee7171c2a87165d07857cfd528fb3538baa5b1fccd6f1c127fdd081"
+    },
+    {
+      "path": "images/survivor-perks/sable-ward/invocation-weaving-spiders.png",
+      "bytes": 10831,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "784a25ccb9443af23b365a2ccbb6edcf5a1d6b228f84645c6e990a9e81821a75"
+    },
+    {
+      "path": "images/survivor-perks/sable-ward/strength-in-shadows.png",
+      "bytes": 10802,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "f50fb206850634994d6f8b09b81a6d7da1080878c59c28169e6a9fba556a6f72"
+    },
+    {
+      "path": "images/survivor-perks/sable-ward/wicked.png",
+      "bytes": 10993,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "ba2ec2a88d9c236b449703c48f917ae8417aa2551cfd61e49a6b20ead2f286d8"
+    },
+    {
+      "path": "images/survivor-perks/steve-harrington/babysitter.png",
+      "bytes": 10535,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "b189c12cec6a795eaa014e56185ccb0d284c5ed55dbfc0d5aac74ffa1f2d901f"
+    },
+    {
+      "path": "images/survivor-perks/steve-harrington/camaraderie.png",
+      "bytes": 10163,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "7313c9460005319e978020ae825fb2a7caf90e1964c39354772381d04c6829ed"
+    },
+    {
+      "path": "images/survivor-perks/steve-harrington/second-wind.png",
+      "bytes": 9411,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "2a738352e41e3c89bdd52e35c00ffbb9b0c43bfb6d1b4df22ce3361d7ecb47e5"
+    },
+    {
+      "path": "images/survivor-perks/survivor-perks.zip",
+      "bytes": 1465746,
+      "format": ".zip",
+      "sha256": "e4131abac543c5309b210edf5df818ed2a086542b240730dcd543948227067b2"
+    },
+    {
+      "path": "images/survivor-perks/taurie-cain/clean-break.png",
+      "bytes": 10229,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "d6dd88287c5ed3b6ee07b2aeb0f3faceda3b4d064227d059d7bc54005a53689e"
+    },
+    {
+      "path": "images/survivor-perks/taurie-cain/invocation-treacherous-crows.png",
+      "bytes": 10587,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "54beea55f08ac11213b381db3392317f76ee79709786ce8c17126e00548ed69d"
+    },
+    {
+      "path": "images/survivor-perks/taurie-cain/shoulder-the-burden.png",
+      "bytes": 10594,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "c7fb978dc3f77fedeb57f5744f00271a7f3a54877fe799cb98940947068f3d57"
+    },
+    {
+      "path": "images/survivor-perks/thalita-lyra/cut-loose.png",
+      "bytes": 10679,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "44a527c57c097c9cadb7bdea2c93f891679faab5bd44049e93020b1b3bb4834c"
+    },
+    {
+      "path": "images/survivor-perks/thalita-lyra/friendly-competition.png",
+      "bytes": 9180,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "9a15f3946efd3e72936b089d54aca9ac4a697e7b1b3b150f80d57856a57c662b"
+    },
+    {
+      "path": "images/survivor-perks/thalita-lyra/teamwork-power-of-two.png",
+      "bytes": 10174,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "63dc4128943b3e85bebb5601cd14142d16707901165f83c0999bc743cc0999f3"
+    },
+    {
+      "path": "images/survivor-perks/trevor-belmont/exultation.png",
+      "bytes": 10771,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "a70967b148a991df8486475f0884f0ffcbed569dbf974cc27e8d8c4797c02855"
+    },
+    {
+      "path": "images/survivor-perks/trevor-belmont/eyes-of-belmont.png",
+      "bytes": 10046,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "5d449f2f31bb420a9401868dfbb32a58bfc20cc0c42e1b35a3b296444fc9a88e"
+    },
+    {
+      "path": "images/survivor-perks/trevor-belmont/moment-of-glory.png",
+      "bytes": 11145,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "b473fd661e91cea4dcaf675391f563399812e22d12b0a97e8b1594d0139f41f8"
+    },
+    {
+      "path": "images/survivor-perks/troupe/bardic-inspiration.png",
+      "bytes": 10901,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "cb1cd7847f45f28f87a8ba746099608d2b0cbb8646581b8d5aacb410d36f8002"
+    },
+    {
+      "path": "images/survivor-perks/troupe/mirrored-illusion.png",
+      "bytes": 11661,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "793dc21bc054e0c7e836c1f3ff5754d00ce053ca17a5ecc9ec2ec1cc741d75f1"
+    },
+    {
+      "path": "images/survivor-perks/troupe/still-sight.png",
+      "bytes": 11773,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "f231fca4a9a374245e174983ea5b2c8c76aa7230943d55d5c4af9f1fd89737c8"
+    },
+    {
+      "path": "images/survivor-perks/universal/dark-sense.png",
+      "bytes": 8968,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "06dc02822765a3e37fef33f1b4c32f255dc5a89c9ef12aa5a171c97c058c75ee"
+    },
+    {
+      "path": "images/survivor-perks/universal/deja-vu.png",
+      "bytes": 9220,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "be93358b261f3dba41fa4e6ea276bbedb62b298527bcc7d1f2a545bb6c58d572"
+    },
+    {
+      "path": "images/survivor-perks/universal/hope.png",
+      "bytes": 8667,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "278b001b50963466195dbde9326ad68f9842220fc9a746ca055cf04ea554d909"
+    },
+    {
+      "path": "images/survivor-perks/universal/kindred.png",
+      "bytes": 9122,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "4b708bccf3a9b5e820de683ae6d2bdc6a117f3fe1b2ce6b2c16888c58e56ee9c"
+    },
+    {
+      "path": "images/survivor-perks/universal/lightweight.png",
+      "bytes": 8266,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "e8f873da51ccc2d99bf55540a5faac70bf8e9a01bd094f15f6b3c086e6037788"
+    },
+    {
+      "path": "images/survivor-perks/universal/no-one-left-behind.png",
+      "bytes": 8629,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "730bf183088fc6b7d5fd85f8f4eee026219deb2f9054e76977d5f8e53a020cda"
+    },
+    {
+      "path": "images/survivor-perks/universal/plunderers-instinct.png",
+      "bytes": 9771,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "d9675f4f50864a4a1795e15cacb65f3831633401c1bdfb2de8453912fbda36cf"
+    },
+    {
+      "path": "images/survivor-perks/universal/premonition.png",
+      "bytes": 9473,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "90884c5b3ead1fd5a99109299bbe836f5901e8bf66433f62ad13b3d5accbd546"
+    },
+    {
+      "path": "images/survivor-perks/universal/resilience.png",
+      "bytes": 8700,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "75f0ce585333eae3bd39c32e568d6f8840a3a5d1a6cec58bf7e9da7fd3eb4496"
+    },
+    {
+      "path": "images/survivor-perks/universal/slippery-meat.png",
+      "bytes": 8957,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "bbeba9ae6e8870d1b89c16141e3a1aed939924939b51c14abfa262dadece81b5"
+    },
+    {
+      "path": "images/survivor-perks/universal/small-game.png",
+      "bytes": 10794,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "eabf6689165bda6d4cfafe6864cb861bb4d1ce7ccd8da2c8638a814136bd2b95"
+    },
+    {
+      "path": "images/survivor-perks/universal/spine-chill.png",
+      "bytes": 8306,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "94cd3ec3858ff21ea8504886b1e6837b5cd9b88bad8f854542adefe1ccd32347"
+    },
+    {
+      "path": "images/survivor-perks/universal/this-is-not-happening.png",
+      "bytes": 9150,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "f2315ed31316c6a05238b091d4eb39393264cd87832fb784c6d2b6259d0db7a9"
+    },
+    {
+      "path": "images/survivor-perks/universal/well-make-it.png",
+      "bytes": 8466,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "72cd1fc99e0186ac7b7e6352b6dfcbdbd03de42e346cdf1cdd58d999a7673368"
+    },
+    {
+      "path": "images/survivor-perks/vittorio-toscano/fogwise.png",
+      "bytes": 11061,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "6ec82f2e73e7917a93149f75e741a4082850f954f49cc340592eafea4ea0d27c"
+    },
+    {
+      "path": "images/survivor-perks/vittorio-toscano/potential-energy.png",
+      "bytes": 11212,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "b4f55e453c430f7d9482012abdf14dd9736b23dcfc0083e47a287a9de039e92e"
+    },
+    {
+      "path": "images/survivor-perks/vittorio-toscano/quick-gambit.png",
+      "bytes": 10593,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "e6b0c5222854b267b577cab9703e28997fd74fc209dc72d038ccdac3da7efd65"
+    },
+    {
+      "path": "images/survivor-perks/yoichi-asakawa/boon-dark-theory.png",
+      "bytes": 9867,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "96736ce8c189c8499c3eec1961737889ddf62ccc0ec89abb58f5d1160ee9b86a"
+    },
+    {
+      "path": "images/survivor-perks/yoichi-asakawa/empathic-connection.png",
+      "bytes": 10418,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "f585634dadf47bb3d30df4cc214eb78110d19b04e3a4a0ce776125ac67bc07f8"
+    },
+    {
+      "path": "images/survivor-perks/yoichi-asakawa/parental-guidance.png",
+      "bytes": 9102,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "368fba05213720f71c600cc1837aa81fad02a70cf3868cb6d814eb52e7b2b10d"
+    },
+    {
+      "path": "images/survivor-perks/yui-kimura/any-means-necessary.png",
+      "bytes": 9808,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "7eb8509b0876727a955f214982eccb03135a3e6ebe152621c8ebf25461bbe3d7"
+    },
+    {
+      "path": "images/survivor-perks/yui-kimura/breakout.png",
+      "bytes": 9500,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "2351e17d3928d4401246e0d6a0a811f5e338dbe919403325082177a52b37240a"
+    },
+    {
+      "path": "images/survivor-perks/yui-kimura/lucky-break.png",
+      "bytes": 9465,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "72a4e8e19526259912b45ced28893b0db5ff3e7e8567958b38a7e80fc16d8ca1"
+    },
+    {
+      "path": "images/survivor-perks/yun-jin-lee/fast-track.png",
+      "bytes": 9861,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "c91a1c783b47a2a859b315daaf918e8fa3c5c636db99ad9e33add386b5607420"
+    },
+    {
+      "path": "images/survivor-perks/yun-jin-lee/self-preservation.png",
+      "bytes": 10644,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "426517c6449bda6376ca441154b1d9c23dd1b47c17d32ae82c4f1279dfc4384d"
+    },
+    {
+      "path": "images/survivor-perks/yun-jin-lee/smash-hit.png",
+      "bytes": 9925,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "cbafc46efff48b3229ff7cf289ee26d54239554fd310719c722c47dd9d9c44ad"
+    },
+    {
+      "path": "images/survivor-perks/zarina-kassir/for-the-people.png",
+      "bytes": 9711,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "9932521208d4b319498cacbe75b81ab00da9090eec73673fc888044e65de75fa"
+    },
+    {
+      "path": "images/survivor-perks/zarina-kassir/off-the-record.png",
+      "bytes": 9774,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "c2d95f637bbdfcf79c6633d64f1dd53eaf5724c8dbc31424ea9a7befe96ebb95"
+    },
+    {
+      "path": "images/survivor-perks/zarina-kassir/red-herring.png",
+      "bytes": 9394,
+      "format": "PNG",
+      "width": 87,
+      "height": 87,
+      "sha256": "281151251960b02501894e81e86ddf02fb39754650b7106e4d5a709788a84cae"
+    }
+  ],
+  "characters": [
+    {
+      "id": "ace-visconti",
+      "name": "Ace Visconti",
+      "role": "survivor",
+      "path": "images/survivor-images/ace_visconti.png"
+    },
+    {
+      "id": "ada-wong",
+      "name": "Ada Wong",
+      "role": "survivor",
+      "path": "images/survivor-images/ada_wong.png"
+    },
+    {
+      "id": "adam-francis",
+      "name": "Adam Francis",
+      "role": "survivor",
+      "path": "images/survivor-images/adam_francis.png"
+    },
+    {
+      "id": "aestri-yazar",
+      "name": "Aestri Yazar & Baermar Uraz",
+      "role": "survivor",
+      "path": "images/survivor-images/troupe.png"
+    },
+    {
+      "id": "alan-wake",
+      "name": "Alan Wake",
+      "role": "survivor",
+      "path": "images/survivor-images/alan_wake.png"
+    },
+    {
+      "id": "ash-williams",
+      "name": "Ash Williams",
+      "role": "survivor",
+      "path": "images/survivor-images/ash_williams.png"
+    },
+    {
+      "id": "aurora-stardotter",
+      "name": "Aurora Stardotter",
+      "role": "survivor",
+      "path": null
+    },
+    {
+      "id": "cheryl-mason",
+      "name": "Cheryl Mason",
+      "role": "survivor",
+      "path": "images/survivor-images/cheryl_mason.png"
+    },
+    {
+      "id": "claudette-morel",
+      "name": "Claudette Morel",
+      "role": "survivor",
+      "path": "images/survivor-images/claudette_morel.png"
+    },
+    {
+      "id": "david-king",
+      "name": "David King",
+      "role": "survivor",
+      "path": "images/survivor-images/david_king.png"
+    },
+    {
+      "id": "david-tapp",
+      "name": "David Tapp",
+      "role": "survivor",
+      "path": "images/survivor-images/david_tapp.png"
+    },
+    {
+      "id": "dustin-henderson",
+      "name": "Dustin Henderson",
+      "role": "survivor",
+      "path": null
+    },
+    {
+      "id": "dwight-fairfield",
+      "name": "Dwight Fairfield",
+      "role": "survivor",
+      "path": "images/survivor-images/dwight_fairfield.png"
+    },
+    {
+      "id": "eleven",
+      "name": "Eleven",
+      "role": "survivor",
+      "path": null
+    },
+    {
+      "id": "ellen-ripley",
+      "name": "Ellen Ripley",
+      "role": "survivor",
+      "path": "images/survivor-images/ellen_ripley.png"
+    },
+    {
+      "id": "elodie-rakoto",
+      "name": "Élodie Rakoto",
+      "role": "survivor",
+      "path": "images/survivor-images/lodie_rakoto.png"
+    },
+    {
+      "id": "felix-richter",
+      "name": "Felix Richter",
+      "role": "survivor",
+      "path": "images/survivor-images/felix_richter.png"
+    },
+    {
+      "id": "feng-min",
+      "name": "Feng Min",
+      "role": "survivor",
+      "path": "images/survivor-images/feng_min.png"
+    },
+    {
+      "id": "gabriel-soma",
+      "name": "Gabriel Soma",
+      "role": "survivor",
+      "path": "images/survivor-images/gabriel_soma.png"
+    },
+    {
+      "id": "haddie-kaur",
+      "name": "Haddie Kaur",
+      "role": "survivor",
+      "path": "images/survivor-images/haddie_kaur.png"
+    },
+    {
+      "id": "jake-park",
+      "name": "Jake Park",
+      "role": "survivor",
+      "path": "images/survivor-images/jake_park.png"
+    },
+    {
+      "id": "jane-romero",
+      "name": "Jane Romero",
+      "role": "survivor",
+      "path": "images/survivor-images/jane_romero.png"
+    },
+    {
+      "id": "jeff-johansen",
+      "name": "Jeff Johansen",
+      "role": "survivor",
+      "path": "images/survivor-images/jeff_johansen.png"
+    },
+    {
+      "id": "jill-valentine",
+      "name": "Jill Valentine",
+      "role": "survivor",
+      "path": "images/survivor-images/jill_valentine.png"
+    },
+    {
+      "id": "jonah-vasquez",
+      "name": "Jonah Vasquez",
+      "role": "survivor",
+      "path": "images/survivor-images/jonah_vasquez.png"
+    },
+    {
+      "id": "kate-denson",
+      "name": "Kate Denson",
+      "role": "survivor",
+      "path": "images/survivor-images/kate_denson.png"
+    },
+    {
+      "id": "kwon-tae-young",
+      "name": "Kwon Tae-Young",
+      "role": "survivor",
+      "path": null
+    },
+    {
+      "id": "lara-croft",
+      "name": "Lara Croft",
+      "role": "survivor",
+      "path": "images/survivor-images/lara_croft.png"
+    },
+    {
+      "id": "laurie-strode",
+      "name": "Laurie Strode",
+      "role": "survivor",
+      "path": "images/survivor-images/laurie_strode.png"
+    },
+    {
+      "id": "yun-jin-lee",
+      "name": "Lee Yun-Jin",
+      "role": "survivor",
+      "path": "images/survivor-images/yun-jin_lee.png"
+    },
+    {
+      "id": "leon-s-kennedy",
+      "name": "Leon S. Kennedy",
+      "role": "survivor",
+      "path": "images/survivor-images/leon_scott_kennedy.png"
+    },
+    {
+      "id": "meg-thomas",
+      "name": "Meg Thomas",
+      "role": "survivor",
+      "path": "images/survivor-images/meg_thomas.png"
+    },
+    {
+      "id": "michonne-grimes",
+      "name": "Michonne Grimes",
+      "role": "survivor",
+      "path": null
+    },
+    {
+      "id": "mikaela-reid",
+      "name": "Mikaela Reid",
+      "role": "survivor",
+      "path": "images/survivor-images/mikaela_reid.png"
+    },
+    {
+      "id": "nancy-wheeler",
+      "name": "Nancy Wheeler",
+      "role": "survivor",
+      "path": "images/survivor-images/nancy_wheeler.png"
+    },
+    {
+      "id": "nea-karlsson",
+      "name": "Nea Karlsson",
+      "role": "survivor",
+      "path": "images/survivor-images/nea_karlsson.png"
+    },
+    {
+      "id": "nicolas-cage",
+      "name": "Nicolas Cage",
+      "role": "survivor",
+      "path": "images/survivor-images/nicolas_cage.png"
+    },
+    {
+      "id": "orela-rose",
+      "name": "Orela Rose",
+      "role": "survivor",
+      "path": null
+    },
+    {
+      "id": "quentin-smith",
+      "name": "Quentin Smith",
+      "role": "survivor",
+      "path": "images/survivor-images/quentin_smith.png"
+    },
+    {
+      "id": "rebecca-chambers",
+      "name": "Rebecca Chambers",
+      "role": "survivor",
+      "path": "images/survivor-images/rebecca_chambers.png"
+    },
+    {
+      "id": "renato-lyra",
+      "name": "Renato Lyra",
+      "role": "survivor",
+      "path": "images/survivor-images/renato_lyra.png"
+    },
+    {
+      "id": "rick-grimes",
+      "name": "Rick Grimes",
+      "role": "survivor",
+      "path": null
+    },
+    {
+      "id": "sable-ward",
+      "name": "Sable Ward",
+      "role": "survivor",
+      "path": "images/survivor-images/sable_ward.png"
+    },
+    {
+      "id": "shane-wiigwaas",
+      "name": "Shane Wiigwaas",
+      "role": "survivor",
+      "path": null
+    },
+    {
+      "id": "steve-harrington",
+      "name": "Steve Harrington",
+      "role": "survivor",
+      "path": "images/survivor-images/steve_harrington.png"
+    },
+    {
+      "id": "taurie-cain",
+      "name": "Taurie Cain",
+      "role": "survivor",
+      "path": "images/survivor-images/taurie_cain.png"
+    },
+    {
+      "id": "thalita-lyra",
+      "name": "Thalita Lyra",
+      "role": "survivor",
+      "path": "images/survivor-images/thalita_lyra.png"
+    },
+    {
+      "id": "the-animatronic",
+      "name": "The Animatronic",
+      "role": "killer",
+      "path": "images/killer-images/animatronic.png"
+    },
+    {
+      "id": "the-artist",
+      "name": "The Artist",
+      "role": "killer",
+      "path": "images/killer-images/artist.png"
+    },
+    {
+      "id": "the-blight",
+      "name": "The Blight",
+      "role": "killer",
+      "path": "images/killer-images/blight.png"
+    },
+    {
+      "id": "the-cannibal",
+      "name": "The Cannibal",
+      "role": "killer",
+      "path": "images/killer-images/cannibal.png"
+    },
+    {
+      "id": "the-cenobite",
+      "name": "The Cenobite",
+      "role": "killer",
+      "path": "images/killer-images/cenobite.png"
+    },
+    {
+      "id": "the-clown",
+      "name": "The Clown",
+      "role": "killer",
+      "path": "images/killer-images/jeffrey_hawk.png"
+    },
+    {
+      "id": "the-dark-lord",
+      "name": "The Dark Lord",
+      "role": "killer",
+      "path": "images/killer-images/dark_lord.png"
+    },
+    {
+      "id": "the-deathslinger",
+      "name": "The Deathslinger",
+      "role": "killer",
+      "path": "images/killer-images/deathslinger.png"
+    },
+    {
+      "id": "the-demogorgon",
+      "name": "The Demogorgon",
+      "role": "killer",
+      "path": "images/killer-images/demogorgon.png"
+    },
+    {
+      "id": "the-doctor",
+      "name": "The Doctor",
+      "role": "killer",
+      "path": "images/killer-images/doctor.png"
+    },
+    {
+      "id": "the-dredge",
+      "name": "The Dredge",
+      "role": "killer",
+      "path": "images/killer-images/dredge.png"
+    },
+    {
+      "id": "the-executioner",
+      "name": "The Executioner",
+      "role": "killer",
+      "path": "images/killer-images/executioner.png"
+    },
+    {
+      "id": "the-first",
+      "name": "The First",
+      "role": "killer",
+      "path": null
+    },
+    {
+      "id": "the-ghost-face",
+      "name": "The Ghost Face",
+      "role": "killer",
+      "path": "images/killer-images/danny_johnson.png"
+    },
+    {
+      "id": "the-ghoul",
+      "name": "The Ghoul",
+      "role": "killer",
+      "path": "images/killer-images/ghoul.png"
+    },
+    {
+      "id": "the-good-guy",
+      "name": "The Good Guy",
+      "role": "killer",
+      "path": "images/killer-images/charles_lee_ray.png"
+    },
+    {
+      "id": "the-hag",
+      "name": "The Hag",
+      "role": "killer",
+      "path": "images/killer-images/hag.png"
+    },
+    {
+      "id": "the-hillbilly",
+      "name": "The Hillbilly",
+      "role": "killer",
+      "path": "images/killer-images/hillbilly.png"
+    },
+    {
+      "id": "the-houndmaster",
+      "name": "The Houndmaster",
+      "role": "killer",
+      "path": "images/killer-images/houndmaster.png"
+    },
+    {
+      "id": "the-huntress",
+      "name": "The Huntress",
+      "role": "killer",
+      "path": "images/killer-images/huntress.png"
+    },
+    {
+      "id": "the-judgment",
+      "name": "The Judgment",
+      "role": "killer",
+      "path": null
+    },
+    {
+      "id": "the-knight",
+      "name": "The Knight",
+      "role": "killer",
+      "path": "images/killer-images/knight.png"
+    },
+    {
+      "id": "the-krasue",
+      "name": "The Krasue",
+      "role": "killer",
+      "path": null
+    },
+    {
+      "id": "the-legion",
+      "name": "The Legion",
+      "role": "killer",
+      "path": "images/killer-images/frank_julie_susie,_joey.png"
+    },
+    {
+      "id": "the-lich",
+      "name": "The Lich",
+      "role": "killer",
+      "path": "images/killer-images/lich.png"
+    },
+    {
+      "id": "the-mastermind",
+      "name": "The Mastermind",
+      "role": "killer",
+      "path": "images/killer-images/mastermind.png"
+    },
+    {
+      "id": "the-nemesis",
+      "name": "The Nemesis",
+      "role": "killer",
+      "path": "images/killer-images/nemesis_t-type.png"
+    },
+    {
+      "id": "the-nightmare",
+      "name": "The Nightmare",
+      "role": "killer",
+      "path": "images/killer-images/nightmare.png"
+    },
+    {
+      "id": "the-nurse",
+      "name": "The Nurse",
+      "role": "killer",
+      "path": "images/killer-images/nurse.png"
+    },
+    {
+      "id": "the-oni",
+      "name": "The Oni",
+      "role": "killer",
+      "path": "images/killer-images/oni.png"
+    },
+    {
+      "id": "the-onryo",
+      "name": "The Onryō",
+      "role": "killer",
+      "path": "images/killer-images/onry.png"
+    },
+    {
+      "id": "the-pig",
+      "name": "The Pig",
+      "role": "killer",
+      "path": "images/killer-images/pig.png"
+    },
+    {
+      "id": "the-plague",
+      "name": "The Plague",
+      "role": "killer",
+      "path": "images/killer-images/plague.png"
+    },
+    {
+      "id": "the-shape",
+      "name": "The Shape",
+      "role": "killer",
+      "path": "images/killer-images/shape.png"
+    },
+    {
+      "id": "the-singularity",
+      "name": "The Singularity",
+      "role": "killer",
+      "path": "images/killer-images/singularity.png"
+    },
+    {
+      "id": "the-skull-merchant",
+      "name": "The Skull Merchant",
+      "role": "killer",
+      "path": "images/killer-images/skull_merchant.png"
+    },
+    {
+      "id": "the-slasher",
+      "name": "The Slasher",
+      "role": "killer",
+      "path": null
+    },
+    {
+      "id": "the-spirit",
+      "name": "The Spirit",
+      "role": "killer",
+      "path": "images/killer-images/spirit.png"
+    },
+    {
+      "id": "the-trapper",
+      "name": "The Trapper",
+      "role": "killer",
+      "path": "images/killer-images/trapper.png"
+    },
+    {
+      "id": "the-trickster",
+      "name": "The Trickster",
+      "role": "killer",
+      "path": "images/killer-images/trickster.png"
+    },
+    {
+      "id": "the-twins",
+      "name": "The Twins",
+      "role": "killer",
+      "path": "images/killer-images/twins.png"
+    },
+    {
+      "id": "the-unknown",
+      "name": "The Unknown",
+      "role": "killer",
+      "path": "images/killer-images/unknown.png"
+    },
+    {
+      "id": "the-wraith",
+      "name": "The Wraith",
+      "role": "killer",
+      "path": "images/killer-images/wraith.png"
+    },
+    {
+      "id": "the-xenomorph",
+      "name": "The Xenomorph",
+      "role": "killer",
+      "path": "images/killer-images/xenomorph.png"
+    },
+    {
+      "id": "trevor-belmont",
+      "name": "Trevor Belmont",
+      "role": "survivor",
+      "path": "images/survivor-images/trevor_belmont.png"
+    },
+    {
+      "id": "vee-boonyasak",
+      "name": "Vee Boonyasak",
+      "role": "survivor",
+      "path": null
+    },
+    {
+      "id": "vittorio-toscano",
+      "name": "Vittorio Toscano",
+      "role": "survivor",
+      "path": "images/survivor-images/vittorio_toscano.png"
+    },
+    {
+      "id": "bill-overbeck",
+      "name": "William \"Bill\" Overbeck",
+      "role": "survivor",
+      "path": "images/survivor-images/bill_overbeck.png"
+    },
+    {
+      "id": "yoichi-asakawa",
+      "name": "Yoichi Asakawa",
+      "role": "survivor",
+      "path": "images/survivor-images/yoichi_asakawa.png"
+    },
+    {
+      "id": "yui-kimura",
+      "name": "Yui Kimura",
+      "role": "survivor",
+      "path": "images/survivor-images/yui_kimura.png"
+    },
+    {
+      "id": "zarina-kassir",
+      "name": "Zarina Kassir",
+      "role": "survivor",
+      "path": "images/survivor-images/zarina_kassir.png"
+    }
+  ],
+  "perks": [
+    {
+      "id": "a-place-for-us",
+      "name": "A Place for Us",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "ace-in-the-hole",
+      "name": "Ace in the Hole",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/ace-visconti/ace-in-the-hole.png"
+      ]
+    },
+    {
+      "id": "adrenaline",
+      "name": "Adrenaline",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/meg-thomas/adrenaline.png"
+      ]
+    },
+    {
+      "id": "aftercare",
+      "name": "Aftercare",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/jeff-johansen/aftercare.png"
+      ]
+    },
+    {
+      "id": "alert",
+      "name": "Alert",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/feng-min/alert.png"
+      ]
+    },
+    {
+      "id": "any-means-necessary",
+      "name": "Any Means Necessary",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/yui-kimura/any-means-necessary.png"
+      ]
+    },
+    {
+      "id": "apocalyptic-ingenuity",
+      "name": "Apocalyptic Ingenuity",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "appraisal",
+      "name": "Appraisal",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/elodie-rakoto/appraisal.png"
+      ]
+    },
+    {
+      "id": "autodidact",
+      "name": "Autodidact",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/adam-francis/autodidact.png"
+      ]
+    },
+    {
+      "id": "babysitter",
+      "name": "Babysitter",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/steve-harrington/babysitter.png"
+      ]
+    },
+    {
+      "id": "background-player",
+      "name": "Background Player",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/renato-lyra/background-player.png"
+      ]
+    },
+    {
+      "id": "bada-bada-boom",
+      "name": "Bada Bada Boom",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "balanced-landing",
+      "name": "Balanced Landing",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/nea-karlsson/balanced-landing.png"
+      ]
+    },
+    {
+      "id": "bardic-inspiration",
+      "name": "Bardic Inspiration",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/troupe/bardic-inspiration.png"
+      ]
+    },
+    {
+      "id": "better-than-new",
+      "name": "Better Than New",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/rebecca-chambers/better-than-new.png"
+      ]
+    },
+    {
+      "id": "better-together",
+      "name": "Better Together",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/nancy-wheeler/better-together.png"
+      ]
+    },
+    {
+      "id": "bite-the-bullet",
+      "name": "Bite the Bullet",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/leon-scott-kennedy/bite-the-bullet.png"
+      ]
+    },
+    {
+      "id": "blast-mine",
+      "name": "Blast Mine",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/jill-valentine/blast-mine.png"
+      ]
+    },
+    {
+      "id": "blood-pact",
+      "name": "Blood Pact",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/cheryl-mason/blood-pact.png"
+      ]
+    },
+    {
+      "id": "blood-rush",
+      "name": "Blood Rush",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/renato-lyra/blood-rush.png"
+      ]
+    },
+    {
+      "id": "boil-over",
+      "name": "Boil Over",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/kate-denson/boil-over.png"
+      ]
+    },
+    {
+      "id": "bond",
+      "name": "Bond",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/dwight-fairfield/bond.png"
+      ]
+    },
+    {
+      "id": "boon-circle-of-healing",
+      "name": "Boon: Circle of Healing",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/mikaela-reid/boon-circle-of-healing.png"
+      ]
+    },
+    {
+      "id": "boon-dark-theory",
+      "name": "Boon: Dark Theory",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/yoichi-asakawa/boon-dark-theory.png"
+      ]
+    },
+    {
+      "id": "boon-exponential",
+      "name": "Boon: Exponential",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/jonah-vasquez/boon-exponential.png"
+      ]
+    },
+    {
+      "id": "boon-illumination",
+      "name": "Boon: Illumination",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/alan-wake/boon-illumination.png"
+      ]
+    },
+    {
+      "id": "boon-shadow-step",
+      "name": "Boon: Shadow Step",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/mikaela-reid/boon-shadow-step.png"
+      ]
+    },
+    {
+      "id": "boon-steadfast",
+      "name": "Boon: Steadfast",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "borrowed-time",
+      "name": "Borrowed Time",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/bill-overbeck/borrowed-time.png"
+      ]
+    },
+    {
+      "id": "botany-knowledge",
+      "name": "Botany Knowledge",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/claudette-morel/botany-knowledge.png"
+      ]
+    },
+    {
+      "id": "object-of-obsession",
+      "name": "Bound by Obsession",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/laurie-strode/object-of-obsession.png"
+      ]
+    },
+    {
+      "id": "breakdown",
+      "name": "Breakdown",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/jeff-johansen/breakdown.png"
+      ]
+    },
+    {
+      "id": "breakout",
+      "name": "Breakout",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/yui-kimura/breakout.png"
+      ]
+    },
+    {
+      "id": "buckle-up",
+      "name": "Buckle Up",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/ash-williams/buckle-up.png"
+      ]
+    },
+    {
+      "id": "built-to-last",
+      "name": "Built to Last",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/felix-richter/built-to-last.png"
+      ]
+    },
+    {
+      "id": "calm-spirit",
+      "name": "Calm Spirit",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/jake-park/calm-spirit.png"
+      ]
+    },
+    {
+      "id": "camaraderie",
+      "name": "Camaraderie",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/steve-harrington/camaraderie.png"
+      ]
+    },
+    {
+      "id": "champion-of-light",
+      "name": "Champion of Light",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/alan-wake/champion-of-light.png"
+      ]
+    },
+    {
+      "id": "change-of-plan",
+      "name": "Change of Plan",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "chemical-trap",
+      "name": "Chemical Trap",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/ellen-ripley/chemical-trap.png"
+      ]
+    },
+    {
+      "id": "clairvoyance",
+      "name": "Clairvoyance",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/mikaela-reid/clairvoyance.png"
+      ]
+    },
+    {
+      "id": "clean-break",
+      "name": "Clean Break",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/taurie-cain/clean-break.png"
+      ]
+    },
+    {
+      "id": "come-and-get-me",
+      "name": "Come and Get Me!",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "conviction",
+      "name": "Conviction",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "corrective-action",
+      "name": "Corrective Action",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/jonah-vasquez/corrective-action.png"
+      ]
+    },
+    {
+      "id": "counterforce",
+      "name": "Counterforce",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/jill-valentine/counterforce.png"
+      ]
+    },
+    {
+      "id": "cross-examination",
+      "name": "Cross-Examination",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "cut-loose",
+      "name": "Cut Loose",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/thalita-lyra/cut-loose.png"
+      ]
+    },
+    {
+      "id": "dance-with-me",
+      "name": "Dance With Me",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/kate-denson/dance-with-me.png"
+      ]
+    },
+    {
+      "id": "dark-sense",
+      "name": "Dark Sense",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/universal/dark-sense.png"
+      ]
+    },
+    {
+      "id": "dead-hard",
+      "name": "Dead Hard",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/david-king/dead-hard.png"
+      ]
+    },
+    {
+      "id": "deadline",
+      "name": "Deadline",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/alan-wake/deadline.png"
+      ]
+    },
+    {
+      "id": "deception",
+      "name": "Deception",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/elodie-rakoto/deception.png"
+      ]
+    },
+    {
+      "id": "deliverance",
+      "name": "Deliverance",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/adam-francis/deliverance.png"
+      ]
+    },
+    {
+      "id": "desperate-measures",
+      "name": "Desperate Measures",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/felix-richter/desperate-measures.png"
+      ]
+    },
+    {
+      "id": "detective-s-hunch",
+      "name": "Detective's Hunch",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/david-tapp/detectives-hunch.png"
+      ]
+    },
+    {
+      "id": "distortion",
+      "name": "Distortion",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/jeff-johansen/distortion.png"
+      ]
+    },
+    {
+      "id": "diversion",
+      "name": "Diversion",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/adam-francis/diversion.png"
+      ]
+    },
+    {
+      "id": "do-no-harm",
+      "name": "Do No Harm",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "sole-survivor",
+      "name": "Down to the Last",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/laurie-strode/sole-survivor.png"
+      ]
+    },
+    {
+      "id": "dramaturgy",
+      "name": "Dramaturgy",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/nicolas-cage/dramaturgy.png"
+      ]
+    },
+    {
+      "id": "duty-of-care",
+      "name": "Duty of Care",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "deja-vu",
+      "name": "Déjà Vu",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/universal/deja-vu.png"
+      ]
+    },
+    {
+      "id": "empathic-connection",
+      "name": "Empathic Connection",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/yoichi-asakawa/empathic-connection.png"
+      ]
+    },
+    {
+      "id": "empathy",
+      "name": "Empathy",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/claudette-morel/empathy.png"
+      ]
+    },
+    {
+      "id": "extrasensory-perception",
+      "name": "Extrasensory Perception",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "exultation",
+      "name": "Exultation",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/trevor-belmont/exultation.png"
+      ]
+    },
+    {
+      "id": "eyes-of-belmont",
+      "name": "Eyes of Belmont",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/trevor-belmont/eyes-of-belmont.png"
+      ]
+    },
+    {
+      "id": "fast-track",
+      "name": "Fast Track",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/yun-jin-lee/fast-track.png"
+      ]
+    },
+    {
+      "id": "finesse",
+      "name": "Finesse",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/lara-croft/finesse.png"
+      ]
+    },
+    {
+      "id": "five-moves-ahead",
+      "name": "Five Moves Ahead",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "fixated",
+      "name": "Fixated",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/nancy-wheeler/fixated.png"
+      ]
+    },
+    {
+      "id": "flashbang",
+      "name": "Flashbang",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/leon-scott-kennedy/flashbang.png"
+      ]
+    },
+    {
+      "id": "flip-flop",
+      "name": "Flip-Flop",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/ash-williams/flip-flop.png"
+      ]
+    },
+    {
+      "id": "flow-state",
+      "name": "Flow State",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "fogwise",
+      "name": "Fogwise",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/vittorio-toscano/fogwise.png"
+      ]
+    },
+    {
+      "id": "for-the-people",
+      "name": "For the People",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/zarina-kassir/for-the-people.png"
+      ]
+    },
+    {
+      "id": "friendly-competition",
+      "name": "Friendly Competition",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/thalita-lyra/friendly-competition.png"
+      ]
+    },
+    {
+      "id": "fruits-of-your-labor",
+      "name": "Fruits of Your Labor",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "ghost-notes",
+      "name": "Ghost Notes",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "hardened",
+      "name": "Hardened",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/lara-croft/hardened.png"
+      ]
+    },
+    {
+      "id": "head-on",
+      "name": "Head On",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/jane-romero/head-on.png"
+      ]
+    },
+    {
+      "id": "hope",
+      "name": "Hope",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/universal/hope.png"
+      ]
+    },
+    {
+      "id": "hyperfocus",
+      "name": "Hyperfocus",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/rebecca-chambers/hyperfocus.png"
+      ]
+    },
+    {
+      "id": "inner-focus",
+      "name": "Inner Focus",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/haddie-kaur/inner-focus.png"
+      ]
+    },
+    {
+      "id": "inner-strength",
+      "name": "Inner Strength",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/nancy-wheeler/inner-strength.png"
+      ]
+    },
+    {
+      "id": "invocation-treacherous-crows",
+      "name": "Invocation: Treacherous Crows",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/taurie-cain/invocation-treacherous-crows.png"
+      ]
+    },
+    {
+      "id": "invocation-weaving-spiders",
+      "name": "Invocation: Weaving Spiders",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/sable-ward/invocation-weaving-spiders.png"
+      ]
+    },
+    {
+      "id": "iron-will",
+      "name": "Iron Will",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/jake-park/iron-will.png"
+      ]
+    },
+    {
+      "id": "kindred",
+      "name": "Kindred",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/universal/kindred.png"
+      ]
+    },
+    {
+      "id": "last-stand",
+      "name": "Last Stand",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "leader",
+      "name": "Leader",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/dwight-fairfield/leader.png"
+      ]
+    },
+    {
+      "id": "left-behind",
+      "name": "Left Behind",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/bill-overbeck/left-behind.png"
+      ]
+    },
+    {
+      "id": "lend-a-hand",
+      "name": "Lend a Hand",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "light-footed",
+      "name": "Light-Footed",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/ellen-ripley/light-footed.png"
+      ]
+    },
+    {
+      "id": "lightweight",
+      "name": "Lightweight",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/universal/lightweight.png"
+      ]
+    },
+    {
+      "id": "lithe",
+      "name": "Lithe",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/feng-min/lithe.png"
+      ]
+    },
+    {
+      "id": "low-profile",
+      "name": "Low Profile",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/ada-wong/low-profile.png"
+      ]
+    },
+    {
+      "id": "lucky-break",
+      "name": "Lucky Break",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/yui-kimura/lucky-break.png"
+      ]
+    },
+    {
+      "id": "lucky-star",
+      "name": "Lucky Star",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/ellen-ripley/lucky-star.png"
+      ]
+    },
+    {
+      "id": "made-for-this",
+      "name": "Made for This",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/gabriel-soma/made-for-this.png"
+      ]
+    },
+    {
+      "id": "mettle-of-man",
+      "name": "Mettle of Man",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/ash-williams/mettle-of-man.png"
+      ]
+    },
+    {
+      "id": "mirrored-illusion",
+      "name": "Mirrored Illusion",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/troupe/mirrored-illusion.png"
+      ]
+    },
+    {
+      "id": "moment-of-glory",
+      "name": "Moment of Glory",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/trevor-belmont/moment-of-glory.png"
+      ]
+    },
+    {
+      "id": "no-mither",
+      "name": "No Mither",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/david-king/no-mither.png"
+      ]
+    },
+    {
+      "id": "no-one-left-behind",
+      "name": "No One Left Behind",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/universal/no-one-left-behind.png"
+      ]
+    },
+    {
+      "id": "off-the-record",
+      "name": "Off the Record",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/zarina-kassir/off-the-record.png"
+      ]
+    },
+    {
+      "id": "one-two-three-four",
+      "name": "One-Two-Three-Four!",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "open-handed",
+      "name": "Open-Handed",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/ace-visconti/open-handed.png"
+      ]
+    },
+    {
+      "id": "overcome",
+      "name": "Overcome",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/jonah-vasquez/overcome.png"
+      ]
+    },
+    {
+      "id": "overzealous",
+      "name": "Overzealous",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/haddie-kaur/overzealous.png"
+      ]
+    },
+    {
+      "id": "parental-guidance",
+      "name": "Parental Guidance",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/yoichi-asakawa/parental-guidance.png"
+      ]
+    },
+    {
+      "id": "pharmacy",
+      "name": "Pharmacy",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/quentin-smith/pharmacy.png"
+      ]
+    },
+    {
+      "id": "plot-twist",
+      "name": "Plot Twist",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/nicolas-cage/plot-twist.png"
+      ]
+    },
+    {
+      "id": "plunderers-instinct",
+      "name": "Plunderer's Instinct",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/universal/plunderers-instinct.png"
+      ]
+    },
+    {
+      "id": "poised",
+      "name": "Poised",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/jane-romero/poised.png"
+      ]
+    },
+    {
+      "id": "potential-energy",
+      "name": "Potential Energy",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/vittorio-toscano/potential-energy.png"
+      ]
+    },
+    {
+      "id": "power-struggle",
+      "name": "Power Struggle",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/elodie-rakoto/power-struggle.png"
+      ]
+    },
+    {
+      "id": "premonition",
+      "name": "Premonition",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/universal/premonition.png"
+      ]
+    },
+    {
+      "id": "prove-thyself",
+      "name": "Prove Thyself",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/dwight-fairfield/prove-thyself.png"
+      ]
+    },
+    {
+      "id": "quick-quiet",
+      "name": "Quick & Quiet",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/meg-thomas/quick-quiet.png"
+      ]
+    },
+    {
+      "id": "quick-gambit",
+      "name": "Quick Gambit",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/vittorio-toscano/quick-gambit.png"
+      ]
+    },
+    {
+      "id": "rapid-response",
+      "name": "Rapid Response",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "reactive-healing",
+      "name": "Reactive Healing",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/ada-wong/reactive-healing.png"
+      ]
+    },
+    {
+      "id": "reassurance",
+      "name": "Reassurance",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/rebecca-chambers/reassurance.png"
+      ]
+    },
+    {
+      "id": "red-herring",
+      "name": "Red Herring",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/zarina-kassir/red-herring.png"
+      ]
+    },
+    {
+      "id": "repressed-alliance",
+      "name": "Repressed Alliance",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/cheryl-mason/repressed-alliance.png"
+      ]
+    },
+    {
+      "id": "residual-manifest",
+      "name": "Residual Manifest",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/haddie-kaur/residual-manifest.png"
+      ]
+    },
+    {
+      "id": "resilience",
+      "name": "Resilience",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/universal/resilience.png"
+      ]
+    },
+    {
+      "id": "resurgence",
+      "name": "Resurgence",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/jill-valentine/resurgence.png"
+      ]
+    },
+    {
+      "id": "road-life",
+      "name": "Road Life",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "rookie-spirit",
+      "name": "Rookie Spirit",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/leon-scott-kennedy/rookie-spirit.png"
+      ]
+    },
+    {
+      "id": "saboteur",
+      "name": "Saboteur",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/jake-park/saboteur.png"
+      ]
+    },
+    {
+      "id": "salvations-cry",
+      "name": "Salvation's Cry",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "scavenger",
+      "name": "Scavenger",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/gabriel-soma/scavenger.png"
+      ]
+    },
+    {
+      "id": "scene-partner",
+      "name": "Scene Partner",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/nicolas-cage/scene-partner.png"
+      ]
+    },
+    {
+      "id": "second-wind",
+      "name": "Second Wind",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/steve-harrington/second-wind.png"
+      ]
+    },
+    {
+      "id": "self-care",
+      "name": "Self-Care",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/claudette-morel/self-care.png"
+      ]
+    },
+    {
+      "id": "self-preservation",
+      "name": "Self-Preservation",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/yun-jin-lee/self-preservation.png"
+      ]
+    },
+    {
+      "id": "shoulder-the-burden",
+      "name": "Shoulder the Burden",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/taurie-cain/shoulder-the-burden.png"
+      ]
+    },
+    {
+      "id": "slippery-meat",
+      "name": "Slippery Meat",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/universal/slippery-meat.png"
+      ]
+    },
+    {
+      "id": "small-game",
+      "name": "Small Game",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/universal/small-game.png"
+      ]
+    },
+    {
+      "id": "smash-hit",
+      "name": "Smash Hit",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/yun-jin-lee/smash-hit.png"
+      ]
+    },
+    {
+      "id": "solidarity",
+      "name": "Solidarity",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/jane-romero/solidarity.png"
+      ]
+    },
+    {
+      "id": "soul-guard",
+      "name": "Soul Guard",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/cheryl-mason/soul-guard.png"
+      ]
+    },
+    {
+      "id": "specialist",
+      "name": "Specialist",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/lara-croft/specialist.png"
+      ]
+    },
+    {
+      "id": "spine-chill",
+      "name": "Spine Chill",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/universal/spine-chill.png"
+      ]
+    },
+    {
+      "id": "sprint-burst",
+      "name": "Sprint Burst",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/meg-thomas/sprint-burst.png"
+      ]
+    },
+    {
+      "id": "stake-out",
+      "name": "Stake Out",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/david-tapp/stake-out.png"
+      ]
+    },
+    {
+      "id": "still-sight",
+      "name": "Still Sight",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/troupe/still-sight.png"
+      ]
+    },
+    {
+      "id": "streetwise",
+      "name": "Streetwise",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/nea-karlsson/streetwise.png"
+      ]
+    },
+    {
+      "id": "strength-in-shadows",
+      "name": "Strength in Shadows",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/sable-ward/strength-in-shadows.png"
+      ]
+    },
+    {
+      "id": "teamwork-collective-stealth",
+      "name": "Teamwork: Collective Stealth",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/renato-lyra/teamwork-collective-stealth.png"
+      ]
+    },
+    {
+      "id": "teamwork-full-circuit",
+      "name": "Teamwork: Full Circuit",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "teamwork-power-of-two",
+      "name": "Teamwork: Power of Two",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/thalita-lyra/teamwork-power-of-two.png"
+      ]
+    },
+    {
+      "id": "teamwork-soft-spoken",
+      "name": "Teamwork: Soft-Spoken",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "teamwork-throw-down",
+      "name": "Teamwork: Throw Down",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "teamwork-toughen-up",
+      "name": "Teamwork: Toughen Up",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "technician",
+      "name": "Technician",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/feng-min/technician.png"
+      ]
+    },
+    {
+      "id": "tenacity",
+      "name": "Tenacity",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/david-tapp/tenacity.png"
+      ]
+    },
+    {
+      "id": "this-is-not-happening",
+      "name": "This Is Not Happening",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/universal/this-is-not-happening.png"
+      ]
+    },
+    {
+      "id": "troubleshooter",
+      "name": "Troubleshooter",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/gabriel-soma/troubleshooter.png"
+      ]
+    },
+    {
+      "id": "unbreakable",
+      "name": "Unbreakable",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/bill-overbeck/unbreakable.png"
+      ]
+    },
+    {
+      "id": "up-the-ante",
+      "name": "Up the Ante",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/ace-visconti/up-the-ante.png"
+      ]
+    },
+    {
+      "id": "urban-evasion",
+      "name": "Urban Evasion",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/nea-karlsson/urban-evasion.png"
+      ]
+    },
+    {
+      "id": "vigil",
+      "name": "Vigil",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/quentin-smith/vigil.png"
+      ]
+    },
+    {
+      "id": "visionary",
+      "name": "Visionary",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/felix-richter/visionary.png"
+      ]
+    },
+    {
+      "id": "wake-up",
+      "name": "Wake Up!",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/quentin-smith/wake-up.png"
+      ]
+    },
+    {
+      "id": "we-see-you",
+      "name": "We See You",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "well-make-it",
+      "name": "We'll Make It",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/universal/well-make-it.png"
+      ]
+    },
+    {
+      "id": "were-gonna-live-forever",
+      "name": "We're Gonna Live Forever",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/david-king/were-gonna-live-forever.png"
+      ]
+    },
+    {
+      "id": "wicked",
+      "name": "Wicked",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/sable-ward/wicked.png"
+      ]
+    },
+    {
+      "id": "wide-open-throttle",
+      "name": "Wide Open Throttle",
+      "role": "survivor",
+      "paths": []
+    },
+    {
+      "id": "decisive-strike",
+      "name": "Will to Live",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/laurie-strode/decisive-strike.png"
+      ]
+    },
+    {
+      "id": "windows-of-opportunity",
+      "name": "Windows of Opportunity",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/kate-denson/windows-of-opportunity.png"
+      ]
+    },
+    {
+      "id": "wiretap",
+      "name": "Wiretap",
+      "role": "survivor",
+      "paths": [
+        "images/survivor-perks/ada-wong/wiretap.png"
+      ]
+    },
+    {
+      "id": "a-nurses-calling",
+      "name": "A Nurse's Calling",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/nurse/a-nurses-calling.png"
+      ]
+    },
+    {
+      "id": "agitation",
+      "name": "Agitation",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/trapper/agitation.png"
+      ]
+    },
+    {
+      "id": "alien-instinct",
+      "name": "Alien Instinct",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/xenomorph/alien-instinct.png"
+      ]
+    },
+    {
+      "id": "all-shaking-thunder",
+      "name": "All-Shaking Thunder",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/houndmaster/all-shaking-thunder.png"
+      ]
+    },
+    {
+      "id": "awakened-awareness",
+      "name": "Awakened Awareness",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/mastermind/awakened-awareness.png"
+      ]
+    },
+    {
+      "id": "bamboozle",
+      "name": "Bamboozle",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/jeffrey-hawk/bamboozle.png"
+      ]
+    },
+    {
+      "id": "barbecue-chilli",
+      "name": "Barbecue & Chilli",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/cannibal/barbecue-chilli.png"
+      ]
+    },
+    {
+      "id": "batteries-included",
+      "name": "Batteries Included",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/charles-lee-ray/batteries-included.png"
+      ]
+    },
+    {
+      "id": "beast-of-prey",
+      "name": "Beast of Prey",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/huntress/beast-of-prey.png"
+      ]
+    },
+    {
+      "id": "bitter-murmur",
+      "name": "Bitter Murmur",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/universal/bitter-murmur.png"
+      ]
+    },
+    {
+      "id": "blood-echo",
+      "name": "Blood Echo",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/oni/blood-echo.png"
+      ]
+    },
+    {
+      "id": "blood-warden",
+      "name": "Blood Warden",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/nightmare/blood-warden.png"
+      ]
+    },
+    {
+      "id": "bloodhound",
+      "name": "Bloodhound",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/wraith/bloodhound.png"
+      ]
+    },
+    {
+      "id": "brutal-strength",
+      "name": "Brutal Strength",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/trapper/brutal-strength.png"
+      ]
+    },
+    {
+      "id": "call-of-brine",
+      "name": "Call of Brine",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/onryo/call-of-brine.png"
+      ]
+    },
+    {
+      "id": "celestial-witness",
+      "name": "Celestial Witness",
+      "role": "killer",
+      "paths": []
+    },
+    {
+      "id": "corrupt-intervention",
+      "name": "Corrupt Intervention",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/plague/corrupt-intervention.png"
+      ]
+    },
+    {
+      "id": "coulrophobia",
+      "name": "Coulrophobia",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/jeffrey-hawk/coulrophobia.png"
+      ]
+    },
+    {
+      "id": "coup-de-grace",
+      "name": "Coup de Grâce",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/twins/coup-de-grace.png"
+      ]
+    },
+    {
+      "id": "cruel-limits",
+      "name": "Cruel Limits",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/demogorgon/cruel-limits.png"
+      ]
+    },
+    {
+      "id": "dark-arrogance",
+      "name": "Dark Arrogance",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/lich/dark-arrogance.png"
+      ]
+    },
+    {
+      "id": "dark-devotion",
+      "name": "Dark Devotion",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/plague/dark-devotion.png"
+      ]
+    },
+    {
+      "id": "darkness-revealed",
+      "name": "Darkness Revealed",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/dredge/darkness-revealed.png"
+      ]
+    },
+    {
+      "id": "dead-mans-switch",
+      "name": "Dead Man's Switch",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/deathslinger/dead-mans-switch.png"
+      ]
+    },
+    {
+      "id": "deadlock",
+      "name": "Deadlock",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/cenobite/no-holds-barred.png"
+      ]
+    },
+    {
+      "id": "deathbound",
+      "name": "Deathbound",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/executioner/deathbound.png"
+      ]
+    },
+    {
+      "id": "deerstalker",
+      "name": "Deerstalker",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/universal/deerstalker.png"
+      ]
+    },
+    {
+      "id": "discordance",
+      "name": "Discordance",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/frank-julie-susie-joey/discordance.png"
+      ]
+    },
+    {
+      "id": "dissolution",
+      "name": "Dissolution",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/dredge/dissolution.png"
+      ]
+    },
+    {
+      "id": "distressing",
+      "name": "Distressing",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/universal/distressing.png"
+      ]
+    },
+    {
+      "id": "dominance",
+      "name": "Dominance",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/dark-lord/dominance.png"
+      ]
+    },
+    {
+      "id": "dragons-grip",
+      "name": "Dragon's Grip",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/blight/dragons-grip.png"
+      ]
+    },
+    {
+      "id": "dying-light",
+      "name": "Dying Light",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/shape/dying-light.png"
+      ]
+    },
+    {
+      "id": "enduring",
+      "name": "Enduring",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/hillbilly/enduring.png"
+      ]
+    },
+    {
+      "id": "eruption",
+      "name": "Eruption",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/nemesis-t-type/eruption.png"
+      ]
+    },
+    {
+      "id": "fire-up",
+      "name": "Fire Up",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/nightmare/fire-up.png"
+      ]
+    },
+    {
+      "id": "forced-hesitation",
+      "name": "Forced Hesitation",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/singularity/forced-hesitation.png"
+      ]
+    },
+    {
+      "id": "forced-penance",
+      "name": "Forced Penance",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/executioner/forced-penance.png"
+      ]
+    },
+    {
+      "id": "forever-entwined",
+      "name": "Forever Entwined",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/ghoul/forever-entwined.png"
+      ]
+    },
+    {
+      "id": "franklins-demise",
+      "name": "Franklin's Demise",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/cannibal/franklins-demise.png"
+      ]
+    },
+    {
+      "id": "friends-til-the-end",
+      "name": "Friends 'til the End",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/charles-lee-ray/friends-til-the-end.png"
+      ]
+    },
+    {
+      "id": "furtive-chase",
+      "name": "Furtive Chase",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/danny-johnson/furtive-chase.png"
+      ]
+    },
+    {
+      "id": "game-afoot",
+      "name": "Game Afoot",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/skull-merchant/game-afoot.png"
+      ]
+    },
+    {
+      "id": "gearhead",
+      "name": "Gearhead",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/deathslinger/gearhead.png"
+      ]
+    },
+    {
+      "id": "genetic-limits",
+      "name": "Genetic Limits",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/singularity/genetic-limits.png"
+      ]
+    },
+    {
+      "id": "grim-embrace",
+      "name": "Grim Embrace",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/artist/grim-embrace.png"
+      ]
+    },
+    {
+      "id": "haywire",
+      "name": "Haywire",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/animatronic/haywire.png"
+      ]
+    },
+    {
+      "id": "help-wanted",
+      "name": "Help Wanted",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/animatronic/help-wanted.png"
+      ]
+    },
+    {
+      "id": "hex-blood-favour",
+      "name": "Hex: Blood Favour",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/blight/hex-blood-favour.png"
+      ]
+    },
+    {
+      "id": "hex-crowd-control",
+      "name": "Hex: Crowd Control",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/trickster/hex-crowd-control.png"
+      ]
+    },
+    {
+      "id": "hex-devour-hope",
+      "name": "Hex: Devour Hope",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/hag/hex-devour-hope.png"
+      ]
+    },
+    {
+      "id": "hex-face-the-darkness",
+      "name": "Hex: Face the Darkness",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/knight/hex-face-the-darkness.png"
+      ]
+    },
+    {
+      "id": "hex-haunted-ground",
+      "name": "Hex: Haunted Ground",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/spirit/hex-haunted-ground.png"
+      ]
+    },
+    {
+      "id": "hex-hive-mind",
+      "name": "Hex: Hive Mind",
+      "role": "killer",
+      "paths": []
+    },
+    {
+      "id": "hex-huntress-lullaby",
+      "name": "Hex: Huntress Lullaby",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/huntress/hex-huntress-lullaby.png"
+      ]
+    },
+    {
+      "id": "hex-no-one-escapes-death",
+      "name": "Hex: No One Escapes Death",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/universal/hex-no-one-escapes-death.png"
+      ]
+    },
+    {
+      "id": "hex-nothing-but-misery",
+      "name": "Hex: Nothing but Misery",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/ghoul/hex-nothing-but-misery.png"
+      ]
+    },
+    {
+      "id": "hex-overture-of-doom",
+      "name": "Hex: Overture of Doom",
+      "role": "killer",
+      "paths": []
+    },
+    {
+      "id": "hex-pentimento",
+      "name": "Hex: Pentimento",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/artist/hex-pentimento.png"
+      ]
+    },
+    {
+      "id": "hex-plaything",
+      "name": "Hex: Plaything",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/cenobite/hex-fortunes-fool.png"
+      ]
+    },
+    {
+      "id": "hex-retribution",
+      "name": "Hex: Retribution",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/deathslinger/hex-retribution.png"
+      ]
+    },
+    {
+      "id": "hex-ruin",
+      "name": "Hex: Ruin",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/hag/hex-ruin.png"
+      ]
+    },
+    {
+      "id": "hex-scared-to-death",
+      "name": "Hex: Scared to Death",
+      "role": "killer",
+      "paths": []
+    },
+    {
+      "id": "hex-the-third-seal",
+      "name": "Hex: The Third Seal",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/hag/hex-the-third-seal.png"
+      ]
+    },
+    {
+      "id": "hex-thrill-of-the-hunt",
+      "name": "Hex: Thrill of the Hunt",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/universal/hex-thrill-of-the-hunt.png"
+      ]
+    },
+    {
+      "id": "hex-two-can-play",
+      "name": "Hex: Two Can Play",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/charles-lee-ray/hex-two-can-play.png"
+      ]
+    },
+    {
+      "id": "hex-under-your-thumb",
+      "name": "Hex: Under Your Thumb",
+      "role": "killer",
+      "paths": []
+    },
+    {
+      "id": "hex-undying",
+      "name": "Hex: Undying",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/blight/hex-undying.png"
+      ]
+    },
+    {
+      "id": "hex-wretched-fate",
+      "name": "Hex: Wretched Fate",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/dark-lord/hex-wretched-fate.png"
+      ]
+    },
+    {
+      "id": "hoarder",
+      "name": "Hoarder",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/twins/hoarder.png"
+      ]
+    },
+    {
+      "id": "hubris",
+      "name": "Hubris",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/knight/hubris.png"
+      ]
+    },
+    {
+      "id": "human-greed",
+      "name": "Human Greed",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/dark-lord/human-greed.png"
+      ]
+    },
+    {
+      "id": "hysteria",
+      "name": "Hysteria",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/nemesis-t-type/hysteria.png"
+      ]
+    },
+    {
+      "id": "im-all-ears",
+      "name": "I'm All Ears",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/danny-johnson/im-all-ears.png"
+      ]
+    },
+    {
+      "id": "infectious-fright",
+      "name": "Infectious Fright",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/plague/infectious-fright.png"
+      ]
+    },
+    {
+      "id": "insidious",
+      "name": "Insidious",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/universal/insidious.png"
+      ]
+    },
+    {
+      "id": "iron-grasp",
+      "name": "Iron Grasp",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/universal/iron-grasp.png"
+      ]
+    },
+    {
+      "id": "iron-maiden",
+      "name": "Iron Maiden",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/frank-julie-susie-joey/iron-maiden.png"
+      ]
+    },
+    {
+      "id": "knock-out",
+      "name": "Knock Out",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/cannibal/knock-out.png"
+      ]
+    },
+    {
+      "id": "languid-touch",
+      "name": "Languid Touch",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/lich/languid-touch.png"
+      ]
+    },
+    {
+      "id": "lay-waste",
+      "name": "Lay Waste",
+      "role": "killer",
+      "paths": []
+    },
+    {
+      "id": "lethal-pursuer",
+      "name": "Lethal Pursuer",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/nemesis-t-type/lethal-pursuer.png"
+      ]
+    },
+    {
+      "id": "leverage",
+      "name": "Leverage",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/skull-merchant/leverage.png"
+      ]
+    },
+    {
+      "id": "lightborn",
+      "name": "Lightborn",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/hillbilly/lightborn.png"
+      ]
+    },
+    {
+      "id": "machine-learning",
+      "name": "Machine Learning",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/singularity/machine-learning.png"
+      ]
+    },
+    {
+      "id": "mad-grit",
+      "name": "Mad Grit",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/frank-julie-susie-joey/mad-grit.png"
+      ]
+    },
+    {
+      "id": "make-your-choice",
+      "name": "Make Your Choice",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/pig/make-your-choice.png"
+      ]
+    },
+    {
+      "id": "merciless-storm",
+      "name": "Merciless Storm",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/onryo/merciless-storm.png"
+      ]
+    },
+    {
+      "id": "mindbreaker",
+      "name": "Mindbreaker",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/demogorgon/mindbreaker.png"
+      ]
+    },
+    {
+      "id": "monitor-abuse",
+      "name": "Monitor & Abuse",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/doctor/monitor-abuse.png"
+      ]
+    },
+    {
+      "id": "nemesis",
+      "name": "Nemesis",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/oni/nemesis.png"
+      ]
+    },
+    {
+      "id": "no-quarter",
+      "name": "No Quarter",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/houndmaster/no-quarter.png"
+      ]
+    },
+    {
+      "id": "no-way-out",
+      "name": "No Way Out",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/trickster/no-way-out.png"
+      ]
+    },
+    {
+      "id": "none-are-free",
+      "name": "None Are Free",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/ghoul/none-are-free.png"
+      ]
+    },
+    {
+      "id": "nowhere-to-hide",
+      "name": "Nowhere to Hide",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/knight/nowhere-to-hide.png"
+      ]
+    },
+    {
+      "id": "oppression",
+      "name": "Oppression",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/twins/oppression.png"
+      ]
+    },
+    {
+      "id": "overcharge",
+      "name": "Overcharge",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/doctor/overcharge.png"
+      ]
+    },
+    {
+      "id": "overwhelming-presence",
+      "name": "Overwhelming Presence",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/doctor/overwhelming-presence.png"
+      ]
+    },
+    {
+      "id": "phantom-fear",
+      "name": "Phantom Fear",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/animatronic/phantom-fear.png"
+      ]
+    },
+    {
+      "id": "play-with-your-food",
+      "name": "Play with Your Food",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/shape/play-with-your-food.png"
+      ]
+    },
+    {
+      "id": "pop-goes-the-weasel",
+      "name": "Pop Goes the Weasel",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/jeffrey-hawk/pop-goes-the-weasel.png"
+      ]
+    },
+    {
+      "id": "predator",
+      "name": "Predator",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/wraith/predator.png"
+      ]
+    },
+    {
+      "id": "rampage",
+      "name": "Rampage",
+      "role": "killer",
+      "paths": []
+    },
+    {
+      "id": "rancor",
+      "name": "Rancor",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/spirit/rancor.png"
+      ]
+    },
+    {
+      "id": "rapid-brutality",
+      "name": "Rapid Brutality",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/xenomorph/rapid-brutality.png"
+      ]
+    },
+    {
+      "id": "ravenous",
+      "name": "Ravenous",
+      "role": "killer",
+      "paths": []
+    },
+    {
+      "id": "remember-me",
+      "name": "Remember Me",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/nightmare/remember-me.png"
+      ]
+    },
+    {
+      "id": "save-the-best-for-last",
+      "name": "Save the Best for Last",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/shape/save-the-best-for-last.png"
+      ]
+    },
+    {
+      "id": "scourge-hook-floods-of-rage",
+      "name": "Scourge Hook: Floods of Rage",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/onryo/scourge-hook-floods-of-rage.png"
+      ]
+    },
+    {
+      "id": "scourge-hook-gift-of-pain",
+      "name": "Scourge Hook: Gift of Pain",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/cenobite/scourge-hook-weeping-wounds.png"
+      ]
+    },
+    {
+      "id": "scourge-hook-hangmans-trick",
+      "name": "Scourge Hook: Hangman's Trick",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/pig/scourge-hook-hangmans-trick.png"
+      ]
+    },
+    {
+      "id": "scourge-hook-jagged-compass",
+      "name": "Scourge Hook: Jagged Compass",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/houndmaster/scourge-hook-jagged-compass.png"
+      ]
+    },
+    {
+      "id": "scourge-hook-monstrous-shrine",
+      "name": "Scourge Hook: Monstrous Shrine",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/universal/scourge-hook-monstrous-shrine.png"
+      ]
+    },
+    {
+      "id": "scourge-hook-pain-resonance",
+      "name": "Scourge Hook: Pain Resonance",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/artist/scourge-hook-pain-resonance.png"
+      ]
+    },
+    {
+      "id": "secret-project",
+      "name": "Secret Project",
+      "role": "killer",
+      "paths": []
+    },
+    {
+      "id": "septic-touch",
+      "name": "Septic Touch",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/dredge/septic-touch.png"
+      ]
+    },
+    {
+      "id": "shadowborn",
+      "name": "Shadowborn",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/wraith/shadowborn.png"
+      ]
+    },
+    {
+      "id": "shattered-hope",
+      "name": "Shattered Hope",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/universal/shattered-hope.png"
+      ]
+    },
+    {
+      "id": "silent-shadow",
+      "name": "Silent Shadow",
+      "role": "killer",
+      "paths": []
+    },
+    {
+      "id": "sloppy-butcher",
+      "name": "Sloppy Butcher",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/universal/sloppy-butcher.png"
+      ]
+    },
+    {
+      "id": "spies-from-the-shadows",
+      "name": "Spies from the Shadows",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/universal/spies-from-the-shadows.png"
+      ]
+    },
+    {
+      "id": "spirit-fury",
+      "name": "Spirit Fury",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/spirit/spirit-fury.png"
+      ]
+    },
+    {
+      "id": "starstruck",
+      "name": "Starstruck",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/trickster/starstruck.png"
+      ]
+    },
+    {
+      "id": "stridor",
+      "name": "Stridor",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/nurse/stridor.png"
+      ]
+    },
+    {
+      "id": "superior-anatomy",
+      "name": "Superior Anatomy",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/mastermind/superior-anatomy.png"
+      ]
+    },
+    {
+      "id": "surge",
+      "name": "Surge",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/demogorgon/surge.png"
+      ]
+    },
+    {
+      "id": "surveillance",
+      "name": "Surveillance",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/pig/surveillance.png"
+      ]
+    },
+    {
+      "id": "terminus",
+      "name": "Terminus",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/mastermind/terminus.png"
+      ]
+    },
+    {
+      "id": "territorial-imperative",
+      "name": "Territorial Imperative",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/huntress/territorial-imperative.png"
+      ]
+    },
+    {
+      "id": "thanatophobia",
+      "name": "Thanatophobia",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/nurse/thanatophobia.png"
+      ]
+    },
+    {
+      "id": "thrilling-tremors",
+      "name": "Thrilling Tremors",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/danny-johnson/thrilling-tremors.png"
+      ]
+    },
+    {
+      "id": "thwack",
+      "name": "THWACK!",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/skull-merchant/thwack.png"
+      ]
+    },
+    {
+      "id": "tinkerer",
+      "name": "Tinkerer",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/hillbilly/tinkerer.png"
+      ]
+    },
+    {
+      "id": "trail-of-torment",
+      "name": "Trail of Torment",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/executioner/trail-of-torment.png"
+      ]
+    },
+    {
+      "id": "turn-back-the-clock",
+      "name": "Turn Back the Clock",
+      "role": "killer",
+      "paths": []
+    },
+    {
+      "id": "ultimate-weapon",
+      "name": "Ultimate Weapon",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/xenomorph/ultimate-weapon.png"
+      ]
+    },
+    {
+      "id": "unbound",
+      "name": "Unbound",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/unknown/unbound.png"
+      ]
+    },
+    {
+      "id": "undone",
+      "name": "Undone",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/unknown/undone.png"
+      ]
+    },
+    {
+      "id": "unforeseen",
+      "name": "Unforeseen",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/unknown/unforeseen.png"
+      ]
+    },
+    {
+      "id": "unnerving-presence",
+      "name": "Unnerving Presence",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/trapper/unnerving-presence.png"
+      ]
+    },
+    {
+      "id": "unrelenting",
+      "name": "Unrelenting",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/universal/unrelenting.png"
+      ]
+    },
+    {
+      "id": "wandering-eye",
+      "name": "Wandering Eye",
+      "role": "killer",
+      "paths": []
+    },
+    {
+      "id": "weave-attunement",
+      "name": "Weave Attunement",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/lich/weave-attunement.png"
+      ]
+    },
+    {
+      "id": "whispers",
+      "name": "Whispers",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/universal/whispers.png"
+      ]
+    },
+    {
+      "id": "zanshin-tactics",
+      "name": "Zanshin Tactics",
+      "role": "killer",
+      "paths": [
+        "images/killer-perks/oni/zanshin-tactics.png"
+      ]
+    }
+  ],
+  "duplicateContent": [
+    [
+      "images/killer-perks/cenobite/hex-fortunes-fool.png",
+      "images/killer-perks/cenobite/no-holds-barred.png",
+      "images/killer-perks/cenobite/scourge-hook-weeping-wounds.png"
+    ]
+  ],
+  "unmatchedImages": []
+}

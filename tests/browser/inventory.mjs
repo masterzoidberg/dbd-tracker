@@ -1,0 +1,155 @@
+import assert from 'node:assert/strict';
+import {resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {freshSave} from '../../src/model.js';
+import {inventoryEntities,inventoryCatalogStatus} from '../../data/inventory-catalog.js';
+export async function inventoryRegression(page,origin){
+ page.setDefaultTimeout(6000);
+ assert.equal(inventoryCatalogStatus.survivor,'ready');
+ const item=inventoryEntities.find(e=>e.map==='items'), addon=inventoryEntities.find(e=>e.map==='addons');
+ const save=freshSave(); save.characters['meg-thomas'].inventory.items['survivor-item-future-unresolved']=11;
+ await page.evaluate(s=>localStorage.setItem('dbdTrackerData',JSON.stringify(s)),save);
+ await page.goto(origin+'/#character/meg-thomas/items-addons'); await page.reload();
+ const bytes=()=>page.evaluate(()=>localStorage.getItem('dbdTrackerData'));
+ const field=id=>page.locator('[data-inventory-quantity="'+id+'"]');
+ const order=()=>page.locator('[data-stock-card]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockCard));
+ await field(item.id).waitFor();
+  const decoded=await page.evaluate(async paths=>Promise.all(paths.map(async path=>{
+    const image=new Image();image.src=path;try{await image.decode();return image.naturalWidth>0;}catch{return false;}
+  })),inventoryEntities.map(e=>e.imagePath).filter(Boolean));
+  assert.equal(decoded.length,92);assert.ok(decoded.every(Boolean),'All92 referenced staged Survivor images decode');
+ const before=await bytes(), beforeOrder=await order();
+ await field(item.id).fill('5');
+ assert.equal(await bytes(),before); assert.deepEqual(await order(),beforeOrder);
+ await field(item.id).press('Enter');
+ assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].inventory.items[item.id],5);
+ assert.equal(await field(item.id).evaluate(n=>document.activeElement===n),true);
+  let committed=await bytes();
+  await field(item.id).fill('6');
+  await page.locator('[data-stock-card="'+item.id+'"] summary').click();
+  await page.waitForFunction(id=>JSON.parse(localStorage.dbdTrackerData).characters['meg-thomas'].inventory.items[id]===6,item.id);
+  assert.equal(await page.locator('[data-stock-card="'+item.id+'"] details').getAttribute('open'),'');
+  assert.equal(await page.locator('[data-stock-card="'+item.id+'"] summary').evaluate(n=>document.activeElement===n),true,'Blur respects reference disclosure destination: '+await page.evaluate(()=>document.activeElement.outerHTML.slice(0,180)));
+  await field(item.id).fill('7');
+  await page.locator('[data-stock-card="'+item.id+'"] details a').first().focus();
+  await page.waitForFunction(id=>JSON.parse(localStorage.dbdTrackerData).characters['meg-thomas'].inventory.items[id]===7,item.id);
+  assert.equal(await page.locator('[data-stock-card="'+item.id+'"] details a').first().evaluate(n=>document.activeElement===n),true,'Blur respects reference link destination');
+  await field(item.id).fill('5'); await field(item.id).press('Enter');
+  const sameQuantity=JSON.parse(await bytes());
+  assert.equal(sameQuantity.characters['meg-thomas'].inventory.items[item.id],5);
+  committed=await bytes();
+ await page.locator('#inventory-search').focus();
+  assert.equal(await bytes(),committed,'Enter then blur must not stamp twice');
+  await field(item.id).fill('invalid');
+  await page.locator('#inventory-search').click();
+  await page.waitForFunction(()=>document.querySelector('[data-stock-error]')?.textContent.length>0);
+  assert.equal(await page.locator('#inventory-search').evaluate(n=>document.activeElement===n),true,'Invalid blur respects clicked destination');
+ for(const invalid of ['','-1','1.5','9007199254740992']){
+  await field(item.id).fill(invalid); await field(item.id).press('Enter');
+  assert.equal(await bytes(),committed); assert.equal(await field(item.id).inputValue(),invalid);
+ }
+ await field(item.id).fill('0'); await page.locator('#inventory-in-stock').check();
+ await page.waitForFunction(id=>!JSON.parse(localStorage.dbdTrackerData).characters['meg-thomas'].inventory.items[id],item.id);
+ await page.locator('#inventory-in-stock').uncheck();
+ await page.locator('#inventory-map').selectOption('addons');
+ await field(addon.id).fill('9'); await field(addon.id).press('Tab');
+ await page.waitForFunction(id=>JSON.parse(localStorage.dbdTrackerData).characters['meg-thomas'].inventory.addons[id]===9,addon.id);
+ await page.evaluate(()=>{window.stockSetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='dbdTrackerData')throw Error('stock fixture failure');return window.stockSetItem.call(this,k,v);};});
+ const failBefore=await bytes();
+ await field(addon.id).fill('10'); await field(addon.id).press('Enter');
+ assert.equal(await bytes(),failBefore); assert.equal(await field(addon.id).inputValue(),'10');
+ assert.match(await page.locator('[data-stock-error]').first().textContent(),/Not saved/);
+ await page.evaluate(()=>{Storage.prototype.setItem=window.stockSetItem;});
+ await field(addon.id).press('Enter');
+  await field(addon.id).fill('11');
+ await page.getByRole('link',{name:'Overview',exact:true}).click();
+  assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].inventory.addons[addon.id],11,'Valid blur commits before navigation');
+ await page.getByRole('link',{name:'Edit Character',exact:true}).click();
+ const draftBefore=await bytes();
+  await field(item.id).fill('bad');
+  await page.locator('#inventory-search').fill('nothing matches');
+  await page.getByRole('button',{name:'Save Character',exact:true}).click();
+  assert.equal(await bytes(),draftBefore);
+  assert.equal(await field(item.id).evaluate(n=>document.activeElement===n),true);
+  assert.equal(await field(item.id).getAttribute('aria-invalid'),'true');
+  for(const width of [320,500,760,1100,1440,1600]){
+    await page.setViewportSize({width,height:900});
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Edit stock overflow '+width);
+    assert.ok((await page.getByRole('button',{name:'Save Character',exact:true}).boundingBox()).height>=44,'Save touch target');
+  }
+  await page.setViewportSize({width:1440,height:900});
+ await field(item.id).fill('6'); await field(item.id).press('Enter');
+ await page.locator('#inventory-map').selectOption('addons');
+ await field(addon.id).fill('12'); await field(addon.id).press('Tab');
+ assert.equal(await bytes(),draftBefore);
+ await page.locator('#inventory-search').fill('nothing matches');
+ await page.getByRole('button',{name:'Save Character',exact:true}).click();
+ const saved=JSON.parse(await bytes());
+ assert.equal(saved.characters['meg-thomas'].inventory.items[item.id],6);
+ assert.equal(saved.characters['meg-thomas'].inventory.addons[addon.id],12);
+ assert.equal(saved.characters['meg-thomas'].inventory.items['survivor-item-future-unresolved'],11);
+ assert.equal(saved.characters['meg-thomas'].updatedAt,saved.updatedAt);
+  await page.getByRole('link',{name:'Edit Character',exact:true}).click();
+  const discardBefore=await bytes();
+  await field(item.id).fill('77');
+  await page.evaluate(()=>{
+    const button=document.createElement('button');button.id='draft-reset';button.dataset.action='reset';button.textContent='Synthetic reset';
+    document.querySelector('main').append(button);
+  });
+  await page.locator('#draft-reset').click();
+  await page.getByRole('button',{name:'Discard',exact:true}).click();
+  await page.locator('#confirmation [value="cancel"]').click();
+  assert.equal(await bytes(),discardBefore,'Discard followed by canceled reset cannot autosave a draft quantity');
+  assert.equal(await field(item.id).inputValue(),'6','Canceled mutation leaves a fresh canonical edit session');
+  await field(item.id).fill('7');
+  await page.evaluate(()=>{
+    const button=document.createElement('button');button.id='draft-reset';button.dataset.action='reset';button.textContent='Synthetic reset';
+    document.querySelector('main').append(button);
+  });
+  await page.locator('#draft-reset').click();
+  await page.getByRole('button',{name:'Save',exact:true}).click();
+  await page.locator('#confirmation [value="cancel"]').click();
+  await field(item.id).fill('8');
+  await page.getByRole('button',{name:'Save Character',exact:true}).click();
+  assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].inventory.items[item.id],8,'Saved guard followed by canceled replacement remains editable');
+  await page.getByRole('link',{name:'Edit Character',exact:true}).click();
+  await field(item.id).fill('9');
+  await page.getByRole('button',{name:'Cancel',exact:true}).click();
+  await page.getByRole('button',{name:'Discard',exact:true}).click();
+ await page.goto(origin+'/#character/the-doctor/power-addons');
+ assert.equal(await page.locator('[data-inventory-quantity]').count(),0);
+  await page.goto(origin+'/#character/meg-thomas/items-addons');
+  await field(item.id).fill(String(Number.MAX_SAFE_INTEGER));
+  await field(item.id).press('Enter');
+  for(const width of [320,500,760,1100,1440,1600]){
+    await page.setViewportSize({width,height:900});
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Inventory overflow '+width);
+    assert.ok((await field(item.id).boundingBox()).height>=44);
+    assert.equal(await field(item.id).inputValue(),String(Number.MAX_SAFE_INTEGER));
+    assert.equal(await page.locator('.stock-grid table').count(),0);
+    assert.equal(await field(item.id).getAttribute('aria-invalid'),'false');
+  }
+  await page.setViewportSize({width:1440,height:900});
+  await page.getByRole('link',{name:'Overview',exact:true}).click();
+  assert.match(await page.locator('[data-character-workspace]').textContent(),/38 Items.*54 Add-ons/);
+  assert.doesNotMatch(await page.locator('[data-character-workspace]').textContent(),/Verified inventory data is not yet available/);
+  const reader=await page.context().newPage();
+  await reader.goto(origin+'/#character/meg-thomas/items-addons');
+  await reader.waitForFunction(()=>document.querySelector('#save-status').textContent==='Read-only');
+  assert.equal(await reader.locator('[data-inventory-quantity]').first().isDisabled(),true);
+  await page.goto(origin+'/#character/meg-thomas/items-addons');
+  await field(item.id).fill('14');await field(item.id).press('Enter');
+  await reader.waitForFunction(id=>document.querySelector('[data-inventory-quantity="'+id+'"]').value==='14',item.id);
+  await reader.close();
+  const broken=origin+'/'+item.imagePath+'?stock-image-error=1';
+  await page.route(broken,route=>route.fulfill({status:200,contentType:'image/png',body:'broken image'}));
+  await page.locator('[data-stock-card="'+item.id+'"] img').evaluate((node,url)=>{node.src=url;},broken);
+  await page.locator('[data-stock-card="'+item.id+'"] .stock-art-fallback').waitFor();
+  assert.equal(await page.locator('[data-stock-card="'+item.id+'"] img').count(),0);
+  await page.unroute(broken);
+}
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+ const {smokeStage}=await import('./smoke.mjs');
+ await smokeStage(resolve(process.argv[2]||'release/runtime'),{regression:inventoryRegression});
+ console.log('Survivor inventory PASS');
+}

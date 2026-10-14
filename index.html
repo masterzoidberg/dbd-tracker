@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101011">
+  <title>The Ledger · DBD Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <aside class="sidebar">
+    <a class="brand" href="#dashboard"><svg class="mark" aria-hidden="true" viewBox="0 0 36 32"><path d="M3 29 9 3M11 29 17 3M19 29 25 3M27 29 33 3" fill="none" stroke="currentColor" stroke-width="3"/></svg><span>THE LEDGER<small>DEAD BY DAYLIGHT</small></span></a>
+    <div class="nav-label">YOUR ACCOUNT</div>
+    <nav aria-label="Main navigation">
+      <a href="#dashboard" data-page="dashboard"><span aria-hidden="true">◫</span>Dashboard</a>
+      <a href="#survivors" data-page="survivors"><span aria-hidden="true">♙</span>Survivors<span class="nav-count" id="survivor-count"></span></a>
+      <a href="#killers" data-page="killers"><span aria-hidden="true">♜</span>Killers<span class="nav-count" id="killer-count"></span></a>
+      <div class="nav-label">PERK LIBRARY</div>
+      <a href="#survivor-perks" data-page="survivor-perks"><span aria-hidden="true">◇</span>Survivor perks</a>
+      <a href="#killer-perks" data-page="killer-perks"><span aria-hidden="true">◆</span>Killer perks</a>
+      <div class="nav-separator"></div>
+      <a href="#data" data-page="data"><span aria-hidden="true">⇄</span>Data & backups</a>
+    </nav>
+    <div class="sidebar-foot"><span class="local-dot"></span> LOCAL FIRST<small>Your progress. Your browser.</small><a href="#data">Game catalog · details ↗</a></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><span>ACCOUNT / <strong id="breadcrumb">OVERVIEW</strong></span><div><span id="save-status" role="status">Saved locally</span><button class="export-button" data-action="character-setup-all">Run character setups</button><button class="export-button" data-action="export">↓ Export JSON</button></div></header>
+    <div id="editor-notice" class="notice" role="status"><span id="editor-reason">Checking editing availability…</span> <button data-action="enable-editing" disabled>Enable editing</button></div>
+    <div id="message" role="status" hidden></div>
+    <main id="main" tabindex="-1">
+      <section class="panel">
+        <h1>The tracker could not start</h1>
+        <p class="compact">Keep index.html, styles.css, and the dist folder together. If the bundled script is missing or you changed the source or catalog, rebuild it in PowerShell:</p>
+        <pre><code>cd G:\Projects\dbd-tracker
+npm install
+npm run build</code></pre>
+        <p class="panel-note">Then reload this page. You can open index.html directly or use npm start for the localhost version.</p>
+      </section>
+    </main>
+    <footer>THE LEDGER <span>Personal progression tracker · No account required</span></footer>
+  </div>
+  <div id="perk-filter-panel" popover="auto" aria-label="Advanced perk filters"></div>
+  <div id="filter-status" class="visually-hidden" role="status" aria-live="polite"></div>
+  <dialog id="detail" aria-labelledby="detail-title"><p id="detail-message" class="error" role="alert" hidden></p><div id="detail-content"></div></dialog>
+  <dialog id="confirmation" aria-labelledby="confirm-title"><form method="dialog"><h2 id="confirm-title"></h2><p id="confirm-text"></p><div class="dialog-actions"><button value="cancel" autofocus>Cancel</button><button id="confirm-accept" class="primary" value="accept">Confirm</button></div></form></dialog>
+  <input id="import-file" type="file" accept=".json,application/json" hidden>
+  <dialog id="dirty-navigation" aria-labelledby="dirty-title"><form method="dialog"><h2 id="dirty-title">Unsaved character changes</h2><p>Save this character, discard the draft, or stay and continue editing.</p><div class="dialog-actions"><button value="stay" autofocus>Stay</button><button value="discard">Discard</button><button value="save" class="primary">Save</button></div></form></dialog>
+  <noscript>This tracker requires JavaScript to store and manage your progression.</noscript>
+  <script defer src="dist/app.js"></script>
+</body>
+</html>

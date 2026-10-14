@@ -1,0 +1,30 @@
+import { perkName, perkSearchText } from '../data/catalog.js';
+import { globalTier, isAvailable, unlockSource, roleCharacters, rolePerks } from './model.js';
+
+const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const tiers = ['—', 'I', 'II', 'III'];
+
+function characterList(save, role, search) {
+  const list = roleCharacters(role).filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
+  const owned = roleCharacters(role).filter(c => save.characters[c.id].owned).length;
+  return `<section class="panel setup-collection"><div class="section-title"><h2>${role === 'survivor' ? 'Survivors' : 'Killers'}</h2><span class="muted">${owned} / ${roleCharacters(role).length} owned</span></div><div class="table-scroll setup-roster">${list.map(c => {
+    const p = save.characters[c.id];
+    return `<div class="setup-character-row ${p.owned ? 'setup-owned' : ''}"><label class="setup-choice"><input id="setup-owned-${c.id}" type="checkbox" data-setup-owned="${c.id}" ${p.owned ? 'checked' : ''}><span>${escape(c.name)}</span></label><label class="setup-prestige-label">Prestige<input id="setup-prestige-${c.id}" type="number" min="0" step="1" required value="${p.prestige}" data-setup-prestige="${c.id}" aria-label="Prestige for ${escape(c.name)}"></label><button data-action="setup-p1" data-id="${c.id}" ${p.prestige >= 1 ? 'disabled' : ''} aria-label="Set ${escape(c.name)} to P1">${p.prestige >= 1 ? 'P1+ ✓' : 'P1'}</button></div>`;
+  }).join('') || '<p class="empty">No matching characters.</p>'}</div></section>`;
+}
+
+function perkList(save, role, search, filter) {
+  const perks = rolePerks(role).slice().sort((a, b) => perkName(save, a).localeCompare(perkName(save, b)));
+  const available = perks.filter(p => isAvailable(save, p)).length;
+  const visible = perks.filter(p => perkSearchText(p).toLowerCase().includes(search.toLowerCase().replace(/[’']/g, '')) && (filter === 'all' || (filter === 'unlocked' ? isAvailable(save, p) : !isAvailable(save, p))));
+  return `<div class="setup-perk-count"><strong>${available} / ${perks.length}</strong> globally unlocked · General and Prestige unlocks are already checked.</div><div class="filter-pills">${[['all', 'All perks'], ['locked', 'Still locked'], ['unlocked', 'Unlocked']].map(([id, label]) => `<button data-action="setup-filter" data-filter="${id}" class="${filter === id ? 'selected' : ''}" aria-pressed="${filter === id}">${label}</button>`).join('')}</div><div class="table-scroll setup-perk-table"><table><thead><tr><th>Unlocked</th><th>Perk</th><th>Source</th><th>Global availability</th></tr></thead><tbody>${visible.map(p => {
+    const derived = p.general || (save.characters[p.sourceCharacterId]?.prestige || 0) > 0 || (save.perkOverrides[p.id]?.legacyTier || 0) > 0 || (save.perkOverrides[p.id]?.shrineTier || 0) > 0;
+    return `<tr><td><input id="setup-perk-${p.id}" type="checkbox" data-setup-perk="${p.id}" aria-label="Unlock ${escape(perkName(save, p))} globally" ${isAvailable(save, p) ? 'checked' : ''} ${derived ? 'disabled' : ''}></td><td><button data-action="perk" data-id="${p.id}">${escape(perkName(save, p))}</button></td><td>${escape(p.sourceCharacterName)}</td><td><span class="tier ${p.general && !globalTier(save, p) ? 'general' : 'tier-' + globalTier(save, p)}">${globalTier(save, p) ? tiers[globalTier(save, p)] : p.general ? 'GENERAL' : 'LOCKED'}</span><small>${unlockSource(save, p)}</small></td></tr>`;
+  }).join('')}</tbody></table>${visible.length ? '' : '<p class="empty">No matching perks.</p>'}</div>`;
+}
+
+export function setupView(save, step, search, filter) {
+  const titles = ['Your character collection', 'Your Survivor perk unlocks', 'Your Killer perk unlocks'];
+  const subtitles = ['Select the characters you own. Set Prestige or click P1 to unlock their native perks globally.', 'Check any additional Survivor perks you have unlocked. Search by perk or source character.', 'Check any additional Killer perks you have unlocked, then finish your account setup.'];
+  return `<div class="setup-steps" aria-label="Setup progress">${['Characters', 'Survivor perks', 'Killer perks'].map((label, i) => `<span class="${i === step ? 'current' : i < step ? 'done' : ''}" ${i === step ? 'aria-current="step"' : ''}>${i < step ? '✓' : i + 1} <b>${label}</b></span>`).join('')}</div><div class="page-heading"><div><div class="eyebrow">INITIAL ACCOUNT SETUP · STEP ${step + 1} OF 3</div><h1>${titles[step]}</h1><p>${subtitles[step]}</p></div><button data-action="setup-exit">Leave setup</button></div><label class="search setup-search"><span aria-hidden="true">⌕</span><input id="setup-search" type="search" aria-label="${step ? 'Search setup perks' : 'Search setup characters'}" placeholder="${step ? 'Search perks or source character…' : 'Search characters…'}" value="${escape(search)}"><kbd>/</kbd></label>${step === 0 ? `<p class="panel-note setup-note">P1 → global Tier I · P2 → Tier II · P3+ → Tier III. Prestige provides automatic owned minimums; general perks only provide Bloodweb availability. You can change these choices later.</p><div class="two-column setup-characters">${characterList(save, 'survivor', search)}${characterList(save, 'killer', search)}</div>` : `<section class="panel setup-perks">${perkList(save, step === 1 ? 'survivor' : 'killer', search, filter)}<p class="panel-note">Extra selections record a manual global Tier I unlock. General perks and Prestige unlocks are automatic; edit the source character to change Prestige. Account unlocks provide automatic minimums. Click a perk to specify Legacy or Shrine tiers; generic manual selections have an unspecified source. Set up personal Bloodweb upgrades on each character.</p></section>`}<div class="setup-footer"><span class="muted">Your changes save automatically.</span><div>${step ? '<button data-action="setup-back">← Back</button>' : ''}<button class="primary" data-action="setup-next">${step === 2 ? 'Finish setup →' : 'Continue →'}</button></div></div>`;
+}

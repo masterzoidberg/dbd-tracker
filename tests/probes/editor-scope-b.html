@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>M03 storage and lock scope probe</title>
+<style>
+  body { max-width: 920px; margin: 28px auto; padding: 0 20px; background: #19191b; color: #edebe6; font: 16px/1.5 system-ui; }
+  h1 { font-size: 26px; } h2 { font-size: 20px; }
+  button, a { font: inherit; } button { padding: 9px 14px; margin: 4px 8px 4px 0; }
+  a { color: #f7b89c; } pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #242426; padding: 14px; }
+  textarea { box-sizing: border-box; width: 100%; height: 360px; font: 13px/1.5 monospace; }
+  .notice { border: 1px solid #835847; padding: 12px; } .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+</style>
+<h1>M03 — Storage and lock scope probe</h1>
+<p class="notice">This page writes only <code>dbdTrackerM03ProbeMarker</code> and requests the native lock <code>dbdTracker-m03-scope-probe</code>. Tracker saves, backups and recovery data are untouched. Use one browser profile for all compared windows.</p>
+<p><a id="same-file" target="_blank" rel="noopener">Open this exact page in another tab</a> · <a id="other-file" target="_blank" rel="noopener">Open the other file-path variant</a></p>
+<h2>1. Check shared storage</h2>
+<p>In window A, Write marker. In B, Read marker. Matching text means these windows share the probe's storage. Record this before testing locks.</p>
+<div class="actions"><button id="write-marker">Write marker</button><button id="read-marker">Read marker</button><button id="clear-marker">Clear probe marker</button></div>
+<p>Storage: <strong id="storage-status">Not checked</strong></p>
+<pre id="marker">(no marker)</pre>
+<h2>2. Check native exclusion</h2>
+<p>In A, Try lock and keep A open while it says Holding. In B, Try lock. If B shares A's marker, B must say Denied. Holding or Error in B fails the required shared-storage exclusion check.</p>
+<div class="actions"><button id="acquire">Try lock</button><button id="release" disabled>Release lock</button></div>
+<p>Lock: <strong id="lock-status">Not requested</strong></p>
+<pre id="lock-error" hidden></pre>
+<p>Bring B forward and try again while A is in the background. A must retain its lock. Close A, then explicitly Try lock in B: B should acquire it. Repeat with a third tab. Test real suspend/resume without releasing A.</p>
+<h2>3. Report</h2>
+<p>Copy the output below from A while Holding and from B after its attempt. It records the browser, page, marker and observed lock status. Clear the probe marker and close all probe tabs afterward.</p>
+<textarea id="report" readonly aria-label="Probe result to copy"></textarea>
+<script>
+  const key = 'dbdTrackerM03ProbeMarker';
+  const lockName = 'dbdTracker-m03-scope-probe';
+  const documentId = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+  let held = false, requesting = false, releaseLock;
+  let storageReadable = false, storageError = '', observedMarker = null;
+  const $ = selector => document.querySelector(selector);
+  function report() {
+    $('#report').value = JSON.stringify({ url: location.href, protocol: location.protocol,
+      origin: location.origin, browser: navigator.userAgent, secureContext: isSecureContext,
+      locksAvailable: typeof navigator.locks?.request === 'function', documentId,
+      storageReadable, storageError, observedMarker, lockStatus: $('#lock-status').textContent,
+      lockError: $('#lock-error').textContent, visibility: document.visibilityState }, null, 2);
+  }
+  function readMarker() {
+    try {
+      observedMarker = localStorage.getItem(key); storageReadable = true; storageError = '';
+      $('#marker').textContent = observedMarker ?? '(no marker)'; $('#storage-status').textContent = 'Readable';
+    } catch (error) {
+      storageReadable = false; storageError = error.message;
+      $('#storage-status').textContent = 'Error: ' + error.message;
+    }
+    report();
+  }
+  function lockStatus(status, error = '') {
+    $('#lock-status').textContent = status; $('#lock-error').textContent = error;
+    $('#lock-error').hidden = !error;
+    $('#acquire').disabled = held || requesting; $('#release').disabled = !held;
+    report();
+  }
+  $('#same-file').href = location.href;
+  $('#other-file').href = location.pathname.endsWith('editor-scope-a.html') ? 'editor-scope-b.html' : 'editor-scope-a.html';
+  $('#read-marker').addEventListener('click', readMarker);
+  $('#write-marker').addEventListener('click', () => {
+    try {
+      localStorage.setItem(key, JSON.stringify({ fromDocument: documentId, marker: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}` }));
+      readMarker();
+    } catch (error) { storageError = error.message; $('#storage-status').textContent = 'Error: ' + error.message; report(); }
+  });
+  $('#clear-marker').addEventListener('click', () => {
+    try { localStorage.removeItem(key); readMarker(); }
+    catch (error) { storageError = error.message; $('#storage-status').textContent = 'Error: ' + error.message; report(); }
+  });
+  $('#acquire').addEventListener('click', async () => {
+    if (held || requesting) return;
+    if (typeof navigator.locks?.request !== 'function') { lockStatus('Unavailable', 'Web Locks is unavailable in this runtime.'); return; }
+    requesting = true; lockStatus('Requesting');
+    try {
+      await navigator.locks.request(lockName, { ifAvailable: true }, async lock => {
+        requesting = false;
+        if (!lock) { lockStatus('Denied'); return; }
+        held = true; lockStatus('Holding');
+        await new Promise(resolve => { releaseLock = resolve; });
+        held = false; releaseLock = undefined; lockStatus('Released');
+      });
+    } catch (error) { requesting = false; held = false; lockStatus('Error', error.message); }
+  });
+  $('#release').addEventListener('click', () => releaseLock?.());
+  document.addEventListener('visibilitychange', report);
+  readMarker();
+</script>
+</html>
