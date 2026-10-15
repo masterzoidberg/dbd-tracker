@@ -8,6 +8,7 @@ import { inventoryEntities } from '../data/inventory-catalog.js';
 const PROJECT_ROOT = resolve(import.meta.dirname, '..');
 const PLACEHOLDER_HASH = '3f794fe2e61b06702dbb027010b15e67e78a18e79b2b9c096be1180b76beb89b';
 const assetExceptions = { 'detectives-hunch': 'detective-s-hunch' };
+const collectionPortraitAliases = { jakestore: 'jake-park' };
 const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 
 export function assertPerkAssetPath(path) {
@@ -22,7 +23,7 @@ export function pngDimensions(bytes, path) {
   return { width, height };
 }
 export function assertPortraitAssetPath(path) {
-  if (typeof path !== 'string' || !/^images\/(?:(?:survivor|killer)-images\/[\p{L}0-9_-]+\.(?:png|webp)|portrait-runtime\/[a-z0-9-]+\.webp)$/u.test(path)) throw new Error(`Invalid portrait asset path: ${path}`);
+  if (typeof path !== 'string' || !/^images\/(?:(?:survivor|killer)-images\/[\p{L}0-9_-]+\.(?:png|webp)|survivor-collection-images\/[\p{L}0-9 _-]+\.png|portrait-runtime\/[a-z0-9-]+\.webp)$/u.test(path)) throw new Error(`Invalid portrait asset path: ${path}`);
   return path;
 }
 export function portraitDimensions(bytes, path) {
@@ -117,8 +118,35 @@ export async function generatePortraitManifest(root = PROJECT_ROOT) {
   }
   return { portraits };
 }
+export async function generateCollectionPortraitManifest(root = PROJECT_ROOT) {
+  root = resolve(root);
+  await entries(resolve(root, 'images'));
+  const survivors = characters.filter(character => character.role === 'survivor');
+  const collectionPortraits = Object.fromEntries(survivors.map(character => [character.id, null]).sort(([a], [b]) => a.localeCompare(b)));
+  const folder = resolve(root, 'images/survivor-collection-images');
+  for (const child of (await entries(folder)).sort((a, b) => a.name.localeCompare(b.name))) {
+    if (child.isSymbolicLink()) throw new Error(`Collection portrait cannot use a symbolic link: ${child.name}`);
+    const sourcePath = `images/survivor-collection-images/${child.name}`;
+    assertPortraitAssetPath(sourcePath);
+    if (!child.isFile()) throw new Error(`Invalid collection portrait file: ${sourcePath}`);
+    const stem = slug(basename(child.name, '.png'));
+    const alias = collectionPortraitAliases[stem];
+    const matches = survivors.filter(candidate => alias
+      ? candidate.id === alias
+      : candidate.id === stem || slug(candidate.name) === stem);
+    if (matches.length !== 1) throw new Error(`Unknown or ambiguous collection portrait: ${sourcePath}`);
+    const character = matches[0], id = character.id;
+    if (collectionPortraits[id]) throw new Error(`Collection portrait collision for ${id}`);
+    const bytes = await readFile(resolve(root, sourcePath)), dimensions = portraitDimensions(bytes, sourcePath);
+    if (dimensions.format !== 'png') throw new Error(`Collection portrait format/extension mismatch: ${sourcePath}`);
+    collectionPortraits[id] = { path: sourcePath, sourcePath, ...dimensions, sha256: createHash('sha256').update(bytes).digest('hex') };
+  }
+  return { collectionPortraits };
+}
 export async function generateAssetManifest(root = PROJECT_ROOT) {
-  const [perks, portraits] = await Promise.all([generatePerkManifest(root), generatePortraitManifest(root)]);
+  const [perks, portraits, collectionPortraits] = await Promise.all([
+    generatePerkManifest(root), generatePortraitManifest(root), generateCollectionPortraitManifest(root),
+  ]);
   const inventory={};
   for(const entity of inventoryEntities) {
     inventory[entity.id]=null;
@@ -136,7 +164,7 @@ export async function generateAssetManifest(root = PROJECT_ROOT) {
     if(sha256!==entity.imageSha256)continue;
     try {inventory[entity.id]={path,...pngDimensions(bytes,path),sha256};}catch{ /* Truthful art fallback. */ }
   }
-  return { ...perks, ...portraits, inventory };
+  return { ...perks, ...portraits, ...collectionPortraits, inventory };
 }
 export function assertInventoryAssetPath(path) {
   if(typeof path!=='string'||!/^images\/survivor-items-addons\/[a-z0-9]+(?:-[a-z0-9]+)*\/(items|addons)\/[a-z0-9]+(?:-[a-z0-9]+)*\.png$/.test(path))
@@ -146,7 +174,7 @@ export function assertInventoryAssetPath(path) {
 export async function writeAssetManifest(root = PROJECT_ROOT) {
   root = resolve(root);
   const manifest = await generateAssetManifest(root);
-  for (const asset of Object.values(manifest.portraits).filter(asset => asset && asset.path !== asset.sourcePath)) {
+  for (const asset of [...Object.values(manifest.portraits), ...Object.values(manifest.collectionPortraits || {})].filter(asset => asset && asset.path !== asset.sourcePath)) {
     const folder = resolve(root, 'images/portrait-runtime');
     await entries(folder);
     await mkdir(folder, { recursive: true });

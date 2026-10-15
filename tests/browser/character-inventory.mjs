@@ -122,11 +122,11 @@ export async function characterInventoryRegression(page, origin) {
   assert.equal(await page.locator('.character-inventory-scopes').count(), 0);
   assert.equal(await page.locator('.character-inventory-card-size-control').count(), 0, 'Card sizing stays out of account-wide libraries');
 
-  // Roster actions for both roles land on the canonical inventory route.
+  // Survivor cards open Character Overview; Killer roster inventory actions keep their existing route.
   await page.goto(origin + '/#survivors');
   await page.getByPlaceholder('Search characters…').fill('Kate');
-  await page.locator('.character-card').filter({ hasText: 'Kate Denson' }).getByRole('link', { name: /Inventory/ }).click();
-  assert.equal(new URL(page.url()).hash, '#character/kate-denson/perks');
+  await page.locator('.character-card').filter({ hasText: 'Kate Denson' }).getByRole('link', { name: /Open workspace/ }).click();
+  assert.equal(new URL(page.url()).hash, '#character/kate-denson/overview');
   await page.goto(origin + '/#killers');
   await page.getByPlaceholder('Search characters…').fill('Doctor');
   await page.locator('.character-card').filter({ hasText: 'The Doctor' }).getByRole('link', { name: /Inventory/ }).click();

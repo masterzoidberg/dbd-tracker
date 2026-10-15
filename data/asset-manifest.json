@@ -2713,6 +2713,440 @@
       "sha256": "d9f3294d9d39392be7e93a3df54dea9c9aaaccaf13e5548543c3be5a64b25eb9"
     }
   },
+  "collectionPortraits": {
+    "ace-visconti": {
+      "path": "images/survivor-collection-images/Ace Visconti.png",
+      "sourcePath": "images/survivor-collection-images/Ace Visconti.png",
+      "width": 502,
+      "height": 983,
+      "format": "png",
+      "sha256": "e3e93e3d621c9da2b48d77b758bc14e07bc6b72fbd9ff013330bade49609633c"
+    },
+    "ada-wong": {
+      "path": "images/survivor-collection-images/Ada Wong.png",
+      "sourcePath": "images/survivor-collection-images/Ada Wong.png",
+      "width": 398,
+      "height": 991,
+      "format": "png",
+      "sha256": "7f904d61988753ea0344c0bc7c5260b5e18151df7d07d1f84ecb40fb42f91b23"
+    },
+    "adam-francis": {
+      "path": "images/survivor-collection-images/Adam Francis.png",
+      "sourcePath": "images/survivor-collection-images/Adam Francis.png",
+      "width": 512,
+      "height": 1004,
+      "format": "png",
+      "sha256": "be10dc816a541b22603882e5411175026903921cbab421c999603f1a3cf27701"
+    },
+    "aestri-yazar": {
+      "path": "images/survivor-collection-images/Aestri Yazar.png",
+      "sourcePath": "images/survivor-collection-images/Aestri Yazar.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "1055525abc3adf3b8e2bd55ba829fc8f2571a6135d5037ad02512f8bf7e4bbf0"
+    },
+    "alan-wake": {
+      "path": "images/survivor-collection-images/Alan Wake.png",
+      "sourcePath": "images/survivor-collection-images/Alan Wake.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "71f8ddf3c8f79cab7fa36c8c51636ec5675b892a7fd9e886eb1cb38462561307"
+    },
+    "ash-williams": {
+      "path": "images/survivor-collection-images/Ash Williams.png",
+      "sourcePath": "images/survivor-collection-images/Ash Williams.png",
+      "width": 500,
+      "height": 1013,
+      "format": "png",
+      "sha256": "7ba996b2e11ffcbc2f2cd3ac953ecb949c2d9d60cd131e0f90676d481af44e2b"
+    },
+    "aurora-stardotter": {
+      "path": "images/survivor-collection-images/Aurora Stardotter.png",
+      "sourcePath": "images/survivor-collection-images/Aurora Stardotter.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "91e9589ca3abfc1b37c58d69791df2902756f6c4515f8e5a48d542ccfa95af98"
+    },
+    "bill-overbeck": {
+      "path": "images/survivor-collection-images/Bill Overbeck.png",
+      "sourcePath": "images/survivor-collection-images/Bill Overbeck.png",
+      "width": 472,
+      "height": 994,
+      "format": "png",
+      "sha256": "62cabef1161e9959e23c56947a0e671896f6b891ffb5a2ef8588d7ebcac827b1"
+    },
+    "cheryl-mason": {
+      "path": "images/survivor-collection-images/Cheryl Mason.png",
+      "sourcePath": "images/survivor-collection-images/Cheryl Mason.png",
+      "width": 483,
+      "height": 970,
+      "format": "png",
+      "sha256": "c9dd1f2c206c57c95ea42494d35bf1e05b5aa5d603702eac53b589cd59c951b7"
+    },
+    "claudette-morel": {
+      "path": "images/survivor-collection-images/Claudette Morel.png",
+      "sourcePath": "images/survivor-collection-images/Claudette Morel.png",
+      "width": 512,
+      "height": 1005,
+      "format": "png",
+      "sha256": "50a6dc1aba2abaceb66eef30913d5352c983b930d424ac1b8682c3caaafb1ebe"
+    },
+    "david-king": {
+      "path": "images/survivor-collection-images/David King.png",
+      "sourcePath": "images/survivor-collection-images/David King.png",
+      "width": 512,
+      "height": 991,
+      "format": "png",
+      "sha256": "9196bda6f2d7cd9014f25e51a8edd6b77bca0bc307e621b7b169e8841032c6fb"
+    },
+    "david-tapp": {
+      "path": "images/survivor-collection-images/David Tapp.png",
+      "sourcePath": "images/survivor-collection-images/David Tapp.png",
+      "width": 512,
+      "height": 998,
+      "format": "png",
+      "sha256": "6063e7b08203070dd2f01479d017e1b75b4373ff8fc93605852a0726a8e13c3b"
+    },
+    "dustin-henderson": {
+      "path": "images/survivor-collection-images/Dustin Henderson.png",
+      "sourcePath": "images/survivor-collection-images/Dustin Henderson.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "f762b26ce1be21547d714774ccbe8cb8d8152933d6c6845f90e05a16ea856505"
+    },
+    "dwight-fairfield": {
+      "path": "images/survivor-collection-images/Dwight Fairfield.png",
+      "sourcePath": "images/survivor-collection-images/Dwight Fairfield.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "5b1984ad642f16f2f833a4c80f25139e8b7cb829575f5aa90516ff1df823dfd1"
+    },
+    "eleven": {
+      "path": "images/survivor-collection-images/Eleven.png",
+      "sourcePath": "images/survivor-collection-images/Eleven.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "73a95e66c611f898397ebc73aa7ffcdc56bd6e9cc1096286f51707c1c46456d8"
+    },
+    "ellen-ripley": {
+      "path": "images/survivor-collection-images/Ellen Ripley.png",
+      "sourcePath": "images/survivor-collection-images/Ellen Ripley.png",
+      "width": 496,
+      "height": 980,
+      "format": "png",
+      "sha256": "5273796279ac562e57689b3e5958f8c27e4543b8a887e2e5dc4eae01a617e81d"
+    },
+    "elodie-rakoto": {
+      "path": "images/survivor-collection-images/Elodie Rakoto.png",
+      "sourcePath": "images/survivor-collection-images/Elodie Rakoto.png",
+      "width": 500,
+      "height": 1021,
+      "format": "png",
+      "sha256": "edb3a7327972b391a2e9e0d7c0f70ab1046aa09231a1541f4dc6b9c8f63fe143"
+    },
+    "felix-richter": {
+      "path": "images/survivor-collection-images/Felix Richter.png",
+      "sourcePath": "images/survivor-collection-images/Felix Richter.png",
+      "width": 500,
+      "height": 1013,
+      "format": "png",
+      "sha256": "304fa890c7afc27021ef71d286087e694219349d85ede94247b775223ef5a2ba"
+    },
+    "feng-min": {
+      "path": "images/survivor-collection-images/Feng Min.png",
+      "sourcePath": "images/survivor-collection-images/Feng Min.png",
+      "width": 433,
+      "height": 963,
+      "format": "png",
+      "sha256": "0dd1d537739d8f578ab1cbabe6f16cb39049d452194dad15e3c1f4b1c56e660c"
+    },
+    "gabriel-soma": {
+      "path": "images/survivor-collection-images/Gabriel Soma.png",
+      "sourcePath": "images/survivor-collection-images/Gabriel Soma.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "caee64085ee16fdc38e4dfa8fe80888c7a9244b01326f9dc73df3edea5592e24"
+    },
+    "haddie-kaur": {
+      "path": "images/survivor-collection-images/Haddie Kaur.png",
+      "sourcePath": "images/survivor-collection-images/Haddie Kaur.png",
+      "width": 512,
+      "height": 990,
+      "format": "png",
+      "sha256": "f83fa3dda91459b3ab45f1452d3db190fa811b5c6cfd2d841ae86f5ba058f378"
+    },
+    "jake-park": {
+      "path": "images/survivor-collection-images/JakeStore.png",
+      "sourcePath": "images/survivor-collection-images/JakeStore.png",
+      "width": 512,
+      "height": 1013,
+      "format": "png",
+      "sha256": "ca4a217e3e958ff87950766c3ed6e28ae8b12cedfa1713c377e5c75d6124883c"
+    },
+    "jane-romero": {
+      "path": "images/survivor-collection-images/Jane Romero.png",
+      "sourcePath": "images/survivor-collection-images/Jane Romero.png",
+      "width": 465,
+      "height": 998,
+      "format": "png",
+      "sha256": "c4b5638f4e530d77e382c109b3b21573dbd6abb8be75908fa4c9cb592ceb2959"
+    },
+    "jeff-johansen": {
+      "path": "images/survivor-collection-images/Jeff Johansen.png",
+      "sourcePath": "images/survivor-collection-images/Jeff Johansen.png",
+      "width": 496,
+      "height": 987,
+      "format": "png",
+      "sha256": "511a3ea6d6a8c1df64501d2cc7a5424c6b56796d063b4c8dbdc3c99588eb916c"
+    },
+    "jill-valentine": {
+      "path": "images/survivor-collection-images/Jill Valentine.png",
+      "sourcePath": "images/survivor-collection-images/Jill Valentine.png",
+      "width": 512,
+      "height": 975,
+      "format": "png",
+      "sha256": "8b3630471694106d8220b7dbc42656de5d2fda54a85edf0cdad12a1da1c4928d"
+    },
+    "jonah-vasquez": {
+      "path": "images/survivor-collection-images/Jonah Vasquez.png",
+      "sourcePath": "images/survivor-collection-images/Jonah Vasquez.png",
+      "width": 512,
+      "height": 1007,
+      "format": "png",
+      "sha256": "2aa17f4d7ca0885433b8ba6cf7ffd6eda21dca704ffa2e08b3254f5b18ece983"
+    },
+    "kate-denson": {
+      "path": "images/survivor-collection-images/Kate Denson.png",
+      "sourcePath": "images/survivor-collection-images/Kate Denson.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "41a91b5d23be1e88f20d2db07679bea965fb5d930dd2c20912c55f9fc810775a"
+    },
+    "kwon-tae-young": {
+      "path": "images/survivor-collection-images/Kwon Tae-young.png",
+      "sourcePath": "images/survivor-collection-images/Kwon Tae-young.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "f7d00e6e2eb38cebd49f7a86c36adf9d6e3e192742e6e3e3e178c466bb0d096f"
+    },
+    "lara-croft": {
+      "path": "images/survivor-collection-images/Lara Croft.png",
+      "sourcePath": "images/survivor-collection-images/Lara Croft.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "acb4df02f4fb618c91e763f628e2be44d659570ae94d65257a92e7c69e9166cb"
+    },
+    "laurie-strode": {
+      "path": "images/survivor-collection-images/Laurie Strode.png",
+      "sourcePath": "images/survivor-collection-images/Laurie Strode.png",
+      "width": 482,
+      "height": 995,
+      "format": "png",
+      "sha256": "3d97f07f2772a3ebbb38c41e848d281b0bee4ff8bbca473209a63a05546d4c5e"
+    },
+    "leon-s-kennedy": {
+      "path": "images/survivor-collection-images/Leon S Kennedy.png",
+      "sourcePath": "images/survivor-collection-images/Leon S Kennedy.png",
+      "width": 512,
+      "height": 995,
+      "format": "png",
+      "sha256": "0c3251694d7b2dbe3bf9664d4048f8000975050550f1d88ad65b8e4354c9b09e"
+    },
+    "meg-thomas": {
+      "path": "images/survivor-collection-images/Meg Thomas.png",
+      "sourcePath": "images/survivor-collection-images/Meg Thomas.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "ff0570047486694e7aa9c9793284a3e713e57896acf497e8451d8c238d4c0195"
+    },
+    "michonne-grimes": {
+      "path": "images/survivor-collection-images/Michonne Grimes.png",
+      "sourcePath": "images/survivor-collection-images/Michonne Grimes.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "ae8b2af629e72e0976e5747ee0d6ff030fc473ab514a7f5fe6c98b560785f9c0"
+    },
+    "mikaela-reid": {
+      "path": "images/survivor-collection-images/Mikaela Reid.png",
+      "sourcePath": "images/survivor-collection-images/Mikaela Reid.png",
+      "width": 512,
+      "height": 994,
+      "format": "png",
+      "sha256": "6fdf08f274fba31220ced91de3e3ac58df1d64065fab6c78e6370fd3bb0abac6"
+    },
+    "nancy-wheeler": {
+      "path": "images/survivor-collection-images/Nancy Wheeler.png",
+      "sourcePath": "images/survivor-collection-images/Nancy Wheeler.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "4c5ae348158cbf2fed7a34c3800ebb156e308d76fc03095291cbf91d326ab41c"
+    },
+    "nea-karlsson": {
+      "path": "images/survivor-collection-images/Nea Karlsson.png",
+      "sourcePath": "images/survivor-collection-images/Nea Karlsson.png",
+      "width": 481,
+      "height": 993,
+      "format": "png",
+      "sha256": "fe91151a39b674984dce0f752df78dcf8c8872363f0fe3950efc1a12c1e50d7b"
+    },
+    "nicolas-cage": {
+      "path": "images/survivor-collection-images/Nicolas Cage.png",
+      "sourcePath": "images/survivor-collection-images/Nicolas Cage.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "8be71a3c5c22393d715160d202b933b84ffd2b2dea3eb37ec406cdb02b30f61b"
+    },
+    "orela-rose": {
+      "path": "images/survivor-collection-images/Orela Rose.png",
+      "sourcePath": "images/survivor-collection-images/Orela Rose.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "95718d635f65d4897322ff8b5f94a7aed7e6fed29d2d8f2248d4e1c1ef5006f3"
+    },
+    "quentin-smith": {
+      "path": "images/survivor-collection-images/Quentin Smith.png",
+      "sourcePath": "images/survivor-collection-images/Quentin Smith.png",
+      "width": 512,
+      "height": 1008,
+      "format": "png",
+      "sha256": "138fdf48f4c3ae90ff0e59dc65c0899dc4dba509be536a985b93f702df7fda1e"
+    },
+    "rebecca-chambers": {
+      "path": "images/survivor-collection-images/Rebecca Chambers.png",
+      "sourcePath": "images/survivor-collection-images/Rebecca Chambers.png",
+      "width": 468,
+      "height": 977,
+      "format": "png",
+      "sha256": "0d0687fbefa1a24507bc0895ded41e03388be79e09166245e97ab43e23bd44bb"
+    },
+    "renato-lyra": {
+      "path": "images/survivor-collection-images/Renato Lyra.png",
+      "sourcePath": "images/survivor-collection-images/Renato Lyra.png",
+      "width": 490,
+      "height": 981,
+      "format": "png",
+      "sha256": "9f53fac70937f27b3e2794365e5e8e085f5331f7fed0e086f70f4f7f88b12437"
+    },
+    "rick-grimes": {
+      "path": "images/survivor-collection-images/Rick Grimes.png",
+      "sourcePath": "images/survivor-collection-images/Rick Grimes.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "d7ee06c683178aa0a90b7f15fe3acb3ba339b7f61980341b09da2fefcf89ef1d"
+    },
+    "sable-ward": {
+      "path": "images/survivor-collection-images/Sable Ward.png",
+      "sourcePath": "images/survivor-collection-images/Sable Ward.png",
+      "width": 479,
+      "height": 969,
+      "format": "png",
+      "sha256": "8ef4f1a7dbf34f17d2a7d6718c553c24fb4c5265cd55a8497e6fb6487dd0aebc"
+    },
+    "shane-wiigwaas": {
+      "path": "images/survivor-collection-images/Shane Wiigwaas.png",
+      "sourcePath": "images/survivor-collection-images/Shane Wiigwaas.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "c8a1e4f49190e00867f6da30464bec76f59b61644334d18cc9da264f7fdad9e2"
+    },
+    "steve-harrington": {
+      "path": "images/survivor-collection-images/Steve Harrington.png",
+      "sourcePath": "images/survivor-collection-images/Steve Harrington.png",
+      "width": 500,
+      "height": 1023,
+      "format": "png",
+      "sha256": "72e90b4f1b92591163cec194b1e6e0bd0932707a1fa6e93c50f6ccdcd4746a77"
+    },
+    "taurie-cain": {
+      "path": "images/survivor-collection-images/Taurie Cain.png",
+      "sourcePath": "images/survivor-collection-images/Taurie Cain.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "2e212984a4d6aad76893cab2ea555301f6d5e9304b73c8f7cbbecc4f73035c66"
+    },
+    "thalita-lyra": {
+      "path": "images/survivor-collection-images/Thalita Lyra.png",
+      "sourcePath": "images/survivor-collection-images/Thalita Lyra.png",
+      "width": 428,
+      "height": 980,
+      "format": "png",
+      "sha256": "5fcc9eaec3143a9fbd1810c4aa802ccbb8511adf50306ff2eed311e98e152dac"
+    },
+    "trevor-belmont": {
+      "path": "images/survivor-collection-images/Trevor Belmont.png",
+      "sourcePath": "images/survivor-collection-images/Trevor Belmont.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "72428f88c004d5291c058df66c60dc6d9fac3bcb359b361bf21caacd69a802b6"
+    },
+    "vee-boonyasak": {
+      "path": "images/survivor-collection-images/Vee Boonyasak.png",
+      "sourcePath": "images/survivor-collection-images/Vee Boonyasak.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "8925229f8ab25ec6d3916dc492cfb10149fee25d12ed20340d1131bee816bce3"
+    },
+    "vittorio-toscano": {
+      "path": "images/survivor-collection-images/Vittorio Toscano.png",
+      "sourcePath": "images/survivor-collection-images/Vittorio Toscano.png",
+      "width": 512,
+      "height": 1000,
+      "format": "png",
+      "sha256": "67f16ac244dbad8d5d73f500e4e1bf077b920b1b81b3a41f5839534659600df6"
+    },
+    "yoichi-asakawa": {
+      "path": "images/survivor-collection-images/Yoichi Asakawa.png",
+      "sourcePath": "images/survivor-collection-images/Yoichi Asakawa.png",
+      "width": 512,
+      "height": 1020,
+      "format": "png",
+      "sha256": "5dd2c6d9d98b46312286a7ba29c6b376e42b3ea92894c89301ff11e1429a21a1"
+    },
+    "yui-kimura": {
+      "path": "images/survivor-collection-images/Yui Kimura.png",
+      "sourcePath": "images/survivor-collection-images/Yui Kimura.png",
+      "width": 482,
+      "height": 998,
+      "format": "png",
+      "sha256": "d3c99a8478e5cc953862acf8f5aeaef2acf20341415da5a6db85a14b85f699c7"
+    },
+    "yun-jin-lee": {
+      "path": "images/survivor-collection-images/Yun-Jin Lee.png",
+      "sourcePath": "images/survivor-collection-images/Yun-Jin Lee.png",
+      "width": 505,
+      "height": 980,
+      "format": "png",
+      "sha256": "f038c21e7b7deb28e33932b27066b5df103c69aea3a764dafbbdb2f6d72b264f"
+    },
+    "zarina-kassir": {
+      "path": "images/survivor-collection-images/Zarina Kassir.png",
+      "sourcePath": "images/survivor-collection-images/Zarina Kassir.png",
+      "width": 427,
+      "height": 1000,
+      "format": "png",
+      "sha256": "a44fcb0d061afb52d311fb47ebb4797fbe62f0d1cfd9d454d7d7b98c53c9f0b1"
+    }
+  },
   "inventory": {
     "survivor-item-key-broken-key": {
       "path": "images/survivor-items-addons/key/items/broken-key.png",

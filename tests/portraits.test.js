@@ -39,6 +39,34 @@ test('current portraits cover all 98 canonical characters, preserving source has
   assert.equal(resolver.characterPortraitPath('unknown-safe-id', { portraits }), null);
   assert.equal(resolver.characterPortraitPath('bill-overbeck', { portraits }), portraits['bill-overbeck'].path);
 });
+test('Survivor collection portraits cover the live roster and preserve their source bytes', async () => {
+  const { collectionPortraits } = await assets.generateCollectionPortraitManifest(project);
+  const survivors = characters.filter(character => character.role === 'survivor');
+  assert.deepEqual(Object.keys(collectionPortraits), survivors.map(character => character.id).sort());
+  assert.equal(Object.values(collectionPortraits).filter(Boolean).length, survivors.length);
+  for (const character of survivors) {
+    const portrait = collectionPortraits[character.id];
+    assert.ok(portrait.path.startsWith('images/survivor-collection-images/'));
+    assert.ok(portrait.path.endsWith('.png'));
+    assert.equal(portrait.sourcePath, portrait.path);
+    assert.equal(portrait.format, 'png');
+    const bytes = await readFile(join(project, portrait.sourcePath));
+    assert.equal(createHash('sha256').update(bytes).digest('hex'), portrait.sha256);
+    assert.deepEqual(assets.portraitDimensions(bytes, portrait.path), { width: portrait.width, height: portrait.height, format: 'png' });
+  }
+  assert.ok(collectionPortraits['jake-park'].path.endsWith('/JakeStore.png'));
+  assert.equal(resolver.collectionPortraitPath('__proto__', { collectionPortraits }), null);
+  assert.equal(resolver.collectionPortraitPath('ace-visconti', { collectionPortraits }), collectionPortraits['ace-visconti'].path);
+});
+test('collection portrait manifest keeps missing Survivors null and rejects unknown image names', async t => {
+  const root = await fixture(t);
+  await put(root, 'images/survivor-collection-images/meg-thomas.png');
+  const { collectionPortraits } = await assets.generateCollectionPortraitManifest(root);
+  assert.ok(collectionPortraits['meg-thomas']);
+  assert.equal(collectionPortraits['ada-wong'], null);
+  await put(root, 'images/survivor-collection-images/not-a-live-character.png');
+  await assert.rejects(assets.generateCollectionPortraitManifest(root), /Unknown|ambiguous/);
+});
 test('portrait missing entries are null and mislabeled WebP copies regenerate from source before every build', async t => {
   const root = await fixture(t);
   await put(root, 'images/killer-images/the_ghost_face.png', webp);
@@ -98,6 +126,7 @@ test('staging contains only manifest portraits, verifies both formats and exclud
   const root = await fixture(t);
   await put(root, 'images/killer-images/the_ghost_face.png', webp);
   await put(root, 'images/survivor-images/meg_thomas.png');
+  await put(root, 'images/survivor-collection-images/meg-thomas.png');
   const manifest = await assets.writeAssetManifest(root);
   await put(root, 'index.html', '<link href="styles.css" rel="stylesheet"><script src="dist/app.js"></script>');
   await put(root, 'styles.css', 'body { color: white }'); await put(root, 'dist/app.js', '// bundle');
@@ -106,6 +135,8 @@ test('staging contains only manifest portraits, verifies both formats and exclud
   await verifyStage(stage, { manifest });
   const path = manifest.portraits['the-ghost-face'].path;
   assert.deepEqual(await readFile(join(stage, path)), webp);
+  const collectionPath = manifest.collectionPortraits['meg-thomas'].path;
+  assert.deepEqual(await readFile(join(stage, collectionPath)), png);
   await assert.rejects(readFile(join(stage, 'images/killer-images/the_ghost_face.png')), /ENOENT/);
   await writeFile(join(stage, path), png);
   await assert.rejects(verifyStage(stage, { manifest }), /mismatch|format/);
