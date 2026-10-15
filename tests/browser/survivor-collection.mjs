@@ -12,11 +12,13 @@ function collectionFixture() {
     owned: true, favorite: true, prestige: 1, bloodwebLevel: 3, updatedAt: '2026-10-01T00:00:00.000Z',
   });
   Object.assign(save.characters['adam-francis'], {
-    owned: true, favorite: false, prestige: 2, bloodwebLevel: 20, updatedAt: '2026-10-02T00:00:00.000Z',
+    owned: true, favorite: false, prestige: 2, bloodwebLevel: 22, updatedAt: '2026-10-02T00:00:00.000Z',
   });
   Object.assign(save.characters['aestri-yazar'], {
     owned: true, favorite: true, prestige: 3, bloodwebLevel: 50, updatedAt: '2026-10-03T00:00:00.000Z',
   });
+  save.characters['meg-thomas'].bloodwebLevel = 8;
+  save.characters['alan-wake'].bloodwebLevel = 44;
   const items = inventoryEntities.filter(entity => entity.kind === 'survivor-item');
   const addons = inventoryEntities.filter(entity => entity.kind === 'survivor-addon');
   save.characters['ace-visconti'].inventory.items[items[0].id] = 20;
@@ -66,6 +68,11 @@ export async function survivorCollectionRegression(page, origin) {
   assert.equal(await ownership.getAttribute('aria-pressed'), 'true');
   assert.match(await ace.locator('.prestige').textContent(), /P1/);
   assert.match(await ace.locator('[data-bloodweb-value]').textContent(), /3\s*\/\s*50/);
+  for (const [id, level] of [['ada-wong', 1], ['ace-visconti', 3], ['meg-thomas', 8], ['adam-francis', 22], ['alan-wake', 44]]) {
+    const card = byCharacterId(page, id);
+    assert.match(await card.locator('[data-bloodweb-value]').textContent(), new RegExp(`^${level}\\s*/\\s*50$`));
+    assert.ok(await card.locator('.survivor-bloodweb-track>span').evaluate(fill => fill.getBoundingClientRect().width > 0), `${level}/50 has a visible progress line`);
+  }
 
   const nativeNames = characterById['ace-visconti'].nativePerkIds.map(id => perkName(fixture, perkById[id]));
   const native = ace.locator('[data-native-perks]');
@@ -107,7 +114,8 @@ export async function survivorCollectionRegression(page, origin) {
 
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.screenshot({ path: resolve('test-results/survivor-collection-desktop.png') });
+  await page.screenshot({ path: resolve('test-results/survivor-collection-first-rows.png') });
+  await page.screenshot({ path: resolve('test-results/survivor-collection-desktop.png'), fullPage: true });
 
   const search = page.locator('#search');
   await search.fill('Ada Wong');
@@ -161,6 +169,8 @@ export async function survivorCollectionRegression(page, origin) {
         const summary = card.querySelector('[data-collection-summary]').getBoundingClientRect();
         const native = card.querySelector('[data-native-perks]').getBoundingClientRect();
         const action = card.querySelector('[data-open-workspace]').getBoundingClientRect();
+        const name = card.querySelector('.character-name').getBoundingClientRect();
+        const favorite = card.querySelector('[data-action="favorite"]').getBoundingClientRect();
         const rows = [...card.querySelectorAll('.native-row')].map(row => {
           const name = row.querySelector('span:first-child').getBoundingClientRect();
           const tier = row.querySelector('.tier').getBoundingClientRect();
@@ -172,6 +182,7 @@ export async function survivorCollectionRegression(page, origin) {
           summaryAfterNative: summary.top >= native.bottom,
           actionAfterSummary: action.top >= summary.bottom,
           actionHeight: action.height,
+          identityClear: name.right <= favorite.left,
           favoriteHeight: card.querySelector('[data-action="favorite"]').getBoundingClientRect().height,
           rows,
           width: rect.width,
@@ -184,6 +195,7 @@ export async function survivorCollectionRegression(page, origin) {
     assert.ok(metrics.cardRects.every(card => card.inside), `Cards stay in the collection grid at ${width}`);
     assert.ok(metrics.cardRects.every(card => card.heroInside), `Hero art stays inside its card at ${width}`);
     assert.ok(metrics.cardRects.every(card => card.summaryAfterNative && card.actionAfterSummary), `Perks, metrics, and action stay in order at ${width}`);
+    assert.ok(metrics.cardRects.every(card => card.identityClear), `Names remain clear of Favorite at ${width}`);
     assert.ok(metrics.cardRects.every(card => card.rows.every(Boolean)), `Perk names and tiers do not collide at ${width}`);
     assert.ok(metrics.cardRects.every(card => card.actionHeight >= 40 && card.favoriteHeight >= 40), `Favorite and workspace controls remain practical targets at ${width}`);
     if (width === 1600) assert.ok(metrics.cardRects.every(card => card.width <= 440), 'Cards stay dense on large screens');

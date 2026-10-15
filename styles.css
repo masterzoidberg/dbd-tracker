@@ -1007,7 +1007,7 @@ main {
   content:"";
   position:absolute;
   inset:0;
-  background:linear-gradient(180deg,rgba(25,25,27,.035) 0%,rgba(25,25,27,.04) 16%,rgba(25,25,27,.12) 38%,rgba(25,25,27,.54) 68%,var(--survivor-card-surface) 100%),linear-gradient(90deg,rgba(25,25,27,.16) 0%,rgba(25,25,27,.05) 11%,transparent 25%,transparent 75%,rgba(25,25,27,.05) 89%,rgba(25,25,27,.16) 100%)
+  background:linear-gradient(180deg,rgba(25,25,27,.05) 0%,rgba(25,25,27,.055) 16%,rgba(25,25,27,.12) 38%,rgba(25,25,27,.54) 68%,var(--survivor-card-surface) 100%),linear-gradient(90deg,rgba(25,25,27,.18) 0%,rgba(25,25,27,.06) 11%,transparent 27%,transparent 73%,rgba(25,25,27,.06) 89%,rgba(25,25,27,.18) 100%)
 }
 .survivor-card-hero img {
   position:absolute;
@@ -1126,7 +1126,10 @@ main {
   padding-top:11px
 }
 .survivor-collection-card .native-perks h3 {
-  margin-bottom:7px
+  margin-bottom:7px;
+  color:#c0bbb5;
+  font-weight:600;
+  letter-spacing:1.1px
 }
 .survivor-collection-card .native-row {
   min-width:0;
@@ -1152,7 +1155,7 @@ main {
   margin-top:11px;
   padding:12px 0;
   border-top:1px solid var(--border);
-  color:var(--muted);
+  color:#b7b2ad;
   font-size:11px
 }
 .collection-summary-row {
@@ -1166,8 +1169,8 @@ main {
   white-space:nowrap
 }
 .collection-summary b {
-  color:#e1d9ce;
-  font-weight:600;
+  color:#f0e9df;
+  font-weight:650;
   font-variant-numeric:tabular-nums
 }
 .survivor-workspace-action {
