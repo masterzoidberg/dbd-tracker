@@ -55,6 +55,9 @@ let stockFilters = {map:'',rarity:'',search:'',inStock:false};
 let selectedFamilyId = '';
 let stockDetailOpener = null;
 let killerDetailOpener = null;
+let killerSession = null;
+let killerSessionKey = '';
+let killerBlurPending = null;
 let workspaceHistoryIndex = 0;
 let committedWorkspaceHash = location.hash || '#dashboard';
 let restoringWorkspaceHistory = null;
@@ -689,6 +692,10 @@ function killerPowerAddonsView(characterId) {
   if(!power)return '<section class="panel"><h2>Power &amp; Add-ons unavailable</h2><p>Verified Power and Add-on data is not available for this Killer.</p></section>';
   const character=characterById[characterId], powerArt=killerPowerIconPath(characterId,assetManifest);
   const addons=Object.values(inventoryEntityById).filter(entity=>entity.role==='killer'&&entity.characterId===characterId).sort((a,b)=>a.order-b.order);
+  if(killerSessionKey!==characterId||!killerSession){
+    killerSession=createQuantityInteraction(addons,save.characters[characterId].inventory.addons);
+    killerSessionKey=characterId;
+  }
   const groups=killerRarityOrder.map(rarity=>({rarity,addons:addons.filter(addon=>addon.rarity===rarity)}));
   const art=powerArt?'<img src="'+esc(powerArt)+'" alt="" data-power-art>':'<span class="stock-art-fallback" role="img" aria-label="Power artwork unavailable" data-power-art-fallback>◇</span>';
   return '<section class="killer-power-addons" data-killer-power-addons>'
@@ -698,15 +705,15 @@ function killerPowerAddonsView(characterId) {
     +'</section></section>';
 }
 function killerAddonCard(addon) {
-  const art=inventoryIconPath(addon.id,assetManifest), quantity=save.characters[addon.characterId]?.inventory.addons[addon.id]||0;
+  const art=inventoryIconPath(addon.id,assetManifest), quantity=killerSession.baseline[addon.id]||0, error=killerSession.errors[addon.id];
   const artwork=art?'<img src="'+esc(art)+'" alt="" loading="lazy" data-killer-addon-art>':'<span aria-hidden="true" class="stock-art-fallback">◇</span>';
   return '<article class="stock-card killer-addon-card '+(quantity?'':'zero-stock')+'" data-killer-addon-card data-character-id="'+esc(addon.characterId)+'" data-addon-id="'+esc(addon.id)+'" data-rarity="'+esc(addon.rarity)+'">'
     +'<div class="stock-card-media">'+artwork+'</div><h5 class="stock-card-title">'+esc(addon.name)+'</h5><div class="stock-card-meta">'+esc(addon.rarity)+' · Add-on</div>'
     +'<label for="killer-quantity-'+esc(addon.id)+'">Quantity of '+esc(addon.name)+'</label><div class="stock-quantity-control">'
-    +'<button type="button" id="killer-stock-decrement-'+esc(addon.id)+'" data-killer-stock-step data-id="'+esc(addon.id)+'" data-delta="-1" aria-label="Decrease quantity of '+esc(addon.name)+'">−</button>'
-    +'<input id="killer-quantity-'+esc(addon.id)+'" data-killer-quantity="'+esc(addon.id)+'" inputmode="numeric" type="text" value="'+quantity+'" aria-describedby="killer-stock-error-'+esc(addon.id)+'">'
-    +'<button type="button" id="killer-stock-increment-'+esc(addon.id)+'" data-killer-stock-step data-id="'+esc(addon.id)+'" data-delta="1" aria-label="Increase quantity of '+esc(addon.name)+'">+</button></div>'
-    +'<p id="killer-stock-error-'+esc(addon.id)+'" data-killer-stock-error role="status"></p>'
+    +'<button type="button" id="killer-stock-decrement-'+esc(addon.id)+'" data-action="killer-stock-step" data-killer-stock-step data-id="'+esc(addon.id)+'" data-delta="-1" aria-label="Decrease quantity of '+esc(addon.name)+'">−</button>'
+    +'<input id="killer-quantity-'+esc(addon.id)+'" data-inventory-quantity="'+esc(addon.id)+'" data-killer-quantity="'+esc(addon.id)+'" inputmode="numeric" type="text" value="'+esc(killerSession.raw[addon.id])+'" aria-invalid="'+Boolean(error)+'" aria-describedby="killer-stock-error-'+esc(addon.id)+'">'
+    +'<button type="button" id="killer-stock-increment-'+esc(addon.id)+'" data-action="killer-stock-step" data-killer-stock-step data-id="'+esc(addon.id)+'" data-delta="1" aria-label="Increase quantity of '+esc(addon.name)+'">+</button></div>'
+    +'<p id="killer-stock-error-'+esc(addon.id)+'" data-killer-stock-error role="status">'+esc(error||(killerSession.pending[addon.id]?'Pending change':''))+'</p>'
     +'<button type="button" id="killer-addon-details-'+esc(addon.id)+'" class="stock-details-action" data-action="killer-addon-details" data-id="'+esc(addon.id)+'">Details</button></article>';
 }
 function updateStockStepControls(id=null) {
@@ -714,11 +721,57 @@ function updateStockStepControls(id=null) {
   for(const input of document.querySelectorAll('[data-inventory-quantity]')){
     const entityId=input.dataset.inventoryQuantity;
     if(id && entityId!==id)continue;
-    const result=acceptQuantityInput(stockSession,entityId);
-    input.closest('.stock-quantity-control').querySelectorAll('[data-stock-step]').forEach(control=>{
+    const result=acceptQuantityInput(input.hasAttribute('data-killer-quantity')?killerSession:stockSession,entityId);
+    input.closest('.stock-quantity-control').querySelectorAll('[data-stock-step], [data-killer-stock-step]').forEach(control=>{
       control.disabled=blocked||Boolean(result.error)
         || (control.dataset.delta==='-1'?result.quantity===0:result.quantity===Number.MAX_SAFE_INTEGER);
     });
+  }
+}
+function killerQuantityInput(target) {
+  store.assertWriter();
+  killerSession=updateQuantityInput(killerSession,target.dataset.killerQuantity,target.value);
+  updateStockStepControls(target.dataset.killerQuantity);
+}
+function stepKillerQuantity(button) {
+  store.assertWriter();
+  if(storageBlocked)return false;
+  const id=button.dataset.id;
+  killerBlurPending=null;
+  const result=stepQuantityInput(killerSession,id,Number(button.dataset.delta));
+  killerSession=result.state;
+  return acceptKillerQuantity(id,'step');
+}
+function acceptKillerQuantity(id,trigger,nextTargetId=null) {
+  if(!killerSession||!killerSession.entities.some(entity=>entity.id===id))return false;
+  killerBlurPending=null;
+  const result=acceptQuantityInput(killerSession,id);killerSession=result.state;
+  const focus=()=>$('#killer-quantity-'+id)?.focus({preventScroll:true});
+  if(result.error){render();if(trigger!=='blur')focus();return false;}
+  const characterId=killerSessionKey;
+  try {
+    store.assertWriter();
+    if(storageBlocked)throw Error('Stored save needs recovery.');
+    if((save.characters[characterId].inventory.addons[id]||0)!==result.quantity){
+      if(!commit(next=>{
+        if(result.quantity)next.characters[characterId].inventory.addons[id]=result.quantity;
+        else delete next.characters[characterId].inventory.addons[id];
+      },characterId))throw Error('Quantity retained for retry.');
+    }
+    const previous=killerSession;
+    killerSession=regroupQuantityEntries(previous,save.characters[characterId].inventory.addons);
+    for(const other of Object.keys(previous.pending).filter(other=>other!==id&&previous.pending[other])){
+      killerSession.raw[other]=previous.raw[other];killerSession.pending[other]=true;
+      if(previous.errors[other])killerSession.errors[other]=previous.errors[other];
+    }
+    const order=killerRarityOrder.flatMap(rarity=>killerSession.entities.filter(entity=>entity.rarity===rarity).map(entity=>entity.id));
+    const destination=quantityFocusAfterCommit(order,{entityId:id,nextTargetId,trigger,
+      visibleIds:[...order,...(nextTargetId&&document.getElementById(nextTargetId)?[nextTargetId]:[])]});
+    render();($('#killer-quantity-'+destination)||document.getElementById(destination))?.focus({preventScroll:true});
+    message('Quantity saved: '+inventoryEntityById[id].name+' '+result.quantity+'.');
+    return true;
+  }catch(error){
+    killerSession.errors[id]='Not saved. '+error.message;render();if(trigger!=='blur')focus();return false;
   }
 }
 function stockInput(target) {
@@ -863,6 +916,7 @@ function finishWorkspaceNavigation() {
   }
   if (descriptor?.section !== 'edit') characterEditSession = null;
   if (!['edit','items-addons'].includes(descriptor?.section) || stockSessionKey !== descriptor.characterId+'/'+descriptor.section) {stockSession=null;stockSessionKey='';}
+  if(descriptor?.section!=='power-addons'||killerSessionKey!==descriptor.characterId){killerSession=null;killerSessionKey='';killerBlurPending=null;}
   if (descriptor?.section !== 'setup') { characterSetup = null; setupQueue = null; }
   closeFilters(); setupOpen = false;
   if ($('#detail').open) $('#detail').close();
@@ -873,6 +927,10 @@ function finishWorkspaceNavigation() {
 async function requestWorkspaceNavigation(destination, { source = 'link' } = {}) {
   const hash = destination.startsWith('#') ? destination : '#' + destination;
   if (hash === committedWorkspaceHash) return true;
+  if(killerBlurPending?.key===killerSessionKey){
+    const pending=killerBlurPending;
+    if(!acceptKillerQuantity(pending.id,'blur',pending.destination))return false;
+  }
   if(stockSession?.mode==='detail'&&stockBlurPending?.key===stockSessionKey){
     const pending=stockBlurPending;stockBlurPending=null;
     if(!acceptStock(pending.id,'blur',pending.destination))return false;
@@ -956,12 +1014,14 @@ function killerAddonDetail(addonId) {
   return dialogHeader('KILLER ADD-ON',addon.name)+'<div class="stock-detail-body killer-detail-body"><div class="stock-detail-hero"><div class="stock-detail-media">'+artwork+'</div><div class="stock-detail-meta"><span class="inventory-rarity-badge inventory-rarity-'+esc(addon.rarity.toLowerCase().replace(/\s+/g,'-'))+'">'+esc(addon.rarity)+'</span></div></div><section><h3>Effect</h3><p data-killer-addon-effect>'+esc(addon.effect)+'</p></section></div>';
 }
 function openKillerPowerDetail(characterId,opener) {
+  killerBlurPending=null;
   closeFilters();$('#detail-message').hidden=true;$('#detail-message').textContent='';
   killerDetailOpener={id:opener?.id||''};modal={type:'killer-power',id:characterId};
   $('#detail-content').innerHTML=killerPowerDetail(characterId);
   if(!$('#detail').open)$('#detail').showModal();editorPresentation();
 }
 function openKillerAddonDetail(addonId,opener) {
+  killerBlurPending=null;
   closeFilters();$('#detail-message').hidden=true;$('#detail-message').textContent='';
   killerDetailOpener={id:opener?.id||''};modal={type:'killer-addon',id:addonId};
   $('#detail-content').innerHTML=killerAddonDetail(addonId);
@@ -1144,6 +1204,7 @@ async function handleClick(event) {
   if (!button) return;
   const { action, id, character, perk, mode, family } = button.dataset;
   if(action==='stock-step'){stepStock(button);return;}
+  if(action==='killer-stock-step'){stepKillerQuantity(button);return;}
   if(action==='stock-family-select'){selectStockFamily(family);return;}
   if(action==='queue-manage'){queueView.expanded=!queueView.expanded;render();$('[data-action="queue-manage"]')?.focus();return;}
   if(action==='queue-filter'){queueView.role=button.dataset.role;render();$('[data-action="queue-filter"][data-role="'+queueView.role+'"]')?.focus();return;}
@@ -1354,6 +1415,7 @@ document.addEventListener('pointerdown', event => {
 });
 document.addEventListener('click', event => { handleClick(event).catch(error => message(error.message || 'The action could not be completed.', true)); });
 document.addEventListener('input', event => {
+  if(event.target.hasAttribute('data-killer-quantity')){try{killerQuantityInput(event.target);}catch(error){message(error.message,true);}return;}
   if(event.target.dataset.inventoryQuantity){try{stockInput(event.target);}catch(error){message(error.message,true);}return;}
   if(event.target.id==='inventory-search'){stockFilters={...stockFilters,search:event.target.value};render();return;}
   if (event.target.dataset.editField) {
@@ -1470,6 +1532,7 @@ document.addEventListener('submit', event => {
   if (event.target.matches('[data-character-edit]')) { event.preventDefault(); return; }
 });
 document.addEventListener('keydown', event => {
+  if(event.key==='Enter'&&event.target.hasAttribute('data-killer-quantity')){event.preventDefault();acceptKillerQuantity(event.target.dataset.killerQuantity,'enter');return;}
   if(event.key==='Enter'&&event.target.dataset.inventoryQuantity){event.preventDefault();acceptStock(event.target.dataset.inventoryQuantity,'enter');return;}
   if (event.key === 'Escape' && characterInventorySession.quickPerkId) { event.preventDefault(); closeCharacterInventoryQuickPicker(true); return; }
   if (event.key === 'Escape' && $('#perk-filter-panel').matches(':popover-open')) { event.preventDefault(); closeFilters(true); return; }
@@ -1480,6 +1543,19 @@ document.addEventListener('focusin',event=>{
 });
 document.addEventListener('focusout',event=>{
   if(stockRendering)return;
+  if(event.target.hasAttribute('data-killer-quantity')||event.target.hasAttribute('data-killer-stock-step')){
+    const id=event.target.dataset.killerQuantity||event.target.dataset.id, key=killerSessionKey, related=event.relatedTarget;
+    if(related?.dataset.action==='killer-addon-details'||related?.dataset.action==='killer-power-details'||(modal?.type?.startsWith('killer-')&&$('#detail').open)){
+      killerBlurPending=null;return;
+    }
+    const destination=related?.dataset.killerQuantity||related?.id;
+    if(event.target.hasAttribute('data-killer-quantity'))killerBlurPending={id,key,destination};
+    if(related?.dataset.killerQuantity===id||(related?.hasAttribute('data-killer-stock-step')&&related.dataset.id===id))return;
+    if(killerBlurPending?.id===id&&killerBlurPending.key===key)setTimeout(()=>{
+      if(killerBlurPending?.id===id&&killerBlurPending.key===key&&killerSessionKey===key)acceptKillerQuantity(id,'blur',destination);
+    },0);
+    return;
+  }
   const id=event.target.dataset.inventoryQuantity||((event.target.hasAttribute('data-stock-step')||event.target.dataset.action==='stock-details')?event.target.dataset.id:((event.target.dataset.action==='stock-family-select'||event.target.dataset.action==='stock-error-focus'||event.target.id==='inventory-filters-toggle')?stockBlurPending?.id:null));
   if(!id)return;
   const key=stockSessionKey;
@@ -1500,7 +1576,10 @@ document.addEventListener('focusout',event=>{
 $('#detail').addEventListener('close', () => {
   if(killerDetailOpener){
     const opener=killerDetailOpener;killerDetailOpener=null;
-    document.getElementById(opener.id)?.focus({preventScroll:true});
+    const focused=document.activeElement;
+    if(focused===document.body||focused===document.documentElement||$('#detail').contains(focused)||focused.id===opener.id){
+      (document.getElementById(opener.id)||$('#main'))?.focus({preventScroll:true});
+    }
   }
   if(stockDetailOpener){
     const opener=stockDetailOpener;stockDetailOpener=null;
@@ -1545,6 +1624,14 @@ window.addEventListener('storage', event => {
           errors: [{ field: 'session', message: 'Underlying save changed; conflict. Discard/reload before saving.' }] };
       }
       save = loaded.save; migrationPending = loaded.migrationPending; storageBlocked = false;
+      if(killerSession){
+        const previous=killerSession;
+        killerSession=regroupQuantityEntries(previous,save.characters[killerSessionKey].inventory.addons);
+        for(const id of Object.keys(previous.pending).filter(id=>previous.pending[id])){
+          killerSession.raw[id]=previous.raw[id];killerSession.pending[id]=true;
+          if(previous.errors[id])killerSession.errors[id]=previous.errors[id];
+        }
+      }
       if(stockSession?.mode==='detail'){
         const previous=stockSession, id=stockSessionKey.split('/')[0], inventory=save.characters[id]?.inventory;
         if(inventory){
