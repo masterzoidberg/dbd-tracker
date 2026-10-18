@@ -437,7 +437,7 @@ export async function inventoryRegression(page,origin){
   await page.waitForURL('**/#character/meg-thomas/overview');
  await page.goto(origin+'/#character/the-doctor/power-addons');
  await page.waitForFunction(()=>document.querySelector('[data-character-workspace] h1')?.textContent==='The Doctor');
- assert.equal(await page.locator('[data-inventory-quantity]').count(),0);
+ assert.equal(await page.locator('[data-killer-quantity]').count(),20);
   await page.goto(origin+'/#character/meg-thomas/items-addons');
   await field(item.id).fill(String(Number.MAX_SAFE_INTEGER));
   await field(item.id).press('Enter');

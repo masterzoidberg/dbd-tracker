@@ -50,7 +50,8 @@ export async function characterWorkspaceRegression(page, origin) {
   for (const hash of ['#character/the-doctor/power-addons']) {
     await page.goto(origin + '/' + hash);
     await page.locator('[data-character-workspace]').waitFor();
-    assert.match(await page.locator('[data-character-workspace]').textContent(), /unavailable|not yet available/i);
+    assert.equal(await page.locator('[data-killer-power-panel]').count(), 1);
+    assert.equal(await page.locator('[data-killer-addon-card]').count(), 20);
   }
   for (const hash of ['#character/unknown/overview', '#character/meg-thomas/power-addons', '#manage/meg-thomas/extra']) {
     await page.goto(origin + '/' + hash);

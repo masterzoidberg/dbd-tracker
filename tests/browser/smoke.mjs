@@ -57,6 +57,8 @@ export async function smokeStage(stage, { channel = 'msedge', regression, manife
       await dashboardRegression(page,origin);
       const {characterWorkspaceRegression}=await import('./character-workspace.mjs');
       await characterWorkspaceRegression(page,origin);
+      const {killerPowerAddonsRegression}=await import('./killer-power-addons.mjs');
+      await killerPowerAddonsRegression(page,origin,manifest);
       const {characterSetupRegression}=await import('./character-setup.mjs');
       await characterSetupRegression(page,origin);
       const {characterEditRegression}=await import('./character-edit.mjs');
