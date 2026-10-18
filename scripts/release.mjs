@@ -26,13 +26,16 @@ export async function assertStagePath(root, stage = resolve(root, 'release/runti
 
 function runtimeFiles(manifest) {
   const files = { ...RUNTIME_FILES };
-  for(const asset of Object.values(manifest.inventory||{}).filter(Boolean)){
+  for(const [id,asset] of Object.entries(manifest.inventory||{}).filter(([,asset])=>asset)){
     const path=assertInventoryAssetPath(asset.path);
+    if(id.startsWith('killer-addon-')&&!path.startsWith('images/Powers and Add-ons/'))throw Error(`Killer Add-on asset must be below images/Powers and Add-ons/: ${path}`);
+    if(!id.startsWith('killer-addon-')&&!path.startsWith('images/survivor-items-addons/'))throw Error(`Survivor inventory asset must be below images/survivor-items-addons/: ${path}`);
     if(Object.hasOwn(files,path))throw Error('Inventory asset path collision.');
     files[path]=path;
   }
   for(const asset of Object.values(manifest.killerPowers||{}).filter(Boolean)){
     const path=assertInventoryAssetPath(asset.path);
+    if(!path.startsWith('images/Powers and Add-ons/'))throw Error(`Killer Power asset must be below images/Powers and Add-ons/: ${path}`);
     if(Object.hasOwn(files,path))throw Error(`Killer Power asset path collision: ${path}`);
     files[path]=path;
   }

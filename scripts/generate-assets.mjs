@@ -125,6 +125,7 @@ export async function generateAssetManifest(root = PROJECT_ROOT) {
     if(!entity.imagePath) continue;
     const path=assertInventoryAssetPath(entity.imagePath);
     const isKiller=entity.kind==='killer-addon';
+    if(isKiller&&!path.startsWith('images/Powers and Add-ons/'))throw Error(`Killer artwork path must be below images/Powers and Add-ons/: ${path}`);
     let safe=true;
     let parent=root;
     const parts=path.split('/');
@@ -153,6 +154,7 @@ export async function generateAssetManifest(root = PROJECT_ROOT) {
     const path=power.artwork.path;
     if(path===null){killerPowers[characterId]=null;continue;}
     assertInventoryAssetPath(path);
+    if(!path.startsWith('images/Powers and Add-ons/'))throw Error(`Killer Power artwork path must be below images/Powers and Add-ons/: ${path}`);
     if(!['EXACT','REVIEW'].includes(power.artwork.confidence))throw Error(`Killer Power artwork confidence is invalid: ${characterId}`);
     let parent=root;
     const parts=path.split('/');

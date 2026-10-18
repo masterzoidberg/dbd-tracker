@@ -190,6 +190,12 @@ test('release report and offline artwork check include Killer references and nul
  assert.ok(fileCheck.includes('the-report'));
  assert.ok(fileCheck.includes('1 intentional fallbacks'));
 });
+test('release rejects Killer manifest entries rooted in Survivor inventory artwork',async t=>{
+ const root=await fixture(t),path='images/survivor-items-addons/toolbox/items/worn-out-tools.png';
+ const asset={path,width:1,height:1,sha256:'0'.repeat(64)};
+ await assert.rejects(stageRuntime(root,{manifest:{perks:{},inventory:{'killer-addon-fixture':asset}}}),/Killer Add-on.*images\/Powers and Add-ons\//i);
+ await assert.rejects(verifyStage(root,{manifest:{perks:{},killerPowers:{'the-fixture':asset}}}),/Killer Power.*images\/Powers and Add-ons\//i);
+});
 test('unsafe manifest paths cannot copy files outside the perk runtime allowlist', async t => {
   const root = await fixture(t);
   for (const path of ['../personal-save.json', 'images/survivor-images/meg.png', '/absolute.png', 'images/killer-perks/../secret.png']) {

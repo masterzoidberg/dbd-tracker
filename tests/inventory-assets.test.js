@@ -73,6 +73,18 @@ test('Killer artwork paths accept only safe explicit paths under the tracked art
  for(const path of ['../secret.png','images/Powers and Add-ons/../secret.png','images/Powers and Add-ons\\secret.png','C:/secret.png','/absolute.png','images/other/secret.png'])
   assert.throws(()=>assertInventoryAssetPath(path));
 });
+test('Killer Add-on and Power source mappings reject valid Survivor inventory paths',async()=>{
+ const survivorPath='images/survivor-items-addons/toolbox/items/worn-out-tools.png';
+ const addon=Object.values(inventoryEntityById).find(entity=>entity.kind==='killer-addon'),addonPath=addon.imagePath;
+ const power=Object.values(killerPowerByCharacterId).find(row=>row.artwork.path),powerPath=power.artwork.path;
+ try {
+  addon.imagePath=survivorPath;
+  await assert.rejects(generateAssetManifest(),/Killer artwork path must be below images\/Powers and Add-ons\//i);
+  addon.imagePath=addonPath;
+  power.artwork.path=survivorPath;
+  await assert.rejects(generateAssetManifest(),/Killer Power artwork path must be below images\/Powers and Add-ons\//i);
+ } finally {addon.imagePath=addonPath;power.artwork.path=powerPath;}
+});
 test('inventory stage contains only referenced bytes and rejects hash tampering',async t=>{
  const root=await mkdtemp(join(tmpdir(),'dbd-stock-stage-'));
  t.after(()=>rm(root,{recursive:true,force:true}));
