@@ -96,6 +96,72 @@ export async function killerPowerAddonsRegression(page, origin, manifest) {
   await killerResponsiveRegression(page, origin);
   await killerDialogFocusRegression(page, origin);
   await killerQuantityRegression(page, origin);
+  await killerPendingNavigationRegression(page, origin);
+}
+
+export async function killerPendingNavigationRegression(page, origin) {
+  const route = origin + '/#character/the-doctor/power-addons';
+  await page.goto(route);
+  const ids = await page.locator('[data-killer-quantity]').evaluateAll(nodes => nodes.slice(0,2).map(node => node.dataset.killerQuantity));
+  const field = id => page.locator('[data-killer-quantity="' + id + '"]');
+  const bytes = () => page.evaluate(() => localStorage.getItem('dbdTrackerData'));
+  const openAndClose = async action => {
+    const before = await bytes();
+    await page.locator('[data-action="' + action + '"]').first().click();
+    assert.equal(await bytes(), before, 'Details retains pending edits without saving');
+    await page.getByRole('button', {name:'Close details',exact:true}).click();
+  };
+  for (const action of ['killer-power-details', 'killer-addon-details']) {
+    await page.goto(route);
+    for (const id of ids) { await field(id).fill('5'); await openAndClose(action); }
+    await page.getByRole('link', {name:'Overview',exact:true}).click();
+    const saved = JSON.parse(await bytes()).characters['the-doctor'].inventory.addons;
+    for (const id of ids) assert.equal(saved[id], 5, action + ': navigation saves every pending quantity after Details');
+
+    await page.goto(route);
+    await field(ids[0]).fill('invalid'); await openAndClose(action);
+    const invalidBefore = await bytes();
+    await page.getByRole('link', {name:'Overview',exact:true}).click();
+    assert.equal(page.url(), route, action + ': invalid pending edit blocks navigation');
+    assert.equal(await bytes(), invalidBefore);
+    assert.equal(await field(ids[0]).inputValue(), 'invalid');
+    assert.equal(await field(ids[0]).evaluate(node => node === document.activeElement), true);
+    await field(ids[0]).fill('6'); await openAndClose(action);
+    await page.evaluate(() => {
+      window.killerNavigationSetItem = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(key, value) {
+        if(key === 'dbdTrackerData') throw Error('Killer navigation save failure');
+        return window.killerNavigationSetItem.call(this,key,value);
+      };
+    });
+    try {
+      await page.getByRole('link', {name:'Overview',exact:true}).click();
+      assert.equal(page.url(), route, action + ': failed pending save blocks navigation');
+      assert.equal(await bytes(), invalidBefore);
+      assert.equal(await field(ids[0]).inputValue(), '6');
+      assert.equal(await field(ids[0]).evaluate(node => node === document.activeElement), true);
+    } finally {
+      await page.evaluate(() => {Storage.prototype.setItem = window.killerNavigationSetItem;delete window.killerNavigationSetItem;});
+    }
+    await page.getByRole('link', {name:'Overview',exact:true}).click();
+    assert.equal(JSON.parse(await bytes()).characters['the-doctor'].inventory.addons[ids[0]],6);
+    await page.goto(route);
+    await field(ids[0]).fill('7'); await openAndClose(action);
+    await page.evaluate(() => { location.hash = '#character/the-doctor/overview'; });
+    await page.locator('[data-killer-power-panel]').waitFor({state:'detached'});
+    assert.equal(JSON.parse(await bytes()).characters['the-doctor'].inventory.addons[ids[0]],7,
+      action + ': hash navigation also saves pending quantities');
+    await page.goto(route);
+    await field(ids[0]).fill('invalid'); await openAndClose(action);
+    const beforeHash = await bytes();
+    await page.evaluate(() => { location.hash = '#character/the-doctor/overview'; });
+    await page.waitForFunction(id => document.querySelector('[data-killer-quantity="' + id + '"]')?.getAttribute('aria-invalid') === 'true', ids[0]);
+    assert.equal(page.url(),route,action + ': invalid edit restores the prior hash route');
+    assert.equal(await bytes(),beforeHash);
+    assert.equal(await field(ids[0]).inputValue(),'invalid');
+    assert.equal(await field(ids[0]).evaluate(node => node === document.activeElement),true);
+    await field(ids[0]).fill('8'); await field(ids[0]).press('Enter');
+  }
 }
 
 export async function killerReservedArtworkRegression(page, origin) {

@@ -925,13 +925,19 @@ function finishWorkspaceNavigation() {
   committedWorkspaceHash = location.hash || '#dashboard';
   render(); window.scrollTo(0, 0); $('#main').focus();
 }
+function acceptPendingKillerQuantities() {
+  if(killerSession){
+    const pending=killerSession.entities.filter(entity=>killerSession.pending[entity.id]||killerSession.errors[entity.id]);
+    for(const entity of pending){
+      if(!acceptKillerQuantity(entity.id,'enter'))return false;
+    }
+  }
+  return true;
+}
 async function requestWorkspaceNavigation(destination, { source = 'link' } = {}) {
   const hash = destination.startsWith('#') ? destination : '#' + destination;
   if (hash === committedWorkspaceHash) return true;
-  if(killerBlurPending?.key===killerSessionKey){
-    const pending=killerBlurPending;
-    if(!acceptKillerQuantity(pending.id,'blur',pending.destination))return false;
-  }
+  if(!acceptPendingKillerQuantities())return false;
   if(stockSession?.mode==='detail'&&stockBlurPending?.key===stockSessionKey){
     const pending=stockBlurPending;stockBlurPending=null;
     if(!acceptStock(pending.id,'blur',pending.destination))return false;
@@ -1597,10 +1603,11 @@ $('#detail').addEventListener('close', () => {
 window.addEventListener('hashchange', async () => {
   if (restoringWorkspaceHistory) { const restored = restoringWorkspaceHistory; restoringWorkspaceHistory = null; restored(); return; }
   const target = location.hash || '#dashboard', targetIndex = history.state?.workspaceIndex;
-  if (characterEditSession?.dirty) {
+  if (characterEditSession?.dirty || killerSession?.entities.some(entity=>killerSession.pending[entity.id]||killerSession.errors[entity.id])) {
     if (Number.isInteger(targetIndex) && targetIndex !== workspaceHistoryIndex) {
       await new Promise(resolve => { restoringWorkspaceHistory = resolve; history.go(workspaceHistoryIndex - targetIndex); });
     } else history.replaceState({ ...history.state, workspaceIndex: workspaceHistoryIndex }, '', committedWorkspaceHash);
+    if(!acceptPendingKillerQuantities())return;
     if (await resolveDirtyCharacterEdit({ destination: target, source: 'history' }) !== 'proceed') return;
     if (Number.isInteger(targetIndex) && targetIndex !== workspaceHistoryIndex) {
       history.go(targetIndex - workspaceHistoryIndex); return;
