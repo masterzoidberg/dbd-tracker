@@ -227,15 +227,16 @@ export async function killerQuantityRegression(page, origin) {
     const beforeLoss = await bytes();
     // Revoke the actual native writer lock after input, before commit.
     await reader.evaluate(() => navigator.locks.request('dbdTracker-editor', {steal:true}, () => {}));
+    await field(first.id).fill('12');
     await field(first.id).press('Enter');
     assert.equal(await bytes(), beforeLoss, 'Losing writer ownership cannot commit pending input');
-    assert.equal(await field(first.id).inputValue(), '11', 'Writer loss retains pending input');
+    assert.equal(await field(first.id).inputValue(), '12', 'Writer loss retains text entered after revocation');
     assert.match(await page.locator('#killer-stock-error-' + first.id).textContent(), /Not saved.*Read-only/);
     assert.equal(await field(first.id).isDisabled(), true);
     await page.getByRole('button', {name:'Enable editing',exact:true}).click();
     await page.waitForFunction(() => document.querySelector('#save-status').textContent === 'Saved locally');
-    assert.equal(await field(first.id).inputValue(), '11');
+    assert.equal(await field(first.id).inputValue(), '12');
     await field(first.id).press('Enter');
-    assert.equal(await quantity(first.id), 11, 'Retained input can be retried after acquiring writer ownership');
+    assert.equal(await quantity(first.id), 12, 'Retained input can be retried after acquiring writer ownership');
   } finally { await reader.close(); }
 }

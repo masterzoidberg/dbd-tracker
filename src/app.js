@@ -729,8 +729,8 @@ function updateStockStepControls(id=null) {
   }
 }
 function killerQuantityInput(target) {
-  store.assertWriter();
   killerSession=updateQuantityInput(killerSession,target.dataset.killerQuantity,target.value);
+  store.assertWriter();
   updateStockStepControls(target.dataset.killerQuantity);
 }
 function stepKillerQuantity(button) {
