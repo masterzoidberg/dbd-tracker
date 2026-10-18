@@ -41,18 +41,27 @@ test('fresh inventory has independent empty maps', () => {
   assert.deepEqual(second, { items: {}, addons: {} });
 });
 
-test('reviewed Survivor registry activates while Killer remains unavailable and v2 defaults stay empty', () => {
+test('reviewed Survivor and Killer registries activate while v2 defaults stay empty', () => {
   assert.equal(inventoryEntities.length,92);
-  assert.equal(Object.keys(inventoryEntityById).length,92);
-  assert.deepEqual(killerPowerByCharacterId, {});
+  assert.equal(Object.keys(inventoryEntityById).length,972);
+  assert.equal(Object.keys(killerPowerByCharacterId).length,44);
   assert.deepEqual(inventoryCatalogStatus, {
-    survivor: 'ready', killerAddons: 'unavailable', killerPowers: 'unavailable',
+    survivor: 'ready', killerAddons: 'ready', killerPowers: 'ready',
   });
   assert.equal(SCHEMA_VERSION, 2);
   const save = freshSave();
   assert.equal(save.schemaVersion, 2);
   assert.deepEqual(save.prestigeQueue, []);
   assert.deepEqual(save.characters['meg-thomas'].inventory, { items: {}, addons: {} });
+});
+
+test('real canonical Add-on validates its explicit owner and rejects a different Killer even at zero', () => {
+  const id='killer-addon-trapper-bear-oil';
+  assert.equal(assertQuantityEntity('the-trapper','addons',id,inventoryEntityById),undefined);
+  assert.deepEqual(canonicalizeQuantityMaps({items:{},addons:{[id]:3}},'the-trapper',inventoryEntityById),
+    {inventory:{items:{},addons:{[id]:3}},warnings:[]});
+  assert.deepEqual(canonicalizeQuantityMaps({items:{},addons:{[id]:0}},'the-trapper',inventoryEntityById).inventory.addons,{});
+  assert.throws(()=>canonicalizeQuantityMaps({items:{},addons:{[id]:0}},'the-doctor',inventoryEntityById),/owner/);
 });
 
 test('quantity sparse canonicalization is separate from perk zero', () => {

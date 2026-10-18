@@ -1,13 +1,28 @@
 import survivorSource from './survivor-inventory-verified.json' with {type:'json'};
+import killerSource from './killer-runtime-catalog.json' with {type:'json'};
 export const survivorInventorySource = survivorSource;
 export const inventoryEntities = adaptInventoryCatalog(survivorSource,'survivor');
-export const inventoryEntityById = Object.fromEntries(inventoryEntities.map(entity=>[entity.id,entity]));
+const killerCatalog = adaptKillerRuntimeCatalog(killerSource);
+export const inventoryEntityById = Object.fromEntries([...inventoryEntities,...killerCatalog.addons].map(entity=>[entity.id,entity]));
 export const inventoryCatalogStatus = {
   survivor: 'ready',
-  killerAddons: 'unavailable',
-  killerPowers: 'unavailable',
+  killerAddons: 'ready',
+  killerPowers: 'ready',
 };
-export const killerPowerByCharacterId = {};
+export const killerPowerByCharacterId = killerCatalog.powersByCharacterId;
+
+export function adaptKillerRuntimeCatalog(source) {
+  const addons=[], powersByCharacterId={};
+  for(const killer of source.killers){
+    powersByCharacterId[killer.characterId]=structuredClone(killer.power);
+    for(const row of killer.addons){
+      addons.push({id:row.id,sourceId:row.id,kind:'killer-addon',role:'killer',map:'addons',
+        characterId:row.characterId,name:row.name,order:row.order,rarity:row.rarity,effect:row.effect,
+        imagePath:row.artwork.path,artworkConfidence:row.artwork.confidence});
+    }
+  }
+  return {addons,powersByCharacterId};
+}
 
 // Source IDs are frozen semantic slugs, never generated from display labels.
 export function adaptInventoryCatalog(source,role) {

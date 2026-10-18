@@ -77,6 +77,22 @@ const memoryStorage = () => {
   return { getItem: key => data.get(key) ?? null, setItem: (key, value) => data.set(key, value) };
 };
 
+test('real Killer Add-on quantities survive storage backup and restore while wrong-owner saves reject', () => {
+  const id='killer-addon-trapper-bear-oil', store=new TrackerStorage(memoryStorage(),()=>{}), input=freshSave();
+  input.characters['the-trapper'].inventory.addons[id]=6;
+  const saved=store.save(input);
+  assert.equal(store.load().save.characters['the-trapper'].inventory.addons[id],6);
+  store.backup(saved,'Real Killer stock');
+  const reset=store.save(freshSave());
+  const restored=store.replace(reset,store.backups()[0].save,'Before real stock restore');
+  assert.equal(restored.schemaVersion,2);
+  assert.equal(restored.characters['the-trapper'].inventory.addons[id],6);
+  const invalid=structuredClone(restored);
+  invalid.characters['the-doctor'].inventory.addons[id]=6;
+  assert.throws(()=>store.save(invalid),/owner/);
+  assert.deepEqual(store.load().save,restored);
+});
+
 const invalidCandidates = [
   ['sparse Prestige Queue', s => { s.prestigeQueue = new Array(1); }, /Queue/],
   ['Bloodweb 0', s => { s.characters['meg-thomas'].bloodwebLevel = 0; }, /Bloodweb/],

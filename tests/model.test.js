@@ -77,6 +77,18 @@ test('complete v2 known catalog quantities reject wrong map role and Killer owne
   assert.throws(() => model.validateCompleteV2(input, { inventoryCatalog }), /map/);
 });
 
+test('real Killer Add-on saves preserve schema v2 quantity and reject a known wrong owner', () => {
+  const id='killer-addon-trapper-bear-oil', input=completeV2Fixture();
+  input.characters['the-trapper'].inventory.addons[id]=4;
+  const {save,warnings}=model.validateCompleteV2(input);
+  assert.equal(save.schemaVersion,2);
+  assert.deepEqual(save.characters['the-trapper'].inventory.addons,{[id]:4});
+  assert.equal(warnings.some(w=>w.includes(id)),false);
+  assert.equal(parseSave(exportSave(save)).save.characters['the-trapper'].inventory.addons[id],4);
+  input.characters['the-doctor'].inventory.addons[id]=4;
+  assert.throws(()=>model.validateCompleteV2(input),/owner/);
+});
+
 test('complete v2 validator rejects other versions while runtime version remains explicit', () => {
   assert.equal(model.SCHEMA_VERSION, 2);
   assert.throws(() => model.validateCompleteV2(schemaV1Fixture()), /schema/i);
