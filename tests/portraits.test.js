@@ -50,7 +50,7 @@ test('portrait missing entries are null and mislabeled WebP copies regenerate fr
   for (const stale of [false, true]) {
     if (stale) { await put(root, path, 'stale derived copy'); await put(root, 'data/asset-manifest.json', '{stale'); }
     assert.deepEqual(await assets.generateAssetManifest(root), expected, 'Tests do not consume derived output');
-    await buildProject(root);
+    await buildProject(root, { writeCatalog: async () => {} });
     assert.deepEqual(await readFile(join(root, path)), webp);
     assert.deepEqual(await readFile(join(root, 'images/killer-images/the_ghost_face.png')), webp);
     assert.deepEqual(JSON.parse(await readFile(join(root, 'data/asset-manifest.json'))), expected);
@@ -71,7 +71,7 @@ test('invalid portrait formats prevent bundling; generated copy symlinks cannot 
   const root = await fixture(t);
   await put(root, 'images/survivor-images/meg_thomas.png', 'bad header');
   let bundled = false;
-  await assert.rejects(buildProject(root, { bundle: async () => { bundled = true; } }), /portrait|header|PNG|WebP/);
+  await assert.rejects(buildProject(root, { writeCatalog: async () => {}, bundle: async () => { bundled = true; } }), /portrait|header|PNG|WebP/);
   assert.equal(bundled, false);
   await rm(join(root, 'images/survivor-images/meg_thomas.png'));
   await put(root, 'images/killer-images/the_ghost_face.png', webp);

@@ -1,11 +1,17 @@
 import { build } from 'esbuild';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { writeAssetManifest } from './generate-assets.mjs';
+import { writeKillerRuntimeCatalog } from './generate-killer-runtime-catalog.mjs';
 
-export async function buildProject(root = resolve(import.meta.dirname, '..'), { bundle = build } = {}) {
+export async function buildProject(root = resolve(import.meta.dirname, '..'), {
+  bundle = build,
+  writeCatalog = writeKillerRuntimeCatalog,
+  writeManifest,
+} = {}) {
   root = resolve(root);
-  const manifest = await writeAssetManifest(root);
+  await writeCatalog(root);
+  const generateManifest = writeManifest ?? (await import('./generate-assets.mjs')).writeAssetManifest;
+  const manifest = await generateManifest(root);
   await bundle({ absWorkingDir: root, entryPoints: ['src/app.js'], bundle: true, format: 'iife', target: 'es2022', minify: true, outfile: 'dist/app.js', logLevel: 'info' });
   return manifest;
 }
