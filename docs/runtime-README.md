@@ -10,6 +10,13 @@ Missing or failed icons use a fixed neutral diamond. Artwork does not affect you
 All 98 characters have portraits in collection cards, character details and Manage
 perks. PNG/WebP files are local; a missing or failed portrait uses a silhouette.
 Images fit their fixed slots without cropping; source artwork is preserved.
+The bundled Killer Power & Add-ons workspace covers all 44 Killers and 880 Add-ons
+from patch 10.2.1. Each page shows the Power summary and all 20 Add-ons in five
+expanded rarity groups. Details opens the full gameplay explanation or effect.
+Quantities save on valid Enter/blur or +/−; zero removes the stored key, and invalid
+or failed edits retain their text. Reader windows retain Details access.
+All 880 Add-ons and 37 Powers use explicit local artwork; seven Powers have an
+accessible fallback. Everything remains available offline.
 
 The same directory can be served over localhost by any appropriate static HTTP
 server. This runtime is not a Node/npm development project and does not contain
@@ -88,7 +95,10 @@ confirm a diamond replaces the failed image and editing still works; restore the
 filename afterward. Record the browser/version and PASS/FAIL for offline file use.
 
 For portrait acceptance, open the sibling `artwork-file-check.html` offline:
-expect 419/419 images (321 perks plus 98 portraits). Check Survivor/Killer cards,
+expect 1428/1428 images (321 perks, 98 portraits, 92 Survivor inventory images,
+880 Killer Add-ons and 37 Powers), with seven intentional Power fallbacks. The
+release checks only explicit manifest references and verifies their dimensions
+and hashes; browser checks decode every mapped Killer image. Check Survivor/Killer cards,
 character details and manager headings, especially Bill, Aestri/Baermar, Yun-Jin,
 The Onryō, Ghost Face and Zarina. At 500/700/900 pixels and desktop, names and
 Favorite/Owned/edit controls must remain reachable in both Detailed and Compact.
@@ -131,7 +141,7 @@ required before distribution.
 
 ## Schema v2 portability
 
-This build reads valid v1 and complete v2 saves and writes/exports complete v2 with Prestige Queue and per-character inventory quantity maps. Survivor inventory is a separately versioned10.2.0 research catalog (38 Items/54 Add-ons/7 families), alongside the existing10.1.2a Perk catalog. Unknown supported IDs are preserved and discoverable as read-only records. Killer inventory/Power data remains unavailable.
+This build reads valid v1 and complete v2 saves and writes/exports complete v2 with Prestige Queue and per-character inventory quantity maps. Survivor inventory is a separately versioned 10.2.0 research catalog (38 Items/54 Add-ons/7 families), alongside the existing 10.1.2a Perk catalog. Killer Power/Add-on data comes from the canonical 10.2.1 master; the build generates a compact runtime catalog before the artwork manifest and bundle. The research master is excluded from the runtime. Unknown supported IDs are preserved and discoverable as read-only records.
 
 Writable v1 loading backs up the validated v1 predecessor before structural conversion. Read-only loading does not write or back up; structural conversion does not fabricate character edit times. Existing account-rule normalization retains its established behavior.
 
@@ -140,6 +150,14 @@ V1 import/restore is replacement: it produces an empty Prestige Queue and empty 
 ## Workspace and inventory acceptance
 
 Character identity links open Overview. Old manage/experiment bookmarks retain Perks meaning. Initial Setup is separate from comprehensive Edit Character. Edit is a memory-only draft with explicit Save Character and Save/Discard/Stay exits. Detailed Survivor quantities save on valid Enter/blur; zero entries remain visible by default and are removed from sparse storage. Invalid/failed edits retain text. Unknown stock is preserved.
+
+For Killer acceptance, open Power & Add-ons at 320/500/760/1100/1440/1600px.
+Confirm the Power panel stacks at narrow widths, artwork keeps its slot, all five
+rarity headings and 20 Add-ons remain visible, and quantity/Details actions remain
+reachable without horizontal page scrolling. Check a mapped Power and The Dark
+Lord's accessible artwork fallback. Edit a quantity with Enter, blur and +/−;
+reload and reopen the same file to confirm persistence. Open both Details dialogs
+with the keyboard and confirm focus returns. Record browser/version and PASS/FAIL.
 
 Automated disposable direct-file tests cover routes, browsing, writer gating and native writer-capable Save/reopen. For release acceptance, still record genuine browser200% zoom and manual keyboard/file checks in a disposable profile at320/500/760/1100/1440/1600 widths. CSS zoom/deviceScaleFactor is not browser zoom. Confirm labels, large quantities, focus after errors/regroup/filter removal and Save/Cancel visibility. Never use an active account for this verification.
 

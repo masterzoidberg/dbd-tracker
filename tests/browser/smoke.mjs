@@ -51,7 +51,7 @@ export async function smokeStage(stage, { channel = 'msedge', regression, manife
     assert.equal(await page.locator('#edit-favorite').isChecked(), true);
     assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), saved);
     await page.getByRole('button', { name: 'Cancel', exact: true }).click();
-    if (regression) await regression(page, origin);
+    if (regression) await regression(page, origin, manifest);
     else {
       const {dashboardRegression}=await import('./dashboard.mjs');
       await dashboardRegression(page,origin);
@@ -90,7 +90,7 @@ export async function smokeStage(stage, { channel = 'msedge', regression, manife
     assert.ok(requests.some(url => url === origin + '/dist/app.js'));
     assert.ok(requests.every(url => new URL(url).origin === origin && !new URL(url).pathname.endsWith('.json')), 'Runtime must not request external services or catalog JSON.');
     assert.deepEqual(errors, []);
-    return { localhost: 'AUTOMATED PASS', browser: `${channel} ${browser.version()}`, checks: ['startup', 'Bloodweb/favorite edit', 'reload persistence', 'Filtering predicates/facets/route memory', 'native popover/focus/caret/skip/history', 'tier success/failure focus', '500/700/900/1440 shell and panel', 'all 321 staged icons decode', 'artwork aliases/nulls/error fallback/editing', 'export/import/backup/restore/reset and cancellations', 'Compact/Detailed ordered results, transient mode and route lifecycle', 'Compact next-tier floor/history/keyboard/focus/storage failure', 'Compact 500/700/900/1440 shell, actions and image fallback', 'all 98 portraits decode; PNG/WebP MIME and canonical mappings', 'portrait card/detail/manager layouts, fallback and editing', 'corrupt-current raw export/import/restore, corrupt backups and recovery failures', 'recovery Data controls at 500/700/900/1440', 'canonical character inventory/update routes, aliases, direct tiers, account unlock propagation, card presets and responsive cards', 'no external/catalog/manifest JSON requests'] };
+    return { localhost: 'AUTOMATED PASS', browser: `${channel} ${browser.version()}`, checks: ['startup', 'Bloodweb/favorite edit', 'reload persistence', 'Filtering predicates/facets/route memory', 'native popover/focus/caret/skip/history', 'tier success/failure focus', '500/700/900/1440 shell and panel', 'all 321 perks, 880 Killer Add-ons and 37 Powers decode against manifest dimensions', 'Killer Power/Add-ons details, quantity persistence/writer/focus and 320/500/760/1100/1440/1600 layouts', 'artwork aliases/nulls/error fallback/editing', 'export/import/backup/restore/reset and cancellations', 'Compact/Detailed ordered results, transient mode and route lifecycle', 'Compact next-tier floor/history/keyboard/focus/storage failure', 'Compact 500/700/900/1440 shell, actions and image fallback', 'all 98 portraits decode; PNG/WebP MIME and canonical mappings', 'portrait card/detail/manager layouts, fallback and editing', 'corrupt-current raw export/import/restore, corrupt backups and recovery failures', 'recovery Data controls at 500/700/900/1440', 'canonical character inventory/update routes, aliases, direct tiers, account unlock propagation, card presets and responsive cards', 'no external/catalog/manifest JSON requests'] };
   } finally {
     try { await browser?.close(); } finally { await new Promise(accept => server.close(accept)); }
   }

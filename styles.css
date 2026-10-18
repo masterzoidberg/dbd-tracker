@@ -2421,3 +2421,19 @@ footer span {
 .stock-family-heading p{font-size:12px;color:var(--muted)}
 .stock-card-meta{font-size:11px;color:var(--muted)}
 @media(max-width:600px){.stock-family-nav{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-inline:contain}.stock-family-nav button{padding-inline:14px}}
+
+/* Killer Power summary and expanded Add-on rarity groups. */
+.killer-power-addons { min-width:0; }
+.killer-power-panel { display:grid; grid-template-columns:112px minmax(0,1fr); align-items:center; gap:24px; margin-bottom:28px; }
+.killer-power-art { display:flex; align-items:center; justify-content:center; width:112px; height:112px; }
+.killer-power-art img, .killer-power-art .stock-art-fallback { display:flex; align-items:center; justify-content:center; width:112px; height:112px; object-fit:contain; font-size:56px; color:var(--gold); }
+.killer-power-copy { min-width:0; overflow-wrap:anywhere; }
+.killer-power-copy h3 { margin:6px 0 10px; font-size:22px; }
+.killer-power-copy p { color:var(--muted); line-height:1.65; margin-bottom:16px; }
+.killer-power-copy button { min-width:44px; min-height:44px; }
+.killer-rarity-section { min-width:0; margin-top:24px; }
+.killer-rarity-section > h4 { margin-bottom:12px; padding-top:14px; border-top:1px solid var(--border); font-size:14px; }
+.killer-addon-card [data-killer-stock-error] { min-height:1.5em; font-size:12px; }
+@media(max-width:760px) {
+  .killer-power-panel { grid-template-columns:minmax(0,1fr); gap:16px; }
+}

@@ -78,11 +78,11 @@ export async function killerPowerAddonsRegression(page, origin, manifest) {
   await page.goto(origin + '/#character/the-trapper/power-addons');
   const mappedPower = trapper.power.artwork.path;
   assert.ok(mappedPower && manifest.killerPowers['the-trapper'].path === mappedPower);
-  assert.equal(await page.locator('[data-killer-power-panel] img[data-power-art]').getAttribute('src'), mappedPower);
+  assert.equal(decodeURIComponent(await page.locator('[data-killer-power-panel] img[data-power-art]').getAttribute('src')), mappedPower);
   const reviewKiller = killerRuntime.killers.find(killer => killer.addons.some(addon => addon.artwork.confidence === 'REVIEW'));
   const reviewAddon = reviewKiller.addons.find(addon => addon.artwork.confidence === 'REVIEW');
   await page.goto(origin + '/#character/' + reviewKiller.characterId + '/power-addons');
-  assert.equal(await page.locator(`[data-killer-addon-card][data-addon-id="${reviewAddon.id}"] img`).getAttribute('src'), reviewAddon.artwork.path);
+  assert.equal(decodeURIComponent(await page.locator(`[data-killer-addon-card][data-addon-id="${reviewAddon.id}"] img`).getAttribute('src')), reviewAddon.artwork.path);
 
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), doctorSave,
     'Opening Killer workspaces and details never mutates Survivor inventory or saved state');
@@ -92,8 +92,68 @@ export async function killerPowerAddonsRegression(page, origin, manifest) {
   const summary = page.locator('[data-power-summary]');
   assert.equal(await summary.textContent(), escapedSummary);
   assert.ok((await summary.evaluate(node => node.innerHTML)).includes('&amp;'), 'Canonical ampersands are escaped in rendered markup');
+  await killerReservedArtworkRegression(page, origin);
+  await killerResponsiveRegression(page, origin);
   await killerDialogFocusRegression(page, origin);
   await killerQuantityRegression(page, origin);
+}
+
+export async function killerReservedArtworkRegression(page, origin) {
+  await page.goto(origin + '/#character/the-skull-merchant/power-addons');
+  const addon = killerRuntime.killers.find(killer => killer.characterId === 'the-skull-merchant')
+    .addons.find(addon => addon.name === 'Adi Valente #1');
+  const card = page.locator(`[data-killer-addon-card][data-addon-id="${addon.id}"]`);
+  const assertDecoded = async image => {
+    await image.evaluate(image => image.decode());
+    const decoded = await image.evaluate(image => ({ width: image.naturalWidth, height: image.naturalHeight, url: image.src }));
+    assert.equal(decoded.width, 300);
+    assert.equal(decoded.height, 300);
+    assert.equal(new URL(decoded.url).hash, '');
+    assert.equal(decodeURIComponent(new URL(decoded.url).pathname.slice(1)), addon.artwork.path);
+  };
+  await card.scrollIntoViewIfNeeded();
+  await assertDecoded(card.locator('img'));
+  await card.locator('[data-action="killer-addon-details"]').click();
+  await assertDecoded(page.locator('#detail .stock-detail-media img'));
+  await page.getByRole('button', { name: 'Close details', exact: true }).click();
+}
+
+export async function killerResponsiveRegression(page, origin) {
+  const viewport = page.viewportSize();
+  try {
+    for (const width of [320, 500, 760, 1100, 1440, 1600]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const characterId of ['the-trapper', 'the-dark-lord']) {
+        await page.goto(origin + '/#character/' + characterId + '/power-addons');
+        const panel = page.locator('[data-killer-power-panel]');
+        await panel.waitFor();
+        await panel.locator('img').evaluateAll(images => Promise.all(images.map(image => image.decode())));
+        const art = await panel.locator('.killer-power-art').boundingBox();
+        const copy = await panel.locator('.killer-power-copy').boundingBox();
+        assert.equal(art.width, 112, `Stable Power art width at ${width}: ${characterId}`);
+        assert.equal(art.height, 112, `Stable Power art height at ${width}: ${characterId}`);
+        if (width <= 760) assert.ok(copy.y >= art.y + art.height, `Power panel stacks at ${width}`);
+        else assert.ok(copy.x >= art.x + art.width, `Power panel is horizontal at ${width}`);
+        assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Killer page overflow at ${width}`);
+        const headings = page.locator('[data-killer-rarity-section] > h4');
+        assert.deepEqual(await headings.allTextContents(), rarityOrder);
+        for (const heading of await headings.all()) assert.equal(await heading.isVisible(), true);
+        const bounds = await page.locator('[data-killer-power-addons]').evaluate(node => {
+          const elements = [...node.querySelectorAll('.stock-grid, [data-killer-addon-card], button, input')];
+          return elements.map(element => {
+            const { x, width, height } = element.getBoundingClientRect();
+            return { tag: element.tagName, x, width, height };
+          });
+        });
+        for (const box of bounds) {
+          assert.ok(box.x >= 0 && box.x + box.width <= width, `Killer content stays inside ${width}: ${JSON.stringify(box)}`);
+          if (box.tag === 'BUTTON' || box.tag === 'INPUT') {
+            assert.ok(box.width >= 44 && box.height >= 44, `44px action/quantity target at ${width}: ${JSON.stringify(box)}`);
+          }
+        }
+      }
+    }
+  } finally { await page.setViewportSize(viewport); }
 }
 
 export async function killerDialogFocusRegression(page, origin) {

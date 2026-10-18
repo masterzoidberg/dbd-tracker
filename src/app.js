@@ -20,6 +20,7 @@ import { getFilterContext, perkFilterDefinitions, matchesPerkFilterState, select
 import { CHARACTER_INVENTORY_CATEGORIES, CHARACTER_CARD_SIZES, DEFAULT_CHARACTER_CARD_SIZE, normalizeCharacterCardSize, characterInventoryCandidatePool, filterCharacterInventoryCandidates, characterNormalInventory, setCharacterPersonalTier, createCharacterInventorySession, syncCharacterInventorySession, markCharacterInventoryChanged, parseCharacterInventoryRoute } from './character-inventory.js';
 
 const $ = selector => document.querySelector(selector);
+const artworkUrl = path => path.split('/').map(encodeURIComponent).join('/');
 const esc = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const roman = ['—', 'I', 'II', 'III'];
 const date = value => value ? new Date(value).toLocaleString() : 'Not updated yet';
@@ -697,7 +698,7 @@ function killerPowerAddonsView(characterId) {
     killerSessionKey=characterId;
   }
   const groups=killerRarityOrder.map(rarity=>({rarity,addons:addons.filter(addon=>addon.rarity===rarity)}));
-  const art=powerArt?'<img src="'+esc(powerArt)+'" alt="" data-power-art>':'<span class="stock-art-fallback" role="img" aria-label="Power artwork unavailable" data-power-art-fallback>◇</span>';
+  const art=powerArt?'<img src="'+esc(artworkUrl(powerArt))+'" alt="" data-power-art>':'<span class="stock-art-fallback" role="img" aria-label="Power artwork unavailable" data-power-art-fallback>◇</span>';
   return '<section class="killer-power-addons" data-killer-power-addons>'
     +'<section class="panel killer-power-panel" data-killer-power-panel><div class="killer-power-art">'+art+'</div><div class="killer-power-copy"><span class="eyebrow">KILLER POWER</span><h3 data-power-name>'+esc(power.powerName)+'</h3><p data-power-summary>'+esc(power.shortSummary)+'</p><button type="button" data-action="killer-power-details" data-character="'+esc(characterId)+'" id="killer-power-details-'+esc(characterId)+'">Power Details</button></div></section>'
     +'<section class="killer-addon-inventory" aria-labelledby="killer-addons-heading"><div class="stock-page-heading"><div><span class="eyebrow">INVENTORY</span><h3 id="killer-addons-heading">'+esc(character.name)+' Add-ons</h3><p>All 20 Add-ons, grouped by rarity.</p></div></div>'
@@ -706,7 +707,7 @@ function killerPowerAddonsView(characterId) {
 }
 function killerAddonCard(addon) {
   const art=inventoryIconPath(addon.id,assetManifest), quantity=killerSession.baseline[addon.id]||0, error=killerSession.errors[addon.id];
-  const artwork=art?'<img src="'+esc(art)+'" alt="" loading="lazy" data-killer-addon-art>':'<span aria-hidden="true" class="stock-art-fallback">◇</span>';
+  const artwork=art?'<img src="'+esc(artworkUrl(art))+'" alt="" loading="lazy" data-killer-addon-art>':'<span aria-hidden="true" class="stock-art-fallback">◇</span>';
   return '<article class="stock-card killer-addon-card '+(quantity?'':'zero-stock')+'" data-killer-addon-card data-character-id="'+esc(addon.characterId)+'" data-addon-id="'+esc(addon.id)+'" data-rarity="'+esc(addon.rarity)+'">'
     +'<div class="stock-card-media">'+artwork+'</div><h5 class="stock-card-title">'+esc(addon.name)+'</h5><div class="stock-card-meta">'+esc(addon.rarity)+' · Add-on</div>'
     +'<label for="killer-quantity-'+esc(addon.id)+'">Quantity of '+esc(addon.name)+'</label><div class="stock-quantity-control">'
@@ -999,7 +1000,7 @@ function killerPowerDetail(characterId) {
   const power=killerPowerByCharacterId[characterId];
   if(!power)return dialogHeader('KILLER POWER DETAILS','Unavailable Power')+'<p class="muted">This Killer Power is not in the current verified catalog.</p>';
   const art=killerPowerIconPath(characterId,assetManifest);
-  const artwork=art?'<img src="'+esc(art)+'" alt="">':'<span class="stock-art-fallback" role="img" aria-label="Power artwork unavailable">◇</span>';
+  const artwork=art?'<img src="'+esc(artworkUrl(art))+'" alt="">':'<span class="stock-art-fallback" role="img" aria-label="Power artwork unavailable">◇</span>';
   const fields=[['fullExplanation','Full Explanation'],['components','Components'],['mechanics','Mechanics'],['resources','Resources'],['survivorInteractions','Survivor Interactions'],['powerStates','Power States'],['addonRelevantMechanics','Add-on-Relevant Mechanics'],['complexRules','Complex Rules']];
   return dialogHeader('KILLER POWER',power.powerName,artwork)+'<div class="stock-detail-body killer-detail-body">'
     +fields.filter(([key])=>power[key]!==undefined&&power[key]!==null&&power[key]!==''&&(!Array.isArray(power[key])||power[key].length))
@@ -1010,7 +1011,7 @@ function killerAddonDetail(addonId) {
   const addon=inventoryEntityById[addonId];
   if(!addon||addon.role!=='killer')return dialogHeader('ADD-ON DETAILS','Unavailable Add-on')+'<p class="muted">This Killer Add-on is not in the current verified catalog.</p>';
   const art=inventoryIconPath(addonId,assetManifest);
-  const artwork=art?'<img src="'+esc(art)+'" alt="">':'<span class="stock-art-fallback" aria-hidden="true">◇</span>';
+  const artwork=art?'<img src="'+esc(artworkUrl(art))+'" alt="">':'<span class="stock-art-fallback" aria-hidden="true">◇</span>';
   return dialogHeader('KILLER ADD-ON',addon.name)+'<div class="stock-detail-body killer-detail-body"><div class="stock-detail-hero"><div class="stock-detail-media">'+artwork+'</div><div class="stock-detail-meta"><span class="inventory-rarity-badge inventory-rarity-'+esc(addon.rarity.toLowerCase().replace(/\s+/g,'-'))+'">'+esc(addon.rarity)+'</span></div></div><section><h3>Effect</h3><p data-killer-addon-effect>'+esc(addon.effect)+'</p></section></div>';
 }
 function openKillerPowerDetail(characterId,opener) {

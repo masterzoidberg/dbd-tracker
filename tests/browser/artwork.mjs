@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { generatePerkManifest } from '../../scripts/generate-assets.mjs';
+import { generateAssetManifest } from '../../scripts/generate-assets.mjs';
 import { freshSave } from '../../src/model.js';
 
 export async function artworkRegression(page, origin, manifest) {
-  manifest ??= await generatePerkManifest();
+  manifest ??= await generateAssetManifest();
+  const requested = [];
+  const track = request => requested.push(request.url());
+  page.on('request', track);
   const save = freshSave();
   await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), save);
   await page.goto(origin + '/#survivor-perks'); await page.reload();
@@ -22,20 +25,22 @@ export async function artworkRegression(page, origin, manifest) {
   await page.getByRole('button', { name: 'Close details', exact: true }).click();
 
   // Decode every staged reference explicitly, including icons outside lazy table viewports.
-  const assets = Object.values(manifest.perks).filter(Boolean);
+  const killerAddons = Object.values(manifest.inventory).filter(asset => asset?.path.startsWith('images/Powers and Add-ons/'));
+  const killerPowers = Object.values(manifest.killerPowers).filter(Boolean);
+  assert.equal(killerAddons.length, 880);
+  assert.equal(killerPowers.length, 37);
+  assert.equal(Object.values(manifest.killerPowers).filter(value => value === null).length, 7);
+  const assets = [...Object.values(manifest.perks).filter(Boolean), ...killerAddons, ...killerPowers];
   const decoded = await page.evaluate(async assets => Promise.all(assets.map(async asset => {
-    const img = new Image(); img.src = asset.path;
+    const img = new Image(); img.src = asset.path.split('/').map(encodeURIComponent).join('/');
     try { await img.decode(); return { path: asset.path, width: img.naturalWidth, height: img.naturalHeight }; }
     catch { return { path: asset.path, width: 0, height: 0 }; }
   })), assets);
-  assert.equal(decoded.length, 321);
-  for (const image of decoded) {
-    const asset = assets.find(asset => asset.path === image.path);
+  assert.equal(decoded.length, 1238);
+  for (const [index, image] of decoded.entries()) {
+    const asset = assets[index];
     assert.equal(image.width, asset.width, image.path); assert.equal(image.height, asset.height, image.path);
   }
-  const requested = [];
-  const track = request => requested.push(request.url());
-  page.on('request', track);
   for (const [route, id, search] of [
     ['survivor-perks', 'a-place-for-us', 'A Place for Us'],
     ['killer-perks', 'deadlock', 'Deadlock'],
@@ -55,7 +60,6 @@ export async function artworkRegression(page, origin, manifest) {
     await page.getByRole('button', { name: 'Close details', exact: true }).click();
   }
   assert.ok(!requested.some(url => /images\/killer-perks\/cenobite\//.test(url)), 'Original placeholders must never be requested');
-  page.off('request', track);
 
   await page.goto(origin + '/#data');
   await page.locator('#halloween-names').selectOption('original');
@@ -99,7 +103,12 @@ export async function artworkRegression(page, origin, manifest) {
     assert.equal(slot.width, 36); assert.equal(slot.height, 36);
   }
   await page.setViewportSize({ width: 1440, height: 900 });
-  return { decodedIcons: decoded.length, fallbacks: Object.values(manifest.perks).filter(value => value === null).length };
+  page.off('request', track);
+  assert.ok(requested.every(url => new URL(url).origin === origin && !new URL(url).pathname.endsWith('.json')),
+    'Artwork must not request external services or catalog/manifest JSON');
+  return { decodedIcons: decoded.length, killerAddons: killerAddons.length, killerPowers: killerPowers.length,
+    powerFallbacks: Object.values(manifest.killerPowers).filter(value => value === null).length,
+    fallbacks: Object.values(manifest.perks).filter(value => value === null).length };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

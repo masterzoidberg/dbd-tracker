@@ -154,7 +154,7 @@ function artworkFileCheck(manifest) {
 const assets = ${JSON.stringify(assets)};
 document.querySelector('#mode').textContent = location.protocol + ' — ' + navigator.userAgent;
 Promise.all(assets.map(async asset => {
-  const img = new Image(); img.alt = ''; img.src = 'runtime/' + asset.path;
+  const img = new Image(); img.alt = ''; img.src = 'runtime/' + asset.path.split('/').map(encodeURIComponent).join('/');
   const row = document.createElement('li'); row.append(img, document.createTextNode(asset.id)); document.querySelector('#icons').append(row);
   try { await img.decode(); if (img.naturalWidth !== asset.width || img.naturalHeight !== asset.height) throw Error('dimensions'); return null; }
   catch { img.remove(); row.append(document.createTextNode(' — FAILED')); return asset.id; }

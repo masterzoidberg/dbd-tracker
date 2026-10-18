@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, readFile, access, rm, readdir, symlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve, join } from 'node:path';
+import { pathToFileURL, fileURLToPath } from 'node:url';
+import { runInNewContext } from 'node:vm';
 import { assertStagePath, stageRuntime, verifyStage, checkCatalogRevision, runRelease } from '../scripts/release.mjs';
 import { generatePerkManifest, generateAssetManifest, writePerkManifest } from '../scripts/generate-assets.mjs';
 
@@ -189,6 +191,39 @@ test('release report and offline artwork check include Killer references and nul
  assert.ok(fileCheck.includes('killer-addon-report'));
  assert.ok(fileCheck.includes('the-report'));
  assert.ok(fileCheck.includes('1 intentional fallbacks'));
+});
+
+test('offline artwork checker preserves a literal hash in a referenced filename', async t => {
+  const root = await fixture(t), full = await generateAssetManifest();
+  const asset = Object.values(full.inventory).find(asset => asset?.path.endsWith('/Adi Valente #1.png'));
+  const manifest = { perks: {}, inventory: { 'killer-addon-hash': asset }, killerPowers: {} };
+  await mkdir(join(root, asset.path, '..'), { recursive: true });
+  await writeFile(join(root, asset.path), await readFile(resolve(asset.path)));
+  await runRelease({ root, run: async (_command, args) => {
+    if (args[1] === 'build') {
+      await writeFile(join(root, 'data/asset-manifest.json'), JSON.stringify(manifest));
+      await writeFile(join(root, 'dist/app.js'), '/* generated bundle */');
+    }
+  }, smoke: async () => ({ localhost: 'AUTOMATED PASS' }) });
+  const checker = join(root, 'release/artwork-file-check.html');
+  const html = await readFile(checker, 'utf8'), requested = [];
+  const nodes = Object.fromEntries(['#mode', '#result', '#icons'].map(id => [id, { append() {} }]));
+  // Execute the emitted page script; the Image boundary reads the real staged PNG.
+  await runInNewContext(html.match(/<script>([\s\S]*)<\/script>/)[1], {
+    document: { querySelector: id => nodes[id], createElement: () => ({ append() {} }), createTextNode: value => value },
+    location: { protocol: 'file:' }, navigator: { userAgent: 'URL serialization fixture' },
+    Image: class {
+      remove() {}
+      async decode() {
+        const url = new URL(this.src, pathToFileURL(checker)); requested.push(url);
+        const bytes = await readFile(fileURLToPath(url));
+        this.naturalWidth = bytes.readUInt32BE(16); this.naturalHeight = bytes.readUInt32BE(20);
+      }
+    },
+  });
+  assert.equal(requested[0].hash, '', 'Filename hash must not become a URL fragment');
+  assert.equal(fileURLToPath(requested[0]), join(root, 'release/runtime', asset.path));
+  assert.match(nodes['#result'].textContent, /^PASS — 1\/1 staged images decoded/);
 });
 test('release rejects Killer manifest entries rooted in Survivor inventory artwork',async t=>{
  const root=await fixture(t),path='images/survivor-items-addons/toolbox/items/worn-out-tools.png';

@@ -4,7 +4,7 @@ A dark, local-first progression ledger for Survivors, Killers, Prestige, Bloodwe
 
 ## Save version compatibility
 
-The canonical write/export format is complete schema v2: Prestige Queue plus per-character inventory quantity maps. Their editing surfaces are planned separately; this persistence update does not add those UIs or production inventory definitions.
+The canonical write/export format is complete schema v2: Prestige Queue plus per-character inventory quantity maps. The dashboard manages the queue; character workspaces edit Survivor stock and Killer Add-on quantities.
 
 Valid v1 saves are read and structurally converted with an empty queue and empty quantity maps, preserving existing supported progression and character timestamps. Existing account-rule normalization remains separate. Writable load backs up a validated v1 predecessor first; read-only load shows compatible state without a write or backup.
 
@@ -24,7 +24,7 @@ Open **http://localhost:5173**. Keep this terminal running; Ctrl+C stops it. Any
 
 The file and localhost versions have separate browser storage. To switch, export JSON from the version holding your progress, then import it in the other version. For direct-file use, keep the same file path and browser: storage for `file:` addresses is browser-dependent and can change when you move or rename the folder. Regular JSON exports remain important.
 
-After modifying JavaScript, either catalog JSON file, or the perk image tree, rebuild once and reload the page:
+After modifying JavaScript, a catalog JSON source, or referenced artwork, rebuild once and reload the page:
 
 ```powershell
 npm install
@@ -37,9 +37,10 @@ The bundle is included so ordinary direct-file use does not require these comman
 
 Run `npm run release` from the source checkout. It runs all Node tests and the
 Survivor/Killer patch/date agreement check, removes the old bundle, runs the
-normal fresh build (which regenerates the perk manifest), recreates `release/runtime`,
-verifies its allowlist, local references and icon hashes, and tests the STAGED app's
-persistence, Filtering and artwork on a free localhost port with disposable browser storage.
+normal fresh build (which generates the Killer runtime catalog, then the asset
+manifest before bundling), recreates `release/runtime`, verifies its allowlist,
+local references, artwork dimensions and hashes, and tests the STAGED app's
+persistence, Filtering, Killer workspace and artwork on a free localhost port with disposable browser storage.
 
 The browser runner uses the development-only `playwright-core` package and an
 already installed Microsoft Edge. It downloads no browsers. Run
@@ -48,7 +49,8 @@ against the same stage. Missing browsers or failed smoke checks fail the command
 
 The canonical artifact is `release/runtime/`, containing only `index.html`,
 `styles.css`, `dist/app.js`, an authored runtime `README.md`, and only the usable
-referenced perk PNGs under `images/`. Catalogs and the manifest are embedded in the
+referenced perk, portrait, Survivor inventory and Killer Power/Add-on images under
+`images/`. Runtime catalogs and the manifest are embedded in the
 bundle; source, personal exports, unreferenced artwork, background images, placeholder art,
 archives, development servers and package manifests do not ship. `npm start` remains a source workflow.
 Any suitable static server can serve the runtime directory; no server machinery
@@ -66,8 +68,9 @@ record separately; a rerun requires a new check and overwrites the automated
 report. File and localhost storage remain distinct/browser-dependent.
 
 The generated `release/artwork-file-check.html` sits outside the runtime artifact.
-Open it directly offline to check all staged images; it should report **419/419**
-decoded with **0 intentional fallbacks** for the current supplied image tree.
+Open it directly offline to check all staged images; it should report **1428/1428**
+decoded (321 perks, 98 portraits, 92 Survivor inventory images, 880 Killer Add-ons
+and 37 Powers), with **7 intentional Power fallbacks** for the current supplied image tree.
 It does not access saves. Complete the app's direct-file checks separately.
 
 Tests/generation/build/copy/reference/browser failures exit nonzero, mark verification
@@ -88,8 +91,10 @@ Delivery folders remain unchanged and are not included in runtime staging.
 Missing or failed artwork still uses a diamond and never blocks editing.
 `npm test` generates manifests directly from
 current inputs and isolated fixtures; it never consumes workspace-generated JSON.
-`npm run build` regenerates `data/asset-manifest.json` before esbuild, and release
-stages icons from that same build input. No manifest/catalog JSON is fetched at runtime.
+`npm run build` first projects `data/dbd-killers-live-10.2.1.json` into the compact
+`data/killer-runtime-catalog.json`, then regenerates `data/asset-manifest.json`
+before esbuild. The research master stays out of the bundle. Release stages only
+explicit manifest references from that build. No manifest/catalog JSON is fetched at runtime.
 
 Character portraits cover all 98 characters. Collection cards use a 64px slot;
 details and character managers use 80px, with CSS containment and a silhouette
@@ -100,10 +105,21 @@ the same freshly generated manifest to stage and verify all referenced portraits
 `node tests/browser/portraits.mjs` checks mapping, full decode, MIME, editing,
 fallbacks and 500/700/900/1440 layouts in disposable storage.
 
-No generated asset inputs exist yet. M07A will regenerate its manifest from
-current inputs before the normal build; it will not trust stale generated files.
+Killer artwork uses the explicit canonical paths under `images/Powers and Add-ons/`:
+843 EXACT and 74 REVIEW mappings resolve normally; seven null Power mappings use
+an accessible fallback. Invalid explicit mappings fail generation. Artwork browser
+checks decode all 880 Add-ons and 37 mapped Powers and compare manifest dimensions.
 
 ## Use
+
+Open a Killer's **Power & Add-ons** workspace to read its Power summary and all
+20 Add-ons, grouped by Common, Uncommon, Rare, Very Rare and Ultra Rare. All groups
+stay expanded, including zero stock. Power Details and Add-on Details open the
+gameplay explanation and effects. Quantities save on valid Enter/blur or +/−;
+zero removes the stored key, and invalid or failed edits retain their text.
+Reader windows can open Details while quantities remain disabled. The 44-Killer,
+880-Add-on patch 10.2.1 catalog and artwork are bundled for offline use. Layout
+checks cover 320/500/760/1100/1440/1600px, with 44px quantity/action targets.
 
 Click an owned character’s name or Prestige badge to be offered initial character setup. Enter its Bloodweb level, then record personal acquisitions and upgrades. Native perks start automatically at I, while Prestige, Legacy, and Shrine unlocks provide account-wide minimums. General perks start unselected unless personally acquired. Selecting one defaults to Tier I. Finish saves additions/upgrades and completion for that character; subsequent clicks open its normal details without asking again. Edit Bloodweb setup lets you revisit it.
 
@@ -142,7 +158,7 @@ remain editable separately at the top of perk details.
 
 Progress autosaves to `localStorage.dbdTrackerData`; snapshots use `dbdTrackerBackups`. The last five snapshots are kept. Import, reset, restore, character setup, and account-rule migration create a backup before changing data. Failed backup writes prevent these actions.
 
-**Export JSON** downloads a UTF-8, pretty-printed schema v1 save named `dbd-tracker-YYYY-MM-DD-HHmm.json`, including personal progression, Legacy/Shrine/Unspecified tiers, timestamps, and preserved unknown IDs. Static catalog definitions and transient UI state are not duplicated in exports. Export filenames use your local time.
+**Export JSON** downloads a UTF-8, pretty-printed schema v2 save named `dbd-tracker-YYYY-MM-DD-HHmm.json`, including personal progression, Prestige Queue, inventory quantities, Legacy/Shrine/Unspecified tiers, timestamps, and preserved unknown IDs. Static catalog definitions and transient UI state are not duplicated in exports. Export filenames use your local time.
 
 **Data & backups → Import JSON** validates the entire file, then asks for confirmation before replacement. Malformed structures, unsupported schemas, wrong-role perks, and out-of-range fields are rejected without altering the current save. Missing current catalog characters get defaults. Unknown IDs are reported and preserved, but remain uneditable until their definitions are added. Restore and reset also require confirmation.
 
@@ -177,6 +193,11 @@ The tracker loads the supplied patch **10.1.2a** JSON catalogs dated **2026-10-0
 
 Catalog source definitions are `data/dbd-survivor-perks-live-10.1.2a-2026-10-05-corrected.json` and `data/killer-perks-audited-10.1.2a-2026-10-05.json`. Update those files to change catalog data; `data/catalog.js` adapts their fields to the tracker model. Run `npm run build` after catalog changes to include them in `dist/app.js`. The browser loads a regular script with the catalog embedded, avoiding module imports and JSON fetches under `file:` URLs.
 
+Killer Power/Add-on research has its own patch version, **10.2.1**, in the canonical
+`data/dbd-killers-live-10.2.1.json`. Update that master and rebuild to refresh its
+generated runtime projection; research sources, verification notes and patch history
+are excluded from the runtime workspace.
+
 Compatibility mappings preserve existing tracker IDs for Bill, Yun-Jin, Barbecue & Chilli, Monitor & Abuse, and Laurie's renamed perks. Licensed name variants share one perk record and general Bloodweb availability. Laurie, The Shape, and The Cenobite own their native perks at I; their recorded Prestige can raise global automatic tiers. Display preferences only change names.
 
 Display names include William "Bill" Overbeck, Lee Yun-Jin, and the shared Aestri Yazar & Baermar Uraz entry. Display-name mappings leave the original character IDs and progression records intact.
@@ -190,7 +211,7 @@ Dashboard collection and Prestige metrics use owned characters; global availabil
 ```text
 index.html           Accessible shell and native dialogs
 styles.css           Responsive dark interface
-data/*.json          Supplied Survivor and Killer perk catalogs
+data/*.json          Perk/Survivor catalogs, Killer master and generated runtime data
 data/catalog.js      Catalog adapter and stable-ID compatibility mappings
 src/model.js         Progression selectors, schema validation, migration boundary
 src/storage.js       Autosave and backup/replacement operations
