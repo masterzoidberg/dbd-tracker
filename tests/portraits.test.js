@@ -9,6 +9,7 @@ import * as resolver from '../src/assets.js';
 import { characters } from '../data/catalog.js';
 import { buildProject } from '../scripts/build.mjs';
 import { stageRuntime, verifyStage } from '../scripts/release.mjs';
+import { inventoryEntityById, killerPowerByCharacterId } from '../data/inventory-catalog.js';
 import vm from 'node:vm';
 
 const project = resolve(import.meta.dirname, '..');
@@ -22,6 +23,14 @@ async function fixture(t) {
 async function put(root, path, bytes = png) {
   await mkdir(resolve(root, path, '..'), { recursive: true });
   await writeFile(join(root, path), bytes);
+}
+async function withoutKillerArt(callback) {
+  const addons=Object.values(inventoryEntityById).filter(entity=>entity.kind==='killer-addon'), addonPaths=addons.map(entity=>entity.imagePath);
+  const powers=Object.values(killerPowerByCharacterId), powerPaths=powers.map(power=>power.artwork.path);
+  for(const entity of addons)entity.imagePath=null;
+  for(const power of powers)power.artwork.path=null;
+  try{return await callback();}
+  finally{addons.forEach((entity,index)=>entity.imagePath=addonPaths[index]);powers.forEach((power,index)=>power.artwork.path=powerPaths[index]);}
 }
 test('current portraits cover all 98 canonical characters, preserving source hashes and actual formats', async () => {
   const { portraits } = await assets.generatePortraitManifest(project);
@@ -40,6 +49,7 @@ test('current portraits cover all 98 canonical characters, preserving source has
   assert.equal(resolver.characterPortraitPath('bill-overbeck', { portraits }), portraits['bill-overbeck'].path);
 });
 test('portrait missing entries are null and mislabeled WebP copies regenerate from source before every build', async t => {
+ await withoutKillerArt(async()=>{
   const root = await fixture(t);
   await put(root, 'images/killer-images/the_ghost_face.png', webp);
   await put(root, 'images/survivor-images/meg_thomas.png');
@@ -56,6 +66,7 @@ test('portrait missing entries are null and mislabeled WebP copies regenerate fr
     assert.deepEqual(JSON.parse(await readFile(join(root, 'data/asset-manifest.json'))), expected);
     assert.ok((await readFile(join(root, 'dist/app.js'), 'utf8')).includes(path));
   }
+ });
 });
 for (const [label, paths] of [
   ['collision', ['images/survivor-images/bill_overbeck.png', 'images/survivor-images/william_bill_overbeck.png']],
@@ -68,6 +79,7 @@ for (const [label, paths] of [
   await assert.rejects(assets.generatePortraitManifest(root), /collision|role|Unknown|Invalid/);
 });
 test('invalid portrait formats prevent bundling; generated copy symlinks cannot overwrite external files', async t => {
+ await withoutKillerArt(async()=>{
   const root = await fixture(t);
   await put(root, 'images/survivor-images/meg_thomas.png', 'bad header');
   let bundled = false;
@@ -78,6 +90,7 @@ test('invalid portrait formats prevent bundling; generated copy symlinks cannot 
   await mkdir(join(root, 'outside'));
   await symlink(join(root, 'outside'), join(root, 'images/portrait-runtime'), process.platform === 'win32' ? 'junction' : 'dir');
   await assert.rejects(assets.writeAssetManifest(root), /symbolic|junction/);
+ });
 });
 test('portrait header checks reject truncated, animated and malformed WebP', () => {
   assert.equal(typeof assets.portraitDimensions, 'function');
@@ -95,6 +108,7 @@ test('missing portrait renderer emits a fixed silhouette without an image reques
   assert.ok(!html.includes('<img') && !html.includes('src=') && !html.includes('has-art'));
 });
 test('staging contains only manifest portraits, verifies both formats and excludes mislabeled WebP originals', async t => {
+ await withoutKillerArt(async()=>{
   const root = await fixture(t);
   await put(root, 'images/killer-images/the_ghost_face.png', webp);
   await put(root, 'images/survivor-images/meg_thomas.png');
@@ -109,4 +123,5 @@ test('staging contains only manifest portraits, verifies both formats and exclud
   await assert.rejects(readFile(join(stage, 'images/killer-images/the_ghost_face.png')), /ENOENT/);
   await writeFile(join(stage, path), png);
   await assert.rejects(verifyStage(stage, { manifest }), /mismatch|format/);
+ });
 });

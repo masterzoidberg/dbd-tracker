@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, writeFile, readFile, access, rm, readdir, symlink } fro
 import { tmpdir } from 'node:os';
 import { resolve, join } from 'node:path';
 import { assertStagePath, stageRuntime, verifyStage, checkCatalogRevision, runRelease } from '../scripts/release.mjs';
-import { generatePerkManifest, writePerkManifest } from '../scripts/generate-assets.mjs';
+import { generatePerkManifest, generateAssetManifest, writePerkManifest } from '../scripts/generate-assets.mjs';
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'dbd-release-'));
@@ -147,6 +147,48 @@ test('artwork staging copies only non-null references with exact bytes, excludin
   assert.deepEqual(await readdir(join(stage, 'images/survivor-perks/fixture')), ['adrenaline.png']);
   await writeFile(join(stage, manifest.perks.adrenaline.path), 'bad asset');
   await assert.rejects(verifyStage(stage, { manifest }), /PNG|hash|asset/i);
+});
+test('Killer release stages only manifest-referenced Add-on and Power artwork and verifies their bytes',async t=>{
+ const root=await fixture(t),full=await generateAssetManifest();
+ const addon=Object.values(full.inventory).find(asset=>asset?.path.startsWith('images/Powers and Add-ons/'));
+ const power=Object.values(full.killerPowers).find(asset=>asset?.path);
+ const manifest={perks:{},portraits:{},inventory:{'killer-addon-fixture':addon},killerPowers:{'the-fixture':power}};
+ for(const asset of [addon,power]){
+  const path=join(root,asset.path);
+  await mkdir(join(path,'..'),{recursive:true});
+  await writeFile(path,await readFile(resolve(asset.path)));
+ }
+ const stage=await stageRuntime(root,{manifest});
+ await verifyStage(stage,{manifest});
+ assert.deepEqual((await readdir(join(stage,'images','Powers and Add-ons'))).sort(),['Trapper']);
+ assert.deepEqual(await readFile(join(stage,addon.path)),await readFile(resolve(addon.path)));
+ assert.deepEqual(await readFile(join(stage,power.path)),await readFile(resolve(power.path)));
+ await writeFile(join(stage,power.path),'tampered');
+ await assert.rejects(verifyStage(stage,{manifest}),/Killer Power asset hash\/dimensions mismatch|PNG/i);
+});
+test('release report and offline artwork check include Killer references and null Power fallbacks',async t=>{
+ const root=await fixture(t),full=await generateAssetManifest();
+ const addon=Object.values(full.inventory).find(asset=>asset?.path.startsWith('images/Powers and Add-ons/'));
+ const power=Object.values(full.killerPowers).find(asset=>asset?.path);
+ const manifest={perks:{},portraits:{},inventory:{'killer-addon-report':addon},killerPowers:{'the-report':power,'the-null-power':null}};
+ for(const asset of [addon,power]){
+  const path=join(root,asset.path);
+  await mkdir(join(path,'..'),{recursive:true});
+  await writeFile(path,await readFile(resolve(asset.path)));
+ }
+ const result=await runRelease({root,run:async(_command,args)=>{
+  if(args[1]==='build'){
+   await writeFile(join(root,'data/asset-manifest.json'),JSON.stringify(manifest));
+   await writeFile(join(root,'dist/app.js'),'/* generated bundle */');
+  }
+ },smoke:async()=>({localhost:'AUTOMATED PASS'})});
+ assert.equal(result.artwork.killerAddons,1);
+ assert.equal(result.artwork.killerPowers,1);
+ assert.equal(result.artwork.fallbackKillerPowers,1);
+ const fileCheck=await readFile(join(root,'release/artwork-file-check.html'),'utf8');
+ assert.ok(fileCheck.includes('killer-addon-report'));
+ assert.ok(fileCheck.includes('the-report'));
+ assert.ok(fileCheck.includes('1 intentional fallbacks'));
 });
 test('unsafe manifest paths cannot copy files outside the perk runtime allowlist', async t => {
   const root = await fixture(t);

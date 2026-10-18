@@ -3,7 +3,7 @@ import { resolve, relative, sep, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { perks, perkAliases, characters, slug } from '../data/catalog.js';
-import { inventoryEntities } from '../data/inventory-catalog.js';
+import { inventoryEntities, inventoryEntityById, killerPowerByCharacterId } from '../data/inventory-catalog.js';
 
 const PROJECT_ROOT = resolve(import.meta.dirname, '..');
 const PLACEHOLDER_HASH = '3f794fe2e61b06702dbb027010b15e67e78a18e79b2b9c096be1180b76beb89b';
@@ -120,26 +120,59 @@ export async function generatePortraitManifest(root = PROJECT_ROOT) {
 export async function generateAssetManifest(root = PROJECT_ROOT) {
   const [perks, portraits] = await Promise.all([generatePerkManifest(root), generatePortraitManifest(root)]);
   const inventory={};
-  for(const entity of inventoryEntities) {
+  for(const entity of [...inventoryEntities,...Object.values(inventoryEntityById).filter(entity=>entity.kind==='killer-addon')]) {
     inventory[entity.id]=null;
     if(!entity.imagePath) continue;
     const path=assertInventoryAssetPath(entity.imagePath);
+    const isKiller=entity.kind==='killer-addon';
     let safe=true;
     let parent=root;
-    for(const part of path.split('/')) {
+    const parts=path.split('/');
+    for(const [index,part] of parts.entries()) {
       parent=resolve(parent,part);
       const info=await lstat(parent).catch(e=>{if(e.code!=='ENOENT')throw e; return null;});
-      if(!info){safe=false;break;} if(info.isSymbolicLink())throw Error('Inventory artwork cannot use symbolic links.');
+      if(!info){
+        if(isKiller)throw Error(`Killer artwork path does not exist: ${path}`);
+        safe=false;break;
+      }
+      if(info.isSymbolicLink())throw Error('Inventory artwork cannot use symbolic links.');
+      if(isKiller&&(index===parts.length-1?!info.isFile():!info.isDirectory()))throw Error(`Killer artwork path has an invalid component: ${path}`);
     }
     if(!safe)continue;
     const bytes=await readFile(resolve(root,path)), sha256=createHash('sha256').update(bytes).digest('hex');
+    if(isKiller) {
+      if(!['EXACT','REVIEW'].includes(entity.artworkConfidence))throw Error(`Killer artwork confidence is invalid: ${entity.id}`);
+      inventory[entity.id]={path,...pngDimensions(bytes,path),sha256};
+      continue;
+    }
     if(sha256!==entity.imageSha256)continue;
     try {inventory[entity.id]={path,...pngDimensions(bytes,path),sha256};}catch{ /* Truthful art fallback. */ }
   }
-  return { ...perks, ...portraits, inventory };
+  const killerPowers={};
+  for(const [characterId,power] of Object.entries(killerPowerByCharacterId)) {
+    const path=power.artwork.path;
+    if(path===null){killerPowers[characterId]=null;continue;}
+    assertInventoryAssetPath(path);
+    if(!['EXACT','REVIEW'].includes(power.artwork.confidence))throw Error(`Killer Power artwork confidence is invalid: ${characterId}`);
+    let parent=root;
+    const parts=path.split('/');
+    for(const [index,part] of parts.entries()) {
+      parent=resolve(parent,part);
+      const info=await lstat(parent).catch(error=>{if(error.code!=='ENOENT')throw error;});
+      if(!info)throw Error(`Killer Power artwork path does not exist: ${path}`);
+      if(info.isSymbolicLink())throw Error(`Killer Power artwork cannot use symbolic links: ${path}`);
+      if(index===parts.length-1?!info.isFile():!info.isDirectory())throw Error(`Killer Power artwork path has an invalid component: ${path}`);
+    }
+    const bytes=await readFile(resolve(root,path));
+    killerPowers[characterId]={path,...pngDimensions(bytes,path),sha256:createHash('sha256').update(bytes).digest('hex')};
+  }
+  return { ...perks, ...portraits, inventory, killerPowers };
 }
 export function assertInventoryAssetPath(path) {
-  if(typeof path!=='string'||!/^images\/survivor-items-addons\/[a-z0-9]+(?:-[a-z0-9]+)*\/(items|addons)\/[a-z0-9]+(?:-[a-z0-9]+)*\.png$/.test(path))
+  const survivor=typeof path==='string'&&/^images\/survivor-items-addons\/[a-z0-9]+(?:-[a-z0-9]+)*\/(items|addons)\/[a-z0-9]+(?:-[a-z0-9]+)*\.png$/.test(path);
+  const killer=typeof path==='string'&&path.startsWith('images/Powers and Add-ons/')&&path.endsWith('.png')
+    &&!path.includes('\\')&&path.split('/').every(part=>part&&part!=='.'&&part!=='..');
+  if(!survivor&&!killer)
     throw Error('Invalid inventory asset path.');
   return path;
 }

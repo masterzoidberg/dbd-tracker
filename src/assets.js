@@ -11,3 +11,6 @@ export function characterPortraitPath(id, manifest) {
 export function inventoryIconPath(id,manifest) {
   return manifest.inventory && Object.hasOwn(manifest.inventory,id) ? manifest.inventory[id]?.path??null : null;
 }
+export function killerPowerIconPath(characterId,manifest) {
+  return manifest.killerPowers && Object.hasOwn(manifest.killerPowers,characterId) ? manifest.killerPowers[characterId]?.path??null : null;
+}

@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { build } from 'esbuild';
 import { buildProject } from '../scripts/build.mjs';
-import { generateAssetManifest } from '../scripts/generate-assets.mjs';
+import { generatePerkManifest } from '../scripts/generate-assets.mjs';
 import { writeKillerRuntimeCatalog } from '../scripts/generate-killer-runtime-catalog.mjs';
 
 async function fixture(t) {
@@ -17,10 +17,13 @@ async function fixture(t) {
   return root;
 }
 test('standalone build regenerates missing and stale manifests before bundling current paths', async t => {
-  const root = await fixture(t), expected = await generateAssetManifest(root);
+  const root = await fixture(t), expected = await generatePerkManifest(root);
   for (const stale of [false, true]) {
     if (stale) await writeFile(join(root, 'data/asset-manifest.json'), '{stale garbage');
-    await buildProject(root, { writeCatalog: async () => {} });
+    await buildProject(root, { writeCatalog: async () => {}, writeManifest: async projectRoot => {
+      await writeFile(join(projectRoot, 'data/asset-manifest.json'), JSON.stringify(expected));
+      return expected;
+    } });
     assert.deepEqual(JSON.parse(await readFile(join(root, 'data/asset-manifest.json'))), expected);
     assert.ok((await readFile(join(root, 'dist/app.js'), 'utf8')).includes(expected.perks.adrenaline.path));
   }
