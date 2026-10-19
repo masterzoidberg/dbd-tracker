@@ -19,5 +19,13 @@ test-results/
 .cache/
 
 # Original artwork delivery trees; canonical build/runtime assets are retained.
-/images/updated-images/
+/images/updated-images/*
+!/images/updated-images/Character Portraits/
+/images/updated-images/Character Portraits/*
+!/images/updated-images/Character Portraits/Survivors/
+/images/updated-images/Character Portraits/Survivors/*
+!/images/updated-images/Character Portraits/Survivors/Lore/
+!/images/updated-images/Character Portraits/Killers/
+/images/updated-images/Character Portraits/Killers/*
+!/images/updated-images/Character Portraits/Killers/Lore/
 /images/missing-perks/
