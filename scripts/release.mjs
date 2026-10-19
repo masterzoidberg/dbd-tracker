@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process';
 import { resolve, dirname, relative, isAbsolute, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { smokeStage } from '../tests/browser/smoke.mjs';
-import { assertPerkAssetPath, pngDimensions, assertPortraitAssetPath, portraitDimensions, assertInventoryAssetPath } from './generate-assets.mjs';
+import { assertPerkAssetPath, pngDimensions, assertPortraitAssetPath, assertCollectionPortraitAssetPath, portraitDimensions, assertInventoryAssetPath } from './generate-assets.mjs';
 
 const PROJECT_ROOT = resolve(import.meta.dirname, '..');
 export const RUNTIME_FILES = {
@@ -47,6 +47,11 @@ function runtimeFiles(manifest) {
   for (const asset of Object.values(manifest.portraits || {}).filter(Boolean)) {
     const path = assertPortraitAssetPath(asset.path);
     if (Object.hasOwn(files, path)) throw new Error(`Portrait asset path collision: ${path}`);
+    files[path] = path;
+  }
+  for (const asset of Object.values(manifest.collectionPortraits || {}).filter(Boolean)) {
+    const path = assertCollectionPortraitAssetPath(asset.path);
+    if (Object.hasOwn(files, path)) throw new Error(`Collection portrait asset path collision: ${path}`);
     files[path] = path;
   }
   return files;
@@ -109,6 +114,11 @@ export async function verifyStage(stage, { manifest = { perks: {} } } = {}) {
     const bytes = await readFile(resolve(stage, asset.path)), dimensions = portraitDimensions(bytes, asset.path);
     if (dimensions.format !== asset.format || !asset.path.endsWith('.' + asset.format) || dimensions.width !== asset.width || dimensions.height !== asset.height || createHash('sha256').update(bytes).digest('hex') !== asset.sha256) throw new Error(`Staged portrait format/hash/dimensions mismatch: ${asset.path}`);
   }
+  for (const asset of Object.values(manifest.collectionPortraits || {}).filter(Boolean)) {
+    const path = assertCollectionPortraitAssetPath(asset.path);
+    const bytes = await readFile(resolve(stage, path)), dimensions = portraitDimensions(bytes, path);
+    if (dimensions.format !== asset.format || asset.format !== 'png' || dimensions.width !== asset.width || dimensions.height !== asset.height || createHash('sha256').update(bytes).digest('hex') !== asset.sha256) throw new Error(`Staged collection portrait format/hash/dimensions mismatch: ${path}`);
+  }
   const contents = Object.fromEntries(await Promise.all(Object.keys(RUNTIME_FILES).map(async name => {
     const text = await readFile(resolve(stage, name), 'utf8');
     if (!text.trim()) throw new Error(`Required runtime file is empty: ${name}`);
@@ -144,11 +154,12 @@ function runCommand(command, args, root) {
 
 // Outside runtime: a human opens this page to check every staged image in file mode.
 function artworkFileCheck(manifest) {
-  const assets = [...Object.entries(manifest.perks), ...Object.entries(manifest.portraits || {}), ...Object.entries(manifest.inventory || {}), ...Object.entries(manifest.killerPowers || {})].filter(([, asset]) => asset).map(([id, asset]) => ({ id, ...asset }));
-  const fallbacks = [...Object.values(manifest.perks), ...Object.values(manifest.portraits || {}), ...Object.values(manifest.killerPowers || {})].filter(value => value === null).length;
+  const collectionPortraits = Object.entries(manifest.collectionPortraits || {}).map(([id, asset]) => ['Collection · ' + id, asset]);
+  const assets = [...Object.entries(manifest.perks), ...Object.entries(manifest.portraits || {}), ...collectionPortraits, ...Object.entries(manifest.inventory || {}), ...Object.entries(manifest.killerPowers || {})].filter(([, asset]) => asset).map(([id, asset]) => ({ id, ...asset }));
+  const fallbacks = [...Object.values(manifest.perks), ...Object.values(manifest.portraits || {}), ...Object.values(manifest.collectionPortraits || {}), ...Object.values(manifest.killerPowers || {})].filter(value => value === null).length;
   return `<!doctype html><meta charset="utf-8"><title>Staged artwork verification</title>
 <style>body{font:16px system-ui;background:#19191b;color:#edebe6;padding:24px}li{display:inline-flex;align-items:center;gap:8px;width:280px;margin:8px}img{width:36px;height:36px;object-fit:contain}</style>
-<h1>Staged artwork verification</h1><p>Open this page directly from disk, offline. It checks the exact manifest-referenced perk, portrait, inventory, and Killer Power artwork under runtime/images; it does not access tracker saves.</p>
+<h1>Staged artwork verification</h1><p>Open this page directly from disk, offline. It checks the exact manifest-referenced perk, portrait, collection, inventory, and Killer Power artwork under runtime/images; it does not access tracker saves.</p>
 <p id="mode"></p><p id="result">Checking icons…</p><ul id="icons"></ul>
 <script>
 const assets = ${JSON.stringify(assets)};
@@ -188,7 +199,7 @@ export async function runRelease({ root = PROJECT_ROOT, run = runCommand, copy =
     if (browser.localhost !== 'AUTOMATED PASS') throw new Error('Required localhost browser smoke did not pass.');
     await writeFile(fileCheck, artworkFileCheck(manifest));
     const result = { status: 'AWAITING_MANUAL_ACCEPTANCE', stage, catalog, ...browser,
-      artwork: { usableIcons: Object.values(manifest.perks).filter(Boolean).length, fallbackPerks: Object.values(manifest.perks).filter(value => value === null).length, usablePortraits: Object.values(manifest.portraits || {}).filter(Boolean).length, fallbackPortraits: Object.values(manifest.portraits || {}).filter(value => value === null).length, killerAddons: Object.values(manifest.inventory || {}).filter(asset => asset?.path?.startsWith('images/Powers and Add-ons/')).length, killerPowers: Object.values(manifest.killerPowers || {}).filter(Boolean).length, fallbackKillerPowers: Object.values(manifest.killerPowers || {}).filter(value => value === null).length },
+      artwork: { usableIcons: Object.values(manifest.perks).filter(Boolean).length, fallbackPerks: Object.values(manifest.perks).filter(value => value === null).length, usablePortraits: Object.values(manifest.portraits || {}).filter(Boolean).length, fallbackPortraits: Object.values(manifest.portraits || {}).filter(value => value === null).length, usableCollectionPortraits: Object.values(manifest.collectionPortraits || {}).filter(Boolean).length, fallbackCollectionPortraits: Object.values(manifest.collectionPortraits || {}).filter(value => value === null).length, killerAddons: Object.values(manifest.inventory || {}).filter(asset => asset?.path?.startsWith('images/Powers and Add-ons/')).length, killerPowers: Object.values(manifest.killerPowers || {}).filter(Boolean).length, fallbackKillerPowers: Object.values(manifest.killerPowers || {}).filter(value => value === null).length },
       directFile: 'MANUAL ACCEPTANCE REQUIRED',
       bundleSha256: createHash('sha256').update(await readFile(resolve(stage, 'dist/app.js'))).digest('hex'),
     };

@@ -2713,6 +2713,785 @@
       "sha256": "d9f3294d9d39392be7e93a3df54dea9c9aaaccaf13e5548543c3be5a64b25eb9"
     }
   },
+  "collectionPortraits": {
+    "ace-visconti": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Ace Visconti.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Ace Visconti.png",
+      "width": 502,
+      "height": 983,
+      "format": "png",
+      "sha256": "e3e93e3d621c9da2b48d77b758bc14e07bc6b72fbd9ff013330bade49609633c"
+    },
+    "ada-wong": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Ada Wong.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Ada Wong.png",
+      "width": 398,
+      "height": 991,
+      "format": "png",
+      "sha256": "7f904d61988753ea0344c0bc7c5260b5e18151df7d07d1f84ecb40fb42f91b23"
+    },
+    "adam-francis": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Adam Francis.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Adam Francis.png",
+      "width": 512,
+      "height": 1004,
+      "format": "png",
+      "sha256": "be10dc816a541b22603882e5411175026903921cbab421c999603f1a3cf27701"
+    },
+    "aestri-yazar": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Aestri Yazar.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Aestri Yazar.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "1055525abc3adf3b8e2bd55ba829fc8f2571a6135d5037ad02512f8bf7e4bbf0"
+    },
+    "alan-wake": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Alan Wake.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Alan Wake.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "71f8ddf3c8f79cab7fa36c8c51636ec5675b892a7fd9e886eb1cb38462561307"
+    },
+    "ash-williams": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Ash Williams.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Ash Williams.png",
+      "width": 500,
+      "height": 1013,
+      "format": "png",
+      "sha256": "7ba996b2e11ffcbc2f2cd3ac953ecb949c2d9d60cd131e0f90676d481af44e2b"
+    },
+    "aurora-stardotter": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Aurora Stardotter.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Aurora Stardotter.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "91e9589ca3abfc1b37c58d69791df2902756f6c4515f8e5a48d542ccfa95af98"
+    },
+    "bill-overbeck": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Bill Overbeck.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Bill Overbeck.png",
+      "width": 472,
+      "height": 994,
+      "format": "png",
+      "sha256": "62cabef1161e9959e23c56947a0e671896f6b891ffb5a2ef8588d7ebcac827b1"
+    },
+    "cheryl-mason": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Cheryl Mason.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Cheryl Mason.png",
+      "width": 483,
+      "height": 970,
+      "format": "png",
+      "sha256": "c9dd1f2c206c57c95ea42494d35bf1e05b5aa5d603702eac53b589cd59c951b7"
+    },
+    "claudette-morel": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Claudette Morel.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Claudette Morel.png",
+      "width": 512,
+      "height": 1005,
+      "format": "png",
+      "sha256": "50a6dc1aba2abaceb66eef30913d5352c983b930d424ac1b8682c3caaafb1ebe"
+    },
+    "david-king": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/David King.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/David King.png",
+      "width": 512,
+      "height": 991,
+      "format": "png",
+      "sha256": "9196bda6f2d7cd9014f25e51a8edd6b77bca0bc307e621b7b169e8841032c6fb"
+    },
+    "david-tapp": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/David Tapp.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/David Tapp.png",
+      "width": 512,
+      "height": 998,
+      "format": "png",
+      "sha256": "6063e7b08203070dd2f01479d017e1b75b4373ff8fc93605852a0726a8e13c3b"
+    },
+    "dustin-henderson": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Dustin Henderson.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Dustin Henderson.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "f762b26ce1be21547d714774ccbe8cb8d8152933d6c6845f90e05a16ea856505"
+    },
+    "dwight-fairfield": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Dwight Fairfield.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Dwight Fairfield.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "5b1984ad642f16f2f833a4c80f25139e8b7cb829575f5aa90516ff1df823dfd1"
+    },
+    "eleven": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Eleven.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Eleven.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "73a95e66c611f898397ebc73aa7ffcdc56bd6e9cc1096286f51707c1c46456d8"
+    },
+    "ellen-ripley": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Ellen Ripley.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Ellen Ripley.png",
+      "width": 496,
+      "height": 980,
+      "format": "png",
+      "sha256": "5273796279ac562e57689b3e5958f8c27e4543b8a887e2e5dc4eae01a617e81d"
+    },
+    "elodie-rakoto": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Elodie Rakoto.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Elodie Rakoto.png",
+      "width": 500,
+      "height": 1021,
+      "format": "png",
+      "sha256": "edb3a7327972b391a2e9e0d7c0f70ab1046aa09231a1541f4dc6b9c8f63fe143"
+    },
+    "felix-richter": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Felix Richter.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Felix Richter.png",
+      "width": 500,
+      "height": 1013,
+      "format": "png",
+      "sha256": "304fa890c7afc27021ef71d286087e694219349d85ede94247b775223ef5a2ba"
+    },
+    "feng-min": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Feng Min.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Feng Min.png",
+      "width": 433,
+      "height": 963,
+      "format": "png",
+      "sha256": "0dd1d537739d8f578ab1cbabe6f16cb39049d452194dad15e3c1f4b1c56e660c"
+    },
+    "gabriel-soma": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Gabriel Soma.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Gabriel Soma.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "caee64085ee16fdc38e4dfa8fe80888c7a9244b01326f9dc73df3edea5592e24"
+    },
+    "haddie-kaur": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Haddie Kaur.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Haddie Kaur.png",
+      "width": 512,
+      "height": 990,
+      "format": "png",
+      "sha256": "f83fa3dda91459b3ab45f1452d3db190fa811b5c6cfd2d841ae86f5ba058f378"
+    },
+    "jake-park": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/JakeStore.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/JakeStore.png",
+      "width": 512,
+      "height": 1013,
+      "format": "png",
+      "sha256": "ca4a217e3e958ff87950766c3ed6e28ae8b12cedfa1713c377e5c75d6124883c"
+    },
+    "jane-romero": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Jane Romero.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Jane Romero.png",
+      "width": 465,
+      "height": 998,
+      "format": "png",
+      "sha256": "c4b5638f4e530d77e382c109b3b21573dbd6abb8be75908fa4c9cb592ceb2959"
+    },
+    "jeff-johansen": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Jeff Johansen.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Jeff Johansen.png",
+      "width": 496,
+      "height": 987,
+      "format": "png",
+      "sha256": "511a3ea6d6a8c1df64501d2cc7a5424c6b56796d063b4c8dbdc3c99588eb916c"
+    },
+    "jill-valentine": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Jill Valentine.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Jill Valentine.png",
+      "width": 512,
+      "height": 975,
+      "format": "png",
+      "sha256": "8b3630471694106d8220b7dbc42656de5d2fda54a85edf0cdad12a1da1c4928d"
+    },
+    "jonah-vasquez": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Jonah Vasquez.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Jonah Vasquez.png",
+      "width": 512,
+      "height": 1007,
+      "format": "png",
+      "sha256": "2aa17f4d7ca0885433b8ba6cf7ffd6eda21dca704ffa2e08b3254f5b18ece983"
+    },
+    "kate-denson": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Kate Denson.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Kate Denson.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "41a91b5d23be1e88f20d2db07679bea965fb5d930dd2c20912c55f9fc810775a"
+    },
+    "kwon-tae-young": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Kwon Tae-young.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Kwon Tae-young.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "f7d00e6e2eb38cebd49f7a86c36adf9d6e3e192742e6e3e3e178c466bb0d096f"
+    },
+    "lara-croft": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Lara Croft.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Lara Croft.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "acb4df02f4fb618c91e763f628e2be44d659570ae94d65257a92e7c69e9166cb"
+    },
+    "laurie-strode": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Laurie Strode.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Laurie Strode.png",
+      "width": 482,
+      "height": 995,
+      "format": "png",
+      "sha256": "3d97f07f2772a3ebbb38c41e848d281b0bee4ff8bbca473209a63a05546d4c5e"
+    },
+    "leon-s-kennedy": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Leon S Kennedy.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Leon S Kennedy.png",
+      "width": 512,
+      "height": 995,
+      "format": "png",
+      "sha256": "0c3251694d7b2dbe3bf9664d4048f8000975050550f1d88ad65b8e4354c9b09e"
+    },
+    "meg-thomas": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Meg Thomas.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Meg Thomas.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "ff0570047486694e7aa9c9793284a3e713e57896acf497e8451d8c238d4c0195"
+    },
+    "michonne-grimes": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Michonne Grimes.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Michonne Grimes.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "ae8b2af629e72e0976e5747ee0d6ff030fc473ab514a7f5fe6c98b560785f9c0"
+    },
+    "mikaela-reid": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Mikaela Reid.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Mikaela Reid.png",
+      "width": 512,
+      "height": 994,
+      "format": "png",
+      "sha256": "6fdf08f274fba31220ced91de3e3ac58df1d64065fab6c78e6370fd3bb0abac6"
+    },
+    "nancy-wheeler": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Nancy Wheeler.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Nancy Wheeler.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "4c5ae348158cbf2fed7a34c3800ebb156e308d76fc03095291cbf91d326ab41c"
+    },
+    "nea-karlsson": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Nea Karlsson.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Nea Karlsson.png",
+      "width": 481,
+      "height": 993,
+      "format": "png",
+      "sha256": "fe91151a39b674984dce0f752df78dcf8c8872363f0fe3950efc1a12c1e50d7b"
+    },
+    "nicolas-cage": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Nicolas Cage.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Nicolas Cage.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "8be71a3c5c22393d715160d202b933b84ffd2b2dea3eb37ec406cdb02b30f61b"
+    },
+    "orela-rose": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Orela Rose.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Orela Rose.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "95718d635f65d4897322ff8b5f94a7aed7e6fed29d2d8f2248d4e1c1ef5006f3"
+    },
+    "quentin-smith": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Quentin Smith.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Quentin Smith.png",
+      "width": 512,
+      "height": 1008,
+      "format": "png",
+      "sha256": "138fdf48f4c3ae90ff0e59dc65c0899dc4dba509be536a985b93f702df7fda1e"
+    },
+    "rebecca-chambers": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Rebecca Chambers.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Rebecca Chambers.png",
+      "width": 468,
+      "height": 977,
+      "format": "png",
+      "sha256": "0d0687fbefa1a24507bc0895ded41e03388be79e09166245e97ab43e23bd44bb"
+    },
+    "renato-lyra": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Renato Lyra.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Renato Lyra.png",
+      "width": 490,
+      "height": 981,
+      "format": "png",
+      "sha256": "9f53fac70937f27b3e2794365e5e8e085f5331f7fed0e086f70f4f7f88b12437"
+    },
+    "rick-grimes": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Rick Grimes.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Rick Grimes.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "d7ee06c683178aa0a90b7f15fe3acb3ba339b7f61980341b09da2fefcf89ef1d"
+    },
+    "sable-ward": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Sable Ward.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Sable Ward.png",
+      "width": 479,
+      "height": 969,
+      "format": "png",
+      "sha256": "8ef4f1a7dbf34f17d2a7d6718c553c24fb4c5265cd55a8497e6fb6487dd0aebc"
+    },
+    "shane-wiigwaas": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Shane Wiigwaas.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Shane Wiigwaas.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "c8a1e4f49190e00867f6da30464bec76f59b61644334d18cc9da264f7fdad9e2"
+    },
+    "steve-harrington": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Steve Harrington.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Steve Harrington.png",
+      "width": 500,
+      "height": 1023,
+      "format": "png",
+      "sha256": "72e90b4f1b92591163cec194b1e6e0bd0932707a1fa6e93c50f6ccdcd4746a77"
+    },
+    "taurie-cain": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Taurie Cain.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Taurie Cain.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "2e212984a4d6aad76893cab2ea555301f6d5e9304b73c8f7cbbecc4f73035c66"
+    },
+    "thalita-lyra": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Thalita Lyra.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Thalita Lyra.png",
+      "width": 428,
+      "height": 980,
+      "format": "png",
+      "sha256": "5fcc9eaec3143a9fbd1810c4aa802ccbb8511adf50306ff2eed311e98e152dac"
+    },
+    "the-animatronic": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Animatronic.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Animatronic.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "332ef5d026c6d1d8cbe47bad6455a521c83f6bb6b73ff0a624a199dc3a6d3e88"
+    },
+    "the-artist": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Artist.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Artist.png",
+      "width": 492,
+      "height": 984,
+      "format": "png",
+      "sha256": "80886f3c156ec507d6b7534bcbf711dce4ec99d110016f8de09bf160ed0ef860"
+    },
+    "the-blight": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Blight.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Blight.png",
+      "width": 512,
+      "height": 1014,
+      "format": "png",
+      "sha256": "b59a811c93bee94edcfa409118ca10fc0d0e0451d3c87743a1525eaa8cdc71a9"
+    },
+    "the-cannibal": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Cannibal.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Cannibal.png",
+      "width": 462,
+      "height": 1022,
+      "format": "png",
+      "sha256": "65c9ad7bfbfcccf13478e0e3e873c0b24f6934012e101ef68bf74f42244c9db0"
+    },
+    "the-cenobite": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Pinhead.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Pinhead.png",
+      "width": 503,
+      "height": 1015,
+      "format": "png",
+      "sha256": "51c0862490719e18b46cbf304df95a986823feba151315afdcd8a05074668dd4"
+    },
+    "the-clown": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Clown.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Clown.png",
+      "width": 512,
+      "height": 1021,
+      "format": "png",
+      "sha256": "c786d3e81a98c13091e3bef317ef3db6a314e10a004af5ddaf01bef67432e2d7"
+    },
+    "the-dark-lord": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Dark Lord.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Dark Lord.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "f86b9c4a116c2c90b0331324ac9db94844a19f53c2416c68ba72c65f8da66ccf"
+    },
+    "the-deathslinger": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Deathslinger.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Deathslinger.png",
+      "width": 512,
+      "height": 1016,
+      "format": "png",
+      "sha256": "e23d591bd44e351442d0d0aa4626c8365030d33298ab5a13cafc63b07ef99229"
+    },
+    "the-demogorgon": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Demogorgon.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Demogorgon.png",
+      "width": 512,
+      "height": 1018,
+      "format": "png",
+      "sha256": "97f24598c7c4cf6551a51dd0191066da365e2436f4b3186efb54410104dcebc1"
+    },
+    "the-doctor": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Doctor.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Doctor.png",
+      "width": 512,
+      "height": 1013,
+      "format": "png",
+      "sha256": "a91163aae87bb3b39c1eb5ac75613000fd638b7144665e7b92fc2aec9c59a65c"
+    },
+    "the-dredge": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Dredge.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Dredge.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "b283b18bb859be2f34226852553edc8541707a232412331856bcc2769c3c027c"
+    },
+    "the-executioner": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Executioner.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Executioner.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "9aed133e22e8f73ea3afcd69147cef87ba1462ea251fcc6bd877abdb9049ed83"
+    },
+    "the-first": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/First.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/First.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "89b33bb0e7fec01c1a863cc5a743ead6771a81d62eaa3b9a78dce4373dabe2ea"
+    },
+    "the-ghost-face": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Ghostface.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Ghostface.png",
+      "width": 512,
+      "height": 1019,
+      "format": "png",
+      "sha256": "a8120dfe5cbe387e91dbc1fd97dc05460c4f2d8e4ad2e7538e91d0caa6e6427d"
+    },
+    "the-ghoul": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Ghoul.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Ghoul.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "5b782e5d67e501fa8b4576678fd53dcc88fc53b6ca51e59ae963282fa283f403"
+    },
+    "the-good-guy": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Good Guy.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Good Guy.png",
+      "width": 147,
+      "height": 274,
+      "format": "png",
+      "sha256": "45510902255c4d360b366e36c79747c270c6cb74939d3612f02d11ea6847c3ff"
+    },
+    "the-hag": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Hag.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Hag.png",
+      "width": 512,
+      "height": 1011,
+      "format": "png",
+      "sha256": "7d2b52903a9ddd5d62e2640424aeccc51b019f483e520f156863aed20bb677f8"
+    },
+    "the-hillbilly": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Hillbilly.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Hillbilly.png",
+      "width": 512,
+      "height": 999,
+      "format": "png",
+      "sha256": "7c6169631bf24650be8d878ac18deaac1e9855615967ccd2bb27ed4080f6b191"
+    },
+    "the-houndmaster": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Houndmaster.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Houndmaster.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "206ee408de57785ca7e6e62f2641762b895c17cfcf827748da1c0ab068c6a099"
+    },
+    "the-huntress": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Huntress.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Huntress.png",
+      "width": 512,
+      "height": 1017,
+      "format": "png",
+      "sha256": "9a69b64e316371382ad1692995e3283091e55b8049a0dadf96fe4a3352fa7842"
+    },
+    "the-judgment": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Judgment.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Judgment.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "d29d4459220b280b6d9f41fdf0c77e82c24efb759a9697dce052c4d411ecc1bf"
+    },
+    "the-knight": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Knight.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Knight.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "5b1509220ef02a47e986022a5d454caead22593e2145b26f24f2649560fec4d0"
+    },
+    "the-krasue": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Krasue.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Krasue.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "c75888c3e971c22dc2004aebd98a9b8d318f5115fd6a16788d5addbbd452b14a"
+    },
+    "the-legion": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Legion.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Legion.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "0d3761f808f680bb13423754c7fb88ff76d1654fb1802cc7bfc23a1c6e16de9b"
+    },
+    "the-lich": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Lich.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Lich.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "cd8d903aecfb4b5e44b53631b79293d188fc8f9db4ec7670dcc04538c8a637de"
+    },
+    "the-mastermind": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Mastermind.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Mastermind.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "830f52b4e4dc828f840d704a221cc95b7438f6f5477309a75f52011221cb18b0"
+    },
+    "the-nemesis": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Nemesis.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Nemesis.png",
+      "width": 512,
+      "height": 1000,
+      "format": "png",
+      "sha256": "7e01aa557413944007e7a02b97905733ed258990d750650530cab978450c8545"
+    },
+    "the-nightmare": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Nightmare.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Nightmare.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "8d16ae477d252af68c365b176ebcd37bc01aeef4a630be73645c4cde3d7df4df"
+    },
+    "the-nurse": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Nurse.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Nurse.png",
+      "width": 512,
+      "height": 976,
+      "format": "png",
+      "sha256": "cb8dfb2d8dbc5bd6a2773558fe1709a9d90b47c800d4df3c84f486a7c3c623f6"
+    },
+    "the-oni": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Oni.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Oni.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "d46ec1e3dde93c4621763083e55870524fe9203d6da48badb651abef629ce061"
+    },
+    "the-onryo": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Onryo.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Onryo.png",
+      "width": 443,
+      "height": 972,
+      "format": "png",
+      "sha256": "a75ad149e901c49892b5512b1caab93e70a06f12b2ba1c58356263e68f615864"
+    },
+    "the-pig": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Pig.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Pig.png",
+      "width": 512,
+      "height": 1019,
+      "format": "png",
+      "sha256": "1ab2e420d59d6bde6678c8abfe48d63da9ff7fdf8408c07985c1117bdc29ad89"
+    },
+    "the-plague": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Plague.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Plague.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "5bd109b058ea9648f4c541bc6d2051a127e3ab98870bc53709802c40cf68682d"
+    },
+    "the-shape": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Shape.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Shape.png",
+      "width": 478,
+      "height": 1014,
+      "format": "png",
+      "sha256": "ee0020f27c85ea52fb4b60cd74b6b18669be6793f1f50bd3cb3dbe1144f7da1a"
+    },
+    "the-singularity": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Singularity.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Singularity.png",
+      "width": 1000,
+      "height": 1039,
+      "format": "png",
+      "sha256": "0942d88bab5ff26eedcadc07a0446aae32fc80f4386d565af1305cde0b5c71a0"
+    },
+    "the-skull-merchant": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Skull Merchant.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Skull Merchant.png",
+      "width": 512,
+      "height": 984,
+      "format": "png",
+      "sha256": "248ae82f6350ed9537bf3e803b650b53322a0d68a25997dcd3f7f03af08556a2"
+    },
+    "the-slasher": null,
+    "the-spirit": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Spirit.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Spirit.png",
+      "width": 512,
+      "height": 867,
+      "format": "png",
+      "sha256": "540261382f2838a948e6c58f6e42819fc1514ba5a6b17df18be0c6e3f3803e09"
+    },
+    "the-trapper": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Trapper.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Trapper.png",
+      "width": 512,
+      "height": 992,
+      "format": "png",
+      "sha256": "5b7ca413fa9a32773db85a9e5beabb47ed025bff2a071dc9b50a837ea98d994a"
+    },
+    "the-trickster": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Trickster.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Trickster.png",
+      "width": 481,
+      "height": 1024,
+      "format": "png",
+      "sha256": "768a7f252f58e67b0af2280291e5ea671ed8abeba1a23c17eece61fec035fed2"
+    },
+    "the-twins": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Twins.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Twins.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "f673c8f2e71280e07cc5804788173e62214a0bb7b1bc902304347a6c1487238e"
+    },
+    "the-unknown": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Unknown.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Unknown.png",
+      "width": 512,
+      "height": 985,
+      "format": "png",
+      "sha256": "399df35bf7df70bf1116340cdcf13be70d76fda82ca0ee1dfdd30c2870796d19"
+    },
+    "the-wraith": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Wraith.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Wraith.png",
+      "width": 512,
+      "height": 1020,
+      "format": "png",
+      "sha256": "54360a0293eb6e60c1d1363a42a95c70bc5670c46eb787217135b6282e64fdd8"
+    },
+    "the-xenomorph": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Xenomorph.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Xenomorph.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "ba918f50eccf792ae957154552804e6c77bda066d7a1727e40eeb19af090a5fb"
+    },
+    "trevor-belmont": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Trevor Belmont.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Trevor Belmont.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "72428f88c004d5291c058df66c60dc6d9fac3bcb359b361bf21caacd69a802b6"
+    },
+    "vee-boonyasak": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Vee Boonyasak.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Vee Boonyasak.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "8925229f8ab25ec6d3916dc492cfb10149fee25d12ed20340d1131bee816bce3"
+    },
+    "vittorio-toscano": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Vittorio Toscano.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Vittorio Toscano.png",
+      "width": 512,
+      "height": 1000,
+      "format": "png",
+      "sha256": "67f16ac244dbad8d5d73f500e4e1bf077b920b1b81b3a41f5839534659600df6"
+    },
+    "yoichi-asakawa": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Yoichi Asakawa.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Yoichi Asakawa.png",
+      "width": 512,
+      "height": 1020,
+      "format": "png",
+      "sha256": "5dd2c6d9d98b46312286a7ba29c6b376e42b3ea92894c89301ff11e1429a21a1"
+    },
+    "yui-kimura": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Yui Kimura.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Yui Kimura.png",
+      "width": 482,
+      "height": 998,
+      "format": "png",
+      "sha256": "d3c99a8478e5cc953862acf8f5aeaef2acf20341415da5a6db85a14b85f699c7"
+    },
+    "yun-jin-lee": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Yun-Jin Lee.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Yun-Jin Lee.png",
+      "width": 505,
+      "height": 980,
+      "format": "png",
+      "sha256": "f038c21e7b7deb28e33932b27066b5df103c69aea3a764dafbbdb2f6d72b264f"
+    },
+    "zarina-kassir": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Zarina Kassir.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Zarina Kassir.png",
+      "width": 427,
+      "height": 1000,
+      "format": "png",
+      "sha256": "a44fcb0d061afb52d311fb47ebb4797fbe62f0d1cfd9d454d7d7b98c53c9f0b1"
+    }
+  },
   "inventory": {
     "survivor-item-key-broken-key": {
       "path": "images/survivor-items-addons/key/items/broken-key.png",

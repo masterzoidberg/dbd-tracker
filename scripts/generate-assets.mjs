@@ -8,6 +8,10 @@ import { inventoryEntities, inventoryEntityById, killerPowerByCharacterId } from
 const PROJECT_ROOT = resolve(import.meta.dirname, '..');
 const PLACEHOLDER_HASH = '3f794fe2e61b06702dbb027010b15e67e78a18e79b2b9c096be1180b76beb89b';
 const assetExceptions = { 'detectives-hunch': 'detective-s-hunch' };
+const collectionPortraitAliases = {
+  survivor: { jakestore: 'jake-park' },
+  killer: { pinhead: 'the-cenobite', ghostface: 'the-ghost-face' },
+};
 const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 
 export function assertPerkAssetPath(path) {
@@ -23,6 +27,10 @@ export function pngDimensions(bytes, path) {
 }
 export function assertPortraitAssetPath(path) {
   if (typeof path !== 'string' || !/^images\/(?:(?:survivor|killer)-images\/[\p{L}0-9_-]+\.(?:png|webp)|portrait-runtime\/[a-z0-9-]+\.webp)$/u.test(path)) throw new Error(`Invalid portrait asset path: ${path}`);
+  return path;
+}
+export function assertCollectionPortraitAssetPath(path) {
+  if (typeof path !== 'string' || !/^images\/updated-images\/Character Portraits\/(?:Survivors|Killers)\/Lore\/[\p{L}0-9 _-]+\.png$/u.test(path)) throw new Error(`Invalid collection portrait asset path: ${path}`);
   return path;
 }
 export function portraitDimensions(bytes, path) {
@@ -117,8 +125,41 @@ export async function generatePortraitManifest(root = PROJECT_ROOT) {
   }
   return { portraits };
 }
+export async function generateCollectionPortraitManifest(root = PROJECT_ROOT) {
+  root = resolve(root);
+  await entries(resolve(root, 'images'));
+  const collectionPortraits = Object.fromEntries(characters.map(character => [character.id, null]).sort(([a], [b]) => a.localeCompare(b)));
+  for (const [role, folderName] of [
+    ['survivor', 'images/updated-images/Character Portraits/Survivors/Lore'],
+    ['killer', 'images/updated-images/Character Portraits/Killers/Lore'],
+  ]) {
+    const roster = characters.filter(character => character.role === role);
+    const folder = resolve(root, folderName);
+    for (const child of (await entries(folder)).sort((a, b) => a.name.localeCompare(b.name))) {
+      if (child.isSymbolicLink()) throw new Error(`Collection portrait cannot use a symbolic link: ${child.name}`);
+      const sourcePath = `${folderName}/${child.name}`;
+      assertCollectionPortraitAssetPath(sourcePath);
+      if (!child.isFile()) throw new Error(`Invalid collection portrait file: ${sourcePath}`);
+      const stem = slug(basename(child.name, '.png'));
+      const alias = collectionPortraitAliases[role][stem];
+      const matches = alias
+        ? roster.filter(character => character.id === alias)
+        : roster.filter(character => character.id === stem || slug(character.name).replace(/^the-/, '') === stem);
+      if (matches.length !== 1) throw new Error(`Unknown or ambiguous ${role} collection portrait: ${sourcePath}`);
+      const character = matches[0];
+      if (collectionPortraits[character.id]) throw new Error(`Collection portrait collision for ${character.id}`);
+      const bytes = await readFile(resolve(root, sourcePath));
+      const dimensions = portraitDimensions(bytes, sourcePath);
+      if (dimensions.format !== 'png') throw new Error(`Collection portrait format/extension mismatch: ${sourcePath}`);
+      collectionPortraits[character.id] = { path: sourcePath, sourcePath, ...dimensions, sha256: createHash('sha256').update(bytes).digest('hex') };
+    }
+  }
+  return { collectionPortraits };
+}
 export async function generateAssetManifest(root = PROJECT_ROOT) {
-  const [perks, portraits] = await Promise.all([generatePerkManifest(root), generatePortraitManifest(root)]);
+  const [perks, portraits, collectionPortraits] = await Promise.all([
+    generatePerkManifest(root), generatePortraitManifest(root), generateCollectionPortraitManifest(root),
+  ]);
   const inventory={};
   for(const entity of [...inventoryEntities,...Object.values(inventoryEntityById).filter(entity=>entity.kind==='killer-addon')]) {
     inventory[entity.id]=null;
@@ -168,7 +209,7 @@ export async function generateAssetManifest(root = PROJECT_ROOT) {
     const bytes=await readFile(resolve(root,path));
     killerPowers[characterId]={path,...pngDimensions(bytes,path),sha256:createHash('sha256').update(bytes).digest('hex')};
   }
-  return { ...perks, ...portraits, inventory, killerPowers };
+  return { ...perks, ...portraits, ...collectionPortraits, inventory, killerPowers };
 }
 export function assertInventoryAssetPath(path) {
   const survivor=typeof path==='string'&&/^images\/survivor-items-addons\/[a-z0-9]+(?:-[a-z0-9]+)*\/(items|addons)\/[a-z0-9]+(?:-[a-z0-9]+)*\.png$/.test(path);

@@ -122,15 +122,15 @@ export async function characterInventoryRegression(page, origin) {
   assert.equal(await page.locator('.character-inventory-scopes').count(), 0);
   assert.equal(await page.locator('.character-inventory-card-size-control').count(), 0, 'Card sizing stays out of account-wide libraries');
 
-  // Roster actions for both roles land on the canonical inventory route.
+  // Collection cards open Character Overview for both roles.
   await page.goto(origin + '/#survivors');
   await page.getByPlaceholder('Search characters…').fill('Kate');
   await page.locator('.character-card').filter({ hasText: 'Kate Denson' }).getByRole('link', { name: /Open workspace/ }).click();
-  assert.equal(new URL(page.url()).hash, '#character/kate-denson/perks');
+  assert.equal(new URL(page.url()).hash, '#character/kate-denson/overview');
   await page.goto(origin + '/#killers');
   await page.getByPlaceholder('Search characters…').fill('Doctor');
   await page.locator('.character-card').filter({ hasText: 'The Doctor' }).getByRole('link', { name: /Open workspace/ }).click();
-  assert.equal(new URL(page.url()).hash, '#character/the-doctor/perks');
+  assert.equal(new URL(page.url()).hash, '#character/the-doctor/overview');
 
   // Account Shrine unlocks continue to flow through globalTier into canonical Update candidates.
   await page.goto(origin + '/#killer-perks');

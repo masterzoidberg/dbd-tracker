@@ -8,6 +8,9 @@ export function perkIconPath(id, manifest) {
 export function characterPortraitPath(id, manifest) {
   return manifest.portraits && Object.hasOwn(manifest.portraits, id) ? manifest.portraits[id]?.path ?? null : null;
 }
+export function collectionPortraitPath(id, manifest) {
+  return manifest.collectionPortraits && Object.hasOwn(manifest.collectionPortraits, id) ? manifest.collectionPortraits[id]?.path ?? null : null;
+}
 export function inventoryIconPath(id,manifest) {
   return manifest.inventory && Object.hasOwn(manifest.inventory,id) ? manifest.inventory[id]?.path??null : null;
 }

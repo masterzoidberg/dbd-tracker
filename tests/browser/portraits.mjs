@@ -10,13 +10,13 @@ export async function portraitsRegression(page, origin, manifest) {
   const save = freshSave(); save.characters['meg-thomas'].owned = true; save.characters['meg-thomas'].setupComplete = true;
   await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), save);
   await page.goto(origin + '/#survivors'); await page.reload();
-  assert.equal(await page.locator('.character-card img[data-character-portrait]').count(), 54, 'Survivor cards must render portraits');
+  assert.equal(await page.locator('.character-card img[data-collection-hero-art]').count(), 54, 'Survivor cards must render Lore collection portraits');
   const initial = await page.evaluate(() => localStorage.getItem('dbdTrackerData'));
   for (const role of ['survivor', 'killer']) {
     await page.goto(origin + '/#' + role + 's');
-    const portraits = page.locator('.character-card img[data-character-portrait]');
-    assert.equal(await portraits.count(), characters.filter(c => c.role === role).length);
-    assert.ok(await portraits.evaluateAll(nodes => nodes.every(n => n.alt === '' && n.closest('.character-name') && n.loading === 'lazy' && n.closest('[aria-hidden="true"]'))));
+    const portraits = page.locator('.character-card img[data-collection-hero-art]');
+    assert.equal(await portraits.count(), characters.filter(c => c.role === role && manifest.collectionPortraits[c.id]).length);
+    assert.ok(await portraits.evaluateAll(nodes => nodes.every(n => n.alt === '' && n.loading === 'lazy' && n.closest('[aria-hidden="true"]'))));
   }
   // Explicitly decode all references instead of relying on the lazy viewport.
   const assets = Object.values(manifest.portraits).filter(Boolean);
@@ -35,8 +35,9 @@ export async function portraitsRegression(page, origin, manifest) {
     const character = characters.find(c => c.id === id);
     await page.goto(origin + '/#' + character.role + 's');
     await page.locator('#search').fill(character.name);
-    const button = page.locator(`.character-name[data-id="${id}"]`);
-    assert.equal(await button.locator('img').getAttribute('src'), manifest.portraits[id].path);
+    const card = page.locator(`.character-card[data-character-id="${id}"]`);
+    const button = card.locator('.character-name');
+    assert.equal(await card.locator('[data-collection-hero-art]').getAttribute('src'), manifest.collectionPortraits[id].path);
     await button.click();
     assert.equal(await page.locator('.character-workspace-header img').getAttribute('src'), manifest.portraits[id].path);
     assert.equal(await page.locator('.character-workspace-header .character-portrait').evaluate(n => n.getBoundingClientRect().width), 80);
@@ -52,19 +53,22 @@ export async function portraitsRegression(page, origin, manifest) {
     const character = characters.find(c => c.id === id);
     await page.goto(origin + '/#' + character.role + 's');
     await page.locator('#search').fill(character.name);
-    const button = page.locator(`.character-name[data-id="${id}"]`), image = button.locator('img');
+    const card = page.locator(`.character-card[data-character-id="${id}"]`);
+    const button = card.locator('.character-name');
     await button.scrollIntoViewIfNeeded();
+    await button.click();
+    const holder = page.locator('.character-workspace-header .character-portrait');
+    const image = holder.locator('img[data-character-portrait]');
     await page.waitForFunction(id => document.querySelector(`img[data-character-portrait="${id}"]`)?.naturalWidth > 0, id);
-    const before = await button.locator('.character-portrait').boundingBox();
+    const before = await holder.boundingBox();
     const broken = origin + '/' + manifest.portraits[id].path + '?portrait-broken=1';
     let requests = 0;
     await page.route(broken, async route => { requests++; await route.fulfill({ status: 200, contentType: 'image/' + manifest.portraits[id].format, body: 'bad image' }); });
     await image.evaluate((n, url) => { n.src = url; }, broken);
-    await page.waitForFunction(id => !document.querySelector(`.character-name[data-id="${id}"] img`), id);
+    await page.waitForFunction(id => !document.querySelector(`.character-workspace-header img[data-character-portrait="${id}"]`), id);
     assert.equal(requests, 1);
-    assert.deepEqual(await button.locator('.character-portrait').boundingBox(), before);
-    assert.equal(await button.locator('.character-portrait').evaluate(n => n.classList.contains('has-art')), false);
-    await button.click();
+    assert.deepEqual(await holder.boundingBox(), before);
+    assert.equal(await holder.evaluate(n => n.classList.contains('has-art')), false);
     await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
     await page.locator('#edit-bloodweb').fill('26');
     await page.getByRole('button', { name: 'Save Character', exact: true }).click();
@@ -90,7 +94,8 @@ export async function portraitsRegression(page, origin, manifest) {
         }
       } else {
         const card = page.locator('.character-card').first();
-        assert.equal(await card.locator('.character-portrait').evaluate(n => n.getBoundingClientRect().width), 112);
+        assert.equal(await card.locator('[data-collection-hero-art]').count(), 1, 'First collection character has an explicit Lore portrait');
+        assert.equal(await card.locator('[data-collection-hero-art]').evaluate(n => getComputedStyle(n).objectFit), 'contain');
         assert.equal(await card.locator('[data-action="favorite"]').isVisible(), true);
         assert.equal(await card.locator('[data-action="ownership"]').isVisible(), true);
         await card.locator('.character-name').focus(); await page.keyboard.press('Enter');
