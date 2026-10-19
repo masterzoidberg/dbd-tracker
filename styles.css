@@ -763,10 +763,8 @@ main {
   color:#b4b0ac
 }
 .character-card-top {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:8px
+  position:relative;
+  display:block
 }
 .character-name {
   font-size:15px;
@@ -780,6 +778,15 @@ main {
   color:var(--gold);
   background:none
 }
+.character-card-top .character-name {
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:8px;
+  width:100%
+}
+.character-card-top .character-name .portrait-card { align-self:center; }
+.character-card-top .character-name > span:last-child { min-height:28px; padding-right:36px; }
 .favorite-button {
   border:0;
   background:none;
@@ -1515,7 +1522,7 @@ footer span {
   padding:44px
 }
 .character-grid {
-  grid-template-columns:repeat(auto-fill,minmax(260px,1fr))
+  grid-template-columns:repeat(auto-fill,minmax(250px,1fr))
 }
 .dashboard-lower {
   grid-template-columns:1.35fr 1fr
@@ -1899,13 +1906,14 @@ footer span {
 
 .character-portrait { position: relative; display: inline-flex; flex: 0 0 64px; width: 64px; height: 64px; }
 .character-portrait.portrait-large { flex-basis: 80px; width: 80px; height: 80px; }
+.character-portrait.portrait-card { flex-basis: 112px; width: 112px; height: 112px; }
 .character-portrait img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .portrait-fallback { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; color: var(--muted); }
 .portrait-fallback svg { fill: currentColor; }
 .character-portrait.has-art .portrait-fallback { visibility: hidden; }
 .character-name, .character-title { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .character-name > span:last-child, .character-title > span:last-child { min-width: 0; overflow-wrap: anywhere; }
-.character-card-top .favorite-button { flex: none; }
+.character-card-top .favorite-button { position:absolute; right:0; bottom:0; flex:none; }
 
 /* Shared character inventory cards and Update Inventory workspace. */
 .character-inventory-entry {

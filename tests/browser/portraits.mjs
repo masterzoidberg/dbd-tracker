@@ -90,7 +90,7 @@ export async function portraitsRegression(page, origin, manifest) {
         }
       } else {
         const card = page.locator('.character-card').first();
-        assert.equal(await card.locator('.character-portrait').evaluate(n => n.getBoundingClientRect().width), 64);
+        assert.equal(await card.locator('.character-portrait').evaluate(n => n.getBoundingClientRect().width), 112);
         assert.equal(await card.locator('[data-action="favorite"]').isVisible(), true);
         assert.equal(await card.locator('[data-action="ownership"]').isVisible(), true);
         await card.locator('.character-name').focus(); await page.keyboard.press('Enter');
