@@ -74,7 +74,7 @@ export async function characterWorkspaceRegression(page, origin) {
   const card = page.locator('.character-card').first();
   assert.equal(await card.locator('.character-name').getAttribute('href'), '#character/meg-thomas/overview');
   assert.equal(await card.locator('.prestige').getAttribute('href'), '#character/meg-thomas/overview');
-  assert.equal(await card.locator('.manage-button').getAttribute('href'), '#character/meg-thomas/perks');
+  assert.equal(await card.locator('.manage-button').getAttribute('href'), '#character/meg-thomas/overview');
   await card.locator('.prestige').click();
   assert.equal(await page.locator('#detail').isVisible(), false);
   await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
