@@ -537,6 +537,10 @@ function characterOverview(id) {
   const stock = Object.entries({...progress.inventory.items,...progress.inventory.addons});
   const knownStock = stock.filter(([entityId]) => Object.hasOwn(inventoryEntityById, entityId));
   const unresolved = stock.length - knownStock.length;
+  const killerPower = killerPowerByCharacterId[id];
+  const killerAddons = character.role === 'killer'
+    ? Object.values(inventoryEntityById).filter(entity => entity.role === 'killer' && entity.characterId === id)
+    : [];
   const nativeCards = character.nativePerkIds.map(perkId => {
     const perk = perkById[perkId], tier = inventoryTier(save, id, perkId);
     return '<article class="overview-native-perk">' + perkArtwork(perk, 64)
@@ -553,6 +557,12 @@ function characterOverview(id) {
       + '<strong class="overview-summary-value">' + (knownStock.length ? knownStock.length + ' stocked ' + (knownStock.length === 1 ? 'entry' : 'entries') + ' recorded.' : 'No quantities recorded yet.') + '</strong>'
       + (unresolved ? '<p class="overview-unresolved">' + unresolved + ' imported ' + (unresolved === 1 ? 'record' : 'records') + ' not in current catalog.</p>' : '')
       + '<a href="' + characterWorkspaceHref(id, 'items-addons') + '">View Items & Add-ons</a>'
+    : character.role === 'killer' && inventoryCatalogStatus.killerPowers === 'ready'
+      && inventoryCatalogStatus.killerAddons === 'ready' && killerPower
+    ? '<p>Power: ' + esc(killerPower.powerName) + ' · ' + killerAddons.length + ' Add-ons.</p>'
+      + '<strong class="overview-summary-value">' + (knownStock.length ? knownStock.length + ' stocked Add-on' + (knownStock.length === 1 ? '' : 's') + ' recorded.' : 'No Add-on quantities recorded yet.') + '</strong>'
+      + (unresolved ? '<p class="overview-unresolved">' + unresolved + ' imported ' + (unresolved === 1 ? 'record' : 'records') + ' not in current catalog.</p>' : '')
+      + '<a href="' + characterWorkspaceHref(id, 'power-addons') + '">View Power & Add-ons</a>'
     : '<p>Verified inventory and Power reference data is not yet available.</p><a href="' + characterWorkspaceHref(id, 'power-addons') + '">View Power & Add-ons</a>';
   return '<div class="character-overview">'
     + '<div class="character-overview-grid">'

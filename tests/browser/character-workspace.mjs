@@ -43,6 +43,14 @@ export async function characterWorkspaceRegression(page, origin) {
   assert.match(inventorySummary,/1 imported record not in current catalog/i);
   assert.doesNotMatch(inventorySummary,/No stock/i);
 
+  await page.goto(origin + '/#character/the-doctor/overview');
+  const killerSummary = page.locator('[data-overview-section="inventory"]');
+  const killerSummaryText = await killerSummary.textContent();
+  assert.match(killerSummaryText,/Carter's Spark/);
+  assert.match(killerSummaryText,/20 Add-ons/);
+  assert.doesNotMatch(killerSummaryText,/Power reference data is not yet available/);
+  assert.equal(await killerSummary.getByRole('link',{name:'View Power & Add-ons'}).getAttribute('href'), '#character/the-doctor/power-addons');
+
   await page.setViewportSize({width:320,height:900});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Workspace header/Overview overflow at 320');
   assert.ok((await page.locator('.character-workspace-edit').boundingBox()).height>=44,'Edit Character remains a practical target');
