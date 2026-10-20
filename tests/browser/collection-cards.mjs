@@ -175,6 +175,57 @@ export async function collectionCardsRegression(page, origin, manifest) {
     }
     const grid = page.locator(`.${role}-collection-grid`);
     assert.equal(await grid.locator('.character-card img[data-collection-hero-art]').count(), role === 'survivor' ? 54 : 43);
+    await page.locator('#sort').selectOption('name');
+    const orderedIds = await grid.locator('.character-collection-card').evaluateAll(cards => cards.map(card => card.dataset.characterId));
+    const pageSize = page.locator('#collection-page-size');
+    assert.equal(await pageSize.inputValue(), 'all', `${role} roster defaults to All`);
+    const saveBeforePaging = await page.evaluate(() => localStorage.getItem('dbdTrackerData'));
+    const pageLabel = () => page.locator('.collection-pagination span').textContent();
+    await pageSize.selectOption('5');
+    assert.equal(await grid.locator('.character-collection-card').count(), 5, `${role} page size 5 renders five cards`);
+    assert.deepEqual(await grid.locator('.character-collection-card').evaluateAll(cards => cards.map(card => card.dataset.characterId)), orderedIds.slice(0, 5));
+    assert.equal(await pageLabel(), `Page 1 of ${Math.ceil(orderedIds.length / 5)}`);
+    assert.equal(await page.locator('#collection-page-prev').isDisabled(), true);
+    await page.getByRole('button', { name: 'Next Page', exact: true }).click();
+    assert.equal(await pageLabel(), 'Page 2 of ' + Math.ceil(orderedIds.length / 5));
+    assert.deepEqual(await grid.locator('.character-collection-card').evaluateAll(cards => cards.map(card => card.dataset.characterId)), orderedIds.slice(5, 10));
+    if (role === 'survivor') {
+      await page.setViewportSize({ width: 320, height: 900 });
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Five-card paging fits at 320px');
+      const paging = await page.locator('.collection-pagination').boundingBox();
+      assert.ok(paging && paging.x >= 0 && paging.x + paging.width <= 320, 'Page controls stay within a narrow viewport');
+      assert.ok((await page.locator('.collection-pagination button').first().boundingBox()).height >= 44, 'Page controls remain usable touch targets');
+      await page.setViewportSize({ width: 1440, height: 1000 });
+    }
+    const lastFivePage = Math.ceil(orderedIds.length / 5);
+    for (let current = 2; current < lastFivePage; current++) await page.getByRole('button', { name: 'Next Page', exact: true }).click();
+    assert.equal(await pageLabel(), `Page ${lastFivePage} of ${lastFivePage}`);
+    assert.equal(await grid.locator('.character-collection-card').count(), orderedIds.length % 5 || 5);
+    assert.equal(await page.locator('#collection-page-next').isDisabled(), true);
+    await page.getByRole('button', { name: 'Previous Page', exact: true }).click();
+    assert.equal(await pageLabel(), `Page ${lastFivePage - 1} of ${lastFivePage}`);
+
+    await pageSize.selectOption('10');
+    assert.equal(await pageLabel(), `Page 1 of ${Math.ceil(orderedIds.length / 10)}`, 'Changing page size resets to a valid first page');
+    assert.equal(await grid.locator('.character-collection-card').count(), 10);
+    assert.deepEqual(await grid.locator('.character-collection-card').evaluateAll(cards => cards.map(card => card.dataset.characterId)), orderedIds.slice(0, 10));
+    await page.getByRole('button', { name: 'Next Page', exact: true }).click();
+    assert.deepEqual(await grid.locator('.character-collection-card').evaluateAll(cards => cards.map(card => card.dataset.characterId)), orderedIds.slice(10, 20));
+    await pageSize.selectOption('5');
+    assert.equal(await pageLabel(), `Page 1 of ${Math.ceil(orderedIds.length / 5)}`);
+
+    await page.getByRole('button', { name: 'Next Page', exact: true }).click();
+    const lastCharacterName = characterById[orderedIds.at(-1)].name;
+    await page.locator('#search').fill(lastCharacterName);
+    assert.equal(await grid.locator('.character-collection-card').count(), 1, 'Search filters before paging');
+    assert.equal(await pageLabel(), 'Page 1 of 1', 'Search resets the current page');
+    assert.equal(await page.locator('#collection-page-next').isDisabled(), true);
+    await page.locator('#search').fill('');
+    await pageSize.selectOption('all');
+    assert.deepEqual(await grid.locator('.character-collection-card').evaluateAll(cards => cards.map(card => card.dataset.characterId)), orderedIds,
+      `${role} page-size changes retain the existing roster order`);
+    assert.equal(await page.locator('.collection-pagination').count(), 0, 'All hides unnecessary page navigation');
+    assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), saveBeforePaging, 'Page size and search do not alter inventory or roster data');
     if (role === 'killer') {
       const killerDecoded = await grid.locator('img[data-collection-hero-art]').evaluateAll(async images => Promise.all(images.map(async image => {
         image.loading = 'eager';

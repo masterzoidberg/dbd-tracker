@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, writeFile, mkdir, mkdtemp, rm } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve, join } from 'node:path';
 import { characters } from '../data/catalog.js';
@@ -37,6 +38,39 @@ test('canonical projection preserves all explicit identities owners source order
     }
   }
   assert.deepEqual(source, before);
+});
+
+test('Shape Add-ons keep verified rarities, artwork paths, and stable IDs while display names are Americanized', async () => {
+  const runtime = JSON.parse(await readFile(resolve(root, 'data/killer-runtime-catalog.json'), 'utf8'));
+  const masterShape = source.killers.find(killer => killer.characterId === 'the-shape');
+  const runtimeShape = runtime.killers.find(killer => killer.characterId === 'the-shape');
+  assert.equal(masterShape.addons.length, 20);
+  assert.equal(runtimeShape.addons.length, 20);
+  assert.equal(new Set(runtimeShape.addons.map(addon => addon.id)).size, 20);
+  const byId = new Map(runtimeShape.addons.map(addon => [addon.id, addon]));
+  const expectations = [
+    ['killer-addon-shape-fragrant-tuft-of-hair', 'Fragrant Tuft of Hair', 'Uncommon', 'Uncommon'],
+    ['killer-addon-shape-reflective-fragment', 'Reflective Fragment', 'Very Rare', 'Very Rare'],
+    ['killer-addon-shape-scratched-mirror', 'Scratched Mirror', 'Ultra Rare', 'Visceral'],
+    ['killer-addon-shape-jewellery', 'Jewelry', 'Uncommon', 'Uncommon'],
+    ['killer-addon-shape-jewellery-box', 'Jewelry Box', 'Rare', 'Rare'],
+  ];
+  for (const [id, name, rarity, sourceRarity] of expectations) {
+    const original = masterShape.addons.find(addon => addon.id === id);
+    const projected = byId.get(id);
+    assert.ok(original, id + ' retains its stable master ID');
+    assert.ok(projected, id + ' retains its stable runtime ID');
+    assert.equal(original.name, name);
+    assert.equal(original.rarity, rarity);
+    assert.equal(original.sourceRarity, sourceRarity);
+    assert.equal(projected.name, name);
+    assert.equal(projected.rarity, rarity);
+    assert.equal(Object.hasOwn(projected, 'sourceRarity'), false, 'sourceRarity is not a runtime display field');
+    assert.equal(projected.artwork.path, original.artwork.path, 'explicit artwork path is preserved');
+    assert.ok(existsSync(resolve(root, projected.artwork.path)), projected.artwork.path + ' resolves');
+  }
+  assert.deepEqual(runtimeShape.addons.map(addon => addon.id), masterShape.addons.map(addon => addon.id),
+    'All Shape Add-ons stay present once and in source order');
 });
 
 test('Power projection retains gameplay details and strips research metadata at every level', () => {

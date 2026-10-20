@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { characters } from '../../data/catalog.js';
 import { freshSave } from '../../src/model.js';
 
 export async function characterWorkspaceRegression(page, origin) {
+  await characterRosterNavigationRegression(page,origin);
   await characterWorkspaceResponsive(page,origin);
   const { workspaceLayouts } = await import('./workspace-layouts.mjs');
   await workspaceLayouts(page, origin);
@@ -93,6 +95,77 @@ export async function characterWorkspaceRegression(page, origin) {
   await page.waitForURL('**/#character/meg-thomas/overview');
   assert.equal(await page.locator('#detail').isVisible(), false);
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before);
+}
+export async function characterRosterNavigationRegression(page,origin) {
+  const roster=role=>characters.filter(character=>character.role===role);
+  const killers=roster('killer'), survivors=roster('survivor');
+  const shapeIndex=killers.findIndex(character=>character.id==='the-shape');
+  const megIndex=survivors.findIndex(character=>character.id==='meg-thomas');
+  const save=freshSave();
+  save.characters['the-shape'].inventory.addons['killer-addon-shape-scratched-mirror']=4;
+  save.characters['meg-thomas'].inventory.addons['survivor-addon-key-blood-amber']=3;
+  await page.evaluate(value=>localStorage.setItem('dbdTrackerData',JSON.stringify(value)),save);
+  const bytes=()=>page.evaluate(()=>localStorage.getItem('dbdTrackerData'));
+  const before=await bytes();
+  const nav=()=>page.locator('[data-character-roster-navigation]');
+  const neighbor=direction=>nav().locator('[data-roster-neighbor="'+direction+'"]');
+  const expectPage=async(id,section,mode=null)=>{
+    await page.waitForURL('**/#character/'+id+'/'+section+(mode?'/'+mode:''));
+    assert.equal(await page.locator('[data-workspace-section][aria-current="page"]').getAttribute('data-workspace-section'),section);
+  };
+
+  assert.ok(shapeIndex>0&&shapeIndex<killers.length-1,'The Shape is a middle Killer in canonical roster order');
+  await page.goto(origin+'/#character/the-shape/power-addons');
+  assert.equal(await nav().count(),1,'Killer pages expose character navigation');
+  assert.equal(await neighbor('previous').getAttribute('href'),'#character/'+killers[shapeIndex-1].id+'/power-addons');
+  assert.equal(await neighbor('previous').getAttribute('aria-label'),'Previous Killer: '+killers[shapeIndex-1].name);
+  assert.equal(await neighbor('next').getAttribute('href'),'#character/'+killers[shapeIndex+1].id+'/power-addons');
+  assert.equal(await neighbor('next').getAttribute('aria-label'),'Next Killer: '+killers[shapeIndex+1].name);
+  await neighbor('next').click();
+  await expectPage(killers[shapeIndex+1].id,'power-addons');
+  await page.goBack();
+  await expectPage('the-shape','power-addons');
+  await page.goForward();
+  await expectPage(killers[shapeIndex+1].id,'power-addons');
+  await page.goto(origin+'/#character/the-shape/perks/update');
+  await neighbor('previous').click();
+  await expectPage(killers[shapeIndex-1].id,'perks','update');
+  await page.goto(origin+'/#character/'+killers[0].id+'/overview');
+  assert.equal(await neighbor('previous').isDisabled(),true,'First Killer has no usable Previous link');
+  assert.equal(await neighbor('previous').getAttribute('href'),null);
+  await page.goto(origin+'/#character/'+killers.at(-1).id+'/overview');
+  assert.equal(await neighbor('next').isDisabled(),true,'Final Killer has no usable Next link');
+  assert.equal(await neighbor('next').getAttribute('href'),null);
+
+  assert.ok(megIndex>0&&megIndex<survivors.length-1,'Meg is a middle Survivor in canonical roster order');
+  await page.goto(origin+'/#character/meg-thomas/items-addons');
+  assert.equal(await nav().count(),1,'Survivor pages expose character navigation');
+  assert.equal(await neighbor('previous').getAttribute('href'),'#character/'+survivors[megIndex-1].id+'/items-addons');
+  assert.equal(await neighbor('next').getAttribute('href'),'#character/'+survivors[megIndex+1].id+'/items-addons');
+  await neighbor('next').click();
+  await expectPage(survivors[megIndex+1].id,'items-addons');
+  await page.goto(origin+'/#character/meg-thomas/perks');
+  await neighbor('previous').click();
+  await expectPage(survivors[megIndex-1].id,'perks');
+  await page.goto(origin+'/#character/'+survivors[0].id+'/overview');
+  assert.equal(await neighbor('previous').isDisabled(),true,'First Survivor has no usable Previous link');
+  assert.equal(await neighbor('previous').getAttribute('href'),null);
+  await page.goto(origin+'/#character/'+survivors.at(-1).id+'/overview');
+  assert.equal(await neighbor('next').isDisabled(),true,'Final Survivor has no usable Next link');
+  assert.equal(await neighbor('next').getAttribute('href'),null);
+
+  for(const width of [320,500,1440]){
+    await page.setViewportSize({width,height:900});
+    await page.goto(origin+'/#character/the-shape/power-addons');
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Character navigation does not create horizontal overflow at '+width);
+    const link=neighbor('previous');
+    await page.locator('.character-workspace-back').focus();
+    await page.keyboard.press('Tab');
+    assert.equal(await link.evaluate(node=>node===document.activeElement),true,'Tab reaches Previous Killer at '+width);
+    assert.ok(await link.evaluate(node=>{const style=getComputedStyle(node);return style.outlineStyle!=='none'&&parseFloat(style.outlineWidth)>0;}),'Character navigation has visible keyboard focus');
+  }
+  await page.setViewportSize({width:1440,height:900});
+  assert.equal(await bytes(),before,'Character navigation does not modify inventories or save data');
 }
 export async function characterWorkspaceResponsive(page,origin){
   const save=freshSave();

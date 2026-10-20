@@ -9,6 +9,7 @@ export async function familyNavigationRegression(page,origin){
  await page.goto(origin+'/#character/meg-thomas/items-addons');await page.reload();
  await page.locator('[data-stock-workspace]').waitFor();
  const families=survivorInventorySource.itemFamilies;
+ const rarityOrder=['Ultra Rare','Very Rare','Rare','Uncommon','Common'];
  const nav=page.getByRole('navigation',{name:'Item families',exact:true});
  assert.equal(await nav.count(),1,'A native Item families navigator replaces the all-family document');
  assert.deepEqual(await nav.locator('button').evaluateAll(nodes=>nodes.map(n=>n.dataset.family)),families.map(f=>f.id));
@@ -27,8 +28,26 @@ export async function familyNavigationRegression(page,origin){
   const familyItems=inventoryEntities.filter(e=>e.familyId===family.id&&e.map==='items').length;
   const familyAddons=inventoryEntities.filter(e=>e.familyId===family.id&&e.map==='addons').length;
   assert.equal(await page.locator('.stock-family-heading p').textContent(),familyItems+' Items · '+familyAddons+' Add-ons (catalog totals)');
+  const itemRows=inventoryEntities.filter(entity=>entity.familyId===family.id&&entity.map==='items');
+  const itemSelect=page.locator('#inventory-item');
+  assert.deepEqual(await itemSelect.locator('option').evaluateAll(nodes=>nodes.map(node=>node.value)),itemRows.map(item=>item.id),
+   'Each family exposes its Items in catalog order for Add-on compatibility');
   for(const map of ['items','addons']){
-   assert.deepEqual(await page.locator('[data-stock-subsection="'+map+'"] [data-stock-card]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockCard)),inventoryEntities.filter(e=>e.familyId===family.id&&e.map===map).map(e=>e.id));
+   const rows=inventoryEntities.filter(e=>e.familyId===family.id&&e.map===map);
+   const selectedItem=inventoryEntityById[await itemSelect.inputValue()];
+   const compatible=map==='addons'?rows.filter(entity=>entity.compatibleItemIds.includes(selectedItem.id)):rows;
+   const expected=map==='addons'
+    ?[...rarityOrder,'Event'].flatMap(rarity=>compatible.filter(entity=>entity.rarity===rarity).map(entity=>entity.id))
+    :rows.map(entity=>entity.id);
+   assert.deepEqual(await page.locator('[data-stock-subsection="'+map+'"] [data-stock-card]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockCard)),expected);
+  }
+  for(const item of itemRows){
+   await itemSelect.selectOption(item.id);
+   assert.equal(await page.locator('[data-stock-subsection="addons"]').getAttribute('data-compatible-item-id'),item.id);
+   const compatible=inventoryEntities.filter(entity=>entity.familyId===family.id&&entity.map==='addons'&&entity.compatibleItemIds.includes(item.id));
+   const expected=[...rarityOrder,'Event'].flatMap(rarity=>compatible.filter(entity=>entity.rarity===rarity).map(entity=>entity.id));
+   assert.deepEqual(await page.locator('[data-stock-subsection="addons"] [data-stock-card]').evaluateAll(nodes=>nodes.map(node=>node.dataset.stockCard)),expected,
+    'Add-ons appear only beneath the selected compatible Item');
   }
   assert.equal(await page.evaluate(()=>localStorage.dbdTrackerData),before,'Family selection cannot persist');
  }
@@ -274,10 +293,12 @@ export async function quantityStepperRegression(page,origin){
 }
 export async function inventoryRegression(page,origin){
  await familyNavigationRegression(page,origin);
+ await survivorAddonRarityNavigationRegression(page,origin);
  await familyTransitionsRegression(page,origin);
  await artworkCardsRegression(page,origin);
  await quantityStepperRegression(page,origin);
  await quantityStepperFocusRegression(page,origin);
+ await quantityNavigationRegression(page,origin);
  page.setDefaultTimeout(6000);
  assert.equal(inventoryCatalogStatus.survivor,'ready');
  const item=inventoryEntities.find(e=>e.map==='items'), addon=inventoryEntities.find(e=>e.map==='addons'&&e.familyId===item.familyId);
@@ -445,6 +466,8 @@ export async function inventoryRegression(page,origin){
     await page.setViewportSize({width,height:900});
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Inventory overflow '+width);
     assert.ok((await field(item.id).boundingBox()).height>=44);
+    const itemSelector=await page.locator('#inventory-item').boundingBox();
+    assert.ok(itemSelector&&itemSelector.x>=0&&itemSelector.x+itemSelector.width<=width,'Compatible Item selector fits '+width+'px');
     assert.equal(await field(item.id).inputValue(),String(Number.MAX_SAFE_INTEGER));
     assert.equal(await page.locator('.stock-grid table').count(),0);
     assert.equal(await field(item.id).getAttribute('aria-invalid'),'false');
@@ -508,6 +531,170 @@ export async function quantityStepperFocusRegression(page,origin){
  await page.locator('#stock-family-nav-'+other.familyId).click();
  await field(other.id).fill('0');await field(other.id).press('Enter');
  assert.equal(await page.locator('#inventory-search').evaluate(n=>n===document.activeElement),true,'Last visible zero falls back to Search');
+}
+
+export async function quantityNavigationRegression(page,origin){
+ page.setDefaultTimeout(6000);
+ const save=freshSave();
+ await page.evaluate(value=>localStorage.setItem('dbdTrackerData',JSON.stringify(value)),save);
+ const item=inventoryEntities.find(entity=>entity.map==='items'&&entity.familyId==='med-kit');
+ const addon=inventoryEntities.find(entity=>entity.map==='addons'&&entity.compatibleItemIds.includes(item.id));
+ const field=id=>page.locator('[data-inventory-quantity="'+id+'"]');
+ const saved=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('dbdTrackerData')));
+ const back=()=>page.locator('.character-workspace-back');
+ await page.goto(origin+'/#character/meg-thomas/items-addons');await page.reload();
+ await page.locator('#stock-family-nav-'+item.familyId).click();
+ await page.locator('#inventory-item').selectOption(item.id);
+ await field(addon.id).focus();
+ assert.equal(await field(addon.id).inputValue(),'','Focusing zero clears the visible quantity');
+ await field(addon.id).fill('17');
+ await back().click({delay:80});
+ await page.waitForURL('**/#survivors');
+ assert.equal((await saved()).characters['meg-thomas'].inventory.addons[addon.id],17,
+  'First-click navigation commits the edited Survivor Add-on quantity');
+
+ await page.goto(origin+'/#character/meg-thomas/items-addons');
+ await page.locator('#stock-family-nav-'+item.familyId).click();
+ await page.locator('#inventory-item').selectOption(item.id);
+ assert.equal(await field(addon.id).inputValue(),'17','Quantity remains after returning to inventory');
+ await field(addon.id).fill('');
+ await back().click({delay:80});
+ await page.waitForURL('**/#survivors');
+ assert.equal((await saved()).characters['meg-thomas'].inventory.addons[addon.id]||0,0,
+  'Blank quantity normalizes to zero before navigation');
+
+ await page.goto(origin+'/#character/meg-thomas/items-addons');
+ await page.locator('#stock-family-nav-'+item.familyId).click();
+ await page.locator('#inventory-item').selectOption(item.id);
+ await field(addon.id).fill('23');
+ await page.locator('[data-workspace-section="overview"]').click({delay:80});
+ await page.waitForURL('**/#character/meg-thomas/overview');
+ assert.equal((await saved()).characters['meg-thomas'].inventory.addons[addon.id],23,
+  'Workspace tab navigation commits a pending Survivor quantity');
+
+ await page.locator('[data-workspace-section="items-addons"]').click();
+ await page.locator('#stock-family-nav-'+item.familyId).click();
+ await page.locator('#inventory-item').selectOption(item.id);
+ await field(addon.id).fill('24');
+ await page.goBack();
+ await page.waitForURL('**/#character/meg-thomas/overview');
+ assert.equal((await saved()).characters['meg-thomas'].inventory.addons[addon.id],24,
+  'Browser Back commits the pending Survivor quantity');
+ await page.goForward();
+ await page.waitForURL('**/#character/meg-thomas/items-addons');
+ await page.locator('#stock-family-nav-'+item.familyId).click();
+ await page.locator('#inventory-item').selectOption(item.id);
+
+ const next=page.locator('a[data-roster-neighbor="next"]');
+ const nextHref=await next.getAttribute('href');
+ await field(addon.id).fill('25');
+ await next.click({delay:80});
+ await page.waitForURL(url=>url.hash===nextHref);
+ assert.equal((await saved()).characters['meg-thomas'].inventory.addons[addon.id],25,
+  'Next character navigation commits the edit before replacing its link');
+ const nextCharacterId=nextHref.split('/')[1];
+ await page.locator('#stock-family-nav-'+item.familyId).click();
+ await page.locator('#inventory-item').selectOption(item.id);
+ await field(addon.id).fill('26');
+ await page.locator('a[data-roster-neighbor="previous"]').click({delay:80});
+ await page.waitForURL('**/#character/meg-thomas/items-addons');
+ assert.equal((await saved()).characters[nextCharacterId].inventory.addons[addon.id],26,
+  'Previous character navigation commits the edit before replacing its link');
+
+ const killerSave=freshSave();
+ await page.evaluate(value=>localStorage.setItem('dbdTrackerData',JSON.stringify(value)),killerSave);
+ await page.goto(origin+'/#character/the-doctor/power-addons');
+ const killerField=page.locator('[data-killer-quantity]').first();
+ const killerId=await killerField.getAttribute('data-killer-quantity');
+ await killerField.fill('31');
+ await back().click({delay:80});
+ await page.waitForURL('**/#killers');
+ assert.equal((await saved()).characters['the-doctor'].inventory.addons[killerId],31,
+  'First-click navigation commits a Killer Add-on quantity');
+}
+
+export async function survivorAddonRarityNavigationRegression(page,origin){
+ page.setDefaultTimeout(6000);
+ const family='key';
+ const addons=inventoryEntities.filter(entity=>entity.familyId===family&&entity.map==='addons').sort((a,b)=>a.order-b.order);
+ const items=inventoryEntities.filter(entity=>entity.familyId===family&&entity.map==='items').sort((a,b)=>a.order-b.order);
+ const rarityOrder=['Ultra Rare','Very Rare','Rare','Uncommon','Common'];
+ const save=freshSave();
+ await page.evaluate(value=>localStorage.setItem('dbdTrackerData',JSON.stringify(value)),save);
+ await page.goto(origin+'/#character/meg-thomas/items-addons');
+ await page.locator('#stock-family-nav-'+family).click();
+ const selectedItem=items[0];
+ await page.locator('#inventory-item').selectOption(selectedItem.id);
+ const itemAddons=addons.filter(addon=>addon.compatibleItemIds.includes(selectedItem.id));
+ const groups=page.locator('[data-survivor-rarity-section]');
+ const expectedOrder=rarityOrder.filter(rarity=>itemAddons.some(addon=>addon.rarity===rarity));
+ assert.deepEqual(await groups.evaluateAll(nodes=>nodes.map(node=>node.dataset.rarity)),expectedOrder,
+  'Survivor Add-ons default to Highest → Lowest');
+ const expectedIds=order=>order.flatMap(rarity=>itemAddons.filter(addon=>addon.rarity===rarity).map(addon=>addon.id));
+ assert.deepEqual(await groups.evaluateAll(nodes=>nodes.flatMap(group=>
+  [...group.querySelectorAll('[data-stock-card]')].map(card=>card.dataset.stockCard))),expectedIds(expectedOrder),
+  'Survivor Add-ons use canonical source order within each rarity');
+ const itemOrder=()=>page.locator('[data-stock-subsection="items"] [data-stock-card]').evaluateAll(nodes=>nodes.map(node=>node.dataset.stockCard));
+ assert.deepEqual(await itemOrder(),items.map(item=>item.id),'Survivor Items retain their existing family ordering');
+ const bytes=()=>page.evaluate(()=>localStorage.getItem('dbdTrackerData'));
+ const controls=page.locator('#addon-rarity-order');
+ assert.equal(await controls.inputValue(),'highest-to-lowest');
+ const group=rarity=>page.locator('[data-survivor-rarity-section][data-rarity="'+rarity+'"]');
+ const toggle=rarity=>group(rarity).locator('[data-addon-rarity-toggle]');
+ const content=rarity=>group(rarity).locator('[data-addon-rarity-content]');
+ const firstAddon=itemAddons.find(addon=>addon.rarity===expectedOrder[0]);
+ const field=id=>page.locator('[data-inventory-quantity="'+id+'"]');
+ const zeroField=field(firstAddon.id);
+ const heading=toggle(expectedOrder[0]);
+ await heading.focus();await heading.press('Tab');
+ assert.equal(await zeroField.evaluate(node=>document.activeElement===node),true,'Tab reaches a Survivor Add-on quantity');
+ assert.equal(await zeroField.inputValue(),'','Focusing a zero Survivor Add-on clears its visible zero');
+ await zeroField.fill('14');await zeroField.press('Enter');
+ assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].inventory.addons[firstAddon.id],14);
+ assert.equal(await zeroField.inputValue(),'14','Focusing a nonzero Survivor Add-on preserves the value');
+ await zeroField.fill('');await page.locator('#inventory-search').focus();
+ await page.waitForFunction(id=>!JSON.parse(localStorage.dbdTrackerData).characters['meg-thomas'].inventory.addons[id],firstAddon.id);
+ assert.equal(await zeroField.inputValue(),'0','Blurring an empty Survivor Add-on restores zero');
+ const savedZero=await bytes();
+ await zeroField.fill('14');await zeroField.press('Enter');
+ const savedWithQuantity=await bytes();
+ const collapseRarity='Rare';
+ await toggle(collapseRarity).click();
+ assert.equal(await toggle(collapseRarity).getAttribute('aria-expanded'),'false');
+ assert.equal(await content(collapseRarity).isHidden(),true);
+ assert.equal(await content(expectedOrder.find(rarity=>rarity!==collapseRarity)).isVisible(),true,
+  'Survivor rarity sections collapse independently');
+ assert.equal(await bytes(),savedWithQuantity,'Collapse does not change Survivor inventory JSON');
+ await controls.selectOption('lowest-to-highest');
+ assert.deepEqual(await groups.evaluateAll(nodes=>nodes.map(node=>node.dataset.rarity)),[...expectedOrder].reverse());
+ assert.equal(await content(collapseRarity).isHidden(),true,'Sorting preserves Survivor collapse state');
+ assert.deepEqual(await itemOrder(),items.map(item=>item.id),'Rarity sorting does not reorder Survivor Items');
+ assert.equal(await field(firstAddon.id).inputValue(),'14','Rarity sorting keeps quantity attached to its Add-on');
+ assert.equal(await bytes(),savedWithQuantity,'Rarity sorting changes presentation only');
+ const otherItem=inventoryEntities.find(item=>item.map==='items'&&item.familyId==='flashlight');
+ const otherItems=inventoryEntities.filter(item=>item.map==='items'&&item.familyId==='flashlight').sort((a,b)=>a.order-b.order);
+ const otherFamilyAddons=inventoryEntities.filter(addon=>addon.familyId==='flashlight'&&addon.map==='addons');
+ await page.locator('#stock-family-nav-flashlight').click();
+ await page.locator('#inventory-item').selectOption(otherItem.id);
+ const otherItemAddons=otherFamilyAddons.filter(addon=>addon.compatibleItemIds.includes(otherItem.id));
+ const otherExpected=[...rarityOrder.slice().reverse(),'Event'].filter(rarity=>otherItemAddons.some(addon=>addon.rarity===rarity));
+ assert.deepEqual(await groups.evaluateAll(nodes=>nodes.map(node=>node.dataset.rarity)),otherExpected,
+  'Rarity direction is applied independently to another Item');
+ assert.deepEqual(await groups.evaluateAll(nodes=>nodes.flatMap(group=>
+  [...group.querySelectorAll('[data-stock-card]')].map(card=>card.dataset.stockCard))),
+  otherExpected.flatMap(rarity=>otherItemAddons.filter(addon=>addon.rarity===rarity).map(addon=>addon.id)),
+  'Changing Item never carries Add-ons from the previous Item into its section');
+ assert.deepEqual(await itemOrder(),otherItems.map(item=>item.id),'Rarity sorting does not reorder the Flashlight Items');
+ await page.locator('#stock-family-nav-'+family).click();
+ await page.locator('#inventory-item').selectOption(selectedItem.id);
+ assert.deepEqual(await groups.evaluateAll(nodes=>nodes.map(node=>node.dataset.rarity)),[...expectedOrder].reverse(),
+  'Returning to the first Item retains its rarity direction and collapse state');
+ assert.equal(await bytes(),savedWithQuantity,'Changing Item sections does not alter inventory JSON');
+ const reopen=toggle(collapseRarity);await reopen.focus();await reopen.press('Space');
+ assert.equal(await reopen.getAttribute('aria-expanded'),'true','Space reopens a rarity section');
+ assert.equal(await content(collapseRarity).isVisible(),true);
+ assert.equal(JSON.parse(await bytes()).schemaVersion,2,'Inventory remains valid schema-v2 JSON');
+ assert.equal(await bytes(),savedWithQuantity,'Reopening a section does not change inventory JSON');
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const {smokeStage}=await import('./smoke.mjs');

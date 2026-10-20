@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createQuantityInteraction, updateQuantityInput, acceptQuantityInput, visibleQuantityEntries, regroupQuantityEntries, quantityFocusAfterCommit, groupQuantityEntries, stepQuantityInput } from '../src/inventory-interaction.js';
+import { createQuantityInteraction, updateQuantityInput, acceptQuantityInput, visibleQuantityEntries, regroupQuantityEntries, quantityFocusAfterCommit, groupQuantityEntries, groupQuantityEntriesByItem, groupQuantityEntriesByRarity, stepQuantityInput } from '../src/inventory-interaction.js';
 const entities = [{id:'b',order:1,name:'Beta',familyId:'key'}, {id:'a',order:0,name:'Alpha',familyId:'key'}, {id:'c',order:2,name:'Gamma',familyId:'map'}];
 test('snapshot positive first canonical order stays frozen until successful regroup', () => {
  const base=createQuantityInteraction(entities,{b:2});
@@ -65,6 +65,49 @@ test('family grouping keeps pending and invalid zero-stock edits visible without
   const invalid = acceptQuantityInput(updateQuantityInput(base,'key-zero','bad'),'key-zero').state;
   assert.equal(invalid.raw['key-zero'],'bad');
   assert.deepEqual(groupQuantityEntries(invalid,{inStock:true},families)[0].items.map(entity=>entity.id),['key-positive','key-zero']);
+});
+
+test('Survivor Add-ons stay beneath only compatible Items in existing Item order', () => {
+  const items = [
+    {id:'ranger-med-kit',name:'Ranger Med-Kit',familyId:'med-kit',order:2},
+    {id:'mechanics-toolbox',name:"Mechanic's Toolbox",familyId:'toolbox',order:8},
+  ];
+  const addons = [
+    {id:'toolbox-rare',name:'Grip Wrench',familyId:'toolbox',compatibleItemIds:['mechanics-toolbox'],rarity:'Rare',order:7},
+    {id:'med-kit-common',name:'Bandages',familyId:'med-kit',compatibleItemIds:['ranger-med-kit'],rarity:'Common',order:0},
+    {id:'med-kit-rare',name:'Gauze Roll',familyId:'med-kit',compatibleItemIds:['ranger-med-kit','first-aid-kit'],rarity:'Rare',order:4},
+  ];
+
+  const groups = groupQuantityEntriesByItem(items, addons);
+  assert.deepEqual(groups.map(group => group.item.id), ['ranger-med-kit','mechanics-toolbox']);
+  assert.deepEqual(groups[0].addons.map(addon => addon.id), ['med-kit-common','med-kit-rare']);
+  assert.deepEqual(groups[1].addons.map(addon => addon.id), ['toolbox-rare']);
+  assert.deepEqual(items.map(item => item.id), ['ranger-med-kit','mechanics-toolbox'],
+    'Add-on association does not reorder Items');
+});
+
+test('rarity grouping changes only presentation order and keeps canonical order within each group', () => {
+  const rows = [
+    { id:'rare-second', order:4, rarity:'Rare' },
+    { id:'common-first', order:0, rarity:'Common' },
+    { id:'ultra-rare', order:5, rarity:'Ultra Rare' },
+    { id:'rare-first', order:2, rarity:'Rare' },
+    { id:'very-rare', order:3, rarity:'Very Rare' },
+  ];
+  const original = structuredClone(rows);
+  const highToLow = groupQuantityEntriesByRarity(rows,
+    ['Ultra Rare','Very Rare','Rare','Uncommon','Common']);
+  assert.deepEqual(highToLow.map(group => group.rarity),
+    ['Ultra Rare','Very Rare','Rare','Uncommon','Common']);
+  assert.deepEqual(highToLow.find(group => group.rarity === 'Rare').addons.map(addon => addon.id),
+    ['rare-first','rare-second']);
+  const lowToHigh = groupQuantityEntriesByRarity(rows,
+    ['Ultra Rare','Very Rare','Rare','Uncommon','Common'],'lowest-to-highest');
+  assert.deepEqual(lowToHigh.map(group => group.rarity),
+    ['Common','Uncommon','Rare','Very Rare','Ultra Rare']);
+  assert.deepEqual(lowToHigh.find(group => group.rarity === 'Rare').addons.map(addon => addon.id),
+    ['rare-first','rare-second']);
+  assert.deepEqual(rows, original, 'Display ordering never mutates catalog rows');
 });
 
 test('quantity stepping shares validation and respects zero and safe-integer boundaries', () => {

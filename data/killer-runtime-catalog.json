@@ -2248,7 +2248,7 @@
         {
           "id": "killer-addon-shape-jewellery",
           "characterId": "the-shape",
-          "name": "Jewellery",
+          "name": "Jewelry",
           "order": 8,
           "rarity": "Uncommon",
           "effect": "Increases Stalk power gained from stationary Survivors by +10%.",
@@ -2284,7 +2284,7 @@
         {
           "id": "killer-addon-shape-jewellery-box",
           "characterId": "the-shape",
-          "name": "Jewellery Box",
+          "name": "Jewelry Box",
           "order": 11,
           "rarity": "Rare",
           "effect": "Increases Stalk Movement speed by +30% and reduces Stalk range by -16 metres.",

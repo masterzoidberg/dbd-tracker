@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import { killerPowerByCharacterId, inventoryEntityById } from '../../data/inventory-catalog.js';
+import { freshSave } from '../../src/model.js';
 import killerRuntime from '../../data/killer-runtime-catalog.json' with { type: 'json' };
 import assetManifest from '../../data/asset-manifest.json' with { type: 'json' };
 
-const rarityOrder = ['Common', 'Uncommon', 'Rare', 'Very Rare', 'Ultra Rare'];
+const rarityOrder = ['Ultra Rare', 'Very Rare', 'Rare', 'Uncommon', 'Common'];
 
 export async function killerPowerAddonsRegression(page, origin, manifest) {
   manifest ||= assetManifest;
@@ -97,6 +98,7 @@ export async function killerPowerAddonsRegression(page, origin, manifest) {
   await killerDialogFocusRegression(page, origin);
   await killerQuantityRegression(page, origin);
   await killerPendingNavigationRegression(page, origin);
+  await killerRarityNavigationRegression(page, origin);
 }
 
 export async function killerPendingNavigationRegression(page, origin) {
@@ -201,8 +203,8 @@ export async function killerResponsiveRegression(page, origin) {
         if (width <= 760) assert.ok(copy.y >= art.y + art.height, `Power panel stacks at ${width}`);
         else assert.ok(copy.x >= art.x + art.width, `Power panel is horizontal at ${width}`);
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Killer page overflow at ${width}`);
-        const headings = page.locator('[data-killer-rarity-section] > h4');
-        assert.deepEqual(await headings.allTextContents(), rarityOrder);
+        const headings = page.locator('[data-killer-rarity-section] > h4 button');
+        assert.deepEqual(await page.locator('[data-killer-rarity-section]').evaluateAll(nodes=>nodes.map(node=>node.dataset.rarity)), rarityOrder);
         for (const heading of await headings.all()) assert.equal(await heading.isVisible(), true);
         const bounds = await page.locator('[data-killer-power-addons]').evaluate(node => {
           const elements = [...node.querySelectorAll('.stock-grid, [data-killer-addon-card], button, input')];
@@ -246,6 +248,27 @@ export async function killerQuantityRegression(page, origin) {
   const quantity = async id => JSON.parse(await bytes()).characters['the-doctor'].inventory.addons[id];
   const initial = JSON.parse(await bytes());
   const originalOthers = Object.fromEntries(Object.entries(initial.characters).filter(([id]) => id !== 'the-doctor'));
+  assert.equal(await page.locator('[data-killer-quantity]').count(), 20);
+  const firstRarityHeader = page.locator('[data-killer-rarity-section]').first().locator('[data-addon-rarity-toggle]');
+  const firstRarityField = page.locator('[data-killer-rarity-section]').first().locator('[data-killer-quantity]').first();
+  const firstRarityId = await firstRarityField.getAttribute('data-killer-quantity');
+  await firstRarityHeader.focus();
+  await firstRarityHeader.press('Tab');
+  assert.equal(await firstRarityField.evaluate(node => document.activeElement === node), true,
+    'Tab can focus the first rarity group quantity');
+  assert.equal(await firstRarityField.inputValue(), '', 'Focusing zero clears its visible text');
+  await firstRarityField.fill('14');
+  await firstRarityField.press('Enter');
+  assert.equal(await quantity(firstRarityId), 14, 'Typing after the zero is cleared saves a number');
+  await firstRarityField.focus();
+  assert.equal(await firstRarityField.inputValue(), '14', 'Focusing a nonzero quantity preserves it');
+  await firstRarityField.fill('0');
+  await firstRarityField.press('Enter');
+  assert.equal(await quantity(firstRarityId), undefined, 'Returning to zero keeps sparse numeric inventory');
+  await firstRarityField.press('Tab');
+  await page.keyboard.press('Tab');
+  await page.waitForFunction(id => document.querySelector('[data-killer-quantity="' + id + '"]').value === '0', firstRarityId);
+  assert.equal(await quantity(firstRarityId), undefined, 'Leaving a zero field blank restores zero without a save entry');
   assert.deepEqual(await page.locator('[data-killer-quantity]').evaluateAll(nodes => nodes.map(node => node.value)), Array(20).fill('0'));
   const sourceOrder = await page.locator('[data-killer-addon-card]').evaluateAll(nodes => nodes.map(node => node.dataset.addonId));
   await step(first.id, 1).click();
@@ -365,4 +388,59 @@ export async function killerQuantityRegression(page, origin) {
     await field(first.id).press('Enter');
     assert.equal(await quantity(first.id), 12, 'Retained input can be retried after acquiring writer ownership');
   } finally { await reader.close(); }
+}
+
+export async function killerRarityNavigationRegression(page, origin) {
+  const shape = killerRuntime.killers.find(killer => killer.characterId === 'the-shape');
+  const shapeAddons = shape.addons;
+  const route = origin + '/#character/the-shape/power-addons';
+  await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), freshSave());
+  await page.goto(route);
+  const groups = page.locator('[data-killer-rarity-section]');
+  const rarityOrder = ['Ultra Rare', 'Very Rare', 'Rare', 'Uncommon', 'Common'];
+  const expectedIds = order => order.flatMap(rarity => shapeAddons.filter(addon => addon.rarity === rarity).map(addon => addon.id));
+  assert.deepEqual(await groups.evaluateAll(nodes => nodes.map(node => node.dataset.rarity)), rarityOrder,
+    'Killer rarity groups default to Highest → Lowest');
+  assert.equal(await page.locator('[data-killer-addon-card]').count(), 20);
+  assert.deepEqual(await groups.evaluateAll(nodes => nodes.flatMap(group =>
+    [...group.querySelectorAll('[data-killer-addon-card]')].map(card => card.dataset.addonId))), expectedIds(rarityOrder),
+    'All 20 Shape Add-ons appear once in source order within each canonical rarity');
+  const dataRarities = await page.locator('[data-killer-addon-card]').evaluateAll(nodes =>
+    Object.fromEntries(nodes.map(node => [node.dataset.addonId, node.dataset.rarity])));
+  for (const addon of shapeAddons) assert.equal(dataRarities[addon.id], addon.rarity, addon.name + ' uses normalized rarity');
+  for (const [id, name, artworkPath] of [
+    ['killer-addon-shape-jewellery', 'Jewelry', 'images/Powers and Add-ons/Shape/With Background/Jewelry.png'],
+    ['killer-addon-shape-jewellery-box', 'Jewelry Box', 'images/Powers and Add-ons/Shape/With Background/Jewelry Box.png'],
+  ]) {
+    const card = page.locator('[data-killer-addon-card][data-addon-id="' + id + '"]');
+    assert.equal(await card.locator('.stock-card-title').textContent(), name);
+    assert.equal(decodeURIComponent(await card.locator('img').getAttribute('src')), artworkPath);
+  }
+
+  const controls = page.locator('#addon-rarity-order');
+  assert.equal(await controls.inputValue(), 'highest-to-lowest');
+  const bytes = () => page.evaluate(() => localStorage.getItem('dbdTrackerData'));
+  const field = id => page.locator('[data-killer-quantity="' + id + '"]');
+  await field('killer-addon-shape-jewellery').fill('14');
+  await field('killer-addon-shape-jewellery').press('Enter');
+  const saved = await bytes();
+  const toggle = rarity => page.locator('[data-killer-rarity-section][data-rarity="' + rarity + '"] [data-addon-rarity-toggle]');
+  const content = rarity => page.locator('[data-killer-rarity-section][data-rarity="' + rarity + '"] [data-addon-rarity-content]');
+  const rareToggle = toggle('Rare');
+  await rareToggle.click();
+  assert.equal(await rareToggle.getAttribute('aria-expanded'), 'false');
+  assert.equal(await content('Rare').isHidden(), true, 'Rarity groups collapse independently');
+  assert.equal(await content('Very Rare').isVisible(), true, 'Collapsing one group leaves the others expanded');
+  assert.equal(await bytes(), saved, 'Collapsing a group does not change saved JSON');
+  await controls.selectOption('lowest-to-highest');
+  assert.deepEqual(await groups.evaluateAll(nodes => nodes.map(node => node.dataset.rarity)), [...rarityOrder].reverse());
+  assert.equal(await content('Rare').isHidden(), true, 'Changing sort retains collapsed UI state');
+  assert.equal(await field('killer-addon-shape-jewellery').inputValue(), '14', 'Sorting retains existing quantities');
+  assert.equal(await bytes(), saved, 'Rarity sorting does not mutate inventory data');
+  const reopen = toggle('Rare');
+  await reopen.focus();
+  await reopen.press('Enter');
+  assert.equal(await reopen.getAttribute('aria-expanded'), 'true', 'Keyboard can reopen the section');
+  assert.equal(await content('Rare').isVisible(), true);
+  assert.equal(await bytes(), saved, 'Reopening a group does not change saved JSON');
 }

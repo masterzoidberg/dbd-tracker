@@ -1,4 +1,5 @@
 import { characterById } from '../data/catalog.js';
+import { roleCharacters } from './model.js';
 
 export function characterWorkspaceHref(id, section = 'overview', mode = null) {
   if (!Object.hasOwn(characterById, id)) throw new Error('Unknown character.');
@@ -8,6 +9,18 @@ export function characterWorkspaceHref(id, section = 'overview', mode = null) {
     throw new Error('Unavailable character section.');
   }
   return '#character/' + id + '/' + section + (mode ? '/' + mode : '');
+}
+
+export function characterWorkspaceNeighbors(id, section = 'overview', mode = null) {
+  const character = characterById[id];
+  if (!character) throw new Error('Unknown character.');
+  const roster = roleCharacters(character.role), index = roster.findIndex(entry => entry.id === id);
+  const routeFor = target => {
+    try { return characterWorkspaceHref(target.id, section, mode); }
+    catch { return characterWorkspaceHref(target.id); }
+  };
+  const entry = target => target ? { id: target.id, name: target.name, href: routeFor(target) } : null;
+  return { previous: entry(roster[index - 1]), next: entry(roster[index + 1]) };
 }
 
 export function parseCharacterWorkspaceRoute(hash) {

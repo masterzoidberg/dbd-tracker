@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { characterWorkspaceHref, parseCharacterWorkspaceRoute } from '../src/character-workspace.js';
+import { characterWorkspaceHref, characterWorkspaceNeighbors, parseCharacterWorkspaceRoute } from '../src/character-workspace.js';
 import { createCharacterInventorySession, syncCharacterInventorySession } from '../src/character-inventory.js';
+import { characters } from '../data/catalog.js';
 
 test('canonical routes and bare alias use one explicit descriptor', () => {
   for (const [id, sections] of [
@@ -39,6 +40,26 @@ test('recognized invalid hashes remain unavailable instead of top-level fallback
   assert.throws(() => characterWorkspaceHref('unknown'));
   assert.throws(() => characterWorkspaceHref('meg-thomas', 'power-addons'));
   assert.throws(() => characterWorkspaceHref('meg-thomas', 'edit', 'legacy'));
+});
+
+test('character neighbors follow canonical role order and preserve supported tabs', () => {
+  const roster=role=>characters.filter(character=>character.role===role);
+  const killers=roster('killer'), survivors=roster('survivor');
+  const shape=killers.findIndex(character=>character.id==='the-shape');
+  const meg=survivors.findIndex(character=>character.id==='meg-thomas');
+  const killerPower=characterWorkspaceNeighbors('the-shape','power-addons');
+  assert.deepEqual(killerPower.previous,{id:killers[shape-1].id,name:killers[shape-1].name,href:'#character/'+killers[shape-1].id+'/power-addons'});
+  assert.deepEqual(killerPower.next,{id:killers[shape+1].id,name:killers[shape+1].name,href:'#character/'+killers[shape+1].id+'/power-addons'});
+  assert.equal(characterWorkspaceNeighbors('the-shape','perks','update').next.href,'#character/'+killers[shape+1].id+'/perks/update');
+  const survivorInventory=characterWorkspaceNeighbors('meg-thomas','items-addons');
+  assert.deepEqual(survivorInventory.previous,{id:survivors[meg-1].id,name:survivors[meg-1].name,href:'#character/'+survivors[meg-1].id+'/items-addons'});
+  assert.deepEqual(survivorInventory.next,{id:survivors[meg+1].id,name:survivors[meg+1].name,href:'#character/'+survivors[meg+1].id+'/items-addons'});
+  assert.equal(characterWorkspaceNeighbors('meg-thomas','perks').next.href,'#character/'+survivors[meg+1].id+'/perks');
+  assert.equal(characterWorkspaceNeighbors(killers[0].id).previous,null);
+  assert.equal(characterWorkspaceNeighbors(killers.at(-1).id).next,null);
+  assert.equal(characterWorkspaceNeighbors(survivors[0].id).previous,null);
+  assert.equal(characterWorkspaceNeighbors(survivors.at(-1).id).next,null);
+  assert.equal(characterWorkspaceNeighbors('the-shape','items-addons').next.href,'#character/'+killers[shape+1].id+'/overview');
 });
 
 test('equivalent update aliases retain canonical session identity and draft selection', () => {
