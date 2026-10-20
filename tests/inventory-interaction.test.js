@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createQuantityInteraction, updateQuantityInput, acceptQuantityInput, visibleQuantityEntries, regroupQuantityEntries, quantityFocusAfterCommit, groupQuantityEntries, groupQuantityEntriesByItem, groupQuantityEntriesByRarity, stepQuantityInput } from '../src/inventory-interaction.js';
+import { createQuantityInteraction, updateQuantityInput, acceptQuantityInput, visibleQuantityEntries, regroupQuantityEntries, quantityFocusAfterCommit, groupQuantityEntries, groupQuantityEntriesByItem, sortQuantityEntriesByRarity, stepQuantityInput } from '../src/inventory-interaction.js';
 const entities = [{id:'b',order:1,name:'Beta',familyId:'key'}, {id:'a',order:0,name:'Alpha',familyId:'key'}, {id:'c',order:2,name:'Gamma',familyId:'map'}];
 test('snapshot positive first canonical order stays frozen until successful regroup', () => {
  const base=createQuantityInteraction(entities,{b:2});
@@ -86,27 +86,20 @@ test('Survivor Add-ons stay beneath only compatible Items in existing Item order
     'Add-on association does not reorder Items');
 });
 
-test('rarity grouping changes only presentation order and keeps canonical order within each group', () => {
+test('rarity sorting uses normalized rarity and preserves source order for equal rarities', () => {
   const rows = [
-    { id:'rare-second', order:4, rarity:'Rare' },
-    { id:'common-first', order:0, rarity:'Common' },
-    { id:'ultra-rare', order:5, rarity:'Ultra Rare' },
-    { id:'rare-first', order:2, rarity:'Rare' },
-    { id:'very-rare', order:3, rarity:'Very Rare' },
+    { id:'ultra-rare', order:5, rarity:'Ultra Rare', sourceRarity:'Common' },
+    { id:'rare-first', order:4, rarity:'Rare', sourceRarity:'Common' },
+    { id:'rare-second', order:2, rarity:'Rare', sourceRarity:'Ultra Rare' },
+    { id:'very-rare', order:3, rarity:'Very Rare', sourceRarity:'Common' },
+    { id:'common-first', order:0, rarity:'Common', sourceRarity:'Ultra Rare' },
   ];
   const original = structuredClone(rows);
-  const highToLow = groupQuantityEntriesByRarity(rows,
-    ['Ultra Rare','Very Rare','Rare','Uncommon','Common']);
-  assert.deepEqual(highToLow.map(group => group.rarity),
-    ['Ultra Rare','Very Rare','Rare','Uncommon','Common']);
-  assert.deepEqual(highToLow.find(group => group.rarity === 'Rare').addons.map(addon => addon.id),
-    ['rare-first','rare-second']);
-  const lowToHigh = groupQuantityEntriesByRarity(rows,
-    ['Ultra Rare','Very Rare','Rare','Uncommon','Common'],'lowest-to-highest');
-  assert.deepEqual(lowToHigh.map(group => group.rarity),
-    ['Common','Uncommon','Rare','Very Rare','Ultra Rare']);
-  assert.deepEqual(lowToHigh.find(group => group.rarity === 'Rare').addons.map(addon => addon.id),
-    ['rare-first','rare-second']);
+  const order = ['Ultra Rare','Very Rare','Rare','Uncommon','Common'];
+  assert.deepEqual(sortQuantityEntriesByRarity(rows, order).map(addon => addon.id),
+    ['ultra-rare','very-rare','rare-first','rare-second','common-first']);
+  assert.deepEqual(sortQuantityEntriesByRarity(rows, order, 'lowest-to-highest').map(addon => addon.id),
+    ['common-first','rare-first','rare-second','very-rare','ultra-rare']);
   assert.deepEqual(rows, original, 'Display ordering never mutates catalog rows');
 });
 

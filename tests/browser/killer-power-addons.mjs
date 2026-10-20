@@ -21,11 +21,11 @@ export async function killerPowerAddonsRegression(page, origin, manifest) {
   assert.equal(await powerPanel.locator('[data-power-name]').textContent(), doctorPower.powerName);
   assert.equal(await powerPanel.locator('[data-power-summary]').textContent(), doctorPower.shortSummary);
 
-  const groups = workspace.locator('[data-killer-rarity-section]');
-  assert.deepEqual(await groups.evaluateAll(nodes => nodes.map(node => node.dataset.rarity)), rarityOrder);
   assert.equal(await workspace.locator('[data-killer-addon-card]').count(), 20);
-  const displayedIds = await groups.evaluateAll(nodes => nodes.flatMap(group =>
-    [...group.querySelectorAll('[data-killer-addon-card]')].map(card => card.dataset.addonId)));
+  assert.equal(await workspace.locator('[data-addon-rarity-section], [data-addon-rarity-toggle]').count(), 0,
+    'Killer Add-ons render without rarity subgroup containers or collapse controls');
+  const displayedIds = await workspace.locator('[data-killer-addon-card]').evaluateAll(nodes =>
+    nodes.map(card => card.dataset.addonId));
   assert.deepEqual(displayedIds, rarityOrder.flatMap(rarity => doctorAddons
     .filter(addon => addon.rarity === rarity).map(addon => addon.id)), 'Add-ons retain source order inside each rarity');
   assert.deepEqual(await workspace.locator('[data-killer-addon-card]').evaluateAll(nodes =>
@@ -203,9 +203,9 @@ export async function killerResponsiveRegression(page, origin) {
         if (width <= 760) assert.ok(copy.y >= art.y + art.height, `Power panel stacks at ${width}`);
         else assert.ok(copy.x >= art.x + art.width, `Power panel is horizontal at ${width}`);
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Killer page overflow at ${width}`);
-        const headings = page.locator('[data-killer-rarity-section] > h4 button');
-        assert.deepEqual(await page.locator('[data-killer-rarity-section]').evaluateAll(nodes=>nodes.map(node=>node.dataset.rarity)), rarityOrder);
-        for (const heading of await headings.all()) assert.equal(await heading.isVisible(), true);
+        assert.equal(await page.locator('[data-killer-rarity-section], [data-addon-rarity-toggle]').count(), 0,
+          'Flat Killer Add-on lists have no rarity headers or collapse controls at ' + width);
+        assert.equal(await page.locator('[data-killer-addon-card]').count(), 20);
         const bounds = await page.locator('[data-killer-power-addons]').evaluate(node => {
           const elements = [...node.querySelectorAll('.stock-grid, [data-killer-addon-card], button, input')];
           return elements.map(element => {
@@ -249,13 +249,15 @@ export async function killerQuantityRegression(page, origin) {
   const initial = JSON.parse(await bytes());
   const originalOthers = Object.fromEntries(Object.entries(initial.characters).filter(([id]) => id !== 'the-doctor'));
   assert.equal(await page.locator('[data-killer-quantity]').count(), 20);
-  const firstRarityHeader = page.locator('[data-killer-rarity-section]').first().locator('[data-addon-rarity-toggle]');
-  const firstRarityField = page.locator('[data-killer-rarity-section]').first().locator('[data-killer-quantity]').first();
+  for (const delta of [-1, 1, 5, 10]) assert.equal(await step(first.id, delta).count(), 1,
+    'Killer quantity controls include step ' + delta);
+  const rarityOrderControl = page.locator('#addon-rarity-order');
+  const firstRarityField = page.locator('[data-killer-addon-card]').first().locator('[data-killer-quantity]');
   const firstRarityId = await firstRarityField.getAttribute('data-killer-quantity');
-  await firstRarityHeader.focus();
-  await firstRarityHeader.press('Tab');
+  await rarityOrderControl.focus();
+  await rarityOrderControl.press('Tab');
   assert.equal(await firstRarityField.evaluate(node => document.activeElement === node), true,
-    'Tab can focus the first rarity group quantity');
+    'Tab can move from rarity order to the first Add-on quantity');
   assert.equal(await firstRarityField.inputValue(), '', 'Focusing zero clears its visible text');
   await firstRarityField.fill('14');
   await firstRarityField.press('Enter');
@@ -278,6 +280,15 @@ export async function killerQuantityRegression(page, origin) {
   await step(first.id, -1).click();
   assert.equal(await quantity(first.id), undefined, 'Zero omits the persisted key');
   assert.equal(await step(first.id, -1).isDisabled(), true);
+  await step(first.id, 5).click();
+  assert.equal(await quantity(first.id), 5, '+5 commits to the selected Killer Add-on');
+  await step(first.id, 10).click();
+  assert.equal(await quantity(first.id), 15, '+10 accumulates on the selected Killer Add-on');
+  await step(first.id, -1).click();
+  assert.equal(await quantity(first.id), 14, 'Decrement remains a single unit after quick increments');
+  await field(first.id).fill('0');
+  await field(first.id).press('Enter');
+  assert.equal(await quantity(first.id), undefined, 'Quick quantity controls preserve sparse zero values');
   await field(first.id).fill('5');
   await field(first.id).press('Enter');
   assert.equal(await quantity(first.id), 5);
@@ -360,7 +371,7 @@ export async function killerQuantityRegression(page, origin) {
     await reader.waitForFunction(() => document.querySelector('#save-status').textContent === 'Read-only');
     assert.equal(await reader.locator('[data-inventory-quantity][data-killer-quantity]').count(), 20);
     assert.equal(await reader.locator('[data-killer-quantity]:disabled').count(), 20);
-    assert.equal(await reader.locator('[data-killer-stock-step]:disabled').count(), 40);
+    assert.equal(await reader.locator('[data-killer-stock-step]:disabled').count(), 80);
     const before = await bytes();
     const readerQuantity = await reader.locator('[data-killer-quantity]').first().inputValue();
     await reader.locator('[data-killer-stock-step][data-delta="1"]').first().dispatchEvent('click');
@@ -396,15 +407,16 @@ export async function killerRarityNavigationRegression(page, origin) {
   const route = origin + '/#character/the-shape/power-addons';
   await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), freshSave());
   await page.goto(route);
-  const groups = page.locator('[data-killer-rarity-section]');
   const rarityOrder = ['Ultra Rare', 'Very Rare', 'Rare', 'Uncommon', 'Common'];
-  const expectedIds = order => order.flatMap(rarity => shapeAddons.filter(addon => addon.rarity === rarity).map(addon => addon.id));
-  assert.deepEqual(await groups.evaluateAll(nodes => nodes.map(node => node.dataset.rarity)), rarityOrder,
-    'Killer rarity groups default to Highest → Lowest');
+  const expectedIds = order => [...order.flatMap(rarity => shapeAddons
+    .filter(addon => addon.rarity === rarity).map(addon => addon.id)), ...shapeAddons
+    .filter(addon => !rarityOrder.includes(addon.rarity)).map(addon => addon.id)];
+  const cards = page.locator('[data-killer-addon-card]');
   assert.equal(await page.locator('[data-killer-addon-card]').count(), 20);
-  assert.deepEqual(await groups.evaluateAll(nodes => nodes.flatMap(group =>
-    [...group.querySelectorAll('[data-killer-addon-card]')].map(card => card.dataset.addonId))), expectedIds(rarityOrder),
-    'All 20 Shape Add-ons appear once in source order within each canonical rarity');
+  assert.equal(await page.locator('[data-killer-rarity-section], [data-addon-rarity-section], [data-addon-rarity-toggle]').count(), 0,
+    'Killer Add-ons render as one flat list without rarity groups or collapse controls');
+  assert.deepEqual(await cards.evaluateAll(nodes => nodes.map(card => card.dataset.addonId)), expectedIds(rarityOrder),
+    'Highest → Lowest keeps source order among Add-ons with equal rarity');
   const dataRarities = await page.locator('[data-killer-addon-card]').evaluateAll(nodes =>
     Object.fromEntries(nodes.map(node => [node.dataset.addonId, node.dataset.rarity])));
   for (const addon of shapeAddons) assert.equal(dataRarities[addon.id], addon.rarity, addon.name + ' uses normalized rarity');
@@ -424,23 +436,11 @@ export async function killerRarityNavigationRegression(page, origin) {
   await field('killer-addon-shape-jewellery').fill('14');
   await field('killer-addon-shape-jewellery').press('Enter');
   const saved = await bytes();
-  const toggle = rarity => page.locator('[data-killer-rarity-section][data-rarity="' + rarity + '"] [data-addon-rarity-toggle]');
-  const content = rarity => page.locator('[data-killer-rarity-section][data-rarity="' + rarity + '"] [data-addon-rarity-content]');
-  const rareToggle = toggle('Rare');
-  await rareToggle.click();
-  assert.equal(await rareToggle.getAttribute('aria-expanded'), 'false');
-  assert.equal(await content('Rare').isHidden(), true, 'Rarity groups collapse independently');
-  assert.equal(await content('Very Rare').isVisible(), true, 'Collapsing one group leaves the others expanded');
-  assert.equal(await bytes(), saved, 'Collapsing a group does not change saved JSON');
   await controls.selectOption('lowest-to-highest');
-  assert.deepEqual(await groups.evaluateAll(nodes => nodes.map(node => node.dataset.rarity)), [...rarityOrder].reverse());
-  assert.equal(await content('Rare').isHidden(), true, 'Changing sort retains collapsed UI state');
+  assert.deepEqual(await cards.evaluateAll(nodes => nodes.map(card => card.dataset.addonId)), expectedIds([...rarityOrder].reverse()),
+    'Lowest → Highest reverses rarity order while retaining source order within each rarity');
   assert.equal(await field('killer-addon-shape-jewellery').inputValue(), '14', 'Sorting retains existing quantities');
   assert.equal(await bytes(), saved, 'Rarity sorting does not mutate inventory data');
-  const reopen = toggle('Rare');
-  await reopen.focus();
-  await reopen.press('Enter');
-  assert.equal(await reopen.getAttribute('aria-expanded'), 'true', 'Keyboard can reopen the section');
-  assert.equal(await content('Rare').isVisible(), true);
-  assert.equal(await bytes(), saved, 'Reopening a group does not change saved JSON');
+  assert.equal(await page.getByText(/Collapse All|Expand All|Group by rarity/i).count(), 0,
+    'No abandoned rarity grouping controls remain');
 }

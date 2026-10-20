@@ -4,7 +4,7 @@ import { TrackerStorage } from './storage.js';
 import { parseCharacterWorkspaceRoute, characterWorkspaceHref, characterWorkspaceNeighbors } from './character-workspace.js';
 import {inventoryEntities,inventoryEntityById,inventoryCatalogStatus,survivorInventorySource,killerPowerByCharacterId} from '../data/inventory-catalog.js';
 import {inventoryIconPath,killerPowerIconPath} from './assets.js';
-import {createQuantityInteraction,updateQuantityInput,acceptQuantityInput,visibleQuantityEntries,regroupQuantityEntries,quantityFocusAfterCommit,groupQuantityEntries,groupQuantityEntriesByItem,groupQuantityEntriesByRarity,stepQuantityInput} from './inventory-interaction.js';
+import {createQuantityInteraction,updateQuantityInput,acceptQuantityInput,visibleQuantityEntries,regroupQuantityEntries,quantityFocusAfterCommit,groupQuantityEntries,groupQuantityEntriesByItem,sortQuantityEntriesByRarity,stepQuantityInput} from './inventory-interaction.js';
 import { createCharacterEditSession, updateCharacterEditSession, buildCharacterEditCandidate, characterEditPreview } from './character-edit.js';
 import { EditorGuard } from './editor.js';
 import { setupView } from './setup.js';
@@ -65,7 +65,6 @@ let killerSession = null;
 let killerSessionKey = '';
 let killerBlurPending = null;
 let addonRarityDirection = 'highest-to-lowest';
-const collapsedAddonRaritySections = new Set();
 let workspaceHistoryIndex = 0;
 let committedWorkspaceHash = location.hash || '#dashboard';
 let restoringWorkspaceHistory = null;
@@ -724,7 +723,9 @@ function stockView(id,mode) {
       +'<label for="quantity-'+entity.id+'">Quantity of '+esc(entity.name)+'</label><div class="stock-quantity-control">'
       +'<button type="button" id="stock-decrement-'+entity.id+'" data-action="stock-step" data-stock-step data-id="'+entity.id+'" data-delta="-1" aria-label="Decrease quantity of '+esc(entity.name)+'">−</button>'
       +'<input id="quantity-'+entity.id+'" data-inventory-quantity="'+entity.id+'" inputmode="numeric" type="text" value="'+esc(stockSession.raw[entity.id])+'" aria-invalid="'+Boolean(error)+'" aria-describedby="stock-error-'+entity.id+'">'
-      +'<button type="button" id="stock-increment-'+entity.id+'" data-action="stock-step" data-stock-step data-id="'+entity.id+'" data-delta="1" aria-label="Increase quantity of '+esc(entity.name)+'">+</button></div>'
+      +'<button type="button" id="stock-increment-'+entity.id+'" data-action="stock-step" data-stock-step data-id="'+entity.id+'" data-delta="1" aria-label="Increase quantity of '+esc(entity.name)+'">+1</button>'
+      +'<button type="button" id="stock-increment-5-'+entity.id+'" data-action="stock-step" data-stock-step data-id="'+entity.id+'" data-delta="5" aria-label="Increase quantity of '+esc(entity.name)+' by 5">+5</button>'
+      +'<button type="button" id="stock-increment-10-'+entity.id+'" data-action="stock-step" data-stock-step data-id="'+entity.id+'" data-delta="10" aria-label="Increase quantity of '+esc(entity.name)+' by 10">+10</button></div>'
       +'<p id="stock-error-'+entity.id+'" data-stock-error role="status">'+esc(error|| (stockSession.pending[entity.id]?(mode==='draft'?'Unsaved draft':'Pending change'):''))+'</p>'
       +'<button type="button" id="stock-details-'+entity.id+'" class="stock-details-action" data-action="stock-details" data-id="'+entity.id+'">Details</button></article>';
   };
@@ -739,7 +740,7 @@ function stockView(id,mode) {
     const selectedItemAddons=selectedItem
       ?groupQuantityEntriesByItem([selectedItem],group.addons)[0].addons:[];
     const addonMarkup=selectedItemAddons.length
-      ?renderAddonRaritySections(selectedItemAddons,'survivor',selectedItem.id,renderCard)
+      ?'<div class="stock-grid">'+sortQuantityEntriesByRarity(selectedItemAddons,killerRarityOrder,addonRarityDirection).map(renderCard).join('')+'</div>'
       :(!catalogAddonCount?'<p class="stock-empty-line">No compatible Add-ons in this catalog.</p>':'<p class="stock-empty-line">No compatible Add-ons for this Item.</p>');
     return '<section class="stock-family" data-stock-family="'+esc(group.family.id)+'"><div class="stock-family-heading"><h3>'+esc(group.family.displayName)+'</h3><p>'+catalogItemCount+' Items · '+catalogAddonCount+' Add-ons <span class="muted">(catalog totals)</span></p></div>'
       +'<div class="stock-family-content">'
@@ -758,37 +759,11 @@ function stockView(id,mode) {
     +(unresolved.length?'<section class="unresolved-stock" data-unresolved-stock><h2 id="inventory-unresolved">Imported records not in current catalog</h2><p class="muted">Preserved exactly and read-only until the runtime catalog can resolve them.</p><ul>'+unresolved.map(([unknown,quantity])=>'<li><code>'+esc(unknown)+'</code><span>Quantity '+quantity+'</span><small>Read-only</small></li>').join('')+'</ul></section>':'')+'</section>';
 }
 const killerRarityOrder = ['Ultra Rare','Very Rare','Rare','Uncommon','Common'];
-function addonRaritySectionKey(scope,context,rarity) {
-  return scope+'-'+context+'-'+inventoryRaritySlug(rarity);
-}
 function renderAddonRarityOrderControl() {
   return '<label class="addon-rarity-order-control"><span>Rarity order</span><select id="addon-rarity-order">'
     +'<option value="highest-to-lowest"'+(addonRarityDirection==='highest-to-lowest'?' selected':'')+'>Highest → Lowest</option>'
     +'<option value="lowest-to-highest"'+(addonRarityDirection==='lowest-to-highest'?' selected':'')+'>Lowest → Highest</option>'
     +'</select></label>';
-}
-function renderAddonRaritySections(entities,scope,context,renderCard) {
-  const sectionAttribute=scope==='killer'?'data-killer-rarity-section':'data-survivor-rarity-section';
-  return groupQuantityEntriesByRarity(entities,killerRarityOrder,addonRarityDirection)
-    .filter(group=>group.addons.length)
-    .map(group=>{
-      const key=addonRaritySectionKey(scope,context,group.rarity), contentId='addon-rarity-content-'+key;
-      const collapsed=collapsedAddonRaritySections.has(key);
-      return '<section class="addon-rarity-section '+(scope==='killer'?'killer-rarity-section':'survivor-rarity-section')+'" '+sectionAttribute+' data-addon-rarity-section data-rarity="'+esc(group.rarity)+'">'
-        +'<h4 class="addon-rarity-heading"><button type="button" id="addon-rarity-toggle-'+esc(key)+'" data-action="addon-rarity-toggle" data-addon-rarity-toggle data-addon-rarity-key="'+esc(key)+'" aria-expanded="'+(!collapsed)+'" aria-controls="'+esc(contentId)+'">'
-        +'<span aria-hidden="true" data-addon-rarity-icon>'+(collapsed?'▶':'▼')+'</span><span>'+esc(group.rarity)+'</span></button></h4>'
-        +'<div class="stock-grid addon-rarity-content" id="'+esc(contentId)+'" data-addon-rarity-content'+(collapsed?' hidden':'')+'>'
-        +group.addons.map(renderCard).join('')+'</div></section>';
-    }).join('');
-}
-function toggleAddonRaritySection(button) {
-  const key=button.dataset.addonRarityKey, content=document.getElementById(button.getAttribute('aria-controls'));
-  const collapsed=!collapsedAddonRaritySections.has(key);
-  if(collapsed)collapsedAddonRaritySections.add(key);else collapsedAddonRaritySections.delete(key);
-  button.setAttribute('aria-expanded',String(!collapsed));
-  const icon=button.querySelector('[data-addon-rarity-icon]');
-  if(icon)icon.textContent=collapsed?'▶':'▼';
-  if(content)content.hidden=collapsed;
 }
 function killerPowerAddonsView(characterId) {
   const power=killerPowerByCharacterId[characterId];
@@ -802,9 +777,9 @@ function killerPowerAddonsView(characterId) {
   const art=powerArt?'<img src="'+esc(artworkUrl(powerArt))+'" alt="" data-power-art>':'<span class="stock-art-fallback" role="img" aria-label="Power artwork unavailable" data-power-art-fallback>◇</span>';
   return '<section class="killer-power-addons" data-killer-power-addons>'
     +'<section class="panel killer-power-panel" data-killer-power-panel><div class="killer-power-art">'+art+'</div><div class="killer-power-copy"><span class="eyebrow">KILLER POWER</span><h3 data-power-name>'+esc(power.powerName)+'</h3><p data-power-summary>'+esc(power.shortSummary)+'</p><button type="button" data-action="killer-power-details" data-character="'+esc(characterId)+'" id="killer-power-details-'+esc(characterId)+'">Power Details</button></div></section>'
-    +'<section class="killer-addon-inventory" aria-labelledby="killer-addons-heading"><div class="stock-page-heading"><div><span class="eyebrow">INVENTORY</span><h3 id="killer-addons-heading">'+esc(character.name)+' Add-ons</h3><p>All 20 Add-ons, grouped by rarity.</p></div></div>'
+    +'<section class="killer-addon-inventory" aria-labelledby="killer-addons-heading"><div class="stock-page-heading"><div><span class="eyebrow">INVENTORY</span><h3 id="killer-addons-heading">'+esc(character.name)+' Add-ons</h3><p>All 20 Add-ons, sorted by rarity.</p></div></div>'
     +'<div class="addon-rarity-toolbar">'+renderAddonRarityOrderControl()+'</div>'
-    +renderAddonRaritySections(addons,'killer',characterId,killerAddonCard)
+    +'<div class="stock-grid">'+sortQuantityEntriesByRarity(addons,killerRarityOrder,addonRarityDirection).map(killerAddonCard).join('')+'</div>'
     +'</section></section>';
 }
 function killerAddonCard(addon) {
@@ -815,7 +790,9 @@ function killerAddonCard(addon) {
     +'<label for="killer-quantity-'+esc(addon.id)+'">Quantity of '+esc(addon.name)+'</label><div class="stock-quantity-control">'
     +'<button type="button" id="killer-stock-decrement-'+esc(addon.id)+'" data-action="killer-stock-step" data-killer-stock-step data-id="'+esc(addon.id)+'" data-delta="-1" aria-label="Decrease quantity of '+esc(addon.name)+'">−</button>'
     +'<input id="killer-quantity-'+esc(addon.id)+'" data-inventory-quantity="'+esc(addon.id)+'" data-killer-quantity="'+esc(addon.id)+'" inputmode="numeric" type="text" value="'+esc(killerSession.raw[addon.id])+'" aria-invalid="'+Boolean(error)+'" aria-describedby="killer-stock-error-'+esc(addon.id)+'">'
-    +'<button type="button" id="killer-stock-increment-'+esc(addon.id)+'" data-action="killer-stock-step" data-killer-stock-step data-id="'+esc(addon.id)+'" data-delta="1" aria-label="Increase quantity of '+esc(addon.name)+'">+</button></div>'
+    +'<button type="button" id="killer-stock-increment-'+esc(addon.id)+'" data-action="killer-stock-step" data-killer-stock-step data-id="'+esc(addon.id)+'" data-delta="1" aria-label="Increase quantity of '+esc(addon.name)+'">+1</button>'
+    +'<button type="button" id="killer-stock-increment-5-'+esc(addon.id)+'" data-action="killer-stock-step" data-killer-stock-step data-id="'+esc(addon.id)+'" data-delta="5" aria-label="Increase quantity of '+esc(addon.name)+' by 5">+5</button>'
+    +'<button type="button" id="killer-stock-increment-10-'+esc(addon.id)+'" data-action="killer-stock-step" data-killer-stock-step data-id="'+esc(addon.id)+'" data-delta="10" aria-label="Increase quantity of '+esc(addon.name)+' by 10">+10</button></div>'
     +'<p id="killer-stock-error-'+esc(addon.id)+'" data-killer-stock-error role="status">'+esc(error||(killerSession.pending[addon.id]?'Pending change':''))+'</p>'
     +'<button type="button" id="killer-addon-details-'+esc(addon.id)+'" class="stock-details-action" data-action="killer-addon-details" data-id="'+esc(addon.id)+'">Details</button></article>';
 }
@@ -867,9 +844,7 @@ function acceptKillerQuantity(id,trigger,nextTargetId=null) {
       killerSession.raw[other]=previous.raw[other];killerSession.pending[other]=true;
       if(previous.errors[other])killerSession.errors[other]=previous.errors[other];
     }
-    const order=groupQuantityEntriesByRarity(killerSession.entities,killerRarityOrder,addonRarityDirection)
-      .filter(group=>!collapsedAddonRaritySections.has(addonRaritySectionKey('killer',characterId,group.rarity)))
-      .flatMap(group=>group.addons.map(entity=>entity.id));
+    const order=sortQuantityEntriesByRarity(killerSession.entities,killerRarityOrder,addonRarityDirection).map(entity=>entity.id);
     const destination=quantityFocusAfterCommit(order,{entityId:id,nextTargetId,trigger,
       visibleIds:[...order,...(nextTargetId&&document.getElementById(nextTargetId)?[nextTargetId]:[])]});
     render();($('#killer-quantity-'+destination)||document.getElementById(destination))?.focus({preventScroll:true});
@@ -918,9 +893,7 @@ function stockFocusOrder() {
     .filter(group=>group.family.id===selectedFamilyId)
     .flatMap(group=>{
       const compatibleAddons=group.addons.filter(addon=>addon.compatibleItemIds?.includes(selectedItemId));
-      const visibleAddons=groupQuantityEntriesByRarity(compatibleAddons,killerRarityOrder,addonRarityDirection)
-        .filter(addonGroup=>!collapsedAddonRaritySections.has(addonRaritySectionKey('survivor',selectedItemId,addonGroup.rarity)))
-        .flatMap(addonGroup=>addonGroup.addons);
+      const visibleAddons=sortQuantityEntriesByRarity(compatibleAddons,killerRarityOrder,addonRarityDirection);
       return [...group.items,...visibleAddons].map(entity=>entity.id);
     });
 }
@@ -996,8 +969,7 @@ function acceptStock(id,trigger,nextTargetId=null) {
     }
     const visible=stockFocusOrder();
     const stepDestinations=[...document.querySelectorAll('[data-stock-step]:not(:disabled)')].filter(control=>visible.includes(control.dataset.id)).map(control=>control.id);
-    const rarityToggleDestinations=[...document.querySelectorAll('[data-addon-rarity-toggle]')].map(control=>control.id).filter(Boolean);
-    const availableDestinations=[...visible,...rarityToggleDestinations,...['inventory-search','inventory-map','inventory-rarity','inventory-in-stock','inventory-filters-toggle','inventory-unresolved'],...visible.map(entityId=>'stock-details-'+entityId),...stepDestinations];
+    const availableDestinations=[...visible,...['inventory-search','inventory-map','inventory-rarity','inventory-in-stock','inventory-filters-toggle','inventory-unresolved'],...visible.map(entityId=>'stock-details-'+entityId),...stepDestinations];
     const destination=quantityFocusAfterCommit(before,{entityId:id,nextTargetId,trigger,visibleIds:availableDestinations});
     render(); ($('#quantity-'+destination)||document.getElementById(destination))?.focus({preventScroll:true});
     message('Quantity saved: '+entity.name+' '+result.quantity+'.');
@@ -1355,7 +1327,6 @@ async function handleClick(event) {
   const button = event.target.closest('[data-action]');
   if (!button) return;
   const { action, id, character, perk, mode, family } = button.dataset;
-  if(action==='addon-rarity-toggle'){toggleAddonRaritySection(button);return;}
   if(action==='stock-step'){stepStock(button);return;}
   if(action==='killer-stock-step'){stepKillerQuantity(button);return;}
   if(action==='stock-family-select'){selectStockFamily(family);return;}

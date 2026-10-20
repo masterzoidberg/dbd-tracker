@@ -51,14 +51,13 @@ export function groupQuantityEntriesByItem(items, addons) {
   }));
 }
 
-export function groupQuantityEntriesByRarity(entities, highestToLowestOrder, direction='highest-to-lowest') {
-  const canonical=[...entities].sort((a,b)=>a.order-b.order||a.id.localeCompare(b.id));
+export function sortQuantityEntriesByRarity(entities, highestToLowestOrder, direction='highest-to-lowest') {
   const standardOrder=direction==='lowest-to-highest'?[...highestToLowestOrder].reverse():[...highestToLowestOrder];
-  const additionalRarities=[...new Set(canonical.map(entity=>entity.rarity).filter(rarity=>!highestToLowestOrder.includes(rarity)))];
-  return [...standardOrder,...additionalRarities].map(rarity=>({
-    rarity,
-    addons:canonical.filter(entity=>entity.rarity===rarity),
-  }));
+  const additionalRarities=[...new Set(entities.map(entity=>entity.rarity).filter(rarity=>!highestToLowestOrder.includes(rarity)))];
+  const rank=new Map([...standardOrder,...additionalRarities].map((rarity,index)=>[rarity,index]));
+  return entities.map((entity,index)=>({entity,index}))
+    .sort((a,b)=>rank.get(a.entity.rarity)-rank.get(b.entity.rarity)||a.index-b.index)
+    .map(({entity})=>entity);
 }
 
 export function stepQuantityInput(state, id, delta) {

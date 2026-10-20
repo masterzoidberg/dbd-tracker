@@ -144,6 +144,15 @@ export async function characterRosterNavigationRegression(page,origin) {
   assert.equal(await neighbor('next').getAttribute('href'),'#character/'+survivors[megIndex+1].id+'/items-addons');
   await neighbor('next').click();
   await expectPage(survivors[megIndex+1].id,'items-addons');
+
+  await page.goto(origin+'/#character/jake-park/overview');
+  await page.locator('.character-workspace-back').click();
+  await page.waitForURL('**/#survivors');
+  const jillLink=page.locator('[data-open-workspace][href="#character/jill-valentine/overview"]');
+  assert.equal(await jillLink.count(),1,'Jill Valentine is directly available from the Survivor collection');
+  await jillLink.click();
+  await expectPage('jill-valentine','overview');
+
   await page.goto(origin+'/#character/meg-thomas/perks');
   await neighbor('previous').click();
   await expectPage(survivors[megIndex-1].id,'perks');
