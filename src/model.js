@@ -45,6 +45,24 @@ export function ownedUnlockSource(save, characterId, perk) {
 }
 export const roleCharacters = role => characters.filter(c => c.role === role);
 export const rolePerks = role => perks.filter(p => p.role === role);
+export function effectivePerkInventory(save, characterId) {
+  const character = characterById[characterId];
+  if (!character) return {};
+  return Object.fromEntries(rolePerks(character.role)
+    .map(perk => [perk.id, inventoryTier(save, characterId, perk.id)])
+    .filter(([, tier]) => tier > 0));
+}
+export function perkInventorySummary(save, characterId) {
+  const character = characterById[characterId];
+  if (!character) return { tracked: 0, maxed: 0, upgradeable: 0 };
+  const effective = effectivePerkInventory(save, characterId);
+  const trackedPerks = rolePerks(character.role).filter(perk => (effective[perk.id] || 0) > 0);
+  return {
+    tracked: trackedPerks.length,
+    maxed: trackedPerks.filter(perk => effective[perk.id] === 3).length,
+    upgradeable: trackedPerks.filter(perk => bloodwebEligible(save, characterId, perk)).length,
+  };
+}
 export function characterStats(save, id) {
   const relevant = rolePerks(characterById[id].role);
   return { owned: relevant.filter(p => inventoryTier(save, id, p.id) > 0).length, tier3: relevant.filter(p => inventoryTier(save, id, p.id) === 3).length, total: relevant.length };
@@ -211,4 +229,14 @@ export function parseSave(text) {
   try { data = JSON.parse(text); } catch { throw new Error('This file is not valid JSON.'); }
   return validateSave(data);
 }
-export const exportSave = save => JSON.stringify({ ...save, exportedAt: new Date().toISOString() }, null, 2);
+export function exportSave(save) {
+  const exportCharacters = Object.fromEntries(Object.entries(save.characters).map(([id, progress]) => {
+    if (!characterById[id]) return [id, progress];
+    return [id, {
+      ...progress,
+      effectivePerks: effectivePerkInventory(save, id),
+      perkInventorySummary: perkInventorySummary(save, id),
+    }];
+  }));
+  return JSON.stringify({ ...save, characters: exportCharacters, exportedAt: new Date().toISOString() }, null, 2);
+}
