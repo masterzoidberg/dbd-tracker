@@ -6,6 +6,7 @@ import {
   automaticTier,
   recordedTier,
   globalTier,
+  effectivePerkInventory,
   correctPersonalPerkTier,
 } from './model.js';
 
@@ -87,8 +88,9 @@ export function filterCharacterInventoryCandidates(save, characterId, candidates
 export function characterNormalInventory(save, characterId) {
   const character = characterById[characterId];
   if (!character) return [];
+  const effective = effectivePerkInventory(save, characterId);
   return rolePerks(character.role)
-    .filter(perk => inventoryTier(save, characterId, perk.id) > 0)
+    .filter(perk => (effective[perk.id] || 0) > 0)
     .map(perk => ({ perk, ...characterInventoryCandidateInfo(save, characterId, perk) }))
     .sort((a, b) => perkName(save, a.perk).localeCompare(perkName(save, b.perk)) || a.perk.id.localeCompare(b.perk.id));
 }
