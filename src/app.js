@@ -16,6 +16,7 @@ import {suggestedP1Targets,recentCharacters,favoriteCharacters} from './dashboar
 import { correctPersonalPerkTier } from './model.js';
 import { createRosterStateMemory, paginateRoster } from './roster-state.js';
 import { createWorkspaceContextMemory } from './workspace-context.js';
+import { survivorInventoryCounts } from './survivor-collection.js';
 import assetManifest from '../data/asset-manifest.json' with { type: 'json' };
 import { perkIconPath, characterPortraitPath, collectionPortraitPath } from './assets.js';
 
@@ -721,15 +722,24 @@ function characterOverview(id) {
   const stock = Object.entries({...progress.inventory.items,...progress.inventory.addons});
   const knownStock = stock.filter(([entityId]) => Object.hasOwn(inventoryEntityById, entityId));
   const unresolved = stock.length - knownStock.length;
+  const survivorCounts = character.role === 'survivor' ? survivorInventoryCounts(save, id) : null;
   const killerPower = killerPowerByCharacterId[id];
   const killerAddons = character.role === 'killer'
     ? Object.values(inventoryEntityById).filter(entity => entity.role === 'killer' && entity.characterId === id)
     : [];
   const nativeCards = character.nativePerkIds.map(perkId => {
     const perk = perkById[perkId], tier = inventoryTier(save, id, perkId);
-    return '<article class="overview-native-perk">' + perkArtwork(perk, 64)
+    const minimum = automaticTier(save, id, perk);
+    const account = globalTier(save, perk);
+    const accountDescription = account ? `Tier ${roman[account]} · ${unlockSource(save, perk)}`
+      : isAvailable(save, perk) ? (perk.general ? 'Available in the Bloodweb' : 'Available') : 'Not account-unlocked';
+    return '<article class="overview-native-perk" data-overview-native-perk="' + perkId + '">' + perkArtwork(perk, 64)
       + '<div class="overview-native-copy"><div class="overview-native-title"><button data-action="perk" data-id="' + perkId + '">' + esc(perkName(save, perk)) + '</button>' + badge(tier) + '</div>'
-      + '<small>Personal record: ' + (recordedTier(save, id, perkId) || 'None') + ' · ' + esc(ownedUnlockSource(save, id, perk)) + '</small></div></article>';
+      + '<strong>On this Survivor · Effective Tier ' + roman[tier] + '</strong>'
+      + '<small>Recorded: ' + esc(characterInventoryRecordedLabel(id, perk)) + '</small>'
+      + '<small>Automatic minimum: ' + (minimum ? 'Tier ' + roman[minimum] : 'None') + '</small>'
+      + '<small>Account: ' + esc(accountDescription) + '</small>'
+      + '<a data-open-perk-update="' + perkId + '" href="' + characterWorkspaceHref(id, 'perks', 'update') + '">Update record</a></div></article>';
   }).join('');
   const task = characterTaskSession?.characterId === id ? characterTaskSession : null;
   const taskEditor = task ? characterOverviewTaskEditor(id, task) : '';
@@ -739,8 +749,11 @@ function characterOverview(id) {
       + '<a href="' + characterWorkspaceHref(id, 'setup') + '">' + (progress.setupComplete ? 'Review initial setup' : 'Start initial setup') + '</a></div>'
     : '<p class="muted">This character is not marked Owned. Initial setup remains optional until ownership changes.</p>';
   const inventorySummary = character.role === 'survivor' && inventoryCatalogStatus.survivor === 'ready'
-    ? '<p>38 Items · 54 Add-ons · Survivor inventory ' + esc(survivorInventorySource.patch) + '.</p>'
-      + '<strong class="overview-summary-value">' + (knownStock.length ? knownStock.length + ' stocked ' + (knownStock.length === 1 ? 'entry' : 'entries') + ' recorded.' : 'No quantities recorded yet.') + '</strong>'
+    ? '<p><strong>Catalog</strong> · ' + inventoryEntities.filter(entity => entity.role === 'survivor' && entity.map === 'items').length + ' Items · '
+      + inventoryEntities.filter(entity => entity.role === 'survivor' && entity.map === 'addons').length + ' Add-ons</p>'
+      + '<p class="overview-stock-counts"><strong>This Survivor</strong> · ' + survivorCounts.items + ' Item '
+      + (survivorCounts.items === 1 ? 'type' : 'types') + ' in stock · ' + survivorCounts.addons + ' Add-on '
+      + (survivorCounts.addons === 1 ? 'type' : 'types') + ' in stock</p>'
       + (unresolved ? '<p class="overview-unresolved">' + unresolved + ' imported ' + (unresolved === 1 ? 'record' : 'records') + ' not in current catalog.</p>' : '')
       + '<a href="' + characterWorkspaceHref(id, 'items-addons') + '">View Items & Add-ons</a>'
     : character.role === 'killer' && inventoryCatalogStatus.killerPowers === 'ready'
@@ -884,6 +897,7 @@ function stockView(id,mode) {
     return '<article data-stock-card="'+entity.id+'" data-stock-rarity="'+esc(entity.rarity)+'" class="stock-card '+((stockSession.baseline[entity.id]||0)>0?'':'zero-stock')+'">'
       +'<div class="stock-card-media">'+(art?'<img src="'+esc(art)+'" alt="" loading="lazy" data-inventory-icon>':'<span aria-hidden="true" class="stock-art-fallback">◇</span>')+'</div>'
       +'<h5 class="stock-card-title">'+esc(entity.name)+'</h5><div class="stock-card-meta">'+esc(entity.rarity)+' · '+(entity.map==='items'?'Item':'Add-on')+'</div>'
+      +(entity.map==='items'?'<button type="button" id="stock-select-item-'+esc(entity.id)+'" class="stock-item-select" data-action="stock-item-select" data-id="'+esc(entity.id)+'" aria-label="Select '+esc(entity.name)+' for Add-ons" aria-pressed="'+(entity.id===selectedItemId)+'">'+(entity.id===selectedItemId?'Selected Item':'Select Item')+'</button>':'')
       +'<label for="quantity-'+entity.id+'">Quantity of '+esc(entity.name)+'</label><div class="stock-quantity-control">'
       +'<button type="button" id="stock-decrement-'+entity.id+'" data-action="stock-step" data-stock-step data-id="'+entity.id+'" data-delta="-1" aria-label="Decrease quantity of '+esc(entity.name)+'">−</button>'
       +'<input id="quantity-'+entity.id+'" data-inventory-quantity="'+entity.id+'" inputmode="numeric" type="text" value="'+esc(stockSession.raw[entity.id])+'" aria-invalid="'+Boolean(error)+'" aria-describedby="stock-error-'+entity.id+'">'
@@ -901,22 +915,27 @@ function stockView(id,mode) {
     const familyItems=stockSession.order.map(entityId=>inventoryEntityById[entityId])
       .filter(entity=>entity?.familyId===group.family.id&&entity.map==='items');
     const selectedItem=familyItems.find(item=>item.id===selectedItemId)||familyItems[0];
+    const selectedItemCatalogAddons=selectedItem?inventoryEntities.filter(entity=>entity.familyId===group.family.id&&entity.map==='addons'
+      &&entity.compatibleItemIds?.includes(selectedItem.id)):[];
     const selectedItemAddons=selectedItem
       ?groupQuantityEntriesByItem([selectedItem],group.addons)[0].addons:[];
     const addonMarkup=selectedItemAddons.length
       ?'<div class="stock-grid">'+sortQuantityEntriesByRarity(selectedItemAddons,killerRarityOrder,addonRarityDirection).map(renderCard).join('')+'</div>'
-      :(!catalogAddonCount?'<p class="stock-empty-line">No compatible Add-ons in this catalog.</p>':'<p class="stock-empty-line">No compatible Add-ons for this Item.</p>');
+      :(!selectedItemCatalogAddons.length?'<p class="stock-empty-line">This item does not use Add-ons.</p>':'<p class="stock-empty-line">No matching Add-ons for this Item.</p>');
+    const selectedItemHidden=selectedItem&&!group.items.some(item=>item.id===selectedItem.id);
     return '<section class="stock-family" data-stock-family="'+esc(group.family.id)+'"><div class="stock-family-heading"><h3>'+esc(group.family.displayName)+'</h3><p>'+catalogItemCount+' Items · '+catalogAddonCount+' Add-ons <span class="muted">(catalog totals)</span></p></div>'
       +'<div class="stock-family-content">'
       +(showItems?'<section class="stock-subsection" data-stock-subsection="items"><h4>Items</h4>'+(group.items.length?'<div class="stock-grid">'+group.items.map(renderCard).join('')+'</div>':'<p class="stock-empty-line">No matching Items.</p>')+'</section>':'<section data-stock-subsection="items" hidden></section>')
       +(showAddons?'<section class="stock-subsection" data-stock-subsection="addons" data-compatible-item-id="'+esc(selectedItem?.id||'')+'"><h4>Add-ons for '+esc(selectedItem?.name||'Item')+'</h4>'
         +'<label class="stock-item-selector"><span>Item</span><select id="inventory-item" aria-label="Item for Add-ons">'+familyItems.map(item=>'<option value="'+esc(item.id)+'"'+(item.id===selectedItem?.id?' selected':'')+'>'+esc(item.name)+'</option>').join('')+'</select></label>'
+        +(selectedItemHidden?'<p data-selected-item-context class="muted">Selected Item hidden by current filters: '+esc(selectedItem.name)+'.</p>':'')
         +addonMarkup+'</section>':'<section data-stock-subsection="addons" hidden></section>')
       +'</div></section>';
   }).join('');
+  const hasStockFilters=Boolean(stockFilters.map||stockFilters.rarity||stockFilters.search||stockFilters.inStock);
   return '<section data-stock-workspace><div class="stock-page-heading"><div><h2>Survivor Items &amp; Add-ons</h2><p>'+(mode==='detail'?'Track the quantities currently recorded for this Survivor. Quantities save on Enter or leaving the field.':'Stock changes stay in this draft until Save Character.')+'</p></div><p class="muted">Survivor inventory '+esc(survivorInventorySource.patch)+' · research '+esc(survivorInventorySource.verifiedAt)+'.</p></div>'
     +'<div class="stock-toolbar"><div class="stock-primary-controls"><label class="stock-search">Search '+esc(visibleGroups[0].family.displayName)+'<input id="inventory-search" type="search" value="'+esc(stockFilters.search)+'"></label><label class="stock-in-stock"><input id="inventory-in-stock" type="checkbox"'+(stockFilters.inStock?' checked':'')+'> In Stock</label>'
-    +'<details id="inventory-filters"><summary id="inventory-filters-toggle">Filters'+(secondaryCount?' ('+secondaryCount+')':'')+'</summary><div class="stock-secondary-filters">'+select('inventory-map','Type',[['','All'],['items','Items'],['addons','Add-ons']],stockFilters.map)+select('inventory-rarity','Rarity',[['','All rarities'],...[...new Set(inventoryEntities.map(e=>e.rarity))].map(r=>[r,r])],stockFilters.rarity)+'</div></details>'+(stockFilters.map==='items'?'':renderAddonRarityOrderControl())+'</div>'
+    +'<details id="inventory-filters"><summary id="inventory-filters-toggle">Filters'+(secondaryCount?' ('+secondaryCount+')':'')+'</summary><div class="stock-secondary-filters">'+select('inventory-map','Type',[['','All'],['items','Items'],['addons','Add-ons']],stockFilters.map)+select('inventory-rarity','Rarity',[['','All rarities'],...[...new Set(inventoryEntities.map(e=>e.rarity))].map(r=>[r,r])],stockFilters.rarity)+'</div></details>'+(stockFilters.map==='items'?'':renderAddonRarityOrderControl())+(hasStockFilters?'<button type="button" data-action="stock-filter-reset">Reset filters</button>':'')+'</div>'
     +'</div><nav class="stock-family-nav" aria-label="Item families">'+survivorInventorySource.itemFamilies.map(family=>'<button type="button" id="stock-family-nav-'+esc(family.id)+'" data-action="stock-family-select" data-family="'+esc(family.id)+'" aria-pressed="'+(family.id===selectedFamilyId)+'">'+esc(family.displayName)+'</button>').join('')+'</nav>'
     +(Object.keys(stockSession.errors).length?'<div role="alert" data-stock-error-summary>'+Object.entries(stockSession.errors).map(([entityId,error])=>'<p><button type="button" data-action="stock-error-focus" data-id="'+entityId+'">Fix quantity of '+esc(inventoryEntityById[entityId].name)+'</button>: '+esc(error)+'</p>').join('')+'</div>':'')
     +'<div class="stock-families">'+familyMarkup+'</div>'+(visibleGroups.every(group=>!group.items.length&&!group.addons.length)?'<p class="empty">No matches in '+esc(visibleGroups[0].family.displayName)+'.</p>':'')
@@ -1076,7 +1095,7 @@ function selectStockFamily(family) {
   render();
   document.getElementById('stock-family-nav-'+family)?.focus({preventScroll:true});
 }
-function selectStockItem(itemId) {
+function selectStockItem(itemId, source='selector') {
   const item=inventoryEntityById[itemId];
   if(!item||item.map!=='items'||item.familyId!==selectedFamilyId)return;
   const pending=stockSession.entities.filter(entity=>entity.familyId===selectedFamilyId
@@ -1086,7 +1105,12 @@ function selectStockItem(itemId) {
     if(stockSession.mode==='draft')stockSession=acceptQuantityInput(stockSession,entity.id).state;
     else if(!acceptStock(entity.id,'enter'))return;
   }
-  selectedItemId=itemId;render();$('#inventory-item')?.focus({preventScroll:true});
+  selectedItemId=itemId;render();
+  (source==='card'?$('#stock-select-item-'+itemId):$('#inventory-item'))?.focus({preventScroll:true});
+}
+function resetStockFilters() {
+  stockFilters={...stockFilters,map:'',rarity:'',search:'',inStock:false};
+  render();$('#inventory-search')?.focus({preventScroll:true});
 }
 function keepStockFamilyVisible(button) {
   const nav=button.parentElement, bounds=nav.getBoundingClientRect(), target=button.getBoundingClientRect();
@@ -1782,6 +1806,8 @@ async function handleClick(event) {
   if(action==='stock-step'){stepStock(button);return;}
   if(action==='killer-stock-step'){stepKillerQuantity(button);return;}
   if(action==='stock-family-select'){selectStockFamily(family);return;}
+  if(action==='stock-item-select'){selectStockItem(id,'card');return;}
+  if(action==='stock-filter-reset'){resetStockFilters();return;}
   if(action==='queue-manage'){queueView.expanded=!queueView.expanded;render();$('[data-action="queue-manage"]')?.focus();return;}
   if(action==='queue-filter'){queueView.role=button.dataset.role;render();$('[data-action="queue-filter"][data-role="'+queueView.role+'"]')?.focus();return;}
   if(action==='stock-error-focus'){

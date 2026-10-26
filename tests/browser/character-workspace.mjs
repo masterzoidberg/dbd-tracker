@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { characters } from '../../data/catalog.js';
+import { characters, perkById, perkName } from '../../data/catalog.js';
 import { inventoryEntities, survivorInventorySource } from '../../data/inventory-catalog.js';
 import { freshSave } from '../../src/model.js';
 import assetManifest from '../../data/asset-manifest.json' with { type: 'json' };
 import { collectionPortraitPath, characterPortraitPath } from '../../src/assets.js';
 
 export async function characterWorkspaceRegression(page, origin) {
+  await survivorOverviewRegression(page, origin);
   await characterRosterNavigationRegression(page,origin);
   await workspaceContextRegression(page, origin);
   await setupDraftNavigationRegression(page, origin);
@@ -44,9 +45,10 @@ export async function characterWorkspaceRegression(page, origin) {
     assert.equal(await workspace.locator('[data-overview-section="'+section+'"]').count(), 1, section);
   const nativeSection = workspace.locator('[data-overview-section="native-perks"]');
   assert.ok(await nativeSection.locator('[data-perk-icon]').count() > 0, 'Native perks reuse artwork');
-  assert.match(await nativeSection.textContent(), /Personal record:/);
+  assert.match(await nativeSection.textContent(), /Recorded:/);
   const inventorySummary = await workspace.locator('[data-overview-section="inventory"]').textContent();
-  assert.match(inventorySummary,/No quantities recorded yet./);
+  assert.match(inventorySummary,/0 Item types in stock/);
+  assert.match(inventorySummary,/0 Add-on types in stock/);
   assert.match(inventorySummary,/1 imported record not in current catalog/i);
   assert.doesNotMatch(inventorySummary,/No stock/i);
 
@@ -108,6 +110,61 @@ export async function characterWorkspaceRegression(page, origin) {
   await page.waitForURL('**/#character/meg-thomas/overview');
   assert.equal(await page.locator('#detail').isVisible(), false);
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before);
+}
+async function survivorOverviewRegression(page, origin) {
+  const survivor = characters.find(character => character.id === 'meg-thomas');
+  const nativeId = survivor.nativePerkIds[0];
+  const items = inventoryEntities.filter(entity => entity.role === 'survivor' && entity.map === 'items');
+  const addons = inventoryEntities.filter(entity => entity.role === 'survivor' && entity.map === 'addons');
+  const save = freshSave();
+  Object.assign(save.characters[survivor.id], { owned: true, prestige: 2, bloodwebLevel: 43, notes: 'First note line\nSecond note line' });
+  save.characters[survivor.id].perks[nativeId] = 3;
+  save.characters[survivor.id].inventory.items[items[0].id] = 8;
+  save.characters[survivor.id].inventory.items[items[1].id] = 1;
+  save.characters[survivor.id].inventory.addons[addons[0].id] = 5;
+  save.characters[survivor.id].inventory.items['survivor-item-test-unknown'] = 7;
+  await page.evaluate(value => localStorage.setItem('dbdTrackerData', JSON.stringify(value)), save);
+  await page.goto(`${origin}/#character/${survivor.id}/overview`);
+  await page.reload();
+  await page.locator('[data-character-workspace]').waitFor();
+
+  const native = page.locator(`[data-overview-native-perk="${nativeId}"]`);
+  assert.equal(await native.count(), 1, 'Each native perk has a stable, character-scoped summary');
+  const nativeText = await native.textContent();
+  assert.match(nativeText, /On this Survivor · Effective Tier III/);
+  assert.match(nativeText, /Recorded: Tier III/);
+  assert.match(nativeText, /Automatic minimum: Tier II/);
+  assert.match(nativeText, /Account: Tier II · Prestige/);
+  assert.equal(await native.locator(`[data-open-perk-update="${nativeId}"]`).count(), 1,
+    'A native perk has a direct route to update its personal record');
+
+  const setup = page.locator('[data-overview-section="progress"]');
+  assert.match(await setup.textContent(), /Initial setup incomplete/);
+  assert.equal(await setup.locator('a[href$="/setup"]').count(), 1, 'Incomplete setup stays actionable for this locked character');
+  const inventory = page.locator('[data-overview-section="inventory"]');
+  const inventoryText = await inventory.textContent();
+  assert.match(inventoryText, /38 Items/);
+  assert.match(inventoryText, /54 Add-ons/);
+  assert.match(inventoryText, /2 Item types in stock/,
+    'Counts reflect positive known Item types, not copy quantities');
+  assert.match(inventoryText, /1 Add-on type in stock/);
+  assert.match(inventoryText, /1 imported record not in current catalog/i);
+
+  const favorite = page.locator('.character-workspace-favorite');
+  await favorite.click();
+  assert.equal(await favorite.getAttribute('aria-pressed'), 'true');
+  assert.equal((await page.evaluate(() => JSON.parse(localStorage.getItem('dbdTrackerData')))).characters[survivor.id].owned, true,
+    'Favorite remains independent from ownership');
+  await page.locator('[data-action="overview-ownership-toggle"]').click();
+  const updated = await page.evaluate(() => JSON.parse(localStorage.getItem('dbdTrackerData')));
+  assert.equal(updated.characters[survivor.id].owned, false);
+  assert.equal(updated.characters[survivor.id].favorite, true);
+  assert.equal(updated.characters[survivor.id].perks[nativeId], 3);
+  assert.equal(updated.characters[survivor.id].inventory.items[items[0].id], 8,
+    'Ownership changes preserve personal perk and stock records');
+  await native.locator(`[data-open-perk-update="${nativeId}"]`).click();
+  await page.waitForURL(`**/#character/${survivor.id}/perks/update`);
+  assert.equal(await page.locator('[data-character-inventory-detail] h2').textContent(), perkName(save, perkById[nativeId]));
 }
 async function setupDraftNavigationRegression(page, origin) {
   const save = freshSave();
