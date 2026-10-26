@@ -36,7 +36,7 @@ test('candidate pool uses the relevant union once and applies Personal, General,
   const rowIds = ids(rows);
 
   assert.equal(new Set(rowIds).size, rowIds.length);
-  assert.deepEqual(CHARACTER_INVENTORY_CATEGORIES, ['all', 'personal', 'general', 'unlocked']);
+  assert.deepEqual(CHARACTER_INVENTORY_CATEGORIES, ['all', 'personal', 'general', 'unlocked', 'retained']);
   assert.equal(entry(save, 'the-doctor', 'monitor-abuse').primaryCategory, 'personal');
   assert.equal(entry(save, 'the-doctor', 'overcharge').primaryCategory, 'personal');
   assert.ok(entry(save, 'the-doctor', 'overcharge').unlockReasons.includes('Shrine'));
@@ -163,12 +163,14 @@ test('tracked historical/manual copies remain in All as retained exceptions', ()
   assert.ok(ids(characterInventoryCandidatePool(save, 'meg-thomas')).includes('camaraderie'));
 });
 
-test('historical explicit zero and unconfirmed records do not create effective candidates', () => {
+test('historical explicit zero remains a recorded Browse candidate without creating an effective tier', () => {
   const save = freshSave();
   save.characters['meg-thomas'].perks['camaraderie'] = 0;
-  assert.equal(entry(save, 'meg-thomas', 'camaraderie').candidate, false);
+  assert.equal(entry(save, 'meg-thomas', 'camaraderie').candidate, true);
+  assert.equal(entry(save, 'meg-thomas', 'camaraderie').primaryCategory, 'retained');
+  assert.equal(entry(save, 'meg-thomas', 'camaraderie').effectiveTier, 0);
   assert.equal(Object.hasOwn(save.characters['meg-thomas'].perks, 'camaraderie'), true);
-  assert.equal(characterInventoryCandidatePool(save, 'meg-thomas').some(row => row.perk.id === 'camaraderie'), false);
+  assert.equal(characterInventoryCandidatePool(save, 'meg-thomas').some(row => row.perk.id === 'camaraderie'), true);
 });
 
 test('canonical licensed aliases appear once through their canonical catalog ID', () => {
@@ -178,6 +180,17 @@ test('canonical licensed aliases appear once through their canonical catalog ID'
   assert.equal(decisive.length, 1);
   assert.equal(decisive[0].primaryCategory, 'personal');
   assert.equal(rows.some(row => row.perk.id === 'will-to-live'), false);
+  assert.deepEqual(filterCharacterInventoryCandidates(save, 'laurie-strode', rows, { search: 'Will to Live' }).map(row => row.perk.id), ['decisive-strike']);
+});
+
+test('all-role browsing adds same-role acquisitions while preserving the normal candidate pool', () => {
+  const save = freshSave();
+  const candidates = characterInventoryCandidatePool(save, 'the-doctor');
+  const expanded = characterInventoryCandidatePool(save, 'the-doctor', { allRole: true });
+  assert.equal(candidates.some(row => row.perk.id === 'lightborn'), false);
+  assert.equal(expanded.some(row => row.perk.id === 'lightborn'), true);
+  assert.equal(expanded.every(row => row.perk.role === 'killer'), true);
+  assert.ok(expanded.length > candidates.length);
 });
 
 test('Only unrecorded filters effective tier zero inside the candidate pool and sorts by display name', () => {
@@ -191,6 +204,31 @@ test('Only unrecorded filters effective tier zero inside the candidate pool and 
   assert.equal(visible.some(row => row.primaryCategory === 'personal'), false);
   assert.deepEqual(visible.map(row => row.perk.name), [...visible].map(row => row.perk.name).sort((a, b) => a.localeCompare(b)));
   assert.equal(filterCharacterInventoryCandidates(save, 'the-doctor', candidates, { category: 'personal' }).every(row => row.primaryCategory === 'personal'), true);
+});
+
+test('browse sorting supports source and effective tier without changing recorded records', () => {
+  const save = freshSave();
+  save.characters['the-wraith'].prestige = 2;
+  save.characters['the-doctor'].perks.shadowborn = 1;
+  const candidates = characterInventoryCandidatePool(save, 'the-doctor');
+  const before = structuredClone(save.characters['the-doctor'].perks);
+  const bySource = filterCharacterInventoryCandidates(save, 'the-doctor', candidates, { sort: 'source' });
+  assert.deepEqual(bySource.map(row => row.perk.sourceCharacterName), [...bySource].map(row => row.perk.sourceCharacterName)
+    .sort((a, b) => a.localeCompare(b)));
+  const byTier = filterCharacterInventoryCandidates(save, 'the-doctor', candidates, { sort: 'tier' });
+  assert.deepEqual(byTier.map(row => row.effectiveTier), [...byTier].map(row => row.effectiveTier).sort((a, b) => b - a));
+  assert.deepEqual(save.characters['the-doctor'].perks, before, 'Browse sorting is read-only');
+});
+
+test('explicit historical zero remains a candidate and differs from an absent record', () => {
+  const save = freshSave();
+  save.characters['meg-thomas'].perks.camaraderie = 0;
+  const rows = characterInventoryCandidatePool(save, 'meg-thomas');
+  const zero = rows.find(row => row.perk.id === 'camaraderie');
+  assert.ok(zero, 'An explicit historical zero remains inspectable in Browse');
+  assert.equal(zero.primaryCategory, 'retained');
+  assert.equal(Object.hasOwn(save.characters['meg-thomas'].perks, 'camaraderie'), true);
+  assert.equal(rows.some(row => row.perk.id === 'unbreakable'), false, 'An absent out-of-scope historical perk remains absent');
 });
 
 test('normal character inventory contains only effective tracked perks', () => {
@@ -293,7 +331,8 @@ test('Update uses saved session wording and shares validated tier controls witho
   assert.match(source, /changes saved this session/);
   assert.match(source, /Saved automatically/);
   assert.doesNotMatch(source, /changes this update|Confirm Changes/);
-  assert.match(source, /commit\(next => setCharacterPersonalTier\(next, characterId, perkId, tier\)/);
+  assert.match(source, /setCharacterPersonalTier\(next, intent\.characterId, intent\.perkId, intent\.tier\)/);
+  assert.match(source, /commit\(applySelection, intent\.characterId\)/);
   const controls = source.slice(source.indexOf('function characterInventoryTierButtons'), source.indexOf('function characterInventoryEditor'));
   assert.doesNotMatch(controls, />Save<|>Confirm</);
   assert.match(controls, /!row\.isHistorical/);

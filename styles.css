@@ -2010,6 +2010,10 @@ footer span {
 .character-inventory-controls { padding-bottom:16px; }
 .character-inventory-control-top { display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .character-inventory-search { max-width:560px; }
+.character-inventory-failed-selection { margin-top:16px; padding:12px; border:1px solid #874d42; border-radius:4px; }
+.character-inventory-failed-selection p { margin:0; line-height:1.55; }
+.character-inventory-failed-selection>div { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.character-inventory-failed-selection button { min-height:38px; }
 .character-inventory-card-size-control { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:6px; margin-left:auto; color:var(--muted); font-size:11px; }
 .character-inventory-card-size-control span { margin-right:3px; }
 .character-inventory-card-size-control button { min-height:32px; padding:7px 10px; color:var(--muted); font-size:10px; }
@@ -2292,6 +2296,19 @@ footer span {
 .character-inventory-editor-note { margin-top:11px; color:var(--muted); font-size:11px; line-height:1.6; }
 .character-inventory-history-control { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:11px; }
 .character-inventory-history-control select { flex:1; min-width:0; padding:8px; font-size:11px; }
+.character-inventory-correction { margin-top:18px; padding-top:14px; border-top:1px solid var(--border); }
+.character-inventory-correction>button { width:100%; min-height:40px; text-align:left; }
+.character-inventory-correction-editor { margin-top:12px; padding:12px; border-left:2px solid var(--gold); background:#1b1b1a; }
+.character-inventory-correction-editor h3 { margin:0 0 8px; color:var(--text); font-size:12px; }
+.character-inventory-correction-note { color:var(--muted); font-size:11px; line-height:1.5; }
+.character-inventory-correction-facts { margin:0 0 10px; }
+.character-inventory-correction-facts div { padding:8px 0; border-top:1px solid var(--border); }
+.character-inventory-correction-facts dt { color:var(--muted); font-size:10px; }
+.character-inventory-correction-facts dd { margin:3px 0 0; font-size:12px; }
+.character-inventory-correction-editor label { display:block; margin-bottom:5px; font-size:11px; }
+.character-inventory-correction-editor select { width:100%; min-height:40px; }
+.character-inventory-correction-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.character-inventory-correction-actions button { min-height:40px; }
 
 @media (max-width:1100px) {
   .character-inventory-layout { grid-template-columns:minmax(0,1fr) 300px; }
@@ -2301,6 +2318,9 @@ footer span {
   .character-inventory-helper-link { grid-column:2; text-align:left; }
 }
 @media (max-width:760px) {
+  .character-inventory-control-top { flex-wrap:wrap; }
+  .character-inventory-search { flex:1 1 100%; min-width:0; max-width:none; box-sizing:border-box; }
+  .character-inventory-control-top>.select-label { flex:1 1 auto; min-width:0; }
   .character-inventory-card-grid,
   .character-inventory-grid {
     --character-inventory-card-min:160px;

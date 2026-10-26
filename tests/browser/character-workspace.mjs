@@ -257,10 +257,11 @@ export async function workspaceContextRegression(page, origin) {
   await page.locator('#character-inventory-search').fill('');
   await page.locator('[data-action="character-inventory-category"][data-category="all"]').click();
   await page.goto(origin + '/#character/meg-thomas/perks');
-  const selectedCard = page.locator('.character-inventory-grid .perk-card').last();
+  const selectedCard = page.locator('.character-inventory-card-grid .perk-card').last();
   const selectedPerkId = await selectedCard.getAttribute('data-perk');
   const selectedPerkName = (await selectedCard.locator('strong').textContent()).trim();
   await selectedCard.click();
+  await page.locator(`[data-open-perk-update="${selectedPerkId}"]`).click();
   await page.waitForURL('**/#character/meg-thomas/perks/update');
   assert.equal(await page.locator('[data-character-inventory-detail] h2').textContent(), selectedPerkName,
     'Opening a perk carries that selection into the same character Update route');

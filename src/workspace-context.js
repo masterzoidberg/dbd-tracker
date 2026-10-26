@@ -1,7 +1,7 @@
 import { inventoryEntities, survivorInventorySource } from '../data/inventory-catalog.js';
 
 const roles = ['survivor', 'killer'];
-const perkCategories = ['all', 'personal', 'general', 'unlocked'];
+const perkCategories = ['all', 'personal', 'general', 'unlocked', 'retained'];
 const perkSorts = ['name', 'tier', 'source'];
 const densities = ['small', 'medium', 'large'];
 const survivorItems = inventoryEntities.filter(entity => entity.role === 'survivor' && entity.map === 'items');

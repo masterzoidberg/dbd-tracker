@@ -46,6 +46,14 @@ test('workspace sections and perk modes stay role-correct and ordinary tabs clea
   assert.equal(memory.read('survivor').mode, null);
 });
 
+test('retained perk scope and safe sort survive ordinary same-role workspace navigation', () => {
+  const memory = createWorkspaceContextMemory();
+  memory.update('survivor', { section: 'perks', perks: { category: 'retained', sort: 'source' } });
+  memory.update('survivor', { section: 'overview' });
+  assert.equal(memory.read('survivor').perks.category, 'retained');
+  assert.equal(memory.read('survivor').perks.sort, 'source');
+});
+
 test('invalid Survivor family or cross-family selected Item falls back safely', () => {
   const memory = createWorkspaceContextMemory();
   const items = inventoryEntities.filter(entity => entity.map === 'items');

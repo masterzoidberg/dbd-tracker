@@ -10,7 +10,7 @@ import {
   correctPersonalPerkTier,
 } from './model.js';
 
-export const CHARACTER_INVENTORY_CATEGORIES = ['all', 'personal', 'general', 'unlocked'];
+export const CHARACTER_INVENTORY_CATEGORIES = ['all', 'personal', 'general', 'unlocked', 'retained'];
 export const CHARACTER_CARD_SIZES = ['small', 'medium', 'large'];
 export const DEFAULT_CHARACTER_CARD_SIZE = 'medium';
 
@@ -37,6 +37,7 @@ export function characterInventoryCandidateInfo(save, characterId, perk) {
   const native = character.nativePerkIds.includes(perk.id);
   const general = Boolean(perk.general);
   const accountUnlocked = globalTier(save, perk) > 0;
+  const recorded = Object.hasOwn(save.characters[characterId].perks, perk.id);
   const tracked = inventoryTier(save, characterId, perk.id) > 0;
   const reasons = [];
   if (native) reasons.push('personal');
@@ -44,7 +45,7 @@ export function characterInventoryCandidateInfo(save, characterId, perk) {
   if (accountUnlocked) reasons.push('account');
   if (tracked) reasons.push('tracked');
 
-  const primaryCategory = native ? 'personal' : general ? 'general' : accountUnlocked ? 'unlocked' : tracked ? 'retained' : null;
+  const primaryCategory = native ? 'personal' : general ? 'general' : accountUnlocked ? 'unlocked' : (tracked || recorded) ? 'retained' : null;
   const sourcePrestige = characterById[perk.sourceCharacterId] ? save.characters[perk.sourceCharacterId]?.prestige || 0 : 0;
   const override = save.perkOverrides[perk.id] || {};
   const unlockReasons = [];
@@ -62,6 +63,7 @@ export function characterInventoryCandidateInfo(save, characterId, perk) {
     isHistorical: Boolean(perk.historicalAvailability?.manualOwnership),
     effectiveTier: inventoryTier(save, characterId, perk.id),
     recordedTier: recordedTier(save, characterId, perk.id),
+    hasRecordedRecord: recorded,
     automaticMinimum: automaticTier(save, characterId, perk),
   };
 }
@@ -82,7 +84,14 @@ export function filterCharacterInventoryCandidates(save, characterId, candidates
     .filter(row => category === 'all' || row.primaryCategory === category)
     .filter(row => !state.onlyUnrecorded || row.effectiveTier === 0)
     .filter(row => !search || perkSearchText(row.perk).toLowerCase().includes(search))
-    .sort((a, b) => perkName(save, a.perk).localeCompare(perkName(save, b.perk)) || a.perk.id.localeCompare(b.perk.id));
+    .sort((a, b) => {
+      const left = state.sort === 'source' ? a.perk.sourceCharacterName || 'General'
+        : state.sort === 'tier' ? a.effectiveTier : perkName(save, a.perk);
+      const right = state.sort === 'source' ? b.perk.sourceCharacterName || 'General'
+        : state.sort === 'tier' ? b.effectiveTier : perkName(save, b.perk);
+      const order = state.sort === 'tier' ? right - left : String(left).localeCompare(String(right));
+      return order || perkName(save, a.perk).localeCompare(perkName(save, b.perk)) || a.perk.id.localeCompare(b.perk.id);
+    });
 }
 
 export function characterNormalInventory(save, characterId) {
@@ -109,9 +118,12 @@ export function createCharacterInventorySession(route) {
     search: '',
     category: 'all',
     onlyUnrecorded: false,
+    sort: 'name',
     selectedPerkId: null,
     quickPerkId: null,
     changedPerkIds: new Set(),
+    failedSelection: null,
+    correctionDraft: null,
   };
 }
 
