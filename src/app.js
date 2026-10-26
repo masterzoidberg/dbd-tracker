@@ -16,7 +16,7 @@ import {suggestedP1Targets,recentCharacters,favoriteCharacters} from './dashboar
 import { correctPersonalPerkTier } from './model.js';
 import { createRosterStateMemory, paginateRoster } from './roster-state.js';
 import { createWorkspaceContextMemory } from './workspace-context.js';
-import { survivorInventoryCounts } from './survivor-collection.js';
+import { killerAddonCount, survivorInventoryCounts } from './survivor-collection.js';
 import assetManifest from '../data/asset-manifest.json' with { type: 'json' };
 import { perkIconPath, characterPortraitPath, collectionPortraitPath } from './assets.js';
 
@@ -69,6 +69,7 @@ let killerDetailOpener = null;
 let killerSession = null;
 let killerSessionKey = '';
 let killerBlurPending = null;
+let killerFilters = { search: '', rarity: '', inStock: false };
 let addonRarityDirection = 'highest-to-lowest';
 let workspaceHistoryIndex = 0;
 let committedWorkspaceHash = location.hash || '#dashboard';
@@ -470,9 +471,7 @@ function captureWorkspaceContext(path) {
       },
     } : {
       killerInventory: {
-        search: killerSession?.search || '',
-        rarity: killerSession?.rarity || '',
-        inStock: killerSession?.inStock || false,
+        ...killerFilters,
         rarityDirection: addonRarityDirection,
       },
     }),
@@ -498,6 +497,7 @@ function restoreWorkspaceContext(descriptor) {
     selectedItemId = inventory.selectedItemId;
     addonRarityDirection = inventory.rarityDirection;
   } else {
+    killerFilters = { search: context.killerInventory.search, rarity: context.killerInventory.rarity, inStock: context.killerInventory.inStock };
     addonRarityDirection = context.killerInventory.rarityDirection;
   }
 }
@@ -723,6 +723,7 @@ function characterOverview(id) {
   const knownStock = stock.filter(([entityId]) => Object.hasOwn(inventoryEntityById, entityId));
   const unresolved = stock.length - knownStock.length;
   const survivorCounts = character.role === 'survivor' ? survivorInventoryCounts(save, id) : null;
+  const killerStockTypes = character.role === 'killer' ? killerAddonCount(save, id) : 0;
   const killerPower = killerPowerByCharacterId[id];
   const killerAddons = character.role === 'killer'
     ? Object.values(inventoryEntityById).filter(entity => entity.role === 'killer' && entity.characterId === id)
@@ -733,9 +734,10 @@ function characterOverview(id) {
     const account = globalTier(save, perk);
     const accountDescription = account ? `Tier ${roman[account]} · ${unlockSource(save, perk)}`
       : isAvailable(save, perk) ? (perk.general ? 'Available in the Bloodweb' : 'Available') : 'Not account-unlocked';
+    const roleName = character.role === 'survivor' ? 'Survivor' : 'Killer';
     return '<article class="overview-native-perk" data-overview-native-perk="' + perkId + '">' + perkArtwork(perk, 64)
       + '<div class="overview-native-copy"><div class="overview-native-title"><button data-action="perk" data-id="' + perkId + '">' + esc(perkName(save, perk)) + '</button>' + badge(tier) + '</div>'
-      + '<strong>On this Survivor · Effective Tier ' + roman[tier] + '</strong>'
+      + '<strong>On this ' + roleName + ' · Effective Tier ' + roman[tier] + '</strong>'
       + '<small>Recorded: ' + esc(characterInventoryRecordedLabel(id, perk)) + '</small>'
       + '<small>Automatic minimum: ' + (minimum ? 'Tier ' + roman[minimum] : 'None') + '</small>'
       + '<small>Account: ' + esc(accountDescription) + '</small>'
@@ -758,13 +760,18 @@ function characterOverview(id) {
       + '<a href="' + characterWorkspaceHref(id, 'items-addons') + '">View Items & Add-ons</a>'
     : character.role === 'killer' && inventoryCatalogStatus.killerPowers === 'ready'
       && inventoryCatalogStatus.killerAddons === 'ready' && killerPower
-    ? '<p>Power: ' + esc(killerPower.powerName) + ' · ' + killerAddons.length + ' Add-ons.</p>'
-      + '<strong class="overview-summary-value">' + (knownStock.length ? knownStock.length + ' stocked Add-on' + (knownStock.length === 1 ? '' : 's') + ' recorded.' : 'No Add-on quantities recorded yet.') + '</strong>'
+    ? '<p><strong>Catalog</strong> · ' + killerAddons.length + ' Add-ons</p>'
+      + '<p><strong>This Killer</strong> · ' + killerStockTypes + ' Add-on ' + (killerStockTypes === 1 ? 'type' : 'types') + ' in stock</p>'
       + (unresolved ? '<p class="overview-unresolved">' + unresolved + ' imported ' + (unresolved === 1 ? 'record' : 'records') + ' not in current catalog.</p>' : '')
       + '<a href="' + characterWorkspaceHref(id, 'power-addons') + '">View Power & Add-ons</a>'
     : '<p>Verified inventory and Power reference data is not yet available.</p><a href="' + characterWorkspaceHref(id, 'power-addons') + '">View Power & Add-ons</a>';
+  const killerPowerIdentity = character.role === 'killer' && killerPower
+    ? '<section class="overview-killer-power" data-overview-section="power"><div><span class="eyebrow">KILLER POWER</span><h2>' + esc(killerPower.powerName) + '</h2>'
+      + '<p>' + esc(killerPower.shortSummary) + '</p></div><button type="button" id="overview-power-details-' + id
+      + '" data-action="killer-power-details" data-character="' + id + '">Power Details</button></section>'
+    : '';
   return '<div class="character-overview">'
-    + '<div class="character-overview-grid">'
+    + killerPowerIdentity + '<div class="character-overview-grid">'
     + '<section class="character-overview-section overview-native" data-overview-section="native-perks"><div class="section-title"><h2>Native Perks</h2></div><div class="overview-native-grid">' + nativeCards + '</div></section>'
     + '<section class="character-overview-section overview-progress" data-overview-section="progress"><div class="section-title"><h2>Progress / setup</h2></div>'
       + '<div class="overview-character-state"><span>' + (progress.owned ? 'Owned' : 'Locked') + '</span><button type="button" data-action="overview-ownership-toggle" data-id="' + id + '">' + (progress.owned ? 'Mark Locked' : 'Mark Owned') + '</button></div>'
@@ -953,16 +960,29 @@ function killerPowerAddonsView(characterId) {
   if(!power)return '<section class="panel"><h2>Power &amp; Add-ons unavailable</h2><p>Verified Power and Add-on data is not available for this Killer.</p></section>';
   const character=characterById[characterId], powerArt=killerPowerIconPath(characterId,assetManifest);
   const addons=Object.values(inventoryEntityById).filter(entity=>entity.role==='killer'&&entity.characterId===characterId).sort((a,b)=>a.order-b.order);
+  const unknownAddons=Object.entries(save.characters[characterId].inventory.addons).filter(([id])=>!Object.hasOwn(inventoryEntityById,id));
   if(killerSessionKey!==characterId||!killerSession){
     killerSession=createQuantityInteraction(addons,save.characters[characterId].inventory.addons);
     killerSessionKey=characterId;
   }
+  const search=killerFilters.search.trim().toLocaleLowerCase();
+  const matchingAddons=addons.filter(addon=>(!search||(addon.name+' '+addon.effect).toLocaleLowerCase().includes(search))
+    &&(!killerFilters.rarity||addon.rarity===killerFilters.rarity)
+    &&(!killerFilters.inStock||(killerSession.baseline[addon.id]||0)>0));
+  const rarities=[...new Set(addons.map(addon=>addon.rarity))].sort((a,b)=>killerRarityOrder.indexOf(a)-killerRarityOrder.indexOf(b));
+  const filtersActive=Boolean(killerFilters.search||killerFilters.rarity||killerFilters.inStock);
   const art=powerArt?'<img src="'+esc(artworkUrl(powerArt))+'" alt="" data-power-art>':'<span class="stock-art-fallback" role="img" aria-label="Power artwork unavailable" data-power-art-fallback>◇</span>';
+  const unknownMarkup=unknownAddons.length?'<section class="unresolved-stock" data-killer-unresolved-addons><h4>Imported Add-ons not in this Killer catalog</h4><p class="muted">These records are preserved and read-only until resolved.</p><ul>'+unknownAddons.map(([unknown,quantity])=>'<li><code>'+esc(unknown)+'</code><span>Quantity '+quantity+'</span><small>Read-only</small></li>').join('')+'</ul></section>':'';
   return '<section class="killer-power-addons" data-killer-power-addons>'
     +'<section class="panel killer-power-panel" data-killer-power-panel><div class="killer-power-art">'+art+'</div><div class="killer-power-copy"><span class="eyebrow">KILLER POWER</span><h3 data-power-name>'+esc(power.powerName)+'</h3><p data-power-summary>'+esc(power.shortSummary)+'</p><button type="button" data-action="killer-power-details" data-character="'+esc(characterId)+'" id="killer-power-details-'+esc(characterId)+'">Power Details</button></div></section>'
-    +'<section class="killer-addon-inventory" aria-labelledby="killer-addons-heading"><div class="stock-page-heading"><div><span class="eyebrow">INVENTORY</span><h3 id="killer-addons-heading">'+esc(character.name)+' Add-ons</h3><p>All 20 Add-ons, sorted by rarity.</p></div></div>'
-    +'<div class="addon-rarity-toolbar">'+renderAddonRarityOrderControl()+'</div>'
-    +'<div class="stock-grid">'+sortQuantityEntriesByRarity(addons,killerRarityOrder,addonRarityDirection).map(killerAddonCard).join('')+'</div>'
+    +'<section class="killer-addon-inventory" aria-labelledby="killer-addons-heading"><div class="stock-page-heading"><div><span class="eyebrow">INVENTORY</span><h3 id="killer-addons-heading">'+esc(character.name)+' Add-ons</h3><p data-killer-addon-results>Showing '+matchingAddons.length+' of '+addons.length+' Add-ons.</p></div></div>'
+    +'<div class="killer-addon-toolbar"><label class="killer-addon-search">Search Add-ons<input id="killer-addon-search" type="search" value="'+esc(killerFilters.search)+'"></label>'
+    +'<label class="killer-addon-in-stock"><input id="killer-addon-in-stock" type="checkbox"'+(killerFilters.inStock?' checked':'')+'> In Stock</label>'
+    +'<label class="killer-addon-rarity"><span>Rarity</span><select id="killer-addon-rarity"><option value="">All rarities</option>'+rarities.map(value=>'<option value="'+esc(value)+'"'+(killerFilters.rarity===value?' selected':'')+'>'+esc(value)+'</option>').join('')+'</select></label>'
+    +renderAddonRarityOrderControl()+(filtersActive?'<button type="button" data-action="killer-addon-filter-reset">Reset filters</button>':'')+'</div>'
+    +'<div class="stock-grid">'+sortQuantityEntriesByRarity(matchingAddons,killerRarityOrder,addonRarityDirection).map(killerAddonCard).join('')+'</div>'
+    +(matchingAddons.length?'':'<p class="stock-empty-line" data-killer-addon-empty>No Add-ons match these filters.</p>')
+    +unknownMarkup
     +'</section></section>';
 }
 function killerAddonCard(addon) {
@@ -1050,6 +1070,17 @@ function normalizeKillerQuantityOnBlur(input,id) {
   if(input.value!==''||!killerSession)return;
   input.value='0';
   killerSession=updateQuantityInput(killerSession,id,'0');
+}
+function setKillerAddonFilter(key,value) {
+  if(!acceptPendingKillerQuantities())return false;
+  killerFilters={...killerFilters,[key]:value};
+  render();
+  return true;
+}
+function resetKillerAddonFilters() {
+  if(!acceptPendingKillerQuantities())return;
+  killerFilters={search:'',rarity:'',inStock:false};
+  render();$('#killer-addon-search')?.focus({preventScroll:true});
 }
 function normalizeStockQuantityOnBlur(input,id) {
   if(input.value!==''||!stockSession)return;
@@ -1427,21 +1458,38 @@ function render({ workspaceContextCaptured = false } = {}) {
 function dialogHeader(eyebrow, title, artwork = '') {
   return `<div class="dialog-heading"><div><span class="eyebrow">${eyebrow}</span><h2 id="detail-title"${artwork ? ' class="perk-detail-title"' : ''}>${artwork}${esc(title)}</h2></div><button class="close-dialog" data-action="close" aria-label="Close details">×</button></div>`;
 }
-function killerPowerDataMarkup(value) {
-  if(Array.isArray(value))return value.length?'<ul>'+value.map(item=>'<li>'+killerPowerDataMarkup(item)+'</li>').join('')+'</ul>':'<p>None recorded.</p>';
-  if(value&&typeof value==='object')return '<dl>'+Object.entries(value).map(([key,item])=>'<div><dt>'+esc(key.replace(/([A-Z])/g,' $1'))+'</dt><dd>'+killerPowerDataMarkup(item)+'</dd></div>').join('')+'</dl>';
+function killerPowerDataMarkup(value,component=false) {
+  if(Array.isArray(value))return value.length?'<ul>'+value.map(item=>'<li>'+killerPowerDataMarkup(item,component)+'</li>').join('')+'</ul>':'<p>None recorded.</p>';
+  if(value&&typeof value==='object'){
+    if(typeof value.name==='string'){
+      const fields=Object.entries(value).filter(([key,item])=>key!=='name'&&item!==undefined&&item!==null&&item!=='');
+      const type=value.type?'<p class="killer-power-type"><span>Type</span> '+esc(value.type)+'</p>':'';
+      const description=value.description?'<p class="killer-power-description">'+esc(value.description)+'</p>':'';
+      const measurement=value.value!==undefined?'<p class="killer-power-measurement"><strong>'+esc(value.value)+(value.unit?' '+esc(value.unit):'')+'</strong></p>':'';
+      const known=new Set(['type','description','value','unit','conditions']);
+      const other=fields.filter(([key])=>!known.has(key)).map(([key,item])=>'<div><dt>'+esc(key.replace(/([A-Z])/g,' $1'))+'</dt><dd>'+killerPowerDataMarkup(item)+'</dd></div>').join('');
+      const conditions=value.conditions?'<p class="killer-power-conditions"><span>Conditions</span> '+esc(value.conditions)+'</p>':'';
+      return '<article class="killer-power-entry"'+(component?' data-power-component':'')+'><h4>'+esc(value.name)+'</h4>'+type+measurement+conditions+description+(other?'<dl>'+other+'</dl>':'')+'</article>';
+    }
+    return '<dl>'+Object.entries(value).map(([key,item])=>'<div><dt>'+esc(key.replace(/([A-Z])/g,' $1'))+'</dt><dd>'+killerPowerDataMarkup(item)+'</dd></div>').join('')+'</dl>';
+  }
   if(value===null||value===undefined||value==='')return '<span>—</span>';
   return esc(value);
+}
+function killerPowerFieldLabel(key) {
+  return ({shortSummary:'Summary',fullExplanation:'Full mechanics',components:'Components',mechanics:'Mechanics',resources:'Resources',
+    survivorInteractions:'Survivor interactions',powerStates:'Power states',addonRelevantMechanics:'Add-on-relevant mechanics',complexRules:'Complex rules'})[key]
+    ||key.replace(/([A-Z])/g,' $1').replace(/^./,letter=>letter.toUpperCase());
 }
 function killerPowerDetail(characterId) {
   const power=killerPowerByCharacterId[characterId];
   if(!power)return dialogHeader('KILLER POWER DETAILS','Unavailable Power')+'<p class="muted">This Killer Power is not in the current verified catalog.</p>';
   const art=killerPowerIconPath(characterId,assetManifest);
-  const artwork=art?'<img src="'+esc(artworkUrl(art))+'" alt="">':'<span class="stock-art-fallback" role="img" aria-label="Power artwork unavailable">◇</span>';
-  const fields=[['fullExplanation','Full Explanation'],['components','Components'],['mechanics','Mechanics'],['resources','Resources'],['survivorInteractions','Survivor Interactions'],['powerStates','Power States'],['addonRelevantMechanics','Add-on-Relevant Mechanics'],['complexRules','Complex Rules']];
-  return dialogHeader('KILLER POWER',power.powerName,artwork)+'<div class="stock-detail-body killer-detail-body">'
-    +fields.filter(([key])=>power[key]!==undefined&&power[key]!==null&&power[key]!==''&&(!Array.isArray(power[key])||power[key].length))
-      .map(([key,label])=>'<section data-power-detail-field="'+key+'"><h3>'+label+'</h3>'+killerPowerDataMarkup(power[key])+'</section>').join('')
+  const artwork=art?'<img src="'+esc(artworkUrl(art))+'" alt="">':'<span class="stock-art-fallback" role="img" aria-label="Power artwork unavailable" data-power-art-fallback>◇</span>';
+  const fields=Object.entries(power).filter(([key])=>!['powerName','artwork'].includes(key));
+  return dialogHeader('KILLER POWER',power.powerName,artwork)+'<div class="stock-detail-body killer-detail-body killer-power-reference" tabindex="0" aria-label="Power reference">'
+    +fields.map(([key,value])=>'<section data-power-detail-field="'+esc(key)+'"><h3>'+esc(killerPowerFieldLabel(key))+'</h3>'
+      +(value===null||value===''||(Array.isArray(value)&&!value.length)?'<p class="muted">No additional content recorded.</p>':killerPowerDataMarkup(value,key==='components'))+'</section>').join('')
     +'</div>';
 }
 function killerAddonDetail(addonId) {
@@ -1805,6 +1853,7 @@ async function handleClick(event) {
   const { action, id, character, perk, mode, family } = button.dataset;
   if(action==='stock-step'){stepStock(button);return;}
   if(action==='killer-stock-step'){stepKillerQuantity(button);return;}
+  if(action==='killer-addon-filter-reset'){resetKillerAddonFilters();return;}
   if(action==='stock-family-select'){selectStockFamily(family);return;}
   if(action==='stock-item-select'){selectStockItem(id,'card');return;}
   if(action==='stock-filter-reset'){resetStockFilters();return;}
@@ -2139,6 +2188,7 @@ document.addEventListener('click', event => { handleClick(event).catch(error => 
 document.addEventListener('input', event => {
   if(event.target.hasAttribute('data-killer-quantity')){try{killerQuantityInput(event.target);}catch(error){message(error.message,true);}return;}
   if(event.target.dataset.inventoryQuantity){try{stockInput(event.target);}catch(error){message(error.message,true);}return;}
+  if(event.target.id==='killer-addon-search'){setKillerAddonFilter('search',event.target.value);return;}
   if(event.target.id==='inventory-search'){stockFilters={...stockFilters,search:event.target.value};render();return;}
   if (event.target.dataset.editField) {
     try {
@@ -2179,6 +2229,12 @@ document.addEventListener('input', event => {
 document.addEventListener('change', async event => {
   const target = event.target;
   try {
+    if(target.id==='killer-addon-rarity'){
+      const validRarity=['',...new Set(Object.values(inventoryEntityById).filter(entity=>entity.role==='killer').map(entity=>entity.rarity))];
+      if(validRarity.includes(target.value))setKillerAddonFilter('rarity',target.value);
+      return;
+    }
+    if(target.id==='killer-addon-in-stock'){setKillerAddonFilter('inStock',target.checked);return;}
     if(target.id==='addon-rarity-order'){
       if(['highest-to-lowest','lowest-to-highest'].includes(target.value))addonRarityDirection=target.value;
       render();return;
@@ -2289,6 +2345,11 @@ document.addEventListener('submit', event => {
   if (event.target.matches('[data-character-edit]')) { event.preventDefault(); return; }
 });
 document.addEventListener('keydown', event => {
+  if (event.target.matches('.killer-power-reference') && (event.key === 'PageDown' || event.key === 'PageUp')) {
+    event.preventDefault();
+    event.target.scrollTop += (event.key === 'PageDown' ? 1 : -1) * event.target.clientHeight;
+    return;
+  }
   if (event.key === 'Escape' && $('dialog[open]')) return;
   if (event.key === 'Escape' && $('#menu-toggle').getAttribute('aria-expanded') === 'true') {
     event.preventDefault(); setGlobalMenuOpen(false, true); return;

@@ -2,13 +2,16 @@ import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { characters, perkById, perkName } from '../../data/catalog.js';
-import { inventoryEntities, survivorInventorySource } from '../../data/inventory-catalog.js';
+import { inventoryEntities, inventoryEntityById, killerPowerByCharacterId, survivorInventorySource } from '../../data/inventory-catalog.js';
 import { freshSave } from '../../src/model.js';
 import assetManifest from '../../data/asset-manifest.json' with { type: 'json' };
 import { collectionPortraitPath, characterPortraitPath } from '../../src/assets.js';
 
+const killerAddonsFor = id => Object.values(inventoryEntityById).filter(entity => entity.role === 'killer' && entity.characterId === id);
+
 export async function characterWorkspaceRegression(page, origin) {
   await survivorOverviewRegression(page, origin);
+  await killerOverviewRegression(page, origin);
   await characterRosterNavigationRegression(page,origin);
   await workspaceContextRegression(page, origin);
   await setupDraftNavigationRegression(page, origin);
@@ -53,10 +56,11 @@ export async function characterWorkspaceRegression(page, origin) {
   assert.doesNotMatch(inventorySummary,/No stock/i);
 
   await page.goto(origin + '/#character/the-doctor/overview');
+  const killerPowerIdentity = page.locator('[data-overview-section="power"]');
+  assert.match(await killerPowerIdentity.textContent(), /Carter's Spark/);
   const killerSummary = page.locator('[data-overview-section="inventory"]');
   const killerSummaryText = await killerSummary.textContent();
-  assert.match(killerSummaryText,/Carter's Spark/);
-  assert.match(killerSummaryText,/20 Add-ons/);
+  assert.ok(killerSummaryText.includes(`${killerAddonsFor('the-doctor').length} Add-ons`));
   assert.doesNotMatch(killerSummaryText,/Power reference data is not yet available/);
   assert.equal(await killerSummary.getByRole('link',{name:'View Power & Add-ons'}).getAttribute('href'), '#character/the-doctor/power-addons');
 
@@ -68,7 +72,7 @@ export async function characterWorkspaceRegression(page, origin) {
     await page.goto(origin + '/' + hash);
     await page.locator('[data-character-workspace]').waitFor();
     assert.equal(await page.locator('[data-killer-power-panel]').count(), 1);
-    assert.equal(await page.locator('[data-killer-addon-card]').count(), 20);
+    assert.equal(await page.locator('[data-killer-addon-card]').count(), killerAddonsFor('the-doctor').length);
   }
   for (const hash of ['#character/unknown/overview', '#character/meg-thomas/power-addons', '#manage/meg-thomas/extra']) {
     await page.goto(origin + '/' + hash);
@@ -110,6 +114,46 @@ export async function characterWorkspaceRegression(page, origin) {
   await page.waitForURL('**/#character/meg-thomas/overview');
   assert.equal(await page.locator('#detail').isVisible(), false);
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before);
+}
+async function killerOverviewRegression(page, origin) {
+  const killer = characters.find(character => character.id === 'the-doctor');
+  const power = killerPowerByCharacterId[killer.id];
+  const nativeId = killer.nativePerkIds[0];
+  const addonCatalog = killerAddonsFor(killer.id);
+  const addon = addonCatalog[0];
+  const fixture = freshSave();
+  fixture.characters[killer.id].inventory.addons[addon.id] = 4;
+  fixture.characters[killer.id].inventory.addons['killer-addon-unknown'] = 9;
+  await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), fixture);
+  await page.goto(`${origin}/#character/${killer.id}/overview`);
+  await page.reload();
+  const workspace = page.locator('[data-character-workspace]');
+  await workspace.waitFor();
+
+  const native = workspace.locator(`[data-overview-native-perk="${nativeId}"]`);
+  assert.match(await native.textContent(), /On this Killer · Effective Tier/);
+  assert.equal(await native.locator(`a[data-open-perk-update="${nativeId}"]`).count(), 1);
+
+  const powerIdentity = workspace.locator('[data-overview-section="power"]');
+  assert.equal(await powerIdentity.count(), 1, 'Killer Power identity is a first-class Overview section');
+  const overviewOrder = await workspace.locator('[data-overview-section]').evaluateAll(nodes => nodes.map(node => node.dataset.overviewSection));
+  assert.ok(overviewOrder.indexOf('power') < overviewOrder.indexOf('native-perks'), 'Power identity precedes native-perk details');
+  assert.match(await powerIdentity.textContent(), new RegExp(power.powerName));
+  assert.match(await powerIdentity.textContent(), new RegExp(power.shortSummary));
+  const details = powerIdentity.getByRole('button', { name: 'Power Details', exact: true });
+  assert.equal(await details.count(), 1, 'Overview exposes structured Power reference access beside its summary');
+
+  const summary = workspace.locator('[data-overview-section="inventory"]');
+  assert.match(await summary.textContent(), /1 Add-on type in stock/);
+  assert.match(await summary.textContent(), /1 imported record not in current catalog/i);
+  await details.click();
+  assert.equal(await page.locator('#detail-title').textContent(), power.powerName);
+  await page.getByRole('button', { name: 'Close details', exact: true }).click();
+  assert.equal(await details.evaluate(node => node === document.activeElement), true);
+  await page.locator('[data-workspace-section="power-addons"]').click();
+  assert.equal(await page.locator('[data-killer-addon-card]').count(), addonCatalog.length);
+  assert.equal(await page.locator('[data-killer-addon-card][data-character-id="the-doctor"] [data-inventory-quantity]').count(), addonCatalog.length);
+  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('dbdTrackerData')).characters['the-doctor'].inventory.addons["killer-addon-unknown"]), 9);
 }
 async function survivorOverviewRegression(page, origin) {
   const survivor = characters.find(character => character.id === 'meg-thomas');
