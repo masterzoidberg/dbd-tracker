@@ -2581,6 +2581,8 @@ footer span {
   min-width:0;
   flex:1;
   overflow-wrap:anywhere;
+  margin:0;
+  font-weight:600;
   font-size:16px;
   line-height:1.25
 }
@@ -2741,4 +2743,128 @@ footer span {
   .character-collection-card .favorite-button { right:12px; }
   .collection-workspace-action { margin-right:-12px; margin-left:-12px; padding-right:12px; padding-left:12px; }
   .collection-summary-row { gap:6px; }
+}
+
+.collection-scope-note {
+  margin:8px 0 0;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.45
+}
+.collection-art-fallback {
+  display:grid;
+  width:100%;
+  height:100%;
+  place-items:center;
+  background:#1b1b1d;
+  color:var(--muted);
+  font-size:13px
+}
+.survivor-roster-layout {
+  max-width:1320px;
+  margin-inline:auto
+}
+.character-grid.character-collection-grid.survivor-collection-grid {
+  grid-template-columns:repeat(3,minmax(320px,1fr))
+}
+@media(max-width:1047px) {
+  .character-grid.character-collection-grid.survivor-collection-grid {
+    grid-template-columns:repeat(2,minmax(320px,1fr))
+  }
+}
+@media(max-width:695px) {
+  .character-grid.character-collection-grid.survivor-collection-grid {
+    grid-template-columns:minmax(0,1fr)
+  }
+}
+.survivor-collection-card .character-card-hero {
+  position:relative;
+  inset:auto;
+  height:205px;
+  background:#171719
+}
+.survivor-collection-card .character-card-hero::after { display:none; }
+.survivor-collection-card .character-card-hero img,
+.survivor-collection-card.locked-card .character-card-hero img {
+  opacity:1;
+  filter:none
+}
+.survivor-collection-card .character-card-content { padding:14px 16px 0; }
+.survivor-collection-card .character-card-top {
+  min-height:40px;
+  align-items:flex-start;
+  padding-right:56px
+}
+.survivor-collection-card .character-name {
+  font-size:18px;
+  line-height:1.25
+}
+.survivor-collection-card .favorite-button {
+  top:220px;
+  right:16px
+}
+.survivor-collection-card .ownership {
+  min-height:26px;
+  margin:0;
+  padding:2px 0;
+  font-size:11px;
+  letter-spacing:.25px;
+  text-transform:none
+}
+.survivor-collection-card .character-progress {
+  gap:12px;
+  margin:12px 0 14px
+}
+.survivor-collection-card .prestige.large {
+  min-width:56px;
+  min-height:52px;
+  font-size:25px
+}
+.survivor-collection-card .collection-bloodweb>div { text-align:left; }
+.survivor-collection-card .collection-bloodweb>div>span {
+  font-size:12px;
+  letter-spacing:0
+}
+.survivor-collection-card .collection-bloodweb strong { font-size:19px; }
+.survivor-collection-card .collection-bloodweb strong small { font-size:12px; }
+.survivor-collection-card .native-perks {
+  padding-top:12px;
+  border-top:1px solid var(--border)
+}
+.survivor-collection-card .native-perks h3 {
+  margin-bottom:8px;
+  color:#e2dcd4;
+  font-size:11px;
+  letter-spacing:.35px
+}
+.survivor-collection-card .native-perks h3 span {
+  color:var(--muted);
+  font-size:10px;
+  letter-spacing:0;
+  text-transform:none
+}
+.survivor-collection-card .native-row {
+  min-height:38px;
+  align-items:flex-start;
+  font-size:12px
+}
+.survivor-collection-card .native-row>.native-access {
+  flex:0 1 48%;
+  max-width:48%;
+  color:#d1c3ad;
+  font-size:11px;
+  line-height:1.35;
+  text-align:right
+}
+.survivor-collection-card .collection-workspace-action {
+  margin-top:6px;
+  background:#211f20
+}
+
+@media(max-width:430px) {
+  .survivor-collection-card .character-card-hero { height:180px; }
+  .survivor-collection-card .character-card-content { padding-right:12px; padding-left:12px; }
+  .survivor-collection-card .character-card-top { padding-right:52px; }
+  .survivor-collection-card .favorite-button { top:195px; right:12px; }
+  .survivor-collection-card .collection-workspace-action { margin-right:-12px; margin-left:-12px; padding-right:12px; padding-left:12px; }
 }

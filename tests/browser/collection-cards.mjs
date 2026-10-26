@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { characters, characterById, perkById, perkName } from '../../data/catalog.js';
 import { inventoryEntityById } from '../../data/inventory-catalog.js';
-import { freshSave, characterStats, rolePerks } from '../../src/model.js';
+import { freshSave, rolePerks } from '../../src/model.js';
 import { generateAssetManifest } from '../../scripts/generate-assets.mjs';
 
 const project = resolve(import.meta.dirname, '../..');
@@ -25,6 +25,8 @@ function collectionFixture() {
   });
   save.characters['meg-thomas'].bloodwebLevel = 8;
   save.characters['alan-wake'].bloodwebLevel = 44;
+  save.characters['ash-williams'].prestige = 100;
+  save.characters['ash-williams'].bloodwebLevel = 50;
   const entities = Object.values(inventoryEntityById);
   const items = entities.filter(entity => entity.role === 'survivor' && entity.kind === 'survivor-item');
   const survivorAddons = entities.filter(entity => entity.role === 'survivor' && entity.kind === 'survivor-addon');
@@ -88,6 +90,10 @@ async function sixResultToolbarRegression(page, origin, fixture) {
     assert.equal(await grid.locator('.character-collection-card').count(), 1, 'search combines with ownership filters');
     assert.equal(await page.evaluate(() => document.activeElement?.id), 'search', 'search caret focus survives local rerender');
     assert.equal(await page.locator('[data-action="collection-clear-search"]').isVisible(), true, 'Clear search is a separate action');
+    if (role === 'survivor') {
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.screenshot({ path: resolve(project, 'test-results/survivor-collection-filtered.png'), fullPage: true });
+    }
     await page.locator('[data-action="collection-reset-filters"]').click();
     assert.equal(await page.locator('#search').inputValue(), query, 'Reset filters retains search');
     assert.equal(await page.locator('#sort').inputValue(), 'prestige-desc', 'Reset filters retains sort');
@@ -99,6 +105,21 @@ async function sixResultToolbarRegression(page, origin, fixture) {
     assert.equal(await grid.locator('.character-collection-card').count(), 0);
     assert.ok(await page.locator('.empty').isVisible(), 'zero results have an explicit empty state');
     assert.equal(await page.locator('#collection-page-next').count(), 0, 'empty results do not expose a dead pager');
+    if (role === 'survivor') {
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.screenshot({ path: resolve(project, 'test-results/survivor-collection-zero-results.png'), fullPage: true });
+      await page.locator('#search').fill('');
+      await openCollectionFilters(page);
+      await page.locator('#ownership-filter').selectOption('locked');
+      assert.equal(await grid.locator('.character-collection-card').count(), 6);
+      assert.match(await status.textContent(), /Page 1 of 9/);
+      for (let pageNumber = 1; pageNumber < 9; pageNumber++) await page.getByRole('button', { name: 'Next Page', exact: true }).click();
+      assert.match(await status.textContent(), /Page 9 of 9/);
+      assert.match(await status.textContent(), /49–51 of 51/);
+      assert.equal(await grid.locator('.character-collection-card').count(), 3, 'the final filtered Survivor page is partial');
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.screenshot({ path: resolve(project, 'test-results/survivor-collection-final-filtered-page.png'), fullPage: true });
+    }
     assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before, 'search, filters, sort, paging and resize do not mutate the save');
   }
 }
@@ -168,6 +189,13 @@ export async function collectionCardsRegression(page, origin, manifest) {
 
   assert.equal(await page.locator('.survivor-collection-grid').count(), 1, 'Survivors use the restored collection card grid');
   assert.equal(await page.locator('.survivor-collection-card').count(), 6, 'Survivors show the first six results');
+  assert.match(await page.locator('.heading-count').textContent(), /3\s*owned\s*·\s*54 Survivors/i, 'Header separates owned count from catalog size');
+  assert.match(await page.locator('#collection-results-heading').textContent(), /1–6 of 54 matching/, 'Results show the matching range separately');
+  assert.equal(await page.locator('.survivor-collection-card [data-collection-summary]').count(), 0, 'Survivor cards have no inventory-stat panels');
+  assert.equal(await page.locator('.survivor-collection-card .character-name').first().evaluate(node => node.tagName), 'H2', 'each card exposes its character name as a heading');
+  assert.match(await byCharacterId(page, 'ash-williams').locator('.prestige').textContent(), /P100/, 'Prestige has no invented P100 cap');
+  assert.equal(await byCharacterId(page, 'ash-williams').locator('.prestige').getAttribute('aria-label'), 'Prestige 100');
+  assert.equal(await byCharacterId(page, 'aestri-yazar').locator('.character-name').textContent(), 'Aestri Yazar & Baermar Uraz', 'paired names remain complete');
   const ace = byCharacterId(page, 'ace-visconti');
   assert.equal(await ace.locator('a[href^="#character/"]').count(), 1, 'Each card has exactly one workspace navigation tab stop');
   const cardLink = ace.locator('[data-open-workspace]');
@@ -220,7 +248,11 @@ export async function collectionCardsRegression(page, origin, manifest) {
     'Focus moves to the next result when a Favorite removes its own card');
   assert.equal(await page.evaluate(() => location.hash), '#survivors', 'Favorite activation does not navigate');
   await page.locator('[data-action="favorites-filter"]').click();
-  await byCharacterId(page, 'ace-visconti').locator('[data-action="favorite"]').click();
+  const restoreFavorite = byCharacterId(page, 'ace-visconti').locator('[data-action="favorite"]');
+  await restoreFavorite.focus();
+  await restoreFavorite.click();
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset.action), 'favorite', 'a successful Favorite toggle restores focus to Favorite');
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset.id), 'ace-visconti');
   assert.match(await ace.locator('.prestige').textContent(), /P1/);
   assert.match(await ace.locator('[data-bloodweb-value]').textContent(), /3\s*\/\s*50/);
   assert.ok(await ace.locator('.collection-bloodweb-track>span').evaluate(fill => fill.getBoundingClientRect().width > 0));
@@ -229,21 +261,40 @@ export async function collectionCardsRegression(page, origin, manifest) {
   const native = ace.locator('[data-native-perks]');
   assert.equal(await native.locator('.native-row').count(), 3);
   for (const name of nativeNames) assert.ok((await native.textContent()).includes(name));
-  assert.deepEqual(await native.locator('.native-row .tier').allTextContents(), ['I', 'I', 'I']);
-  const summary = ace.locator('[data-collection-summary]');
-  const stats = characterStats(fixture, 'ace-visconti');
-  assert.ok((await summary.textContent()).includes(`${stats.owned} / ${stats.total} Perks`));
-  assert.ok((await summary.textContent()).includes(`${stats.tier3} Tier III`));
-  assert.ok((await summary.textContent()).includes('2 Items'));
-  assert.ok((await summary.textContent()).includes('1 Add-ons'));
+  assert.equal(await native.locator('button').count(), 0, 'native account access is informational on the roster');
+  assert.ok((await native.textContent()).includes('Tier I'), 'source Prestige supplies the account access tier');
+  assert.equal(await ace.locator('[data-collection-summary]').count(), 0, 'Survivor cards omit personal inventory-stat panels');
+  assert.equal(await ace.locator('[data-action="perk"]').count(), 0, 'Survivor cards have no perk-dialog controls');
   assert.equal(await ace.locator('[data-open-workspace]').getAttribute('href'), '#character/ace-visconti/overview');
 
   await page.locator('#search').fill('Ada Wong');
   const locked = byCharacterId(page, 'ada-wong');
-  assert.ok((await locked.locator('[data-collection-summary]').textContent()).includes('0 Items'));
-  assert.ok((await locked.locator('[data-collection-summary]').textContent()).includes('0 Add-ons'));
   assert.match(await locked.locator('[data-ownership-status]').textContent(), /Locked/i);
   assert.equal(await locked.locator('[data-action="ownership"]').count(), 0, 'Ownership is read-only in the roster');
+  assert.equal(await locked.locator('.native-row').count(), 3);
+  assert.ok((await locked.locator('[data-native-perks]').textContent()).includes('Not unlocked'),
+    'an automatic native Tier I is not shown as an account unlock at global tier zero');
+  assert.equal(await locked.locator('[data-collection-summary]').count(), 0);
+  await locked.locator('[data-collection-hero-art]').dispatchEvent('error');
+  assert.equal(await locked.locator('[data-collection-hero-art]').count(), 0);
+  assert.equal(await locked.locator('.collection-art-fallback').textContent(), 'Portrait unavailable', 'a failed Survivor portrait has a restrained fallback');
+  assert.equal(await locked.locator('.collection-art-fallback').getAttribute('aria-hidden'), 'true');
+  assert.equal(await locked.locator('[data-open-workspace]').getAttribute('href'), '#character/ada-wong/overview', 'portrait failure keeps workspace navigation');
+
+  await page.locator('#search').fill('Adam Francis');
+  const adam = byCharacterId(page, 'adam-francis');
+  assert.match(await adam.locator('[data-ownership-status]').textContent(), /Owned/i);
+  assert.ok((await adam.locator('[data-native-perks]').textContent()).includes('Tier II'), 'native account access uses the highest global tier');
+
+  await page.locator('#search').fill('Laurie Strode');
+  const laurie = byCharacterId(page, 'laurie-strode');
+  const generalNativeId = characterById['laurie-strode'].nativePerkIds.find(id => perkById[id].general);
+  assert.ok(generalNativeId, 'fixture includes a General native perk at global tier zero');
+  const generalNativeName = perkName(fixture, perkById[generalNativeId]);
+  const generalNativeRow = laurie.locator('.native-row').filter({ hasText: generalNativeName });
+  assert.ok((await generalNativeRow.textContent()).includes('General · available'), 'General availability is shown without an automatic Tier');
+  assert.doesNotMatch(await generalNativeRow.textContent(), /Tier I/);
+
   await page.locator('#search').fill('The Slasher');
   const slasher = byCharacterId(page, 'the-slasher');
   assert.equal(await slasher.locator('[data-collection-hero-art]').count(), 0, 'Missing Lore art uses no guessed portrait fallback');
@@ -385,8 +436,9 @@ export async function collectionCardsRegression(page, origin, manifest) {
       })));
       assert.ok(killerDecoded.every(Boolean), 'All mapped Killer Lore art is visible in the review screenshot');
     }
-    for (const width of [320, 500, 760, 1100, 1440, 1600]) {
-      await page.setViewportSize({ width, height: 900 });
+    for (const width of [320, 390, 500, 760, 768, 1024, 1100, 1280, 1320, 1360, 1366, 1440, 1600, 1920]) {
+      const height = { 320: 800, 390: 844, 768: 1024, 1366: 768 }[width] || 900;
+      await page.setViewportSize({ width, height });
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `No page overflow at ${width}/${role}`);
       const metrics = await grid.evaluate(element => {
         const gridRect = element.getBoundingClientRect();
@@ -397,12 +449,12 @@ export async function collectionCardsRegression(page, origin, manifest) {
           const hero = image?.getBoundingClientRect();
           const name = card.querySelector('.character-name').getBoundingClientRect();
           const favorite = card.querySelector('[data-action="favorite"]').getBoundingClientRect();
-          const summary = card.querySelector('[data-collection-summary]').getBoundingClientRect();
+          const summary = card.querySelector('[data-collection-summary]')?.getBoundingClientRect();
           const native = card.querySelector('[data-native-perks]').getBoundingClientRect();
           const action = card.querySelector('.collection-workspace-action').getBoundingClientRect();
           const rows = [...card.querySelectorAll('.native-row')].map(row => {
             const label = row.querySelector('span:first-child').getBoundingClientRect();
-            const tier = row.querySelector('.tier').getBoundingClientRect();
+          const tier = row.lastElementChild.getBoundingClientRect();
             return label.right <= tier.left || tier.right <= label.left;
           });
           return {
@@ -410,13 +462,13 @@ export async function collectionCardsRegression(page, origin, manifest) {
             inside: rect.left >= gridRect.left && rect.right <= gridRect.right,
             heroInside: !hero || (hero.left >= rect.left && hero.right <= rect.right && hero.top >= rect.top && hero.bottom <= rect.bottom),
             identityClear: name.right <= favorite.left,
-            ordered: summary.top >= native.bottom && action.top >= summary.bottom,
+            ordered: summary ? summary.top >= native.bottom && action.top >= summary.bottom : action.top >= native.bottom,
             name: { left: name.left, right: name.right },
             favorite: { left: favorite.left, right: favorite.right },
-            summaryTop: summary.top,
+            summaryTop: summary?.top ?? null,
             nativeBottom: native.bottom,
             actionTop: action.top,
-            summaryBottom: summary.bottom,
+            summaryBottom: summary?.bottom ?? null,
             rows,
             width: rect.width,
             actionHeight: action.height,
@@ -429,15 +481,40 @@ export async function collectionCardsRegression(page, origin, manifest) {
         `${role} card content fits at ${width}: ${JSON.stringify(metrics.cardRects.filter(card => !card.inside || !card.heroInside || !card.identityClear || !card.ordered))}`);
       assert.ok(metrics.cardRects.every(card => card.rows.every(Boolean)), `${role} perk names and tiers do not collide at ${width}`);
       assert.ok(metrics.cardRects.every(card => card.actionHeight >= 40 && card.favoriteHeight >= 40), `${role} action targets stay usable at ${width}`);
-      if (width === 1600) assert.ok(metrics.cardRects.every(card => card.width <= 440), `${role} cards remain dense at 1600px`);
+      if (role === 'survivor') {
+        const expectedColumns = { 320: 1, 390: 1, 500: 1, 760: 2, 768: 2, 1024: 2, 1100: 3, 1280: 3, 1320: 3, 1360: 3, 1366: 3, 1440: 3, 1600: 3, 1920: 3 }[width];
+        assert.equal(metrics.columns, expectedColumns, `Survivors use the fitted ${expectedColumns}-column layout at ${width}`);
+        if (width >= 760) assert.ok(metrics.cardRects.every(card => card.width >= 320), `Survivor cards retain a useful minimum width at ${width}`);
+        const prestigeFlow = await byCharacterId(page, 'ash-williams').evaluate(card => {
+          const prestigeText = document.createRange();
+          prestigeText.selectNodeContents(card.querySelector('.prestige'));
+          const bloodweb = card.querySelector('.collection-bloodweb').getBoundingClientRect();
+          return { prestigeTextRight: prestigeText.getBoundingClientRect().right, bloodwebLeft: bloodweb.left };
+        });
+        assert.ok(prestigeFlow.prestigeTextRight + 6 <= prestigeFlow.bloodwebLeft,
+          `P100 remains separated from Bloodweb at ${width}: ${JSON.stringify(prestigeFlow)}`);
+      }
+      if (width >= 1600) assert.ok(metrics.cardRects.every(card => card.width <= 440), `${role} cards remain dense at ${width}px`);
       if (width === 320) {
         await page.evaluate(() => window.scrollTo(0, 0));
         await page.screenshot({ path: resolve(project, `test-results/${role}-collection-320.png`) });
         assert.equal(metrics.columns, 1, `${role} uses a single card column at 320px`);
       }
+      if (width === 390 && role === 'survivor') {
+        await page.evaluate(() => window.scrollTo(0, 0));
+        await page.screenshot({ path: resolve(project, 'test-results/survivor-collection-390.png') });
+      }
+      if (width === 768 && role === 'survivor') {
+        await page.evaluate(() => window.scrollTo(0, 0));
+        await page.screenshot({ path: resolve(project, 'test-results/survivor-collection-tablet.png'), fullPage: true });
+      }
       if (width === 1440) {
         await page.evaluate(() => window.scrollTo(0, 0));
         await page.screenshot({ path: resolve(project, `${'test-results'}/${role}-collection-desktop.png`), fullPage: true });
+      }
+      if (role === 'survivor' && width === 1920) {
+        await page.evaluate(() => window.scrollTo(0, 0));
+        await page.screenshot({ path: resolve(project, 'test-results/survivor-collection-wide.png'), fullPage: true });
       }
     }
   }

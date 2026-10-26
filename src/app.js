@@ -16,7 +16,7 @@ import { correctPersonalPerkTier } from './model.js';
 import { createRosterStateMemory, paginateRoster } from './roster-state.js';
 import assetManifest from '../data/asset-manifest.json' with { type: 'json' };
 import { perkIconPath, characterPortraitPath, collectionPortraitPath } from './assets.js';
-import { survivorInventoryCounts, killerAddonCount } from './survivor-collection.js';
+import { killerAddonCount } from './survivor-collection.js';
 
 import { getFilterContext, perkFilterDefinitions, matchesPerkFilterState, selectQuickView, toggleAdvancedOption, clearAdvancedFilters, activeAdvancedGroupCount, perkFacetCounts, createFilterRouteMemory } from './perk-filters.js';
 import { CHARACTER_INVENTORY_CATEGORIES, CHARACTER_CARD_SIZES, DEFAULT_CHARACTER_CARD_SIZE, normalizeCharacterCardSize, characterInventoryCandidatePool, filterCharacterInventoryCandidates, characterNormalInventory, setCharacterPersonalTier, createCharacterInventorySession, syncCharacterInventorySession, markCharacterInventoryChanged, parseCharacterInventoryRoute } from './character-inventory.js';
@@ -188,7 +188,8 @@ function characterArtwork(character, size = 64) {
 }
 function collectionArtwork(character) {
   const path = collectionPortraitPath(character.id, assetManifest);
-  return path ? `<img data-collection-hero-art src="${esc(path)}" alt="" aria-hidden="true" loading="lazy" decoding="async">` : '';
+  if (path) return `<img data-collection-hero-art src="${esc(path)}" alt="" aria-hidden="true" loading="lazy" decoding="async">`;
+  return character.role === 'survivor' ? '<span class="collection-art-fallback" aria-hidden="true">Portrait unavailable</span>' : '';
 }
 function tierButton(characterId, perk, idPrefix = '') {
   const tier = inventoryTier(save, characterId, perk.id);
@@ -283,15 +284,21 @@ function dashboard() {
 }
 
 function characterCollectionCard(c) {
-  const progress = save.characters[c.id], stats = characterStats(save, c.id);
+  const progress = save.characters[c.id];
   const survivor = c.role === 'survivor';
-  const stock = survivor ? survivorInventoryCounts(save, c.id) : null;
-  const addonTypes = survivor ? stock.addons : killerAddonCount(save, c.id);
+  const stats = survivor ? null : characterStats(save, c.id);
   const workspace = characterWorkspaceHref(c.id, 'overview');
-  const stockSummary = survivor
-    ? `<span><b>${stock.items}</b> Items</span><span><b>${stock.addons}</b> Add-ons</span>`
-    : `<span><b>${addonTypes}</b> Add-ons</span>`;
-  return `<article class="character-card character-collection-card ${c.role}-collection-card${progress.owned ? '' : ' locked-card'}" data-character-id="${c.id}"><a class="collection-card-link" data-open-workspace data-id="${c.id}" href="${workspace}" aria-label="View ${esc(c.name)} workspace"><div class="character-card-hero" aria-hidden="true">${collectionArtwork(c)}</div><div class="character-card-content"><div class="character-card-top"><span class="character-name">${esc(c.name)}</span></div><div class="ownership ${progress.owned ? 'is-owned' : ''}" data-ownership-status><span class="ownership-dot" aria-hidden="true"></span><span>${progress.owned ? 'OWNED' : 'LOCKED'}</span></div><div class="character-progress"><span class="prestige large">P${progress.prestige}</span><div class="collection-bloodweb"><div><span>Bloodweb</span><strong data-bloodweb-value>${progress.bloodwebLevel} <small>/ 50</small></strong></div><span class="collection-bloodweb-track" aria-hidden="true"><span style="width:${progress.bloodwebLevel / 50 * 100}%"></span></span></div></div><section class="native-perks" data-native-perks aria-label="Native perks"><h3>NATIVE PERKS <span>OWNED</span></h3>${c.nativePerkIds.map(id => `<div class="native-row"><span>${esc(perkName(save, perkById[id]))}</span>${badge(inventoryTier(save, c.id, id))}</div>`).join('')}</section><div class="collection-summary" data-collection-summary><div class="collection-summary-row"><span><b>${stats.owned} / ${stats.total}</b> Perks</span><span><b>${stats.tier3}</b> Tier III</span></div><div class="collection-summary-row">${stockSummary}</div></div><span class="manage-button collection-workspace-action">Open workspace <span aria-hidden="true">→</span></span></div></a><button class="favorite-button ${progress.favorite ? 'is-favorite' : ''}" data-action="favorite" data-id="${c.id}" aria-pressed="${progress.favorite}" aria-label="Favorite ${esc(c.name)}">${progress.favorite ? '★' : '☆'}</button></article>`;
+  const nativeRows = c.nativePerkIds.map(id => {
+    const perk = perkById[id];
+    const name = esc(perkName(save, perk));
+    if (!survivor) return `<div class="native-row"><span>${name}</span>${badge(inventoryTier(save, c.id, id))}</div>`;
+    const tier = globalTier(save, perk);
+    const access = isAvailable(save, perk) ? (tier ? `Tier ${roman[tier]}` : 'General · available') : 'Not unlocked';
+    return `<div class="native-row"><span>${name}</span><span class="native-access">${esc(access)}</span></div>`;
+  }).join('');
+  const nativeSection = `<section class="native-perks" data-native-perks aria-label="Native perks${survivor ? ', account access' : ''}"><h3>Native perks <span>${survivor ? 'Account access' : 'Owned'}</span></h3>${nativeRows}</section>`;
+  const summary = survivor ? '' : `<div class="collection-summary" data-collection-summary><div class="collection-summary-row"><span><b>${stats.owned} / ${stats.total}</b> Perks</span><span><b>${stats.tier3}</b> Tier III</span></div><div class="collection-summary-row"><span><b>${killerAddonCount(save, c.id)}</b> Add-ons</span></div></div>`;
+  return `<article class="character-card character-collection-card ${c.role}-collection-card${progress.owned ? '' : ' locked-card'}" data-character-id="${c.id}"><a class="collection-card-link" data-open-workspace data-id="${c.id}" href="${workspace}" aria-label="View ${esc(c.name)} workspace"><div class="character-card-hero" aria-hidden="true">${collectionArtwork(c)}</div><div class="character-card-content"><div class="character-card-top"><h2 class="character-name">${esc(c.name)}</h2></div><div class="ownership ${progress.owned ? 'is-owned' : ''}" data-ownership-status><span class="ownership-dot" aria-hidden="true"></span><span>${progress.owned ? 'Owned' : 'Locked'}</span></div><div class="character-progress"><span class="prestige large" aria-label="Prestige ${progress.prestige}">P${progress.prestige}</span><div class="collection-bloodweb"><div><span>Bloodweb</span><strong data-bloodweb-value aria-label="Bloodweb level ${progress.bloodwebLevel} of 50">${progress.bloodwebLevel} <small>/ 50</small></strong></div><span class="collection-bloodweb-track" aria-hidden="true"><span style="width:${progress.bloodwebLevel / 50 * 100}%"></span></span></div></div>${nativeSection}${summary}<span class="manage-button collection-workspace-action">View character <span aria-hidden="true">→</span></span></div></a><button class="favorite-button ${progress.favorite ? 'is-favorite' : ''}" data-action="favorite" data-id="${c.id}" aria-pressed="${progress.favorite}" aria-label="Favorite ${esc(c.name)}">${progress.favorite ? '★' : '☆'}</button></article>`;
 }
 function characterMatches(c, status = filters.status) {
   const p = save.characters[c.id];
@@ -318,7 +325,14 @@ function collection(role) {
   const resetDisabled = filters.status === 'all' && filters.prestige === 'all' && !filters.favorite;
   const ownershipOptions = [['all', 'Any ownership'], ['owned', 'Owned'], ['locked', 'Locked']];
   const pageControls = visible.length ? `<nav class="collection-pagination" aria-label="Character pages"><button type="button" id="collection-page-prev" data-action="collection-page" data-delta="-1"${page.page === 0 ? ' disabled' : ''}>Previous Page</button><span id="collection-page-status" role="status" aria-live="polite">Page ${page.page + 1} of ${page.pageCount} · ${page.start}–${page.end} of ${page.total}</span><button type="button" id="collection-page-next" data-action="collection-page" data-delta="1"${page.page === page.pageCount - 1 ? ' disabled' : ''}>Next Page</button></nav>` : '';
-  return pageHeading('CHARACTER COLLECTION', role === 'survivor' ? 'Survivors' : 'Killers', 'Track your collection and the next step through the Bloodweb.', `<div class="heading-count">${list.filter(c => save.characters[c.id].owned).length}<span>/ ${list.length} owned</span></div>`) + `<section class="collection-controls"><div class="collection-toolbar"><div class="collection-search-group">${searchInput('Search characters…')}${filters.search ? '<button type="button" data-action="collection-clear-search">Clear search</button>' : ''}</div><details id="collection-filters"${collectionFiltersOpen ? ' open' : ''}><summary>Filters${activeFilters ? `<span class="collection-filter-count">${(filters.status !== 'all' ? 1 : 0) + (filters.prestige !== 'all' ? 1 : 0) + (filters.favorite ? 1 : 0)} active</span>` : ''}</summary><div class="collection-filter-options">${selectControl('ownership-filter', 'Ownership', ownershipOptions, filters.status)}${selectControl('prestige-filter', 'Prestige', [['all', 'Any prestige'], ['0', 'P0'], ['1', 'P1'], ['2', 'P2'], ['3', 'P3+']], filters.prestige)}<button type="button" data-action="favorites-filter" class="${filters.favorite ? 'selected' : ''}" aria-pressed="${filters.favorite}">★ Favorites</button><button type="button" data-action="collection-reset-filters"${resetDisabled ? ' disabled' : ''}>Reset filters</button></div></details>${selectControl('sort', 'Sort', [['name', 'Name'], ['prestige-desc', 'Prestige ↓'], ['prestige-asc', 'Prestige ↑'], ['bloodweb', 'Bloodweb ↓'], ['perks', 'Perks owned ↓'], ['recent', 'Recently updated']], filters.sort)}</div>${activeFilters ? `<div class="collection-active-filters" aria-label="Active filters">${activeFilters}</div>` : ''}</section><div class="results-label" id="collection-results-heading" tabindex="-1">${visible.length} CHARACTERS<span>${page.total ? `${page.start}–${page.end} of ${page.total} matching` : 'No matching characters'}</span></div><div class="character-grid character-collection-grid ${role}-collection-grid">${cards}</div>${visible.length ? '' : empty('No characters match these search and filters.')} ${pageControls}`;
+  const ownedCount = list.filter(c => save.characters[c.id].owned).length;
+  const headingCount = role === 'survivor'
+    ? `<div class="heading-count survivor-catalog-count">${ownedCount}<span>owned · ${list.length} Survivors</span></div>`
+    : `<div class="heading-count">${ownedCount}<span>/ ${list.length} owned</span></div>`;
+  const scopeNote = role === 'survivor'
+    ? '<p class="collection-scope-note">Native perk states show account access, not recorded tiers on this Survivor. General perks can be available without an automatic tier.</p>' : '';
+  const view = pageHeading('CHARACTER COLLECTION', role === 'survivor' ? 'Survivors' : 'Killers', 'Track your collection and the next step through the Bloodweb.', headingCount) + `<section class="collection-controls"><div class="collection-toolbar"><div class="collection-search-group">${searchInput('Search characters…')}${filters.search ? '<button type="button" data-action="collection-clear-search">Clear search</button>' : ''}</div><details id="collection-filters"${collectionFiltersOpen ? ' open' : ''}><summary>Filters${activeFilters ? `<span class="collection-filter-count">${(filters.status !== 'all' ? 1 : 0) + (filters.prestige !== 'all' ? 1 : 0) + (filters.favorite ? 1 : 0)} active</span>` : ''}</summary><div class="collection-filter-options">${selectControl('ownership-filter', 'Ownership', ownershipOptions, filters.status)}${selectControl('prestige-filter', 'Prestige', [['all', 'Any prestige'], ['0', 'P0'], ['1', 'P1'], ['2', 'P2'], ['3', 'P3+']], filters.prestige)}<button type="button" data-action="favorites-filter" class="${filters.favorite ? 'selected' : ''}" aria-pressed="${filters.favorite}">★ Favorites</button><button type="button" data-action="collection-reset-filters"${resetDisabled ? ' disabled' : ''}>Reset filters</button></div></details>${selectControl('sort', 'Sort', [['name', 'Name'], ['prestige-desc', 'Prestige ↓'], ['prestige-asc', 'Prestige ↑'], ['bloodweb', 'Bloodweb ↓'], ['perks', 'Perks owned ↓'], ['recent', 'Recently updated']], filters.sort)}</div>${activeFilters ? `<div class="collection-active-filters" aria-label="Active filters">${activeFilters}</div>` : ''}${scopeNote}</section><div class="results-label" id="collection-results-heading" tabindex="-1">${visible.length} CHARACTERS<span>${page.total ? `${page.start}–${page.end} of ${page.total} matching` : 'No matching characters'}</span></div><div class="character-grid character-collection-grid ${role}-collection-grid">${cards}</div>${visible.length ? '' : empty('No characters match these search and filters.')} ${pageControls}`;
+  return role === 'survivor' ? `<div class="survivor-roster-layout">${view}</div>` : view;
 }
 
 function perkMatches(perk) {
@@ -1583,7 +1597,8 @@ async function handleClick(event) {
     if (removesFilteredResult) {
       const cards = [...document.querySelectorAll('.character-collection-card')];
       (cards[Math.min(Math.max(cardIndex, 0), cards.length - 1)]?.querySelector('[data-open-workspace]') || $('#collection-results-heading'))?.focus();
-    }
+    } else [...document.querySelectorAll('.character-collection-card [data-action="favorite"]')]
+      .find(candidate => candidate.dataset.id === id)?.focus({ preventScroll: true });
     return;
   }
   if (action === 'cycle') {
@@ -1882,6 +1897,14 @@ window.addEventListener('storage', event => {
 $('#perk-filter-panel').addEventListener('toggle', () => $('#filters-trigger')?.setAttribute('aria-expanded', String($('#perk-filter-panel').matches(':popover-open'))));
 document.addEventListener('error', event => {
   const image = event.target;
+  if (image instanceof HTMLImageElement && image.hasAttribute('data-collection-hero-art')
+    && image.closest('.survivor-collection-card')) {
+    const fallback = document.createElement('span');
+    fallback.className = 'collection-art-fallback';
+    fallback.setAttribute('aria-hidden', 'true');
+    fallback.textContent = 'Portrait unavailable';
+    image.replaceWith(fallback); return;
+  }
   if(image instanceof HTMLImageElement && image.hasAttribute('data-inventory-icon')){
     const fallback=document.createElement('span');fallback.className='stock-art-fallback';fallback.setAttribute('aria-hidden','true');fallback.textContent='◇';
     image.replaceWith(fallback);return;
