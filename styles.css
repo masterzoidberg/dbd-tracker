@@ -128,7 +128,7 @@ small {
 .skip-link {
   position:fixed;
   z-index:10;
-  left:240px;
+  left:calc(var(--sidebar) + 20px);
   top:-100px;
   background:var(--gold);
   color:#111;
@@ -136,6 +136,9 @@ small {
 }
 .skip-link:focus {
   top:8px
+}
+.skip-link:hover {
+  color:#111
 }
 .sidebar {
   position:fixed;
@@ -146,6 +149,12 @@ small {
   display:flex;
   flex-direction:column;
   padding:32px 16px 24px
+}
+.sidebar-header {
+  display:block
+}
+.menu-toggle {
+  display:none
 }
 .brand {
   display:flex;
@@ -171,8 +180,8 @@ small {
   padding-right:10px
 }
 .nav-label {
-  font-size:9px;
-  letter-spacing:1.6px;
+  font-size:11px;
+  letter-spacing:1.3px;
   color:#999492;
   margin:20px 12px 12px
 }
@@ -187,7 +196,7 @@ small {
   margin-bottom:4px;
   border-radius:4px;
   color:#b9b5b1;
-  font-size:13px;
+  font-size:14px;
   border:1px solid transparent
 }
 .sidebar nav a>span:first-child {
@@ -222,8 +231,8 @@ small {
 }
 .sidebar-foot {
   margin-top:auto;
-  font-size:9px;
-  letter-spacing:1.5px;
+  font-size:11px;
+  letter-spacing:1px;
   padding:24px 12px 0;
   color:var(--muted)
 }
@@ -259,8 +268,8 @@ small {
   align-items:center;
   justify-content:space-between;
   color:var(--muted);
-  font-size:10px;
-  letter-spacing:1.5px
+  font-size:12px;
+  letter-spacing:1px
 }
 .topbar strong {
   font-weight:500;
@@ -275,7 +284,7 @@ small {
 #save-status {
   letter-spacing:0;
   color:var(--muted);
-  font-size:11px
+  font-size:12px
 }
 .export-button {
   font-size:12px;
@@ -1531,27 +1540,6 @@ footer span {
 }
 
 @media(max-width:1100px) {
-  :root {
-  --sidebar:185px
-}
-.sidebar {
-  padding-left:10px;
-  padding-right:10px
-}
-.brand {
-  font-size:13px;
-  gap:8px
-}
-.brand small {
-  font-size:7px
-}
-.mark {
-  width:32px
-}
-.sidebar nav a {
-  font-size:12px;
-  gap:9px
-}
 main {
   padding:28px
 }
@@ -1596,59 +1584,109 @@ main {
 
 }
 
-@media(max-width:760px) {
+@media(max-width:1320px), (min-width:1321px) and (max-height:680px) {
   :root {
-  --sidebar:0px
+    --sidebar:0px
+  }
+  .sidebar {
+    position:sticky;
+    inset:0 0 auto;
+    z-index:6;
+    display:block;
+    width:100%;
+    height:auto;
+    padding:8px 20px;
+    border-right:0;
+    border-bottom:1px solid var(--border)
+  }
+  .sidebar-header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    min-height:44px
+  }
+  .brand {
+    min-width:0;
+    padding:0;
+    gap:10px;
+    font-size:15px
+  }
+  .brand small {
+    font-size:8px
+  }
+  .menu-toggle {
+    display:inline-flex;
+    flex:0 0 auto;
+    align-items:center;
+    justify-content:center;
+    min-width:76px;
+    min-height:44px
+  }
+  .sidebar>.nav-label,
+  .sidebar-foot {
+    display:none
+  }
+  .sidebar nav {
+    display:none;
+    position:absolute;
+    inset:100% 0 auto;
+    z-index:6;
+    max-height:calc(100vh - 60px);
+    max-height:calc(100dvh - 60px);
+    overflow-y:auto;
+    padding:8px 20px 16px;
+    background:#151516;
+    border-bottom:1px solid var(--border);
+    box-shadow:0 14px 24px #0008
+  }
+  .sidebar[data-menu-open="true"] nav {
+    display:block
+  }
+  .sidebar nav a {
+    min-height:44px;
+    padding:10px 12px;
+    font-size:14px
+  }
+  .workspace {
+    margin-left:0
+  }
+  main {
+    scroll-margin-top:72px
+  }
+  .skip-link {
+    left:20px
+  }
 }
+
+@media(max-width:760px) {
 .sidebar {
-  position:sticky;
-  top:0;
-  z-index:3;
-  width:100%;
-  height:auto;
-  display:block;
-  padding:0;
-  background:#151516
-}
-.brand,.sidebar>.nav-label,.sidebar-foot,.sidebar nav .nav-label,.nav-separator {
-  display:none
+  padding:8px 16px
 }
 .sidebar nav {
-  display:flex;
-  overflow-x:auto;
-  padding:8px;
-  gap:5px
+  padding-right:16px;
+  padding-left:16px
 }
-.sidebar nav a {
-  white-space:nowrap;
-  padding:9px 11px;
-  margin:0;
-  font-size:11px
-}
-.sidebar nav a>span:first-child {
-  display:none
-}
+.sidebar nav a>span:first-child,
 .nav-count {
   display:none
 }
 .topbar {
-  height:60px;
+  height:auto;
+  min-height:60px;
   padding:0 20px;
-  font-size:8px;
-  letter-spacing:1px
+  font-size:11px;
+  letter-spacing:.8px
 }
 .topbar>div {
-  gap:12px
+  gap:8px
 }
 #save-status {
-  font-size:9px
+  font-size:12px
 }
 .export-button {
-  font-size:10px;
-  padding:8px
-}
-.workspace {
-  margin:0
+  font-size:12px;
+  padding:8px 10px
 }
 main {
   padding:24px 20px
@@ -1788,9 +1826,6 @@ h1 {
 }
 #detail-content {
   padding:22px
-}
-.topbar #breadcrumb {
-  display:none
 }
 #message {
   margin:16px 20px 0

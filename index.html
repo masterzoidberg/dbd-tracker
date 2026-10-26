@@ -9,9 +9,12 @@
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <aside class="sidebar">
-    <a class="brand" href="#dashboard"><svg class="mark" aria-hidden="true" viewBox="0 0 36 32"><path d="M3 29 9 3M11 29 17 3M19 29 25 3M27 29 33 3" fill="none" stroke="currentColor" stroke-width="3"/></svg><span>THE LEDGER<small>DEAD BY DAYLIGHT</small></span></a>
+    <div class="sidebar-header">
+      <a class="brand" href="#dashboard"><svg class="mark" aria-hidden="true" viewBox="0 0 36 32"><path d="M3 29 9 3M11 29 17 3M19 29 25 3M27 29 33 3" fill="none" stroke="currentColor" stroke-width="3"/></svg><span>THE LEDGER<small>DEAD BY DAYLIGHT</small></span></a>
+      <button type="button" id="menu-toggle" class="menu-toggle" aria-controls="global-nav" aria-expanded="false">Menu</button>
+    </div>
     <div class="nav-label">YOUR ACCOUNT</div>
-    <nav aria-label="Main navigation">
+    <nav id="global-nav" aria-label="Main navigation">
       <a href="#dashboard" data-page="dashboard"><span aria-hidden="true">◫</span>Dashboard</a>
       <a href="#survivors" data-page="survivors"><span aria-hidden="true">♙</span>Survivors<span class="nav-count" id="survivor-count"></span></a>
       <a href="#killers" data-page="killers"><span aria-hidden="true">♜</span>Killers<span class="nav-count" id="killer-count"></span></a>

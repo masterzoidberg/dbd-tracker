@@ -6,8 +6,13 @@ import { schemaV1Fixture } from '../fixtures/schema-v1.js';
 
 const bytes = page => page.evaluate(() => Object.fromEntries(Object.entries(localStorage)));
 const ready = page => page.waitForFunction(() => ['Saved locally', 'Read-only', 'Editing unavailable', 'Stored save needs recovery'].includes(document.querySelector('#save-status').textContent));
+async function openGlobalDestination(page, name) {
+  const navigation = page.getByRole('navigation', { name: 'Main navigation' });
+  if (!await navigation.isVisible()) await page.getByRole('button', { name: 'Menu', exact: true }).click();
+  await navigation.getByRole('link', { name }).click();
+}
 async function detail(page, role, name) {
-  await page.getByRole('link', { name: new RegExp('^' + role) }).click();
+  await openGlobalDestination(page, new RegExp('^' + role));
   await page.getByPlaceholder('Search characters…').fill(name);
   await page.getByRole('link', { name, exact: true }).click();
   await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
@@ -35,7 +40,7 @@ export async function editorRegression(a, origin) {
     await forcedChange(b, '#edit-bloodweb', '42', 'input');
     assert.deepEqual(await bytes(b), before, 'Programmatic progression edit must not write');
     await b.getByRole('button', { name: 'Cancel', exact: true }).click();
-    await b.getByRole('link', { name: 'Data & backups' }).click();
+    await openGlobalDestination(b, 'Data & backups');
     for (const action of ['import', 'reset']) {
       assert.equal(await b.locator(`[data-action="${action}"]`).first().isDisabled(), true);
       await b.locator(`[data-action="${action}"]`).first().dispatchEvent('click');
@@ -90,7 +95,7 @@ export async function editorRegression(a, origin) {
   assert.equal(migrated.schemaVersion, 2);
   assert.deepEqual(migrated.prestigeQueue, []);
   assert.deepEqual(migrated.characters['meg-thomas'].inventory, { items: {}, addons: {} });
-  await reader.getByRole('link', { name: 'Data & backups' }).click();
+  await openGlobalDestination(reader, 'Data & backups');
   const stable = await bytes(reader);
   for (const action of ['restore', 'delete-backup']) {
     assert.equal(await reader.locator(`[data-action="${action}"]`).first().isDisabled(), true);

@@ -150,7 +150,7 @@ async function enableEditing() {
   initialized = true;
   $('#save-status').textContent = 'Saved locally';
   render();
-  if(parseCharacterWorkspaceRoute(route())) $('#main').focus();
+  if(parseCharacterWorkspaceRoute(route())) $('#main').focus({ preventScroll: true });
 }
 
 // Account setup remains available explicitly; character setup is offered on click.
@@ -538,6 +538,14 @@ function preserveRender(element, html) {
   [...element.querySelectorAll('.table-scroll')].forEach((n, i) => { if (scrolls[i]) [n.scrollLeft, n.scrollTop] = scrolls[i]; });
 }
 function route() { return location.hash.slice(1) || 'dashboard'; }
+function setGlobalMenuOpen(open, returnFocus = false) {
+  const sidebar = $('.sidebar');
+  const trigger = $('#menu-toggle');
+  trigger.setAttribute('aria-expanded', String(open));
+  if (open) sidebar.dataset.menuOpen = 'true';
+  else delete sidebar.dataset.menuOpen;
+  if (!open && returnFocus) trigger.focus({ preventScroll: true });
+}
 function characterRosterNavigation(character, descriptor) {
   const role = character.role === 'survivor' ? 'Survivor' : 'Killer';
   const { previous, next } = characterWorkspaceNeighbors(character.id, descriptor.section, descriptor.mode);
@@ -1029,11 +1037,11 @@ function finishWorkspaceNavigation() {
   if (!['edit','items-addons'].includes(descriptor?.section) || stockSessionKey !== descriptor.characterId+'/'+descriptor.section) {stockSession=null;stockSessionKey='';}
   if(descriptor?.section!=='power-addons'||killerSessionKey!==descriptor.characterId){killerSession=null;killerSessionKey='';killerBlurPending=null;}
   if (descriptor?.section !== 'setup') { characterSetup = null; setupQueue = null; }
-  closeFilters(); setupOpen = false;
+  closeFilters(); setupOpen = false; setGlobalMenuOpen(false);
   if ($('#detail').open) $('#detail').close();
   if ($('#message').className !== 'error') message('');
   committedWorkspaceHash = location.hash || '#dashboard';
-  render(); window.scrollTo(0, 0); $('#main').focus();
+  render(); window.scrollTo(0, 0); $('#main').focus({ preventScroll: true });
 }
 function acceptPendingKillerQuantities() {
   if(killerSession){
@@ -1311,7 +1319,10 @@ function characterInventoryRecordKey(currentSave, characterId, perkId) {
   return Object.hasOwn(inventory, perkId) ? `present:${inventory[perkId]}` : 'absent';
 }
 async function handleClick(event) {
-  if (event.target.closest('.skip-link')) { event.preventDefault(); $('#main').focus(); $('#main').scrollIntoView(); return; }
+  if (event.target.closest('.skip-link')) {
+    event.preventDefault(); setGlobalMenuOpen(false);
+    $('#main').focus({ preventScroll: true }); $('#main').scrollIntoView({ block: 'start' }); return;
+  }
   const link = event.target.closest('a[href]');
   if (link?.getAttribute('href').startsWith('#') && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey
     && link.target !== '_blank' && event.button === 0) {
@@ -1543,6 +1554,17 @@ async function handleClick(event) {
 document.addEventListener('pointerdown', event => {
   if (characterInventorySession.quickPerkId && !event.target.closest('.character-inventory-quick-picker, .perk-card[data-action="character-inventory-select"]')) closeCharacterInventoryQuickPicker();
 });
+document.addEventListener('click', event => {
+  const trigger = event.target.closest('#menu-toggle');
+  if (trigger) {
+    setGlobalMenuOpen(trigger.getAttribute('aria-expanded') !== 'true');
+    return;
+  }
+  const sidebar = $('.sidebar');
+  if (sidebar.dataset.menuOpen !== 'true') return;
+  const link = event.target.closest('#global-nav a[href^="#"]');
+  if (!sidebar.contains(event.target) || link?.hash === location.hash) setGlobalMenuOpen(false);
+});
 document.addEventListener('click', event => { handleClick(event).catch(error => message(error.message || 'The action could not be completed.', true)); });
 document.addEventListener('input', event => {
   if(event.target.hasAttribute('data-killer-quantity')){try{killerQuantityInput(event.target);}catch(error){message(error.message,true);}return;}
@@ -1671,6 +1693,9 @@ document.addEventListener('submit', event => {
   if (event.target.matches('[data-character-edit]')) { event.preventDefault(); return; }
 });
 document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && $('#menu-toggle').getAttribute('aria-expanded') === 'true') {
+    event.preventDefault(); setGlobalMenuOpen(false, true); return;
+  }
   if(event.key==='Enter'&&event.target.hasAttribute('data-killer-quantity')){event.preventDefault();acceptKillerQuantity(event.target.dataset.killerQuantity,'enter');return;}
   if(event.key==='Enter'&&event.target.dataset.inventoryQuantity){event.preventDefault();acceptStock(event.target.dataset.inventoryQuantity,'enter');return;}
   if (event.key === 'Escape' && characterInventorySession.quickPerkId) { event.preventDefault(); closeCharacterInventoryQuickPicker(true); return; }

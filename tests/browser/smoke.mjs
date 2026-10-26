@@ -34,7 +34,9 @@ export async function smokeStage(stage, { channel = 'msedge', regression, manife
     page.on('request', request => requests.push(request.url()));
     await page.goto(origin + '/');
     await page.getByRole('heading', { name: 'Account overview', exact: true }).waitFor();
-    await page.getByRole('link', { name: /^Survivors/ }).click();
+    const globalNavigation = page.getByRole('navigation', { name: 'Main navigation' });
+    if (!await globalNavigation.isVisible()) await page.getByRole('button', { name: 'Menu', exact: true }).click();
+    await globalNavigation.getByRole('link', { name: /^Survivors/ }).click();
     await page.getByPlaceholder('Search characters…').fill('Meg');
     await page.getByRole('link', { name: 'Meg Thomas', exact: true }).click();
     await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
@@ -66,10 +68,11 @@ export async function smokeStage(stage, { channel = 'msedge', regression, manife
       const {inventoryRegression}=await import('./inventory.mjs');
       await inventoryRegression(page,origin);
       page.setDefaultTimeout(30000);
-      const { filteringRegression, filteringInteractions, focusAndLayouts } = await import('./filtering.mjs');
+      const { filteringRegression, filteringInteractions, focusAndLayouts, shellNavigationRegression } = await import('./filtering.mjs');
       await filteringInteractions(page, origin);
       await filteringRegression(page, origin);
       await focusAndLayouts(page, origin);
+      await shellNavigationRegression(page, origin);
       const { artworkRegression } = await import('./artwork.mjs');
       await artworkRegression(page, origin, manifest);
       const { dataFlowsRegression, characterEditingRegression, personalCorrectionRegression } = await import('./data-flows.mjs');
@@ -94,7 +97,7 @@ export async function smokeStage(stage, { channel = 'msedge', regression, manife
     assert.ok(requests.some(url => url === origin + '/dist/app.js'));
     assert.ok(requests.every(url => new URL(url).origin === origin && !new URL(url).pathname.endsWith('.json')), 'Runtime must not request external services or catalog JSON.');
     assert.deepEqual(errors, []);
-    return { localhost: 'AUTOMATED PASS', browser: `${channel} ${browser.version()}`, checks: ['startup', 'Bloodweb/favorite edit', 'reload persistence', 'Filtering predicates/facets/route memory', 'native popover/focus/caret/skip/history', 'tier success/failure focus', '500/700/900/1440 shell and panel', 'all 321 perks, 880 Killer Add-ons and 37 Powers decode against manifest dimensions', 'Killer Power/Add-ons details, quantity persistence/writer/focus and 320/500/760/1100/1440/1600 layouts', 'artwork aliases/nulls/error fallback/editing', 'export/import/backup/restore/reset and cancellations', 'Compact/Detailed ordered results, transient mode and route lifecycle', 'Compact next-tier floor/history/keyboard/focus/storage failure', 'Compact 500/700/900/1440 shell, actions and image fallback', 'all 98 portraits decode; PNG/WebP MIME and canonical mappings', 'portrait card/detail/manager layouts, fallback and editing', 'corrupt-current raw export/import/restore, corrupt backups and recovery failures', 'recovery Data controls at 500/700/900/1440', 'canonical character inventory/update routes, aliases, direct tiers, account unlock propagation, card presets and responsive cards', 'Survivor/Killer Lore collection cards, summary counts, controls, routes and 320/500/760/1100/1440/1600 layouts', 'no external/catalog/manifest JSON requests'] };
+    return { localhost: 'AUTOMATED PASS', browser: `${channel} ${browser.version()}`, checks: ['startup', 'Bloodweb/favorite edit', 'reload persistence', 'six labeled global destinations at wide and compact widths; Menu keyboard/Escape/focus, current route, skip-link contrast and navigation save safety', 'Filtering predicates/facets/route memory', 'native popover/focus/caret/skip/history', 'tier success/failure focus', '500/700/900/1440 shell and panel', 'all 321 perks, 880 Killer Add-ons and 37 Powers decode against manifest dimensions', 'Killer Power/Add-ons details, quantity persistence/writer/focus and 320/500/760/1100/1440/1600 layouts', 'artwork aliases/nulls/error fallback/editing', 'export/import/backup/restore/reset and cancellations', 'Compact/Detailed ordered results, transient mode and route lifecycle', 'Compact next-tier floor/history/keyboard/focus/storage failure', 'Compact 500/700/900/1440 shell, actions and image fallback', 'all 98 portraits decode; PNG/WebP MIME and canonical mappings', 'portrait card/detail/manager layouts, fallback and editing', 'corrupt-current raw export/import/restore, corrupt backups and recovery failures', 'recovery Data controls at 500/700/900/1440', 'canonical character inventory/update routes, aliases, direct tiers, account unlock propagation, card presets and responsive cards', 'Survivor/Killer Lore collection cards, summary counts, controls, routes and 320/500/760/1100/1440/1600 layouts', 'no external/catalog/manifest JSON requests'] };
   } finally {
     try { await browser?.close(); } finally { await new Promise(accept => server.close(accept)); }
   }
