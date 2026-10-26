@@ -177,6 +177,68 @@ async function rosterReturnContextRegression(page, origin, fixture) {
   assert.match(await page.locator('#collection-page-status').textContent(), /Page 2 of/);
 }
 
+async function rosterReviewRegressions(page, origin, fixture) {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const recentFixture = structuredClone(fixture);
+  characters.forEach((character, index) => {
+    recentFixture.characters[character.id].updatedAt = new Date(Date.UTC(2020, 0, index + 1)).toISOString();
+  });
+  for (const role of ['survivor', 'killer']) {
+    const route = role === 'survivor' ? 'survivors' : 'killers';
+    await page.goto(origin + '/#' + route);
+    await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), recentFixture);
+    await page.reload();
+    await page.locator('#sort').selectOption('recent');
+    await page.locator('#collection-page-next').click();
+    assert.match(await page.locator('#collection-page-status').textContent(), /Page 2 of/);
+    const card = page.locator('.' + role + '-collection-card').first();
+    const characterId = await card.getAttribute('data-character-id');
+    await card.locator('[data-action="favorite"]').click();
+    assert.equal(await byCharacterId(page, characterId).count(), 0, role + ' Favorite changes sort position off the current page');
+    const focused = await page.evaluate(() => {
+      const active = document.activeElement;
+      return { id: active?.id || '', action: active?.dataset?.action || '', visible: Boolean(active?.getClientRects().length) };
+    });
+    assert.ok(focused.visible && (focused.action === 'favorite' || focused.id === 'collection-results-heading'),
+      role + ' Favorite reordering restores focus to a visible result or heading: ' + JSON.stringify(focused));
+  }
+
+  for (const role of ['survivor', 'killer']) {
+    const route = role === 'survivor' ? 'survivors' : 'killers';
+    await page.goto(origin + '/#' + route);
+    await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), fixture);
+    await page.reload();
+    await page.locator('#collection-page-next').click();
+    assert.match(await page.locator('#collection-page-status').textContent(), /Page 2 of/);
+    const originLink = page.locator('.' + role + '-collection-card [data-open-workspace]').first();
+    const originId = await originLink.getAttribute('data-id');
+    await originLink.click();
+    await page.waitForURL('**/#character/' + originId + '/overview');
+    await page.locator('#global-nav a[href="#' + role + '-perks"]').click();
+    await page.getByPlaceholder('Search perks or source character…').fill('Adrenaline');
+    await page.goBack();
+    await page.waitForURL('**/#character/' + originId + '/overview');
+    await page.locator('.character-workspace-back').click();
+    await page.waitForURL('**/#' + route);
+    assert.match(await page.locator('#collection-page-status').textContent(), /Page 2 of/,
+      role + ' workspace return restores its page after a perk-library search');
+    assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('href')),
+      '#character/' + originId + '/overview', role + ' workspace return restores the origin card focus');
+  }
+
+  await page.goto(origin + '/#survivors');
+  await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), fixture);
+  await page.reload();
+  const filters = page.locator('#collection-filters');
+  if (!await filters.evaluate(node => node.open)) await filters.locator('summary').click();
+  await page.locator('[data-action="favorites-filter"]').click();
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset?.action), 'favorites-filter',
+    'Enabling Favorites restores focus to its replacement control');
+  await page.locator('[data-action="favorites-filter"]').click();
+  assert.equal(await page.evaluate(() => document.activeElement?.dataset?.action), 'favorites-filter',
+    'Disabling Favorites restores focus to its replacement control');
+}
+
 export async function collectionCardsRegression(page, origin, manifest) {
   manifest ??= await generateAssetManifest(project);
   const fixture = collectionFixture();
@@ -646,6 +708,7 @@ export async function collectionCardsRegression(page, origin, manifest) {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({ path: resolve(project, `test-results/killer-case-${id}-390.png`), fullPage: true });
   }
+  await rosterReviewRegressions(page, origin, fixture);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

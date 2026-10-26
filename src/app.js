@@ -36,8 +36,6 @@ let queueView = {expanded:false,role:'all'};
 let queueTargetEditor = null;
 let queueOpener = null;
 let filters = { search: '', status: 'all', prestige: 'all', favorite: false, sort: 'name' };
-let collectionPage = 0;
-let collectionPageRole = '';
 let collectionFiltersOpen = false;
 const collectionState = createRosterStateMemory();
 let lastRoute = '';
@@ -305,7 +303,7 @@ function characterMatches(c, status = filters.status) {
   return (status === 'all' || (status === 'owned' ? p.owned : !p.owned)) && (filters.prestige === 'all' || (filters.prestige === '3' ? p.prestige >= 3 : p.prestige === Number(filters.prestige))) && (!filters.favorite || p.favorite) && c.name.toLowerCase().includes(filters.search.toLowerCase());
 }
 function collection(role) {
-  if (collectionPageRole !== role) { collectionPageRole = role; collectionPage = collectionState.read(role).page; }
+  const rosterState = collectionState.update(role, { ...filters });
   const list = roleCharacters(role);
   const visible = list.filter(c => characterMatches(c));
   visible.sort((a, b) => {
@@ -313,9 +311,8 @@ function collection(role) {
     const order = { 'prestige-desc': pb.prestige - pa.prestige, 'prestige-asc': pa.prestige - pb.prestige, bloodweb: pb.bloodwebLevel - pa.bloodwebLevel, perks: characterStats(save, b.id).owned - characterStats(save, a.id).owned, recent: (pb.updatedAt || '').localeCompare(pa.updatedAt || '') }[filters.sort];
     return order || a.name.localeCompare(b.name);
   });
-  const page = paginateRoster(visible, collectionPage);
-  collectionPage = page.page;
-  collectionState.update(role, { ...filters, page: page.page });
+  const page = paginateRoster(visible, rosterState.page);
+  collectionState.update(role, { page: page.page });
   const cards = page.results.map(characterCollectionCard).join('');
   const activeFilters = [
     ...(filters.status !== 'all' ? [`<button type="button" data-action="collection-clear-filter" data-filter-key="status" data-active-filter="ownership">${filters.status === 'owned' ? 'Owned' : 'Locked'} ×</button>`] : []),
@@ -1372,7 +1369,7 @@ async function handleClick(event) {
     const rosterRole = route() === 'survivors' ? 'survivor' : route() === 'killers' ? 'killer' : null;
     if (rosterRole && link.hasAttribute('data-open-workspace')) {
       collectionState.update(rosterRole, {
-        ...filters, page: collectionPage, originCharacterId: link.dataset.id, scrollY: window.scrollY,
+        ...filters, originCharacterId: link.dataset.id, scrollY: window.scrollY,
       });
     }
     event.preventDefault(); await requestWorkspaceNavigation(link.getAttribute('href')); return;
@@ -1572,18 +1569,26 @@ async function handleClick(event) {
     if (!insidePanel) (document.querySelectorAll('.filter-summary > button:first-child')[Math.max(0, index)] || $('#filters-trigger'))?.focus({ preventScroll: true });
     return;
   }
-  if (action === 'collection-clear-search') { filters.search = ''; collectionPage = 0; render(); $('#search')?.focus({ preventScroll: true }); return; }
-  if (action === 'collection-reset-filters') { filters.status = 'all'; filters.prestige = 'all'; filters.favorite = false; collectionPage = 0; render(); $('#collection-filters summary')?.focus({ preventScroll: true }); return; }
+  if (action === 'collection-clear-search') { filters.search = ''; render(); $('#search')?.focus({ preventScroll: true }); return; }
+  if (action === 'collection-reset-filters') { filters.status = 'all'; filters.prestige = 'all'; filters.favorite = false; render(); $('#collection-filters summary')?.focus({ preventScroll: true }); return; }
   if (action === 'collection-clear-filter') {
     if (button.dataset.filterKey === 'status') filters.status = 'all';
     if (button.dataset.filterKey === 'prestige') filters.prestige = 'all';
     if (button.dataset.filterKey === 'favorite') filters.favorite = false;
-    collectionPage = 0; render(); $('#collection-filters summary')?.focus({ preventScroll: true }); return;
+    render(); $('#collection-filters summary')?.focus({ preventScroll: true }); return;
   }
-  if (action === 'filter') { filters.status = button.dataset.filter; collectionPage = 0; render(); return; }
-  if (action === 'favorites-filter') { collectionFiltersOpen = $('#collection-filters')?.open ?? false; filters.favorite = !filters.favorite; collectionPage = 0; render(); return; }
+  if (action === 'filter') { filters.status = button.dataset.filter; render(); return; }
+  if (action === 'favorites-filter') {
+    collectionFiltersOpen = $('#collection-filters')?.open ?? false;
+    filters.favorite = !filters.favorite;
+    render();
+    $('[data-action="favorites-filter"]')?.focus({ preventScroll: true });
+    return;
+  }
   if (action === 'collection-page') {
-    collectionPage = Math.max(0, collectionPage + Number(button.dataset.delta));
+    const role = route() === 'survivors' ? 'survivor' : 'killer';
+    const currentPage = collectionState.read(role).page;
+    collectionState.update(role, { page: Math.max(0, currentPage + Number(button.dataset.delta)) });
     render();
     document.getElementById('collection-results-heading')?.focus();
     return;
@@ -1597,8 +1602,12 @@ async function handleClick(event) {
     if (removesFilteredResult) {
       const cards = [...document.querySelectorAll('.character-collection-card')];
       (cards[Math.min(Math.max(cardIndex, 0), cards.length - 1)]?.querySelector('[data-open-workspace]') || $('#collection-results-heading'))?.focus();
-    } else [...document.querySelectorAll('.character-collection-card [data-action="favorite"]')]
-      .find(candidate => candidate.dataset.id === id)?.focus({ preventScroll: true });
+    } else {
+      const favorites = [...document.querySelectorAll('.character-collection-card [data-action="favorite"]')];
+      (favorites.find(candidate => candidate.dataset.id === id)
+        || favorites[Math.min(cardIndex, favorites.length - 1)]
+        || $('#collection-results-heading'))?.focus({ preventScroll: true });
+    }
     return;
   }
   if (action === 'cycle') {
@@ -1659,7 +1668,7 @@ document.addEventListener('input', event => {
   }
   if (event.target.id === 'search') {
     const start = event.target.selectionStart, end = event.target.selectionEnd;
-    filters.search = event.target.value; collectionPage = 0; render();
+    filters.search = event.target.value; render();
     const restored = $('#search');
     restored?.focus({ preventScroll: true });
     if (restored && Number.isInteger(start) && Number.isInteger(end)) restored.setSelectionRange(start, end);
@@ -1672,7 +1681,7 @@ document.addEventListener('change', async event => {
       if(['highest-to-lowest','lowest-to-highest'].includes(target.value))addonRarityDirection=target.value;
       render();return;
     }
-    if (target.id === 'ownership-filter' && ['all', 'owned', 'locked'].includes(target.value)) { collectionFiltersOpen = $('#collection-filters')?.open ?? false; filters.status = target.value; collectionPage = 0; render(); return; }
+    if (target.id === 'ownership-filter' && ['all', 'owned', 'locked'].includes(target.value)) { collectionFiltersOpen = $('#collection-filters')?.open ?? false; filters.status = target.value; render(); return; }
     if(target.id==='inventory-item'){selectStockItem(target.value);return;}
     if(['inventory-map','inventory-rarity','inventory-in-stock'].includes(target.id)){
       const key={'inventory-map':'map','inventory-rarity':'rarity','inventory-in-stock':'inStock'}[target.id];
@@ -1740,8 +1749,8 @@ document.addEventListener('change', async event => {
     }
     if (target.id === 'halloween-names') { commit(next => { next.settings.halloweenNames = target.value; }); refreshDetail(); }
     if (target.id === 'hellraiser-names') { commit(next => { next.settings.hellraiserNames = target.value; }); refreshDetail(); }
-    if (target.id === 'sort') { filters.sort = target.value; collectionPage = 0; render(); $('#sort')?.focus({ preventScroll: true }); }
-    if (target.id === 'prestige-filter') { collectionFiltersOpen = $('#collection-filters')?.open ?? false; filters.prestige = target.value; collectionPage = 0; render(); $('#prestige-filter')?.focus({ preventScroll: true }); }
+    if (target.id === 'sort') { filters.sort = target.value; render(); $('#sort')?.focus({ preventScroll: true }); }
+    if (target.id === 'prestige-filter') { collectionFiltersOpen = $('#collection-filters')?.open ?? false; filters.prestige = target.value; render(); $('#prestige-filter')?.focus({ preventScroll: true }); }
     if (target.id === 'import-file') {
       if (await resolveDirtyCharacterEdit({ action: 'import-file' }) !== 'proceed') { target.value = ''; return; }
       const file = target.files[0]; target.value = '';
