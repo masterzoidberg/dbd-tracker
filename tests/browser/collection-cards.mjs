@@ -3,7 +3,7 @@ import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { characters, characterById, perkById, perkName } from '../../data/catalog.js';
-import { inventoryEntityById } from '../../data/inventory-catalog.js';
+import { inventoryEntityById, killerPowerByCharacterId } from '../../data/inventory-catalog.js';
 import { freshSave, rolePerks } from '../../src/model.js';
 import { generateAssetManifest } from '../../scripts/generate-assets.mjs';
 
@@ -295,9 +295,51 @@ export async function collectionCardsRegression(page, origin, manifest) {
   assert.ok((await generalNativeRow.textContent()).includes('General · available'), 'General availability is shown without an automatic Tier');
   assert.doesNotMatch(await generalNativeRow.textContent(), /Tier I/);
 
+  await page.goto(origin + '/#killers');
+  await page.getByRole('heading', { name: 'Killers', exact: true }).waitFor();
   await page.locator('#search').fill('The Slasher');
   const slasher = byCharacterId(page, 'the-slasher');
-  assert.equal(await slasher.locator('[data-collection-hero-art]').count(), 0, 'Missing Lore art uses no guessed portrait fallback');
+  assert.equal(await slasher.locator('[data-collection-hero-art]').count(), 0, 'Missing Lore art never uses the square workspace portrait');
+  assert.equal(await slasher.locator('img').count(), 0, 'Missing Lore art does not substitute a Power or portrait-domain image');
+  assert.equal(await slasher.locator('.collection-art-fallback').count(), 1, 'The Slasher renders the named fallback element');
+  assert.equal(await slasher.locator('.collection-art-fallback').textContent(), 'Portrait unavailable', 'The Slasher has a neutral named-art fallback');
+  assert.equal(await slasher.locator('[data-open-workspace]').getAttribute('href'), '#character/the-slasher/overview', 'Missing Lore art keeps the Killer workspace link');
+  assert.equal(killerPowerByCharacterId['the-slasher'].artwork.confidence, 'REVIEW');
+  assert.equal(await slasher.locator('[data-killer-power]').count(), 1, 'Killer cards show a Power identity row');
+  assert.equal(await slasher.locator('[data-killer-power] [data-power-name]').textContent(), 'Omnipresent Evil', 'A qualified Power icon does not hide its supplied name');
+  assert.equal(await slasher.locator('[data-killer-power-art]').count(), 0, 'A qualified Power icon is omitted from the identity row');
+  await page.locator('#search').fill('The Trapper');
+  const trapperLoreFallback = byCharacterId(page, 'the-trapper');
+  const trapperPower = killerPowerByCharacterId['the-trapper'];
+  assert.equal(await trapperLoreFallback.locator('[data-killer-power] [data-power-name]').textContent(), trapperPower.powerName);
+  assert.equal(await trapperLoreFallback.locator('[data-killer-power-art]').count(), 1, 'An exact Power icon accompanies its canonical Power name');
+  assert.equal(decodeURIComponent(await trapperLoreFallback.locator('[data-killer-power-art]').getAttribute('src')),
+    manifest.killerPowers['the-trapper'].path, 'The Killer card uses the explicit Power asset manifest path');
+  const trapperOrder = await trapperLoreFallback.evaluate(card => {
+    const follows = (first, second) => Boolean(card.querySelector(first).compareDocumentPosition(card.querySelector(second)) & Node.DOCUMENT_POSITION_FOLLOWING);
+    return [follows('.character-progress', '[data-killer-power]'), follows('[data-killer-power]', '[data-native-perks]'), follows('[data-native-perks]', '.collection-workspace-action')];
+  });
+  assert.deepEqual(trapperOrder, [true, true, true], 'Power identity sits between progression and native perks');
+  assert.equal(await trapperLoreFallback.locator('[data-collection-summary]').count(), 0, 'Killer cards omit Add-on and perk-stat panels');
+  assert.match(await trapperLoreFallback.locator('[data-native-perks] h3').textContent(), /Account access/);
+  assert.equal(await trapperLoreFallback.locator('[data-native-perks] button').count(), 0, 'Killer account-access rows are informational');
+  assert.match(await trapperLoreFallback.locator('[data-native-perks]').textContent(), /Tier II/);
+  await trapperLoreFallback.locator('[data-collection-hero-art]').dispatchEvent('error');
+  assert.equal(await trapperLoreFallback.locator('[data-collection-hero-art]').count(), 0, 'A failed mapped Lore image is removed');
+  assert.equal(await trapperLoreFallback.locator('.collection-art-fallback').textContent(), 'Portrait unavailable', 'A failed Lore decode uses the same neutral fallback');
+  assert.equal(await trapperLoreFallback.locator('[data-open-workspace]').getAttribute('href'), '#character/the-trapper/overview', 'A failed Lore image keeps Killer navigation');
+  for (const [id, confidence, name] of [
+    ['the-clown', 'REVIEW', 'The Afterpiece Tonic'],
+    ['the-animatronic', 'MISSING', 'Fazbear’s Fright'],
+  ]) {
+    await page.locator('#search').fill(characterById[id].name);
+    const card = byCharacterId(page, id);
+    assert.equal(killerPowerByCharacterId[id].artwork.confidence, confidence);
+    assert.equal(await card.locator('[data-killer-power] [data-power-name]').textContent(), name);
+    assert.equal(await card.locator('[data-killer-power-art]').count(), 0, 'Missing or qualified Power artwork leaves the text identity intact');
+  }
+  await page.goto(origin + '/#survivors');
+  await page.getByRole('heading', { name: 'Survivors', exact: true }).waitFor();
   await page.locator('#search').fill('');
   assert.equal(await page.locator('.survivor-collection-card img[data-collection-hero-art]').count(), 6);
   const survivorImages = page.locator('.survivor-collection-card img[data-collection-hero-art]');
@@ -363,8 +405,8 @@ export async function collectionCardsRegression(page, origin, manifest) {
   assert.match(await trapper.locator('.prestige').textContent(), /P2/);
   assert.match(await trapper.locator('[data-bloodweb-value]').textContent(), /31\s*\/\s*50/);
   assert.equal(await trapper.locator('[data-native-perks] .native-row').count(), 3);
-  assert.ok((await trapper.locator('[data-collection-summary]').textContent()).includes('2 Add-ons'));
-  assert.ok(!(await trapper.locator('[data-collection-summary]').textContent()).includes('13'), 'Add-on summary counts types rather than copies');
+  assert.equal(await trapper.locator('[data-collection-summary]').count(), 0, 'Killer roster cards omit Add-on and perk-stat panels');
+  assert.equal(await trapper.locator('[data-killer-power] [data-power-name]').textContent(), killerPowerByCharacterId['the-trapper'].powerName, 'Killer cards identify their Power ahead of native perks');
   const trapperFavorite = trapper.locator('[data-action="favorite"]');
   await trapperFavorite.click();
   assert.equal(await page.evaluate(() => location.hash), '#killers', 'Killer Favorite does not navigate');
@@ -489,10 +531,15 @@ export async function collectionCardsRegression(page, origin, manifest) {
           const prestigeText = document.createRange();
           prestigeText.selectNodeContents(card.querySelector('.prestige'));
           const bloodweb = card.querySelector('.collection-bloodweb').getBoundingClientRect();
-          return { prestigeTextRight: prestigeText.getBoundingClientRect().right, bloodwebLeft: bloodweb.left };
+          return { prestigeTextLeft: prestigeText.getBoundingClientRect().left, prestigeTextRight: prestigeText.getBoundingClientRect().right, prestigeBadgeLeft: card.querySelector('.prestige').getBoundingClientRect().left, prestigeBadgeRight: card.querySelector('.prestige').getBoundingClientRect().right, bloodwebLeft: bloodweb.left };
         });
+        assert.ok(prestigeFlow.prestigeTextLeft >= prestigeFlow.prestigeBadgeLeft && prestigeFlow.prestigeTextRight <= prestigeFlow.prestigeBadgeRight, `P100 remains inside its badge at ${width}: ${JSON.stringify(prestigeFlow)}`);
         assert.ok(prestigeFlow.prestigeTextRight + 6 <= prestigeFlow.bloodwebLeft,
           `P100 remains separated from Bloodweb at ${width}: ${JSON.stringify(prestigeFlow)}`);
+      } else {
+        const expectedColumns = { 320: 1, 390: 1, 500: 1, 760: 2, 768: 2, 1024: 2, 1100: 3, 1280: 3, 1320: 3, 1360: 3, 1366: 3, 1440: 3, 1600: 3, 1920: 3 }[width];
+        assert.equal(metrics.columns, expectedColumns, `Killers use the fitted ${expectedColumns}-column layout at ${width}`);
+        if (width >= 760) assert.ok(metrics.cardRects.every(card => card.width >= 320), `Killer cards retain a useful minimum width at ${width}`);
       }
       if (width >= 1600) assert.ok(metrics.cardRects.every(card => card.width <= 440), `${role} cards remain dense at ${width}px`);
       if (width === 320) {
@@ -504,9 +551,21 @@ export async function collectionCardsRegression(page, origin, manifest) {
         await page.evaluate(() => window.scrollTo(0, 0));
         await page.screenshot({ path: resolve(project, 'test-results/survivor-collection-390.png') });
       }
+      if (width === 390 && role === 'killer') {
+        await page.evaluate(() => window.scrollTo(0, 0));
+        await page.screenshot({ path: resolve(project, 'test-results/killer-collection-390.png'), fullPage: true });
+      }
       if (width === 768 && role === 'survivor') {
         await page.evaluate(() => window.scrollTo(0, 0));
         await page.screenshot({ path: resolve(project, 'test-results/survivor-collection-tablet.png'), fullPage: true });
+      }
+      if (width === 768 && role === 'killer') {
+        await page.evaluate(() => window.scrollTo(0, 0));
+        await page.screenshot({ path: resolve(project, 'test-results/killer-collection-tablet.png'), fullPage: true });
+      }
+      if (width === 1280 || width === 1366) {
+        await page.evaluate(() => window.scrollTo(0, 0));
+        await page.screenshot({ path: resolve(project, `test-results/${role}-collection-${width}.png`), fullPage: true });
       }
       if (width === 1440) {
         await page.evaluate(() => window.scrollTo(0, 0));
@@ -516,10 +575,77 @@ export async function collectionCardsRegression(page, origin, manifest) {
         await page.evaluate(() => window.scrollTo(0, 0));
         await page.screenshot({ path: resolve(project, 'test-results/survivor-collection-wide.png'), fullPage: true });
       }
+      if (role === 'killer' && width === 1920) {
+        await page.evaluate(() => window.scrollTo(0, 0));
+        await page.screenshot({ path: resolve(project, 'test-results/killer-collection-wide.png'), fullPage: true });
+      }
     }
   }
   await sixResultToolbarRegression(page, origin, fixture);
   await rosterReturnContextRegression(page, origin, fixture);
+
+  const killerVisualFixture = structuredClone(fixture);
+  Object.assign(killerVisualFixture.characters['the-trapper'], { owned: true, prestige: 100, bloodwebLevel: 50 });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(origin + '/#killers');
+  await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), killerVisualFixture);
+  await page.reload();
+  for (const id of ['the-trapper', 'the-slasher', 'the-good-guy', 'the-singularity', 'the-skull-merchant', 'the-nurse']) {
+    await page.locator('#search').fill(characterById[id].name);
+    const card = byCharacterId(page, id);
+    assert.equal(await card.count(), 1, `${characterById[id].name} is reachable in the Killer roster`);
+    assert.equal(await card.locator('[data-killer-power] [data-power-name]').textContent(), killerPowerByCharacterId[id].powerName,
+      `${characterById[id].name} retains its canonical Power name`);
+    const image = card.locator('[data-collection-hero-art]');
+    if (await image.count()) {
+      assert.equal(decodeURIComponent(await image.getAttribute('src')), manifest.collectionPortraits[id].path,
+        `${characterById[id].name} uses only its explicit Lore mapping`);
+      await image.evaluate(node => node.decode());
+      assert.ok(await image.evaluate(node => node.naturalWidth > 0 && node.naturalHeight > 0), `${characterById[id].name} Lore image decodes`);
+      assert.equal(await image.evaluate(node => getComputedStyle(node).objectFit), 'contain', `${characterById[id].name} Lore art preserves its full composition`);
+    }
+    for (const width of [320, 390, 768, 1280, 1366, 1920]) {
+      await page.setViewportSize({ width, height: width === 768 ? 1024 : 900 });
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${characterById[id].name} has no page overflow at ${width}px`);
+      const fit = await card.evaluate(element => {
+        const card = element.getBoundingClientRect();
+        const name = element.querySelector('.character-name').getBoundingClientRect();
+        const power = element.querySelector('[data-power-name]').getBoundingClientRect();
+        const native = element.querySelector('[data-native-perks]').getBoundingClientRect();
+        const action = element.querySelector('.collection-workspace-action').getBoundingClientRect();
+        return { card, name, power, native, action };
+      });
+      assert.ok(fit.name.left >= fit.card.left && fit.name.right <= fit.card.right, `${characterById[id].name} label fits at ${width}px`);
+      assert.ok(fit.power.left >= fit.card.left && fit.power.right <= fit.card.right, `${killerPowerByCharacterId[id].powerName} fits at ${width}px`);
+      assert.ok(fit.native.top > fit.power.bottom && fit.action.top > fit.native.bottom, `${characterById[id].name} keeps Power, native perks and navigation in order at ${width}px`);
+      if (id === 'the-trapper') {
+        const prestigeFit = await card.evaluate(element => {
+          const badge = element.querySelector('.prestige');
+          const badgeRect = badge.getBoundingClientRect();
+          const textRange = document.createRange();
+          textRange.selectNodeContents(badge);
+          const textRect = textRange.getBoundingClientRect();
+          const bloodwebRect = element.querySelector('.collection-bloodweb').getBoundingClientRect();
+          return { badgeRect, textRect, bloodwebRect };
+        });
+        assert.ok(prestigeFit.textRect.left >= prestigeFit.badgeRect.left && prestigeFit.textRect.right <= prestigeFit.badgeRect.right,
+          `Killer P100 remains inside its progression badge at ${width}px: ${JSON.stringify(prestigeFit)}`);
+        assert.ok(prestigeFit.textRect.right + 6 <= prestigeFit.bloodwebRect.left,
+          `Killer P100 remains separated from Bloodweb at ${width}px: ${JSON.stringify(prestigeFit)}`);
+      }
+    }
+    if (id === 'the-trapper') {
+      assert.match(await card.locator('[data-ownership-status]').textContent(), /Owned/);
+      assert.equal(await card.locator('.prestige').textContent(), 'P100', 'Killer cards accommodate P100');
+    }
+    if (id === 'the-slasher') {
+      assert.equal(await card.locator('[data-collection-hero-art]').count(), 0);
+      assert.equal(await card.locator('.collection-art-fallback').count(), 1);
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.screenshot({ path: resolve(project, `test-results/killer-case-${id}-390.png`), fullPage: true });
+  }
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

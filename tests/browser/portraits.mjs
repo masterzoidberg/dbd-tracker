@@ -10,13 +10,25 @@ export async function portraitsRegression(page, origin, manifest) {
   const save = freshSave(); save.characters['meg-thomas'].owned = true; save.characters['meg-thomas'].setupComplete = true;
   await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), save);
   await page.goto(origin + '/#survivors'); await page.reload();
-  assert.equal(await page.locator('.character-card img[data-collection-hero-art]').count(), 54, 'Survivor cards must render Lore collection portraits');
+  assert.equal(await page.locator('.survivor-collection-card').count(), 6, 'Survivors render the first six Lore collection cards');
   const initial = await page.evaluate(() => localStorage.getItem('dbdTrackerData'));
   for (const role of ['survivor', 'killer']) {
     await page.goto(origin + '/#' + role + 's');
-    const portraits = page.locator('.character-card img[data-collection-hero-art]');
-    assert.equal(await portraits.count(), characters.filter(c => c.role === role && manifest.collectionPortraits[c.id]).length);
-    assert.ok(await portraits.evaluateAll(nodes => nodes.every(n => n.alt === '' && n.loading === 'lazy' && n.closest('[aria-hidden="true"]'))));
+    const expectedIds = characters.filter(c => c.role === role).sort((a, b) => a.name.localeCompare(b.name)).map(c => c.id);
+    const renderedIds = [];
+    const totalPages = Math.ceil(expectedIds.length / 6);
+    for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
+      const cards = page.locator(`.${role}-collection-card`);
+      const pageIds = await cards.evaluateAll(nodes => nodes.map(node => node.dataset.characterId));
+      assert.deepEqual(pageIds, expectedIds.slice(pageIndex * 6, (pageIndex + 1) * 6), `${role} page ${pageIndex + 1} shows the expected six Lore cards`);
+      const mappedOnPage = pageIds.filter(id => manifest.collectionPortraits[id]);
+      const portraits = page.locator('.character-card img[data-collection-hero-art]');
+      assert.equal(await portraits.count(), mappedOnPage.length, `${role} page ${pageIndex + 1} uses only mapped Lore portraits`);
+      assert.ok(await portraits.evaluateAll(nodes => nodes.every(n => n.alt === '' && n.loading === 'lazy' && n.closest('[aria-hidden="true"]'))));
+      renderedIds.push(...pageIds);
+      if (pageIndex + 1 < totalPages) await page.getByRole('button', { name: 'Next Page', exact: true }).click();
+    }
+    assert.deepEqual(renderedIds, expectedIds, `${role} paging reaches each Lore character exactly once`);
   }
   // Explicitly decode all references instead of relying on the lazy viewport.
   const assets = Object.values(manifest.portraits).filter(Boolean);

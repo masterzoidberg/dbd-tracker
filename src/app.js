@@ -16,7 +16,6 @@ import { correctPersonalPerkTier } from './model.js';
 import { createRosterStateMemory, paginateRoster } from './roster-state.js';
 import assetManifest from '../data/asset-manifest.json' with { type: 'json' };
 import { perkIconPath, characterPortraitPath, collectionPortraitPath } from './assets.js';
-import { killerAddonCount } from './survivor-collection.js';
 
 import { getFilterContext, perkFilterDefinitions, matchesPerkFilterState, selectQuickView, toggleAdvancedOption, clearAdvancedFilters, activeAdvancedGroupCount, perkFacetCounts, createFilterRouteMemory } from './perk-filters.js';
 import { CHARACTER_INVENTORY_CATEGORIES, CHARACTER_CARD_SIZES, DEFAULT_CHARACTER_CARD_SIZE, normalizeCharacterCardSize, characterInventoryCandidatePool, filterCharacterInventoryCandidates, characterNormalInventory, setCharacterPersonalTier, createCharacterInventorySession, syncCharacterInventorySession, markCharacterInventoryChanged, parseCharacterInventoryRoute } from './character-inventory.js';
@@ -188,8 +187,9 @@ function characterArtwork(character, size = 64) {
 }
 function collectionArtwork(character) {
   const path = collectionPortraitPath(character.id, assetManifest);
-  if (path) return `<img data-collection-hero-art src="${esc(path)}" alt="" aria-hidden="true" loading="lazy" decoding="async">`;
-  return character.role === 'survivor' ? '<span class="collection-art-fallback" aria-hidden="true">Portrait unavailable</span>' : '';
+  return path
+    ? `<img data-collection-hero-art src="${esc(path)}" alt="" aria-hidden="true" loading="lazy" decoding="async">`
+    : '<span class="collection-art-fallback" aria-hidden="true">Portrait unavailable</span>';
 }
 function tierButton(characterId, perk, idPrefix = '') {
   const tier = inventoryTier(save, characterId, perk.id);
@@ -286,19 +286,19 @@ function dashboard() {
 function characterCollectionCard(c) {
   const progress = save.characters[c.id];
   const survivor = c.role === 'survivor';
-  const stats = survivor ? null : characterStats(save, c.id);
   const workspace = characterWorkspaceHref(c.id, 'overview');
   const nativeRows = c.nativePerkIds.map(id => {
     const perk = perkById[id];
     const name = esc(perkName(save, perk));
-    if (!survivor) return `<div class="native-row"><span>${name}</span>${badge(inventoryTier(save, c.id, id))}</div>`;
     const tier = globalTier(save, perk);
     const access = isAvailable(save, perk) ? (tier ? `Tier ${roman[tier]}` : 'General · available') : 'Not unlocked';
     return `<div class="native-row"><span>${name}</span><span class="native-access">${esc(access)}</span></div>`;
   }).join('');
-  const nativeSection = `<section class="native-perks" data-native-perks aria-label="Native perks${survivor ? ', account access' : ''}"><h3>Native perks <span>${survivor ? 'Account access' : 'Owned'}</span></h3>${nativeRows}</section>`;
-  const summary = survivor ? '' : `<div class="collection-summary" data-collection-summary><div class="collection-summary-row"><span><b>${stats.owned} / ${stats.total}</b> Perks</span><span><b>${stats.tier3}</b> Tier III</span></div><div class="collection-summary-row"><span><b>${killerAddonCount(save, c.id)}</b> Add-ons</span></div></div>`;
-  return `<article class="character-card character-collection-card ${c.role}-collection-card${progress.owned ? '' : ' locked-card'}" data-character-id="${c.id}"><a class="collection-card-link" data-open-workspace data-id="${c.id}" href="${workspace}" aria-label="View ${esc(c.name)} workspace"><div class="character-card-hero" aria-hidden="true">${collectionArtwork(c)}</div><div class="character-card-content"><div class="character-card-top"><h2 class="character-name">${esc(c.name)}</h2></div><div class="ownership ${progress.owned ? 'is-owned' : ''}" data-ownership-status><span class="ownership-dot" aria-hidden="true"></span><span>${progress.owned ? 'Owned' : 'Locked'}</span></div><div class="character-progress"><span class="prestige large" aria-label="Prestige ${progress.prestige}">P${progress.prestige}</span><div class="collection-bloodweb"><div><span>Bloodweb</span><strong data-bloodweb-value aria-label="Bloodweb level ${progress.bloodwebLevel} of 50">${progress.bloodwebLevel} <small>/ 50</small></strong></div><span class="collection-bloodweb-track" aria-hidden="true"><span style="width:${progress.bloodwebLevel / 50 * 100}%"></span></span></div></div>${nativeSection}${summary}<span class="manage-button collection-workspace-action">View character <span aria-hidden="true">→</span></span></div></a><button class="favorite-button ${progress.favorite ? 'is-favorite' : ''}" data-action="favorite" data-id="${c.id}" aria-pressed="${progress.favorite}" aria-label="Favorite ${esc(c.name)}">${progress.favorite ? '★' : '☆'}</button></article>`;
+  const nativeSection = `<section class="native-perks" data-native-perks aria-label="Native perks, account access"><h3>Native perks <span>Account access</span></h3>${nativeRows}</section>`;
+  const power = survivor ? null : killerPowerByCharacterId[c.id];
+  const powerArtwork = power?.artwork.confidence === 'EXACT' ? killerPowerIconPath(c.id, assetManifest) : null;
+  const powerIdentity = survivor ? '' : `<div class="killer-power-identity" data-killer-power>${powerArtwork ? `<img data-killer-power-art src="${esc(artworkUrl(powerArtwork))}" alt="" aria-hidden="true" loading="lazy" decoding="async">` : ''}<div><span>Power</span><strong data-power-name>${esc(power.powerName)}</strong></div></div>`;
+  return `<article class="character-card character-collection-card ${c.role}-collection-card${progress.owned ? '' : ' locked-card'}" data-character-id="${c.id}"><a class="collection-card-link" data-open-workspace data-id="${c.id}" href="${workspace}" aria-label="View ${esc(c.name)} workspace"><div class="character-card-hero" aria-hidden="true">${collectionArtwork(c)}</div><div class="character-card-content"><div class="character-card-top"><h2 class="character-name">${esc(c.name)}</h2></div><div class="ownership ${progress.owned ? 'is-owned' : ''}" data-ownership-status><span class="ownership-dot" aria-hidden="true"></span><span>${progress.owned ? 'Owned' : 'Locked'}</span></div><div class="character-progress"><span class="prestige large" aria-label="Prestige ${progress.prestige}">P${progress.prestige}</span><div class="collection-bloodweb"><div><span>Bloodweb</span><strong data-bloodweb-value aria-label="Bloodweb level ${progress.bloodwebLevel} of 50">${progress.bloodwebLevel} <small>/ 50</small></strong></div><span class="collection-bloodweb-track" aria-hidden="true"><span style="width:${progress.bloodwebLevel / 50 * 100}%"></span></span></div></div>${powerIdentity}${nativeSection}<span class="manage-button collection-workspace-action">View character <span aria-hidden="true">→</span></span></div></a><button class="favorite-button ${progress.favorite ? 'is-favorite' : ''}" data-action="favorite" data-id="${c.id}" aria-pressed="${progress.favorite}" aria-label="Favorite ${esc(c.name)}">${progress.favorite ? '★' : '☆'}</button></article>`;
 }
 function characterMatches(c, status = filters.status) {
   const p = save.characters[c.id];
@@ -332,7 +332,7 @@ function collection(role) {
   const scopeNote = role === 'survivor'
     ? '<p class="collection-scope-note">Native perk states show account access, not recorded tiers on this Survivor. General perks can be available without an automatic tier.</p>' : '';
   const view = pageHeading('CHARACTER COLLECTION', role === 'survivor' ? 'Survivors' : 'Killers', 'Track your collection and the next step through the Bloodweb.', headingCount) + `<section class="collection-controls"><div class="collection-toolbar"><div class="collection-search-group">${searchInput('Search characters…')}${filters.search ? '<button type="button" data-action="collection-clear-search">Clear search</button>' : ''}</div><details id="collection-filters"${collectionFiltersOpen ? ' open' : ''}><summary>Filters${activeFilters ? `<span class="collection-filter-count">${(filters.status !== 'all' ? 1 : 0) + (filters.prestige !== 'all' ? 1 : 0) + (filters.favorite ? 1 : 0)} active</span>` : ''}</summary><div class="collection-filter-options">${selectControl('ownership-filter', 'Ownership', ownershipOptions, filters.status)}${selectControl('prestige-filter', 'Prestige', [['all', 'Any prestige'], ['0', 'P0'], ['1', 'P1'], ['2', 'P2'], ['3', 'P3+']], filters.prestige)}<button type="button" data-action="favorites-filter" class="${filters.favorite ? 'selected' : ''}" aria-pressed="${filters.favorite}">★ Favorites</button><button type="button" data-action="collection-reset-filters"${resetDisabled ? ' disabled' : ''}>Reset filters</button></div></details>${selectControl('sort', 'Sort', [['name', 'Name'], ['prestige-desc', 'Prestige ↓'], ['prestige-asc', 'Prestige ↑'], ['bloodweb', 'Bloodweb ↓'], ['perks', 'Perks owned ↓'], ['recent', 'Recently updated']], filters.sort)}</div>${activeFilters ? `<div class="collection-active-filters" aria-label="Active filters">${activeFilters}</div>` : ''}${scopeNote}</section><div class="results-label" id="collection-results-heading" tabindex="-1">${visible.length} CHARACTERS<span>${page.total ? `${page.start}–${page.end} of ${page.total} matching` : 'No matching characters'}</span></div><div class="character-grid character-collection-grid ${role}-collection-grid">${cards}</div>${visible.length ? '' : empty('No characters match these search and filters.')} ${pageControls}`;
-  return role === 'survivor' ? `<div class="survivor-roster-layout">${view}</div>` : view;
+  return `<div class="${role}-roster-layout">${view}</div>`;
 }
 
 function perkMatches(perk) {
@@ -1898,7 +1898,7 @@ $('#perk-filter-panel').addEventListener('toggle', () => $('#filters-trigger')?.
 document.addEventListener('error', event => {
   const image = event.target;
   if (image instanceof HTMLImageElement && image.hasAttribute('data-collection-hero-art')
-    && image.closest('.survivor-collection-card')) {
+    && image.closest('.character-collection-card')) {
     const fallback = document.createElement('span');
     fallback.className = 'collection-art-fallback';
     fallback.setAttribute('aria-hidden', 'true');

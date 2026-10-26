@@ -14,7 +14,7 @@ async function openGlobalDestination(page, name) {
 async function detail(page, role, name) {
   await openGlobalDestination(page, new RegExp('^' + role));
   await page.getByPlaceholder('Search characters…').fill(name);
-  await page.getByRole('link', { name, exact: true }).click();
+  await page.getByRole('link', { name: `View ${name} workspace`, exact: true }).click();
   await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
 }
 async function forcedChange(page, selector, value, type = 'change') {

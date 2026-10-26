@@ -147,6 +147,7 @@ export async function characterRosterNavigationRegression(page,origin) {
   await page.goto(origin+'/#character/jake-park/overview');
   await page.locator('.character-workspace-back').click();
   await page.waitForURL('**/#survivors');
+  await page.locator('#search').fill('Jill Valentine');
   const jillLink=page.locator('[data-open-workspace][href="#character/jill-valentine/overview"]');
   assert.equal(await jillLink.count(),1,'Jill Valentine is directly available from the Survivor collection');
   await jillLink.click();

@@ -20,6 +20,10 @@ async function seed(page, origin, save = fixture, route = 'manage/meg-thomas/leg
   await page.reload();
   await page.locator('#search').waitFor();
 }
+async function openRosterFilters(page) {
+  const panel = page.locator('#collection-filters');
+  if (!await panel.evaluate(node => node.open)) await panel.locator('summary').click();
+}
 async function navigate(page, route) {
   await page.evaluate(route => { location.hash = route; }, route);
   await page.waitForFunction(route => location.hash === '#' + route && document.querySelector('#breadcrumb').textContent === (route.startsWith('manage/') ? (route.includes('meg-thomas') || route.includes('dwight') ? 'SURVIVORS' : 'KILLERS') : route.replaceAll('-', ' ').toUpperCase()), route);
@@ -207,8 +211,9 @@ export async function focusAndLayouts(page, origin) {
   await page.setViewportSize({ width: 1440, height: 900 });
   await seed(page, origin, fixture, 'survivors');
   await page.locator('#search').fill('Meg');
+  await openRosterFilters(page);
   await page.locator('#prestige-filter').selectOption('1');
-  await page.locator('#collection-filters summary').click();
+  await openRosterFilters(page);
   await page.locator('[data-action="favorites-filter"]').click();
   await page.locator('#ownership-filter').selectOption('owned');
   await page.locator('#sort').selectOption('bloodweb');
