@@ -125,11 +125,11 @@ export async function characterInventoryRegression(page, origin) {
   // Collection cards open Character Overview for both roles.
   await page.goto(origin + '/#survivors');
   await page.getByPlaceholder('Search characters…').fill('Kate');
-  await page.locator('.character-card').filter({ hasText: 'Kate Denson' }).getByRole('link', { name: /Open workspace/ }).click();
+  await page.locator('.character-card').filter({ hasText: 'Kate Denson' }).locator('[data-open-workspace]').click();
   assert.equal(new URL(page.url()).hash, '#character/kate-denson/overview');
   await page.goto(origin + '/#killers');
   await page.getByPlaceholder('Search characters…').fill('Doctor');
-  await page.locator('.character-card').filter({ hasText: 'The Doctor' }).getByRole('link', { name: /Open workspace/ }).click();
+  await page.locator('.character-card').filter({ hasText: 'The Doctor' }).locator('[data-open-workspace]').click();
   assert.equal(new URL(page.url()).hash, '#character/the-doctor/overview');
 
   // Account Shrine unlocks continue to flow through globalTier into canonical Update candidates.

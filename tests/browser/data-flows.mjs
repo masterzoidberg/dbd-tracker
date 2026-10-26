@@ -8,7 +8,7 @@ export async function characterEditingRegression(page, origin) {
   await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), before);
   await page.goto(origin + '/#survivors'); await page.reload();
   await page.getByPlaceholder('Search characters…').fill('Meg');
-  await page.getByRole('link', { name: 'Meg Thomas', exact: true }).click();
+  await page.getByRole('link', { name: 'View Meg Thomas workspace', exact: true }).click();
   await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
   const bytes = () => page.evaluate(() => localStorage.getItem('dbdTrackerData'));
   const predecessor = await bytes();

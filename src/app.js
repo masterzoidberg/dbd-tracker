@@ -13,6 +13,7 @@ import { historicalPerkNote, historicalOwnershipControl } from './historical-per
 import {derivePrestigeQueue,applyPrestigeQueueAction} from './prestige-queue.js';
 import {suggestedP1Targets,recentCharacters,favoriteCharacters} from './dashboard-selectors.js';
 import { correctPersonalPerkTier } from './model.js';
+import { createRosterStateMemory, paginateRoster } from './roster-state.js';
 import assetManifest from '../data/asset-manifest.json' with { type: 'json' };
 import { perkIconPath, characterPortraitPath, collectionPortraitPath } from './assets.js';
 import { survivorInventoryCounts, killerAddonCount } from './survivor-collection.js';
@@ -36,9 +37,10 @@ let queueView = {expanded:false,role:'all'};
 let queueTargetEditor = null;
 let queueOpener = null;
 let filters = { search: '', status: 'all', prestige: 'all', favorite: false, sort: 'name' };
-let collectionPageSize = 'all';
 let collectionPage = 0;
 let collectionPageRole = '';
+let collectionFiltersOpen = false;
+const collectionState = createRosterStateMemory();
 let lastRoute = '';
 let managerView = 'detailed';
 const filterMemory = createFilterRouteMemory();
@@ -289,14 +291,14 @@ function characterCollectionCard(c) {
   const stockSummary = survivor
     ? `<span><b>${stock.items}</b> Items</span><span><b>${stock.addons}</b> Add-ons</span>`
     : `<span><b>${addonTypes}</b> Add-ons</span>`;
-  return `<article class="character-card character-collection-card ${c.role}-collection-card${progress.owned ? '' : ' locked-card'}" data-character-id="${c.id}"><div class="character-card-hero" aria-hidden="true">${collectionArtwork(c)}</div><div class="character-card-content"><div class="character-card-top"><a class="character-name" href="${workspace}" data-id="${c.id}"><span>${esc(c.name)}</span></a><button class="favorite-button ${progress.favorite ? 'is-favorite' : ''}" data-action="favorite" data-id="${c.id}" aria-pressed="${progress.favorite}" aria-label="Favorite ${esc(c.name)}">${progress.favorite ? '★' : '☆'}</button></div><button class="ownership ${progress.owned ? 'is-owned' : ''}" data-action="ownership" data-id="${c.id}" aria-pressed="${progress.owned}"><span class="ownership-dot" aria-hidden="true"></span><span>${progress.owned ? 'OWNED' : 'LOCKED'}</span><span class="toggle-track" aria-hidden="true"><span></span></span></button><div class="character-progress"><a class="prestige large" href="${workspace}">P${progress.prestige}</a><div class="collection-bloodweb"><div><span>Bloodweb</span><strong data-bloodweb-value>${progress.bloodwebLevel} <small>/ 50</small></strong></div><span class="collection-bloodweb-track" aria-hidden="true"><span style="width:${progress.bloodwebLevel / 50 * 100}%"></span></span></div></div><section class="native-perks" data-native-perks aria-label="Native perks"><h3>NATIVE PERKS <span>OWNED</span></h3>${c.nativePerkIds.map(id => `<button class="native-row" data-action="perk" data-id="${id}"><span>${esc(perkName(save, perkById[id]))}</span>${badge(inventoryTier(save, c.id, id))}</button>`).join('')}</section><div class="collection-summary" data-collection-summary><div class="collection-summary-row"><span><b>${stats.owned} / ${stats.total}</b> Perks</span><span><b>${stats.tier3}</b> Tier III</span></div><div class="collection-summary-row">${stockSummary}</div></div><a class="manage-button collection-workspace-action" data-open-workspace href="${workspace}">Open workspace <span aria-hidden="true">→</span></a></div></article>`;
+  return `<article class="character-card character-collection-card ${c.role}-collection-card${progress.owned ? '' : ' locked-card'}" data-character-id="${c.id}"><a class="collection-card-link" data-open-workspace data-id="${c.id}" href="${workspace}" aria-label="View ${esc(c.name)} workspace"><div class="character-card-hero" aria-hidden="true">${collectionArtwork(c)}</div><div class="character-card-content"><div class="character-card-top"><span class="character-name">${esc(c.name)}</span></div><div class="ownership ${progress.owned ? 'is-owned' : ''}" data-ownership-status><span class="ownership-dot" aria-hidden="true"></span><span>${progress.owned ? 'OWNED' : 'LOCKED'}</span></div><div class="character-progress"><span class="prestige large">P${progress.prestige}</span><div class="collection-bloodweb"><div><span>Bloodweb</span><strong data-bloodweb-value>${progress.bloodwebLevel} <small>/ 50</small></strong></div><span class="collection-bloodweb-track" aria-hidden="true"><span style="width:${progress.bloodwebLevel / 50 * 100}%"></span></span></div></div><section class="native-perks" data-native-perks aria-label="Native perks"><h3>NATIVE PERKS <span>OWNED</span></h3>${c.nativePerkIds.map(id => `<div class="native-row"><span>${esc(perkName(save, perkById[id]))}</span>${badge(inventoryTier(save, c.id, id))}</div>`).join('')}</section><div class="collection-summary" data-collection-summary><div class="collection-summary-row"><span><b>${stats.owned} / ${stats.total}</b> Perks</span><span><b>${stats.tier3}</b> Tier III</span></div><div class="collection-summary-row">${stockSummary}</div></div><span class="manage-button collection-workspace-action">Open workspace <span aria-hidden="true">→</span></span></div></a><button class="favorite-button ${progress.favorite ? 'is-favorite' : ''}" data-action="favorite" data-id="${c.id}" aria-pressed="${progress.favorite}" aria-label="Favorite ${esc(c.name)}">${progress.favorite ? '★' : '☆'}</button></article>`;
 }
 function characterMatches(c, status = filters.status) {
   const p = save.characters[c.id];
   return (status === 'all' || (status === 'owned' ? p.owned : !p.owned)) && (filters.prestige === 'all' || (filters.prestige === '3' ? p.prestige >= 3 : p.prestige === Number(filters.prestige))) && (!filters.favorite || p.favorite) && c.name.toLowerCase().includes(filters.search.toLowerCase());
 }
 function collection(role) {
-  if (collectionPageRole !== role) { collectionPageRole = role; collectionPage = 0; }
+  if (collectionPageRole !== role) { collectionPageRole = role; collectionPage = collectionState.read(role).page; }
   const list = roleCharacters(role);
   const visible = list.filter(c => characterMatches(c));
   visible.sort((a, b) => {
@@ -304,13 +306,19 @@ function collection(role) {
     const order = { 'prestige-desc': pb.prestige - pa.prestige, 'prestige-asc': pa.prestige - pb.prestige, bloodweb: pb.bloodwebLevel - pa.bloodwebLevel, perks: characterStats(save, b.id).owned - characterStats(save, a.id).owned, recent: (pb.updatedAt || '').localeCompare(pa.updatedAt || '') }[filters.sort];
     return order || a.name.localeCompare(b.name);
   });
-  const pageSize = collectionPageSize === 'all' ? Math.max(visible.length, 1) : Number(collectionPageSize);
-  const pageCount = Math.max(1, Math.ceil(visible.length / pageSize));
-  collectionPage = Math.min(collectionPage, pageCount - 1);
-  const pageCharacters = visible.slice(collectionPage * pageSize, (collectionPage + 1) * pageSize);
-  const cards = pageCharacters.map(characterCollectionCard).join('');
-  const pageControls = collectionPageSize !== 'all' ? `<nav class="collection-pagination" aria-label="Character pages"><button type="button" id="collection-page-prev" data-action="collection-page" data-delta="-1"${collectionPage === 0 ? ' disabled' : ''}>Previous Page</button><span aria-live="polite">Page ${collectionPage + 1} of ${pageCount}</span><button type="button" id="collection-page-next" data-action="collection-page" data-delta="1"${collectionPage === pageCount - 1 ? ' disabled' : ''}>Next Page</button></nav>` : '';
-  return pageHeading('CHARACTER COLLECTION', role === 'survivor' ? 'Survivors' : 'Killers', 'Track your collection and the next step through the Bloodweb.', `<div class="heading-count">${list.filter(c => save.characters[c.id].owned).length}<span>/ ${list.length} owned</span></div>`) + `<section class="collection-controls"><div class="toolbar">${searchInput('Search characters…')}${selectControl('prestige-filter', 'Prestige', [['all', 'Any prestige'], ['0', 'P0'], ['1', 'P1'], ['2', 'P2'], ['3', 'P3+']], filters.prestige)}<button data-action="favorites-filter" class="${filters.favorite ? 'selected' : ''}" aria-pressed="${filters.favorite}">★ Favorites</button>${selectControl('sort', 'Sort', [['name', 'Name'], ['prestige-desc', 'Prestige ↓'], ['prestige-asc', 'Prestige ↑'], ['bloodweb', 'Bloodweb ↓'], ['perks', 'Perks owned ↓'], ['recent', 'Recently updated']], filters.sort)}${selectControl('collection-page-size', 'Show', [['5', '5'], ['10', '10'], ['all', 'All']], collectionPageSize)}</div>${filterPills([['all', 'All characters'], ['owned', 'Owned'], ['locked', 'Locked']], status => list.filter(c => characterMatches(c, status)).length)}</section><div class="results-label">${visible.length} CHARACTERS<span>Click a name or prestige badge to edit</span></div>${pageControls}<div class="character-grid character-collection-grid ${role}-collection-grid">${cards}</div>${visible.length ? '' : empty()}`;
+  const page = paginateRoster(visible, collectionPage);
+  collectionPage = page.page;
+  collectionState.update(role, { ...filters, page: page.page });
+  const cards = page.results.map(characterCollectionCard).join('');
+  const activeFilters = [
+    ...(filters.status !== 'all' ? [`<button type="button" data-action="collection-clear-filter" data-filter-key="status" data-active-filter="ownership">${filters.status === 'owned' ? 'Owned' : 'Locked'} ×</button>`] : []),
+    ...(filters.prestige !== 'all' ? [`<button type="button" data-action="collection-clear-filter" data-filter-key="prestige" data-active-filter="prestige">${filters.prestige === '3' ? 'Prestige 3+' : `Prestige ${filters.prestige}`} ×</button>`] : []),
+    ...(filters.favorite ? ['<button type="button" data-action="collection-clear-filter" data-filter-key="favorite" data-active-filter="favorite">Favorites ×</button>'] : []),
+  ].join('');
+  const resetDisabled = filters.status === 'all' && filters.prestige === 'all' && !filters.favorite;
+  const ownershipOptions = [['all', 'Any ownership'], ['owned', 'Owned'], ['locked', 'Locked']];
+  const pageControls = visible.length ? `<nav class="collection-pagination" aria-label="Character pages"><button type="button" id="collection-page-prev" data-action="collection-page" data-delta="-1"${page.page === 0 ? ' disabled' : ''}>Previous Page</button><span id="collection-page-status" role="status" aria-live="polite">Page ${page.page + 1} of ${page.pageCount} · ${page.start}–${page.end} of ${page.total}</span><button type="button" id="collection-page-next" data-action="collection-page" data-delta="1"${page.page === page.pageCount - 1 ? ' disabled' : ''}>Next Page</button></nav>` : '';
+  return pageHeading('CHARACTER COLLECTION', role === 'survivor' ? 'Survivors' : 'Killers', 'Track your collection and the next step through the Bloodweb.', `<div class="heading-count">${list.filter(c => save.characters[c.id].owned).length}<span>/ ${list.length} owned</span></div>`) + `<section class="collection-controls"><div class="collection-toolbar"><div class="collection-search-group">${searchInput('Search characters…')}${filters.search ? '<button type="button" data-action="collection-clear-search">Clear search</button>' : ''}</div><details id="collection-filters"${collectionFiltersOpen ? ' open' : ''}><summary>Filters${activeFilters ? `<span class="collection-filter-count">${(filters.status !== 'all' ? 1 : 0) + (filters.prestige !== 'all' ? 1 : 0) + (filters.favorite ? 1 : 0)} active</span>` : ''}</summary><div class="collection-filter-options">${selectControl('ownership-filter', 'Ownership', ownershipOptions, filters.status)}${selectControl('prestige-filter', 'Prestige', [['all', 'Any prestige'], ['0', 'P0'], ['1', 'P1'], ['2', 'P2'], ['3', 'P3+']], filters.prestige)}<button type="button" data-action="favorites-filter" class="${filters.favorite ? 'selected' : ''}" aria-pressed="${filters.favorite}">★ Favorites</button><button type="button" data-action="collection-reset-filters"${resetDisabled ? ' disabled' : ''}>Reset filters</button></div></details>${selectControl('sort', 'Sort', [['name', 'Name'], ['prestige-desc', 'Prestige ↓'], ['prestige-asc', 'Prestige ↑'], ['bloodweb', 'Bloodweb ↓'], ['perks', 'Perks owned ↓'], ['recent', 'Recently updated']], filters.sort)}</div>${activeFilters ? `<div class="collection-active-filters" aria-label="Active filters">${activeFilters}</div>` : ''}</section><div class="results-label" id="collection-results-heading" tabindex="-1">${visible.length} CHARACTERS<span>${page.total ? `${page.start}–${page.end} of ${page.total} matching` : 'No matching characters'}</span></div><div class="character-grid character-collection-grid ${role}-collection-grid">${cards}</div>${visible.length ? '' : empty('No characters match these search and filters.')} ${pageControls}`;
 }
 
 function perkMatches(perk) {
@@ -1029,6 +1037,12 @@ async function resolveDirtyCharacterEdit(intent) {
   return 'stay';
 }
 function finishWorkspaceNavigation() {
+  const currentRoute = route();
+  const rosterRole = currentRoute === 'survivors' ? 'survivor' : currentRoute === 'killers' ? 'killer' : null;
+  const previousWorkspace = parseCharacterWorkspaceRoute(lastRoute);
+  const rosterReturn = rosterRole && previousWorkspace?.status === 'valid'
+    && characterById[previousWorkspace.characterId].role === rosterRole
+    ? collectionState.read(rosterRole) : null;
   const descriptor = parseCharacterWorkspaceRoute(route());
   if (descriptor?.section === 'edit' && !characterEditSession) {
     const previous = parseCharacterWorkspaceRoute(lastRoute);
@@ -1043,7 +1057,20 @@ function finishWorkspaceNavigation() {
   if ($('#detail').open) $('#detail').close();
   if ($('#message').className !== 'error') message('');
   committedWorkspaceHash = location.hash || '#dashboard';
-  render(); window.scrollTo(0, 0); $('#main').focus({ preventScroll: true });
+  render();
+  const returnLink = rosterReturn && previousWorkspace?.status === 'valid'
+    && rosterReturn.originCharacterId === previousWorkspace.characterId
+    ? [...document.querySelectorAll('.character-collection-card [data-open-workspace]')]
+      .find(link => link.dataset.id === rosterReturn.originCharacterId)
+    : null;
+  if (returnLink) {
+    window.scrollTo(0, rosterReturn.scrollY);
+    returnLink.focus({ preventScroll: true });
+  } else if (rosterRole && previousWorkspace?.status === 'valid') {
+    const resultsHeading = $('#collection-results-heading');
+    if (resultsHeading) { resultsHeading.scrollIntoView({ block: 'start' }); resultsHeading.focus({ preventScroll: true }); }
+    else { window.scrollTo(0, 0); $('#main').focus({ preventScroll: true }); }
+  } else { window.scrollTo(0, 0); $('#main').focus({ preventScroll: true }); }
 }
 function acceptPendingKillerQuantities() {
   if(killerSession){
@@ -1328,6 +1355,12 @@ async function handleClick(event) {
   const link = event.target.closest('a[href]');
   if (link?.getAttribute('href').startsWith('#') && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey
     && link.target !== '_blank' && event.button === 0) {
+    const rosterRole = route() === 'survivors' ? 'survivor' : route() === 'killers' ? 'killer' : null;
+    if (rosterRole && link.hasAttribute('data-open-workspace')) {
+      collectionState.update(rosterRole, {
+        ...filters, page: collectionPage, originCharacterId: link.dataset.id, scrollY: window.scrollY,
+      });
+    }
     event.preventDefault(); await requestWorkspaceNavigation(link.getAttribute('href')); return;
   }
   if (setupOpen && event.target.closest('nav a')) { setupOpen = false; render(); }
@@ -1525,17 +1558,33 @@ async function handleClick(event) {
     if (!insidePanel) (document.querySelectorAll('.filter-summary > button:first-child')[Math.max(0, index)] || $('#filters-trigger'))?.focus({ preventScroll: true });
     return;
   }
+  if (action === 'collection-clear-search') { filters.search = ''; collectionPage = 0; render(); $('#search')?.focus({ preventScroll: true }); return; }
+  if (action === 'collection-reset-filters') { filters.status = 'all'; filters.prestige = 'all'; filters.favorite = false; collectionPage = 0; render(); $('#collection-filters summary')?.focus({ preventScroll: true }); return; }
+  if (action === 'collection-clear-filter') {
+    if (button.dataset.filterKey === 'status') filters.status = 'all';
+    if (button.dataset.filterKey === 'prestige') filters.prestige = 'all';
+    if (button.dataset.filterKey === 'favorite') filters.favorite = false;
+    collectionPage = 0; render(); $('#collection-filters summary')?.focus({ preventScroll: true }); return;
+  }
   if (action === 'filter') { filters.status = button.dataset.filter; collectionPage = 0; render(); return; }
-  if (action === 'favorites-filter') { filters.favorite = !filters.favorite; collectionPage = 0; render(); return; }
+  if (action === 'favorites-filter') { collectionFiltersOpen = $('#collection-filters')?.open ?? false; filters.favorite = !filters.favorite; collectionPage = 0; render(); return; }
   if (action === 'collection-page') {
     collectionPage = Math.max(0, collectionPage + Number(button.dataset.delta));
     render();
-    document.getElementById(Number(button.dataset.delta) < 0 ? 'collection-page-prev' : 'collection-page-next')?.focus({ preventScroll: true });
+    document.getElementById('collection-results-heading')?.focus();
     return;
   }
-  if (action === 'favorite' || action === 'ownership') {
-    const field = action === 'favorite' ? 'favorite' : 'owned';
-    commit(next => { next.characters[id][field] = !next.characters[id][field]; }, id); return;
+  if (action === 'favorite') {
+    const wasFavorite = save.characters[id].favorite;
+    const card = button.closest('.character-collection-card');
+    const cardIndex = [...document.querySelectorAll('.character-collection-card')].indexOf(card);
+    const removesFilteredResult = filters.favorite && wasFavorite;
+    if (!commit(next => { next.characters[id].favorite = !next.characters[id].favorite; }, id)) return;
+    if (removesFilteredResult) {
+      const cards = [...document.querySelectorAll('.character-collection-card')];
+      (cards[Math.min(Math.max(cardIndex, 0), cards.length - 1)]?.querySelector('[data-open-workspace]') || $('#collection-results-heading'))?.focus();
+    }
+    return;
   }
   if (action === 'cycle') {
     if (inventoryTier(save, character, perk) === 3 || !bloodwebEligible(save, character, perkById[perk])) return;
@@ -1593,7 +1642,13 @@ document.addEventListener('input', event => {
     target.setCustomValidity(target.value && !Number.isSafeInteger(value) ? 'Enter a valid whole-number Prestige.' : '');
     if (target.checkValidity() && Number.isSafeInteger(value)) commit(next => { next.characters[id].prestige = value; }, id);
   }
-  if (event.target.id === 'search') { filters.search = event.target.value; collectionPage = 0; render(); }
+  if (event.target.id === 'search') {
+    const start = event.target.selectionStart, end = event.target.selectionEnd;
+    filters.search = event.target.value; collectionPage = 0; render();
+    const restored = $('#search');
+    restored?.focus({ preventScroll: true });
+    if (restored && Number.isInteger(start) && Number.isInteger(end)) restored.setSelectionRange(start, end);
+  }
 });
 document.addEventListener('change', async event => {
   const target = event.target;
@@ -1602,10 +1657,7 @@ document.addEventListener('change', async event => {
       if(['highest-to-lowest','lowest-to-highest'].includes(target.value))addonRarityDirection=target.value;
       render();return;
     }
-    if(target.id==='collection-page-size'){
-      if(['5','10','all'].includes(target.value))collectionPageSize=target.value;
-      collectionPage=0;render();$('#collection-page-size')?.focus({preventScroll:true});return;
-    }
+    if (target.id === 'ownership-filter' && ['all', 'owned', 'locked'].includes(target.value)) { collectionFiltersOpen = $('#collection-filters')?.open ?? false; filters.status = target.value; collectionPage = 0; render(); return; }
     if(target.id==='inventory-item'){selectStockItem(target.value);return;}
     if(['inventory-map','inventory-rarity','inventory-in-stock'].includes(target.id)){
       const key={'inventory-map':'map','inventory-rarity':'rarity','inventory-in-stock':'inStock'}[target.id];
@@ -1673,8 +1725,8 @@ document.addEventListener('change', async event => {
     }
     if (target.id === 'halloween-names') { commit(next => { next.settings.halloweenNames = target.value; }); refreshDetail(); }
     if (target.id === 'hellraiser-names') { commit(next => { next.settings.hellraiserNames = target.value; }); refreshDetail(); }
-    if (target.id === 'sort') { filters.sort = target.value; collectionPage = 0; render(); }
-    if (target.id === 'prestige-filter') { filters.prestige = target.value; collectionPage = 0; render(); }
+    if (target.id === 'sort') { filters.sort = target.value; collectionPage = 0; render(); $('#sort')?.focus({ preventScroll: true }); }
+    if (target.id === 'prestige-filter') { collectionFiltersOpen = $('#collection-filters')?.open ?? false; filters.prestige = target.value; collectionPage = 0; render(); $('#prestige-filter')?.focus({ preventScroll: true }); }
     if (target.id === 'import-file') {
       if (await resolveDirtyCharacterEdit({ action: 'import-file' }) !== 'proceed') { target.value = ''; return; }
       const file = target.files[0]; target.value = '';

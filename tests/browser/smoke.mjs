@@ -38,7 +38,7 @@ export async function smokeStage(stage, { channel = 'msedge', regression, manife
     if (!await globalNavigation.isVisible()) await page.getByRole('button', { name: 'Menu', exact: true }).click();
     await globalNavigation.getByRole('link', { name: /^Survivors/ }).click();
     await page.getByPlaceholder('Search characters…').fill('Meg');
-    await page.getByRole('link', { name: 'Meg Thomas', exact: true }).click();
+    await page.getByRole('link', { name: 'View Meg Thomas workspace', exact: true }).click();
     await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
     await page.locator('#edit-bloodweb').fill('25');
     await page.locator('#edit-favorite').check();

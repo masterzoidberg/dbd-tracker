@@ -36,9 +36,9 @@ export async function portraitsRegression(page, origin, manifest) {
     await page.goto(origin + '/#' + character.role + 's');
     await page.locator('#search').fill(character.name);
     const card = page.locator(`.character-card[data-character-id="${id}"]`);
-    const button = card.locator('.character-name');
+    const link = card.locator('[data-open-workspace]');
     assert.equal(await card.locator('[data-collection-hero-art]').getAttribute('src'), manifest.collectionPortraits[id].path);
-    await button.click();
+    await link.click();
     assert.equal(await page.locator('.character-workspace-header img').getAttribute('src'), manifest.portraits[id].path);
     assert.equal(await page.locator('.character-workspace-header .character-portrait').evaluate(n => n.getBoundingClientRect().width), 80);
     assert.equal(await page.locator('#detail').isVisible(), false);
@@ -54,9 +54,9 @@ export async function portraitsRegression(page, origin, manifest) {
     await page.goto(origin + '/#' + character.role + 's');
     await page.locator('#search').fill(character.name);
     const card = page.locator(`.character-card[data-character-id="${id}"]`);
-    const button = card.locator('.character-name');
-    await button.scrollIntoViewIfNeeded();
-    await button.click();
+    const link = card.locator('[data-open-workspace]');
+    await link.scrollIntoViewIfNeeded();
+    await link.click();
     const holder = page.locator('.character-workspace-header .character-portrait');
     const image = holder.locator('img[data-character-portrait]');
     await page.waitForFunction(id => document.querySelector(`img[data-character-portrait="${id}"]`)?.naturalWidth > 0, id);
@@ -97,8 +97,10 @@ export async function portraitsRegression(page, origin, manifest) {
         assert.equal(await card.locator('[data-collection-hero-art]').count(), 1, 'First collection character has an explicit Lore portrait');
         assert.equal(await card.locator('[data-collection-hero-art]').evaluate(n => getComputedStyle(n).objectFit), 'contain');
         assert.equal(await card.locator('[data-action="favorite"]').isVisible(), true);
-        assert.equal(await card.locator('[data-action="ownership"]').isVisible(), true);
-        await card.locator('.character-name').focus(); await page.keyboard.press('Enter');
+        assert.match(await card.locator('[data-ownership-status]').textContent(), /Owned|Locked/);
+        assert.equal(await card.locator('[data-action="ownership"]').count(), 0);
+        assert.equal(await card.locator('a[href^="#character/"]').count(), 1);
+        await card.locator('[data-open-workspace]').focus(); await page.keyboard.press('Enter');
         const edit = await page.getByRole('link', { name: 'Edit Character', exact: true }).boundingBox();
         assert.ok(edit.x >= 0 && edit.x + edit.width <= width);
         assert.equal(await page.locator('#detail').isVisible(), false);

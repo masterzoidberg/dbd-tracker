@@ -208,17 +208,20 @@ export async function focusAndLayouts(page, origin) {
   await seed(page, origin, fixture, 'survivors');
   await page.locator('#search').fill('Meg');
   await page.locator('#prestige-filter').selectOption('1');
+  await page.locator('#collection-filters summary').click();
   await page.locator('[data-action="favorites-filter"]').click();
-  await page.locator('[data-action="filter"][data-filter="owned"]').click();
+  await page.locator('#ownership-filter').selectOption('owned');
   await page.locator('#sort').selectOption('bloodweb');
   assert.equal(await page.locator('.character-card').count(), 1);
+  const rosterSave = await page.evaluate(() => localStorage.getItem('dbdTrackerData'));
   await navigate(page, 'killers'); assert.equal(await page.locator('#search').inputValue(), '');
   await navigate(page, 'survivors');
   assert.equal(await page.locator('.character-card').count(), 1);
   assert.equal(await page.locator('#search').inputValue(), 'Meg');
   assert.equal(await page.locator('#sort').inputValue(), 'bloodweb');
-  await page.locator('[data-action="ownership"]').click();
-  assert.equal(await page.locator('.character-card').count(), 0, 'Existing ownership predicate still combines with collection filters');
+  assert.match(await page.locator('[data-ownership-status]').textContent(), /Owned/i, 'Ownership remains visible without editing from the roster');
+  assert.equal(await page.locator('[data-action="ownership"]').count(), 0, 'Roster ownership is not a mutation control');
+  assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), rosterSave, 'Roster navigation and filters leave account data unchanged');
 }
 
 export async function shellNavigationRegression(page, origin) {

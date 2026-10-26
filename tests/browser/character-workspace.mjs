@@ -74,9 +74,8 @@ export async function characterWorkspaceRegression(page, origin) {
   await page.goto(origin + '/#survivors');
   await page.locator('#search').fill('Meg');
   const card = page.locator('.character-card').first();
-  assert.equal(await card.locator('.character-name').getAttribute('href'), '#character/meg-thomas/overview');
-  assert.equal(await card.locator('.prestige').getAttribute('href'), '#character/meg-thomas/overview');
   assert.equal(await card.locator('[data-open-workspace]').getAttribute('href'), '#character/meg-thomas/overview');
+  assert.equal(await card.locator('a[href^="#character/"]').count(), 1, 'The card exposes one broad workspace link');
   await card.locator('.prestige').click();
   assert.equal(await page.locator('#detail').isVisible(), false);
   await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
