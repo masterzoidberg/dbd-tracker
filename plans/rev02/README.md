@@ -1,54 +1,66 @@
 # Rev02 UX/UI Planning
 
-Rev02 is a screen-by-screen UX/UI redesign planning pass for the Dead by Daylight tracker. Each major screen is reviewed and documented before any application changes begin. An approved screen plan records its purpose, information hierarchy, content decisions, interactions, accessibility, and responsive needs; approval of a plan does not authorize implementation.
+**Implementation roadmap created · 2026-10-25 · Implementation not started.**
 
-The global audit and proposed direction establish context for individual screen reviews. Auditing a screen does not approve its design. The Dashboard has an approved screen direction. The Survivor roster, full Survivor workspace and Killer roster have design-direction plans recording the user's settled direction and detailed recommendations awaiting review. The Killer roster plan also records the read-only artwork audit and the user's Lore-first Killer character-identity source decision. Other screen entries below remain unreviewed as individual Rev02 plans.
+This set defines Rev02 Core across the actual vanilla JS/HTML/CSS tracker. Archive when browsing. Tool when editing. Explicit user decisions outrank older recommendations, confirmed functional behavior and skill preferences. Detailed recommendations remain labeled; this consolidation is not blanket approval of exact visual geometry.
 
-## Process
+## Repository Safety / Evidence
 
-1. Global audit of the actual application, workflows and shared patterns.
-2. Compare and review the proposed design direction.
-3. Review and approve screen-by-screen plans.
-4. Consolidate and review shared/global design decisions and any design-system record.
-5. Inspect all approved plans, current architecture, reusable components, design-system and testing dependencies; create a dependency-aware implementation roadmap for review.
-6. Implement only after that roadmap is reviewed and execution is authorized.
-7. Perform visual and functional verification against approved behavior and designs.
-8. Refine interaction polish and stress-test realistic content, repeated input, responsive layouts and failure states.
+The prior consolidation started clean on `main`, HEAD and `origin/main` **351ca1c**. Roadmap creation preserved those uncommitted planning changes and reverified that live GitHub main still matched. History contains the PC/GitHub reconciliation merge and effective-export bundle regeneration. No pull/reset/clean, branch, production change, migration, build, deployment or data replacement was performed during either planning pass.
 
-## Global audit and strategy
+All checked-out Markdown plans were reviewed as one set against current source. The 19 historical PNGs under [evidence/](evidence/) were inventoried/reviewed together; original rendered audit limits remain recorded in the matrix. [rev02.zip](rev02.zip) is historical reference only, even if manually refreshed between planning passes. **The checked-out Markdown files below are authoritative.** Roadmap creation did not alter the ZIP or evidence images.
 
-| Document | Status |
+## Plan Index
+
+| File | Coverage / status |
 | --- | --- |
-| [00-ui-ux-redesign-strategy.md](00-ui-ux-redesign-strategy.md) | AUDIT COMPLETE; DESIGN RECOMMENDATION AWAITING REVIEW |
-| [00a-ux-audit-matrix.md](00a-ux-audit-matrix.md) | AUDIT COMPLETE; OBSERVATIONS AND COVERAGE LIMITS |
-| [00b-open-design-questions.md](00b-open-design-questions.md) | OPEN QUESTIONS AND RECOMMENDATIONS FOR REVIEW |
+| [00-ui-ux-redesign-strategy.md](00-ui-ux-redesign-strategy.md) | Audit, historical identity alternatives, consolidated product principles; reconciled. |
+| [00a-ux-audit-matrix.md](00a-ux-audit-matrix.md) | Historical evidence plus complete Core planning/source-dependency coverage; reconciled. |
+| [00b-open-design-questions.md](00b-open-design-questions.md) | Decision/rationale history; answered questions closed; only D01/D02 need product input. |
+| [01-dashboard.md](01-dashboard.md) | Approved three-job hierarchy; role pins/queue state, migration/import/export and local Continue dependencies documented. |
+| [02-survivor-roster.md](02-survivor-roster.md) | Six-per-page 3/2/1 roster; ownership status, Favorite, account-scope terminology and shell reconciled. |
+| [03-survivor-workspace.md](03-survivor-workspace.md) | Full Overview/Perks/Items & Add-ons; contextual capability audit, explicit Update/Done and safe working context reconciled. |
+| [04-killer-roster.md](04-killer-roster.md) | Six-per-page/Power identity, artwork audit; Lore and neutral named fallback policy reconciled. |
+| [05-killer-workspace.md](05-killer-workspace.md) | New full Overview/Perks/Power & Add-ons plan, editor audit, quantities and structured reference. |
+| [06-shared-global-design.md](06-shared-global-design.md) | New bounded shared shell/layout/interaction/state/accessibility contract; Core boundary and dependency shape. |
+| [07-implementation-roadmap.md](07-implementation-roadmap.md) | Primary execution plan: dependency graph, phase tasks/files/tests, D01/D02 gates, migration safety, visual/release/manual acceptance and recovery. No phases executed. |
 
-Existing-interface screenshots are under [evidence/](evidence/) and indexed in the audit matrix. They are audit records, not proposed redesigns or automated visual baselines.
+No separate competing plans are needed for character Perks or inventory tabs; they belong in the full role workspaces. Standalone account perk libraries are distinct from those character tabs.
 
-Explicit user decisions and approved Rev02 screen plans take precedence over recommendations in the global audit. Product facts and proposed visual decisions are identified separately in the strategy. A later PRODUCT.md or DESIGN.md must reference and remain consistent with approved Rev02 decisions; no competing context documents were created for this audit.
+## Resolved Direction
 
-## Plan index
+- Recorded personal Tier, automatic minimum, effective character Tier and account access are distinct. Effective = max(recorded, automatic); General availability may exist at global zero. Derived export fields never become personal records on import.
+- Perks uses explicit Update Inventory, per-selection atomic persistence and Done. Correction is a separate selected-perk task. No collection-wide staged Save or false Cancel.
+- Preserve capabilities, retire the giant Edit Character interface after contextual parity. Overview owns character state/progression/notes/setup; Perks owns records/correction; role inventory owns quantities. Preserve validation, conflicts, unknowns, setup and central normalization/migrations.
+- Preserve safe session working context across neighbors, with canonical same-role order. Drafts/pending values/errors/selected perks/change counts never transfer. Roster Back restores its separate invoking context.
+- Both rosters display Owned/Locked; ownership changes in Overview. Favorite remains independent. Six per page is settled, not reopened by responsive layout.
+- Killer Lore is the character-identity source across roster/workspace. The Slasher has no Lore; use neutral named fallback, no older square exception. Power assets remain separate.
+- Full sidebar only when useful; earlier compact labeled navigation when content constrains. Plan 06 recommends Menu header and derives an initial ~1300px transition candidate; final cutoff follows fit, not a 768px device rule.
+- Survivor family→Item→compatible Add-ons versus Killer→Power→flat Add-ons. Shared additive −1/value/+1/+5/+10, direct entry, pending/error/focus safety; no rarity accordions.
+- Dashboard requires new persisted role queue/pin state and backward-reading migration support; Continue is recommended as one browser-local stable workspace preference, without telemetry.
 
-| # | Screen / topic | Plan | Status |
-| --- | --- | --- | --- |
-| 1 | Dashboard | [01-dashboard.md](01-dashboard.md) | **APPROVED DESIGN DIRECTION — PLANNING ONLY; NOT IMPLEMENTED** |
-| 2 | Survivor roster | [02-survivor-roster.md](02-survivor-roster.md) | **DESIGN-DIRECTION PLAN — USER DIRECTION RECORDED; DETAILED RECOMMENDATIONS FOR REVIEW; NOT IMPLEMENTED** |
-| 3 | Full Survivor workspace: shell, Overview, character Perks, Items & Add-ons, contextual editing | [03-survivor-workspace.md](03-survivor-workspace.md) | **DESIGN-DIRECTION PLAN — USER DIRECTION RECORDED; DETAILED RECOMMENDATIONS FOR REVIEW; NOT IMPLEMENTED** |
-| 4 | Survivor Perks — standalone account library | — | NOT YET REVIEWED; character Perks tab covered by plan 03 |
-| 5 | Survivor Items & Add-ons — workspace tab | [03-survivor-workspace.md](03-survivor-workspace.md#items--add-ons-tab) | COVERED BY FULL WORKSPACE PLAN 03; RECOMMENDATIONS FOR REVIEW; NOT IMPLEMENTED |
-| 6 | Killer roster / character artwork audit | [04-killer-roster.md](04-killer-roster.md) | **DESIGN-DIRECTION PLAN — SIX-PER-PAGE AND LORE SOURCE DIRECTION RECORDED; DETAILED RECOMMENDATIONS FOR REVIEW; NOT IMPLEMENTED** |
-| 7 | Killer character workspace | — | NOT YET REVIEWED |
-| 8 | Killer Perks | — | NOT YET REVIEWED |
-| 9 | Killer Power & Add-ons | — | NOT YET REVIEWED |
-| 10 | Data / Backups | — | NOT YET REVIEWED |
-| 11 | Shared/global design findings | — | NOT YET REVIEWED |
-| 12 | Final implementation roadmap | — | NOT YET REVIEWED |
+## Remaining Product Decisions
 
-## Planning boundary
+**D01:** dual Prestige/Playing membership and how a single pinned character represents intent. **D02:** direct pin versus required queue membership. Recommendations and previous alternatives are retained in the question register. Resolve before finalizing schema/membership/removal rules and related UI acceptance. They are explicit gates in the completed roadmap and do not block unrelated UI work. No other answered question remains a product blocker.
 
-The full Survivor workspace review consolidates its three tabs in plan 03. No separate competing character-Perks or stock plan is created. The standalone Survivor account perk library and Killer workspace screens remain future reviews. Plan 04 establishes Killer character-identity source direction without redesigning the Killer workspace. Material workspace decisions are tracked as SW01–SW04; the missing-Lore fallback policy is KR01 in the open-questions document.
+## Rev02 Core Implementation Boundary
 
-- Screen plans describe intended UX/UI and note dependencies; they do not implement changes.
-- Do not create a screen plan until that screen has been reviewed.
-- The final implementation roadmap is deferred until the major screen plans are complete.
-- Source code and application behavior remain unchanged during this planning pass.
+Core includes shared application shell/system, Dashboard, Survivor/Killer rosters, full Survivor/Killer workspaces and persistence/schema changes required for them. Subordinate queue management is part of Dashboard functionality, not a new primary Dashboard job.
+
+Standalone **Survivor Perks library**, **Killer Perks library**, and **Data & Backups** may keep current information architecture initially. They must stay functional under the new shell and support new save formats, recovery and export/import correctly. Shell integration, shared typography/vocabulary, accessibility and compatibility styling are in Core; a full dedicated redesign is not a prerequisite.
+
+## Execution Order — Not Plan Number Order
+
+Recommended roadmap order: **0 baseline → 1A v2 schema/migration safety → 2 shared shell → 3 roster behavior → 4 Survivor roster → 5 Killer roster → 6 workspace/context → 7 shared editing/Perks/quantities → 8 Survivor workspace → 9 Killer workspace → 10 editor parity/retirement → 1B approved queue/pin schema → 11 Continue/Dashboard → 12 standalone compatibility → 13 accessibility/stress/polish → 14 final release/manual acceptance.**
+
+Plan 01's Dashboard cannot be implemented first merely because it has the lowest screen number. Phase 1B requires explicit D01/D02 answers; phases 0, 1A and 2–10 may proceed independently after execution authorization. Local Continue task 11.1 is also independent of those answers once workspace routing is ready. The roadmap explains consumer compatibility and permits earlier 1B only when the current Dashboard is adapted atomically. No optional duplicate dependency matrix was needed.
+
+## Next Step / Readiness
+
+**Roadmap ready to execute one phase at a time; implementation not started.** Review [07-implementation-roadmap.md](07-implementation-roadmap.md) as the execution reference. D01/D02 remain gates before the final queue/pin schema and dependent Dashboard acceptance, not blockers for unrelated UI work. Phase 0 belongs to a later authorized implementation session. No schema, source, CSS, assets, generated bundle or deployment changed during roadmap creation.
+
+## Consolidation Checks
+
+Existing nine data/interaction test files passed (model, storage, effective exports, character edit/inventory/workspace, quantity parsing/interaction and Prestige Queue). Document links/structure, all 19 historical image comparisons and diff whitespace checks passed. These checks support the current-code evidence; they do not claim Rev02 UI or future schema tests already pass. Production code and assets remain unchanged.
+
+Roadmap creation checked phase coverage, document/source references and unchanged plans 00–06/evidence; no application tests, build or release were rerun. The roadmap records that ignored local release staging/report is older than the tracked bundle, and requires Phase 0 to establish fresh matching release evidence before implementation.

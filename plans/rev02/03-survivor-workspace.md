@@ -4,9 +4,9 @@
 
 **Full Survivor workspace design-direction plan · Planning only · Not implemented · 2026-10-22.** Covers the shared shell, Overview, character Perks, Items & Add-ons, and redistribution of Edit Character capabilities for every Survivor. It does not redesign the standalone account perk library or any Killer screen.
 
-Authority: explicit user direction and approved decisions first, then the [Dashboard plan](01-dashboard.md), [Survivor roster plan](02-survivor-roster.md), [global strategy](00-ui-ux-redesign-strategy.md), [audit](00a-ux-audit-matrix.md), and [questions register](00b-open-design-questions.md). The roster document distinguishes settled direction from recommendations; its open choices are not silently approved here.
+Authority: explicit user direction and approved decisions first, then the [Dashboard plan](01-dashboard.md), [Survivor roster plan](02-survivor-roster.md), [global strategy](00-ui-ux-redesign-strategy.md), [audit](00a-ux-audit-matrix.md), and [questions register](00b-open-design-questions.md). The roster document distinguishes settled direction from recommendations; its ownership/terminology/shell decisions have been reconciled during consolidation. Shared contracts are in plan 06.
 
-**Settled in this brief:** three principal tabs; meaningful character artwork; compact contextual neighbors preserving the section; character fields edited in Overview; perk records edited in Perks; quantities edited directly in Items & Add-ons; six-item roster paging does not extend to perks; family → Item → compatible Add-ons; flat rarity-sorted Add-ons; immediate quantity steps. Detailed geometry and save-model recommendations below remain for review. No implementation phases, coding checklist, or final roadmap are included.
+**Settled in this brief:** three principal tabs; meaningful character artwork; compact contextual neighbors preserving the section; character fields edited in Overview; perk records edited in Perks; quantities edited directly in Items & Add-ons; six-item roster paging does not extend to perks; family → Item → compatible Add-ons; flat rarity-sorted Add-ons; immediate quantity steps. The 2026-10-25 brief settles per-selection Update/Done, per-task atomic editing, editor retirement and safe session context. Detailed geometry remains for rendered verification. No implementation phases, coding checklist, or final roadmap are included.
 
 ## Workspace Purpose
 
@@ -77,9 +77,9 @@ Keep real links with adjacent names, for example **‹ Ace Visconti** and **Adam
 
 Retain current canonical same-role name/catalog ordering and section preservation: Perks → next Survivor's Perks; Update Inventory → next Survivor's Update Inventory; stock → next Survivor's Items & Add-ons. Do not navigate to Overview unexpectedly. Overview-specific drafts must resolve before moving; do not carry unsaved values to the next character.
 
-Recommend preserving search/category/density for repeated perk reconciliation and family/search/stock filters for repeated stock work **within the same browsing session**. Selected Item may carry over because Survivor Items share a catalog; validate compatibility, clear stale selected-perk IDs, and show zero quantities for the new Survivor rather than copy records. Completed edits/change counts remain scoped to each character/session. This is proposed context retention, not current behavior or an export requirement. See SW04.
+Recommend preserving search/category/density for repeated perk reconciliation and family/search/stock filters for repeated stock work **within the same browsing session**. Selected Item may carry over because Survivor Items share a catalog; validate compatibility, clear stale selected-perk IDs, and show zero quantities for the new Survivor rather than copy records. Completed edits/change counts remain scoped to each character/session. This session-retention behavior is settled direction, requiring later implementation rather than export fields. SW04 is resolved; plan 06 defines lifetime and switch rules.
 
-Back to Survivors should honor the roster's proposed invoking context. Filtered-roster neighbor traversal remains W03; recommend catalog neighbors for predictable direct links, without claiming they are filtered results. A scoped neighbor feature is not added here.
+Back to Survivors should honor the roster's proposed invoking context. W03 retains catalog neighbors as the conservative Core recommendation for predictable direct links, without claiming they follow filtered results. A scoped neighbor feature is not added here.
 
 ### Workspace Tabs
 
@@ -119,7 +119,7 @@ The current editor is an in-memory draft of the selected character, with a basel
 | Deliberate personal correction | Separate disclosure invokes `correctPersonalPerkTier`; can lower/clear records, including historical records, without changing derived floors | Required Perks correction path with explicit scope and feedback. Ordinary Update controls alone do not expose all of this capability today. |
 | Final-state validation | Checks newly changed normal personal tiers against automatic floors after the draft's final Prestige; untouched lower records remain records | Preserve record-versus-effective distinction and relevant final-state validation. Never rewrite untouched records just to equal a derived minimum. |
 | Item/Add-on quantities | Reuses quantity interaction in draft mode; zero deletes known stock entries; unknown stock preserved | Direct stock editor remains the natural home, with the same validators and preservation rules. |
-| Multi-field Save | One candidate commit can atomically change progression, metadata, perks and stock; no-op Save does not update timestamps | Scoped transactions preserve their own atomicity. Losing the cross-task all-character transaction is an explicit trade-off, SW03, not an assumed equivalence. |
+| Multi-field Save | One candidate commit can atomically change progression, metadata, perks and stock; no-op Save does not update timestamps | Scoped transactions preserve their own atomicity. Losing the cross-task all-character transaction is the explicit user-approved trade-off (SW03 resolved), not an assumed equivalence. |
 | Conflicts / dirty state | Any underlying save change invalidates the full-save fingerprint; storage event marks conflict; raw errors keep session dirty | Scoped editors must detect stale data, retain drafts and prevent overwrite. Do not casually weaken conflict checks to a single field while account floors can change elsewhere. |
 | Navigation / failures | Save/Discard/Stay for dirty navigation; `beforeunload` warning; failed Save keeps draft; error focuses/reveals relevant control | Preserve equivalent protection for each remaining draft and pending input, including browser Back, character/tab change and attempted unrelated mutation. |
 | Setup / migrations | Initial setup is a separate route/helper, not performed by Save Character. Account-rule normalization and schema migration happen at storage/model boundaries | Keep separate setup capability and central normalization. Removing the editor must not delete or relocate migration into a tab-render function. |
@@ -130,7 +130,7 @@ Save Character calls `buildCharacterEditCandidate`, then `commit` for the select
 
 Retain every field, deliberate correction, historical zero/unconfirmed semantics, automatic minimum, alias rule, unknown imported record, numeric validation, setup access, save failure recovery, stale-save protection and writer guard. Preserve atomicity for fields that form one task and do not claim a failed write succeeded. No-op saves should remain no-ops.
 
-There is no evidence that the old monolithic **screen** itself is required for migration or setup. Recommend retiring it as the primary interface once replacements cover the audit table. The unresolved cross-task transaction expectation must be reviewed before retiring that behavior; visual dislike is insufficient reason to discard it.
+There is no evidence that the old monolithic **screen** itself is required for migration or setup. Recommend retiring it as the primary interface once replacements cover the audit table. The user has explicitly chosen per-task atomic editing and retirement of the giant form. The intentional trade-off is no all-character cross-task cancellation. Retire the screen only after every audited capability has a safe contextual home; preserve `/edit` bookmark compatibility by resolving to Overview management.
 
 ### Contextual Editing Model
 
@@ -141,7 +141,7 @@ There is no evidence that the old monolithic **screen** itself is required for m
 | Favorite | Secondary independent toggle, consistent in header and Overview | Immediate validated save; not a queue/pin instruction. |
 | Notes | Overview Add note / Edit notes | Save note / Cancel; preserve unsaved text on failure. |
 | Initial setup / review | Overview actionable status, existing focused setup flow | Preserve current explicit Finish and backup; explain its separately committed P1 action. |
-| Personal perks / corrections | Explicit Perks Update mode and scoped correction action | Recommend preserving current per-selection autosave; SW01 records the draft alternative. |
+| Personal perks / corrections | Explicit Perks Update mode and scoped correction action | Retain current per-selection atomic persistence with Done; SW01 is resolved. |
 | Item / Add-on quantities | Direct field and step controls in their compatibility context | Existing Enter/field-exit commits and immediate steps. |
 
 ### Edit Details Scope
@@ -154,7 +154,7 @@ Use task-specific wording and locally visible states. Global “Saved locally”
 
 - Explicit drafts show Save [task] / Cancel, unsaved status and associated errors; Cancel affects only that draft. Dirty departure offers Save / Discard / Stay. Invalid or failed Save keeps the editor and draft, focuses the error and blocks departure. Preserve an unload warning where supported; do not promise browser-crash recovery.
 - Recommend one active explicit draft per workspace at a time. An unrelated mutation, account-unlock change or setup entry must resolve that draft first; simply switching tabs must not discard it. Reference inspection can remain read-only while drafting. This avoids surprising fingerprint conflicts caused by Favorite or account edits in the same UI.
-- Autosaved Perks uses **Done / Back to Perks**, “Saved automatically,” and accurate saved-change feedback. Do not offer Cancel implying reversal of saved selections. A staged alternative requires real Cancel/Save and conflict handling; it is SW01, not a cosmetic button rename.
+- Autosaved Perks uses **Done / Back to Perks**, “Saved automatically,” and accurate saved-change feedback. Do not offer Cancel implying reversal of saved selections. A staged collection alternative is rejected for Rev02; Done does not save a batch.
 - Quantities retain raw/pending/error state until committed successfully. Before hiding a field through family/Item changes, filtering or route departure, settle valid pending input or keep/reveal the invalid/failed field. Do not silently accept a failed save, reset it to baseline or abandon it behind a filter.
 - Setup must accurately explain that Set Prestige 1 saves immediately and Cancel/Exit will not undo it; Bloodweb/perk setup remains draft until Finish. Recommend warning on departure if those setup values have changed. Current general dirty guard is for Edit Character, not equivalent protection for every setup draft.
 - External changes or loss of writer capability retain draft/pending text, show conflict/read-only state and require deliberate reload/discard/retry. Preserve current conservative full-save conflict protection until architecture review can prove a narrower merge safe.
@@ -179,7 +179,7 @@ Use open sections, ruled summaries and alignment where sufficient; peer native p
 
 Use the header's P value and Bloodweb n / 50 as the summary. “Edit progression” opens a focused editor in this Overview region. No duplicate numerical panel is needed below. Preserve stored values, including P0 and large valid Prestige values. Any Bloodweb track represents recorded level only, not linear XP, resource spend or percentage to P100.
 
-Before Save, explain that Prestige changes affect derived account tiers for the source perks and effective inventory elsewhere. Do not change explicit records to match that preview. Lowering Prestige is a correction to the record, not a destructive clearing of personally acquired perks. Notes/state remain outside this progression transaction unless SW03 establishes a concrete need.
+Before Save, explain that Prestige changes affect derived account tiers for the source perks and effective inventory elsewhere. Do not change explicit records to match that preview. Lowering Prestige is a correction to the record, not a destructive clearing of personally acquired perks. Notes/state remain outside this progression transaction; per-task atomic saving is settled.
 
 ### Character State
 
@@ -201,7 +201,7 @@ Setup reviews are additive: `completeCharacterSetup` uses maximum existing/selec
 
 ### Perk Collection Summary
 
-Show **effective owned / same-role total** and **effective Tier III**, with View Perks. `characterStats` reliably calculates these. Label them as effective inventory, not manual reconciliation completeness or account unlock count. No extra charts or completion score. If space is limited, one concise line with the link suffices.
+Show **effective perks / same-role total** and **effective Tier III**, with View Perks. `characterStats` reliably calculates these. Label them as effective inventory, not manual reconciliation completeness or account unlock count. No extra charts or completion score. If space is limited, one concise line with the link suffices.
 
 ### Items & Add-ons Summary
 
@@ -231,11 +231,11 @@ Browse cards open reference/state inspection, not silently enter editing. Update
 
 ### Editing Mode
 
-Retain rapid tier picking through the current quick picker or a comparably reachable selected-perk control group. A compact `Not recorded | I | II | III` group is appropriate for ordinary perks; historical records need their separate options and acquisition floors. Do not add four persistent buttons to every browse card or make a card click cycle its tier.
+Retain rapid tier picking through the current quick picker or a comparably reachable selected-perk control group. The normal `Not recorded | I | II | III` group is appropriate for ordinary perks; historical records need their separate options and acquisition floors. Do not add four persistent buttons to every browse card or make a card click cycle its tier.
 
 The selected editor should show effective tier, explicit record, automatic minimum and provenance in a short, aligned facts block. Desktop can show it alongside results only when width supports both. On smaller screens place the editor near the selected object or in an accessible disclosure; avoid sending the user to a large editor above a long grid on every selection.
 
-**Required capability:** move the old editor's deliberate correction workflow here. It must be explicitly labeled “Correct recorded tier,” distinct from ordinary acquisition/reconciliation controls. It can lower/clear a record while derived minima remain effective. Historical acquisition cannot downgrade, but the old editor's deliberate correction can. Preserve that exception deliberately, with before/result explanation; do not universally disable all corrections below the automatic minimum or collapse historical explicit zero into absence. The exact correction guard is SW02.
+**Required capability:** move the old editor's deliberate correction workflow here. It must be explicitly labeled “Correct personal record,” distinct from ordinary acquisition/reconciliation controls. It can lower/clear a record while derived minima remain effective. Historical acquisition cannot downgrade, but the old editor's deliberate correction can. Preserve that exception deliberately, with before/result explanation; do not universally disable all corrections below the automatic minimum or collapse historical explicit zero into absence. The consolidation recommendation is a selected-perk disclosure showing current record/minimum/result, with Apply correction / Cancel for this one task. No additional generic confirmation is needed; SW02 is resolved as a design recommendation. The helper accepts null or I–III, not historical explicit zero.
 
 ### Search
 
@@ -269,14 +269,14 @@ The model supports a truthful separation:
 
 | Fact | Existing source | Correct interpretation |
 | --- | --- | --- |
-| Explicit record | Own-property presence in `characters[id].perks`, plus stored value | Missing = not recorded. Historical 0 = explicitly not owned. A helper returning 0 alone cannot distinguish them. |
+| Explicit record | Own-property presence in `characters[id].perks`, plus stored value | Missing = not recorded. Historical 0 = explicitly recorded Not owned; absent historical record = Not confirmed. A helper returning 0 alone cannot distinguish them. |
 | Automatic character minimum | `automaticTier` | Native minimum and account-derived tiers; not a manually entered record. |
 | Effective personal tier | `inventoryTier` = max(recorded, automatic) | What the tracker shows as usable/tracked on this character under its current rules. |
 | Account availability | `isAvailable` | General or globally unlocked; not evidence that this Survivor has acquired a personal copy. |
 | Account guaranteed tier | `globalTier` | Highest source Prestige/Legacy/Shrine/manual override. General availability can exist with global tier 0. |
 | Provenance | `ownedUnlockSource`, `unlockSource`, candidate facts | Native/Prestige/account override/recorded acquisition explain different dimensions; Native is not itself an account-wide unlock. |
 
-Use **“On this Survivor · Effective Tier II”** as the primary browsing state and reveal **“Recorded: I · Automatic minimum: II”** in the selected editor/details. Zero effective tier is “Not owned / no effective tier” only in that scope; an absent record with a nonzero minimum must never be shown simply as “Not owned.” Source ownership is separate from access, and saved Prestige currently derives tiers regardless of the source's owned flag. Preserve that rule.
+Use **“On this Survivor · Effective Tier II”** as the primary browsing state and reveal **“Recorded: I · Automatic minimum: II”** in the selected editor/details. Zero effective tier is “No effective tier”; an absent record with a nonzero minimum must never be shown simply as “Not owned.” Source ownership is separate from access, and saved Prestige currently derives tiers regardless of the source's owned flag. Preserve that rule.
 
 ### Native Perk State
 
@@ -284,11 +284,13 @@ Native perks can show effective I without any explicit record, including on an u
 
 ### Save Behavior
 
-**Recommend explicit entry into Update mode while retaining per-selection autosave.** It builds on the existing fast workflow and avoids a second large personal-perk draft system. Successful selections get immediate saved feedback; Done exits. Selection, search, category changes and density do not write inventory. Failed saves retain intended state/retry feedback; read-only mode permits inspection.
+**Explicit Update Inventory mode with per-selection atomic persistence is settled.** Each successful normal/historical selection commits through existing `commit`/storage, then shows Saved and updates the current character's session change count. Done exits already-saved work; no collection Save/Cancel transaction exists. Search, filter, selection and density do not write inventory.
 
-Alternative for review: a staged Perks-only transaction with Cancel / Save changes. This provides cancellation across several tier edits, but would change today's persistence, require dirty/conflict handling and accurate candidate previews, and cannot share the “changes saved” wording. Do not mix staged ordinary tiers with immediately saved historical/account edits under one misleading Cancel. This choice is SW01; no new persistence model is approved by this plan.
+Failure leaves canonical data unchanged; retain the intended selection for Retry and show Not saved. Done, tab or character departure with a failed selection offers Retry / Discard failed selection / Stay. Successful earlier writes remain saved under every choice. There is no collection dirty state after success. Neighbor navigation may remain in Update while clearing selection/change counts; ordinary tab departure ends Update, retaining safe role-local filters for later use. Never transfer failed intent to another Survivor.
 
-Account unlock edits remain a clearly separate account-wide action inside reference/provenance access, with explicit scope and immediate validation. They are not personal tier edits. Existing perk dialogs already expose Shrine/Other account controls, with derived Prestige/Legacy facts read-only. Preserve access without making those controls the default reconciliation action; resolve any active explicit draft first.
+Normal picker is Not recorded / I / II / III with current automatic-floor rules. Clearing removes only the explicit record. Historical acquisition retains explicit zero/non-downgrade rules; deliberate correction is separate. Ordinary setter can lower an eligible ordinary record, so do not invent a universal monotonic-acquisition rule.
+
+Account unlock edits are separately labeled account-wide actions in reference/provenance, with immediate validation. Resolve an active explicit progression/note/correction/setup draft first; these are not personal-tier edits.
 
 ### Responsive Grid
 
@@ -312,7 +314,7 @@ Keep In Stock and secondary Type (All / Items / Add-ons) and Rarity filters; sho
 
 Search and filters apply to Items and to the selected Item's compatible Add-ons, not to a global mixed Add-on list. A matching Add-on compatible with another Item in the family must not appear under the current Item. State that another Item may need selecting; the full current-family dropdown remains available even when its Item cards are filtered. Do not fabricate a broad match count that implies hidden incompatible results are displayed.
 
-Retain high-to-low / low-to-high rarity direction for the compatible Add-on list, with name or stable catalog order as a documented tie-break. Current helper puts Event/other rarities after the standard five in both directions; recommend preserving that explicit Event-last treatment until a global rarity-order decision changes it. Never infer Event's rank from its artwork color. Item ordering can stay catalog-based initially rather than invent a second unrelated sort control.
+Retain high-to-low / low-to-high rarity direction for the compatible Add-on list, with stable catalog order as the shared tie-break. Current helper puts Event/other rarities after the standard five in both directions; recommend preserving that explicit Event-last treatment until a global rarity-order decision changes it. Never infer Event's rank from its artwork color. Item ordering can stay catalog-based initially rather than invent a second unrelated sort control.
 
 Before filtering hides pending/invalid input, commit valid changes or retain/reveal an actionable error. Search itself must preserve focus; do not jump to a stock input on every keystroke. State settlement and filtering need to work together.
 
@@ -326,7 +328,7 @@ Provide a real **Select Item** action through the art/name/selection area, separ
 
 Retain **−1 | quantity | +1 | +5 | +10** with direct entry, zero minimum and non-negative safe-integer validation. Existing steps clamp at zero/maximum and validate pending text before applying the step. Enter and field exit commit valid input; blank-on-blur normalizes to zero as today. Invalid negative, fractional, malformed or unsafe values remain visible with an associated error. A decrement at zero is disabled or a clear no-op; it never makes negative stock.
 
-Use a short visible “Quantity” label or clear consistent alignment; keep the full accessible name, such as “Quantity of Sport Flashlight.” Every step name identifies the object and amount. Inputs need enough width for real numbers, numeric keyboard hints and stable text selection. Do not silently truncate or hide a large valid value.
+Use a short visible “Quantity” label or clear consistent alignment without repeated visible “Quantity of X” copy; keep the full accessible name, such as “Quantity of Sport Flashlight.” Every step name identifies the object and amount. Inputs need enough width for real numbers, numeric keyboard hints and stable text selection. Do not silently truncate or hide a large valid value.
 
 At narrow widths prioritize **−1 [wide quantity] +1** on one line and **+5 +10** below, retaining all actions. With four 44px buttons, 24px total gaps and a useful 72–96px field, a single-row control already needs roughly 272–296px before card padding; two phone stock columns cannot safely fit that row. Reflow controls or reduce columns, never squeeze the field to 31px.
 
@@ -432,7 +434,7 @@ Use content-fit breakpoints and the roster's shared-shell finding rather than de
 | `data/inventory-catalog.js`, `data/survivor-inventory-verified.json` | Family/Item/Add-on definitions and explicit compatibility IDs. An Add-on without narrower source-item restrictions maps to Items in its family; exceptions use `compatibleSourceItemIds`. Saved stock is by character/entity, not by selected Item. Patch/research metadata is catalog provenance. |
 | `src/survivor-collection.js`, `src/assets.js`, asset manifest | Reliable positive known stock-type counts, mapped artwork, fallbacks and canonical alias lookup. Reuse semantic selectors without assuming their current UI location must remain. |
 | `styles.css`, `index.html` | Shared canvas/sidebar, header/neighbors/tabs, Overview grids, perk card-size minima (160/190/220px desktop), 280–360px selected-perk pane (300px tablet), mobile pane moved above grid, forced two phone columns and hidden density control. Stock uses 320px minima, large media and fixed 44px step columns. Shared cascade changes could affect Killers/account views. |
-| Existing unit/browser coverage | Read relevant `tests/character-edit.test.js`, `tests/character-inventory.test.js`, `tests/character-workspace.test.js`, `tests/inventory-interaction.test.js` and existing audit's browser evidence. Assertions protect historical corrections/floors, raw invalid text, no-op/unknown preservation, conflicts, route aliases, quantity boundaries and compatibility. Read as contracts; not executed in this planning pass. |
+| Existing unit/browser coverage | Read relevant `tests/character-edit.test.js`, `tests/character-inventory.test.js`, `tests/character-workspace.test.js`, `tests/inventory-interaction.test.js` and existing audit's browser evidence. Assertions protect historical corrections/floors, raw invalid text, no-op/unknown preservation, conflicts, route aliases, quantity boundaries and compatibility. Read as contracts in the original review; current consolidation test results are recorded in the audit matrix. |
 
 ### Reconciliation and Migration Boundary
 
@@ -444,7 +446,7 @@ Likely dependencies for later architecture review: route compatibility/parent na
 
 Share the shell grammar, named neighbors, section links, contextual Save vocabulary, perk facts/tiers/corrections, density controls, utility toolbar language, quantity primitives, Details/focus/error patterns and content-fit behavior. Account libraries can share state vocabulary/search primitives without adopting a character-personal scope.
 
-Do not assume identical content: Survivors require family → Item → compatible Add-ons; Killers have an owning Power and its fixed Add-on collection. No new Killer controls/layout are approved. Retiring a shared Edit route for Survivors must not inadvertently remove Killer capabilities before that screen's review.
+Do not assume identical content: Survivors require family → Item → compatible Add-ons; Killers have an owning Power and its fixed Add-on collection. Killer-specific controls/layout are described in plan 05, using the same shared contracts. Retiring a shared Edit route for Survivors must not inadvertently remove Killer capabilities before plan 05 capability parity is verified.
 
 ## Skill-Assisted Findings
 
@@ -466,23 +468,17 @@ Specificity check: portraits alone could decorate any game's tracker. This propo
 
 ## Open Questions
 
-These are material approvals, recorded in the central questions file as SW01–SW04:
+SW01–SW04 are resolved by the 2026-10-25 decisions and the bounded correction guard recommendation. There is no remaining Survivor-workspace-specific product blocker. The central register preserves the previous alternatives and rationale. Exact art/type/control geometry and final CSS cutoffs require engineering/visual verification, not a new product interview.
 
-1. **SW01 — Perks save model:** approve retaining immediate saved selections inside explicit Update mode (recommended), or stage all Perks edits with real Cancel / Save changes? This affects historical/account controls, dirty state and conflict handling.
-2. **SW02 — Deliberate correction access:** approve a scoped Perks correction disclosure with an explicit before/result explanation (recommended), or require an additional confirmation for lowering/clearing recorded tiers? Preserve the capability, including historical records, whichever guard is chosen.
-3. **SW03 — Transaction scope:** is per-task atomic saving sufficient when retiring the composite editor, or does a real workflow require one all-character transaction spanning progression, metadata, perks and stock? Recommend per-task saves; cross-task cancellation would need a separately approved capability, not an accidental re-created fourth workspace.
-4. **SW04 — Between-Survivor context:** approve session-local query/category/family/selected-Item retention for repeated work (recommended), or reset some controls per character? Recommend clearing stale selected perks/change counts, validating retained Item context and never carrying quantities/drafts across characters.
+### Consolidated Decisions
 
-Existing W03 (catalog versus filtered neighbors), W05 (which perk fact leads each surface) and G04/G07 (width/mobile shell) remain shared review questions. This plan recommends catalog neighbors, effective personal tier in the workspace with recorded/account facts explicit, and task-based widths. It does not retroactively approve global policy.
-
-### Earlier Rev02 Records to Revisit at Approval
-
-- The roster's proposed native account-access label cannot use global tier zero alone to mean unavailable: General native/historical definitions can still be available. Its open perk-scope decision needs this qualification. Keep the roster plan unchanged pending review.
-- The roster's proposed ownership-toggle removal has a concrete contextual destination here, but neither proposal should be called implemented/approved prematurely.
-- The global audit's large repeated-header concern and this brief's larger artwork are compatible if art gains emphasis while duplicate headings, neighbor boxes and editing chrome shrink. A universal taller header would conflict with editing speed.
-- W02 progression-edit reachability now has a concrete scoped proposal. W04 context retention has SW04. W05 needs the effective/recorded/account distinction above, including historical zero and General availability.
-- Dashboard Continue should resume stable sections and useful context according to its existing open decisions; no timestamps can restore an unsaved draft. This workspace does not reopen the three Dashboard jobs or queues.
-- The index's Survivor Perks entry needs a scope note: character Perks and stock are covered here; the standalone account perk library remains unreviewed. Avoid duplicate competing character-tab plans.
+- Update Inventory persists each selection; Done exits. Failed intent is retained for Retry/Discard/Stay, not lost on navigation.
+- Correct personal record is secondary selected-perk disclosure with record/minimum/result and explicit Apply correction / Cancel. Preserve historical distinctions and helper limits.
+- Overview owns character state, progression-pair and notes tasks; Perks owns records/correction; Items & Add-ons owns quantities. Retire giant Edit after capability parity; old links resolve to Overview management. Setup/migration/alias normalization remain their separate existing responsibilities.
+- Previous/Next preserves section and safe session query/filter/sort/density/family/valid Item context. Keep canonical full-catalog neighbors. Selected perk/quick picker/correction/change count reset on character switch; pending drafts/quantities/errors must settle before leaving. Tab departure ends perk Update mode; safe filters remain. Plan 06 provides the full state-lifetime table.
+- Earlier roster ownership mutation is removed; roster shows Owned/Locked. Account native-perk recommendation now handles General availability at zero global tier. Workspace browsing leads with effective character tier, with explicit recorded/minimum/account facts.
+- Larger meaningful art is compatible with compact operating chrome; no universal taller header. Plan 06 closes the earlier width/navigation questions globally.
+- Dashboard Continue resumes stable browse sections from browser-local last-location state; no update/edit/setup drafts or inference from edit timestamps.
 
 ## Shared / Global Findings
 
@@ -497,13 +493,13 @@ Existing W03 (catalog versus filtered neighbors), W05 (which perk fact leads eac
 - **Density is task-specific:** existing perk density control is useful; operational stock can use denser Add-ons than primary Items; neither justifies a global density preference feature.
 - **Responsive shell/focus:** existing sidebar pressure, sticky focus obstruction, fixed tablet editor pane and tiny mobile quantity input require shared review. Do not solve each with a separate sticky layer.
 
-These findings feed the eventual shared/global plan. No `11-shared-global-design.md`, final tokens, code or roadmap is created here.
+These findings are reconciled into `06-shared-global-design.md`; no final tokens, production code or implementation roadmap are created here.
 
 ## Explicit Non-Goals
 
 - No implementation, behavior change, production source/CSS edits or final component code.
 - No framework/component-library migration, dependency additions or new services.
-- No Killer workspace, Killer perk/Add-on or standalone account library redesign yet.
+- Killer workspace is covered separately in plan 05; standalone account library information architecture is outside Rev02 Core redesign.
 - No changes to research datasets, compatibility mappings, rarity assignments, model rules, aliases or inventory schemas.
 - No speculative new analytics, trial/loadout system, automatic game synchronization or queue controls.
 - No DBD official-UI imitation, gratuitous motion or added drag interactions.
