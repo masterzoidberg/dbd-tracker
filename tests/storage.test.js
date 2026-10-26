@@ -35,7 +35,9 @@ test('complete v2 queue and quantities survive save export backup restore and re
 });
 
 test('raw v1 signals read-only migration and writable backup retains the v1 predecessor', () => {
-  const memory = memoryStorage(), store = new TrackerStorage(memory, () => {});
+  const memory = memoryStorage(), writes = [];
+  const storage = { getItem: key => memory.getItem(key), setItem: (key, value) => { writes.push([key, value]); memory.setItem(key, value); } };
+  const store = new TrackerStorage(storage, () => {});
   const input = schemaV1Fixture();
   input.characters['meg-thomas'].updatedAt = '2026-10-01T16:30:00Z';
   const bytes = JSON.stringify(input);
@@ -46,6 +48,7 @@ test('raw v1 signals read-only migration and writable backup retains the v1 pred
   assert.equal(readOnly.save.schemaVersion, 2);
   assert.equal(memory.getItem(SAVE_KEY), bytes);
   assert.equal(memory.getItem(BACKUP_KEY), null);
+  assert.deepEqual(writes, []);
   const writable = store.load();
   assert.equal(writable.migrationPending, false);
   assert.equal(writable.save.schemaVersion, 2);
@@ -53,7 +56,10 @@ test('raw v1 signals read-only migration and writable backup retains the v1 pred
   assert.equal(writable.save.characters['meg-thomas'].updatedAt, input.characters['meg-thomas'].updatedAt);
   assert.deepEqual(store.backups()[0].save, input);
   assert.equal(store.backups().length, 1);
+  assert.deepEqual(writes.map(([key]) => key), [BACKUP_KEY, SAVE_KEY]);
+  const writesAfterMigration = writes.length;
   store.load();
+  assert.equal(writes.length, writesAfterMigration);
   assert.equal(store.backups().length, 1);
 });
 
