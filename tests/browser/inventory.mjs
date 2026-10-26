@@ -68,7 +68,7 @@ export async function familyNavigationRegression(page,origin){
  }finally{await reader.close();}
  await page.goto(origin+'/#character/feng-min/items-addons');
  await page.locator('[data-stock-workspace]').waitFor();
- assert.equal(await page.locator('[data-stock-family]').getAttribute('data-stock-family'),families[0].id,'New character session resets selection');
+ assert.equal(await page.locator('[data-stock-family]').getAttribute('data-stock-family'),families.at(-1).id,'Safe Survivor family context carries to a same-role character');
  await page.locator('#stock-family-nav-'+families.at(-1).id).click();
  await page.getByRole('link',{name:'Edit Character',exact:true}).click();
  assert.equal(await page.locator('[data-stock-family]').getAttribute('data-stock-family'),families[0].id,'New page stock session resets selection');

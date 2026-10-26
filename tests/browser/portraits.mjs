@@ -51,11 +51,12 @@ export async function portraitsRegression(page, origin, manifest) {
     const link = card.locator('[data-open-workspace]');
     assert.equal(await card.locator('[data-collection-hero-art]').getAttribute('src'), manifest.collectionPortraits[id].path);
     await link.click();
-    assert.equal(await page.locator('.character-workspace-header img').getAttribute('src'), manifest.portraits[id].path);
+    const workspacePortrait = character.role === 'killer' ? manifest.collectionPortraits[id].path : manifest.portraits[id].path;
+    assert.equal(await page.locator('.character-workspace-header img').getAttribute('src'), workspacePortrait);
     assert.equal(await page.locator('.character-workspace-header .character-portrait').evaluate(n => n.getBoundingClientRect().width), 80);
     assert.equal(await page.locator('#detail').isVisible(), false);
     await page.goto(origin + '/#manage/' + id + '/legacy');
-    assert.equal(await page.locator('.character-workspace-header img').getAttribute('src'), manifest.portraits[id].path);
+    assert.equal(await page.locator('.character-workspace-header img').getAttribute('src'), workspacePortrait);
     assert.equal(await page.locator('.character-workspace-header img').evaluate(n => getComputedStyle(n).objectFit), 'contain');
   }
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), initial, 'Artwork navigation does not change progression');
@@ -73,9 +74,10 @@ export async function portraitsRegression(page, origin, manifest) {
     const image = holder.locator('img[data-character-portrait]');
     await page.waitForFunction(id => document.querySelector(`img[data-character-portrait="${id}"]`)?.naturalWidth > 0, id);
     const before = await holder.boundingBox();
-    const broken = origin + '/' + manifest.portraits[id].path + '?portrait-broken=1';
+    const characterPortrait = character.role === 'killer' ? manifest.collectionPortraits[id] : manifest.portraits[id];
+    const broken = origin + '/' + characterPortrait.path + '?portrait-broken=1';
     let requests = 0;
-    await page.route(broken, async route => { requests++; await route.fulfill({ status: 200, contentType: 'image/' + manifest.portraits[id].format, body: 'bad image' }); });
+    await page.route(broken, async route => { requests++; await route.fulfill({ status: 200, contentType: 'image/' + characterPortrait.format, body: 'bad image' }); });
     await image.evaluate((n, url) => { n.src = url; }, broken);
     await page.waitForFunction(id => !document.querySelector(`.character-workspace-header img[data-character-portrait="${id}"]`), id);
     assert.equal(requests, 1);

@@ -1946,6 +1946,10 @@ footer span {
 .portrait-fallback { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; color: var(--muted); }
 .portrait-fallback svg { fill: currentColor; }
 .character-portrait.has-art .portrait-fallback { visibility: hidden; }
+.workspace-lore-portrait { overflow:hidden; background:#1b1b1d; }
+.workspace-lore-portrait img { object-fit:contain; }
+.workspace-lore-fallback { display:grid; width:100%; height:100%; place-items:center; padding:5px; color:var(--muted); font-size:11px; line-height:1.2; text-align:center; overflow-wrap:anywhere; }
+.workspace-lore-portrait.has-art .workspace-lore-fallback { visibility:hidden; }
 .character-name, .character-title { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .character-name > span:last-child, .character-title > span:last-child { min-width: 0; overflow-wrap: anywhere; }
 .character-card-top .favorite-button { position:absolute; right:0; bottom:0; flex:none; }

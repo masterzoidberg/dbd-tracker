@@ -139,6 +139,9 @@ export async function characterInventoryRegression(page, origin) {
   await page.getByRole('button', { name: 'Close details', exact: true }).click();
   await page.goto(origin + '/#manage/the-doctor/update');
   await page.locator('#character-inventory-search').waitFor();
+  assert.equal(await page.locator('#character-inventory-only-unrecorded').isChecked(), true,
+    'Safe Perks filters survive workspace route changes');
+  await page.locator('#character-inventory-only-unrecorded').uncheck();
   await page.getByRole('button', { name: 'Unlocked', exact: true }).click();
   assert.equal(await card(page, 'hex-ruin').count(), 1, 'Shrine unlock appears through globalTier in canonical Update');
 
