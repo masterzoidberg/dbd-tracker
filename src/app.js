@@ -5,7 +5,8 @@ import { parseCharacterWorkspaceRoute, characterWorkspaceHref, characterWorkspac
 import {inventoryEntities,inventoryEntityById,inventoryCatalogStatus,survivorInventorySource,killerPowerByCharacterId} from '../data/inventory-catalog.js';
 import {inventoryIconPath,killerPowerIconPath} from './assets.js';
 import {createQuantityInteraction,updateQuantityInput,acceptQuantityInput,visibleQuantityEntries,regroupQuantityEntries,quantityFocusAfterCommit,groupQuantityEntries,groupQuantityEntriesByItem,sortQuantityEntriesByRarity,stepQuantityInput} from './inventory-interaction.js';
-import { createCharacterEditSession, updateCharacterEditSession, buildCharacterEditCandidate, characterEditPreview } from './character-edit.js';
+import { createCharacterEditSession, updateCharacterEditSession, buildCharacterEditCandidate, characterEditPreview,
+  createCharacterTaskSession, updateCharacterTaskSession, buildCharacterTaskCandidate } from './character-edit.js';
 import { EditorGuard } from './editor.js';
 import { setupView } from './setup.js';
 import { characterSetupView } from './character-setup.js';
@@ -52,6 +53,7 @@ let setupSearch = '';
 let setupFilter = 'all';
 let characterSetup = null;
 let characterEditSession = null;
+let characterTaskSession = null;
 let characterEditViewState = { search: '', allRole: false };
 let characterEditReturnRoute = null;
 let stockSession = null;
@@ -98,8 +100,8 @@ function message(text, error = false) {
   detailMessage.textContent = detailMessage.hidden ? '' : text;
 }
 
-const editingActions = new Set(['favorite', 'ownership', 'cycle', 'character-inventory-set-tier', 'account-unlock-tier', 'import', 'restore', 'reset', 'delete-backup', 'setup-open', 'setup-p1', 'setup-next', 'setup-back']);
-const editingControls = '#detail-content select, [data-setup-owned], [data-setup-prestige], [data-setup-perk], [data-character-setup-perk], [data-character-setup-tier], [data-historical-ownership], [data-character-inventory-historical], #character-setup-bloodweb, #halloween-names, #hellraiser-names, #import-file';
+const editingActions = new Set(['favorite', 'overview-ownership-toggle', 'ownership', 'cycle', 'character-inventory-set-tier', 'account-unlock-tier', 'import', 'restore', 'reset', 'delete-backup', 'setup-open', 'setup-p1', 'setup-next', 'setup-back', 'character-task-start', 'character-task-save']);
+const editingControls = '#detail-content select, [data-character-task-field], [data-setup-owned], [data-setup-prestige], [data-setup-perk], [data-character-setup-perk], [data-character-setup-tier], [data-historical-ownership], [data-character-inventory-historical], #character-setup-bloodweb, #halloween-names, #hellraiser-names, #import-file';
 function requiresEditor(action) { return editingActions.has(action) || ['queue-add','queue-target','queue-remove','queue-move','queue-move-down','queue-save','queue-shortcut','queue-select'].includes(action) || (action?.startsWith('character-setup-') && action !== 'character-setup-exit'); }
 function editorPresentation() {
   const editing = initialized && editor.state === 'editing';
@@ -124,6 +126,9 @@ function editorPresentation() {
   document.querySelectorAll('[data-action="export"]').forEach(button => { button.disabled = !initialized || storageBlocked; });
   document.querySelectorAll('[data-edit-field], [data-edit-perk], [data-edit-correction], [data-inventory-quantity], [data-action="character-edit-save"]').forEach(control => {
     control.disabled = !editing || storageBlocked || Boolean(characterEditSession?.conflicted);
+  });
+  document.querySelectorAll('[data-character-task-field], [data-action="character-task-save"], [data-action="character-task-start"], [data-action="overview-ownership-toggle"], [data-action="favorite"]').forEach(control => {
+    control.disabled = !editing || storageBlocked || Boolean(characterTaskSession?.conflicted);
   });
   updateStockStepControls();
   if (characterEditSession) {
@@ -663,6 +668,7 @@ function characterWorkspaceHeader(character, descriptor) {
     + '<span class="status-chip ' + (progress.favorite ? 'is-favorite' : '') + '">' + (progress.favorite ? 'Favorite ★' : 'Not favorite') + '</span></div></div></div>'
     + '<div class="character-workspace-progress" aria-label="Character progression"><div data-character-progress="prestige"><span>PRESTIGE</span><strong>P' + progress.prestige + '</strong></div>'
     + '<div data-character-progress="bloodweb"><span>BLOODWEB</span><strong>' + progress.bloodwebLevel + ' / 50</strong></div></div></div>'
+    + '<button type="button" class="character-workspace-favorite" data-action="favorite" data-id="' + character.id + '" aria-pressed="' + progress.favorite + '" aria-label="Favorite ' + esc(character.name) + '">' + (progress.favorite ? '★ Favorite' : '☆ Favorite') + '</button>'
     + '<a class="primary button-link character-workspace-edit" href="' + characterWorkspaceHref(character.id, 'edit') + '">Edit Character</a></div>'
     + '<nav class="character-workspace-nav" aria-label="Character workspace">' + sections.map(([section, label]) =>
       '<a data-workspace-section="' + section + '" href="' + characterWorkspaceHref(character.id, section) + '"'
@@ -683,6 +689,8 @@ function characterOverview(id) {
       + '<div class="overview-native-copy"><div class="overview-native-title"><button data-action="perk" data-id="' + perkId + '">' + esc(perkName(save, perk)) + '</button>' + badge(tier) + '</div>'
       + '<small>Personal record: ' + (recordedTier(save, id, perkId) || 'None') + ' · ' + esc(ownedUnlockSource(save, id, perk)) + '</small></div></article>';
   }).join('');
+  const task = characterTaskSession?.characterId === id ? characterTaskSession : null;
+  const taskEditor = task ? characterOverviewTaskEditor(id, task) : '';
   const setup = progress.owned
     ? '<div class="overview-context ' + (progress.setupComplete ? 'is-complete' : 'needs-attention') + '"><strong>' + (progress.setupComplete ? 'Initial setup complete' : 'Initial setup incomplete') + '</strong>'
       + '<p>' + (progress.setupComplete ? 'Review the saved Bloodweb setup when you need to reconcile older progress.' : 'Record the starting Bloodweb context before relying on setup-specific progression details.') + '</p>'
@@ -703,15 +711,29 @@ function characterOverview(id) {
   return '<div class="character-overview">'
     + '<div class="character-overview-grid">'
     + '<section class="character-overview-section overview-native" data-overview-section="native-perks"><div class="section-title"><h2>Native Perks</h2></div><div class="overview-native-grid">' + nativeCards + '</div></section>'
-    + '<section class="character-overview-section overview-progress" data-overview-section="progress"><div class="section-title"><h2>Progress / setup</h2></div>' + setup
+    + '<section class="character-overview-section overview-progress" data-overview-section="progress"><div class="section-title"><h2>Progress / setup</h2></div>'
+      + '<div class="overview-character-state"><span>' + (progress.owned ? 'Owned' : 'Locked') + '</span><button type="button" data-action="overview-ownership-toggle" data-id="' + id + '">' + (progress.owned ? 'Mark Locked' : 'Mark Owned') + '</button></div>'
+      + '<div class="overview-contextual-actions"><button type="button" data-action="character-task-start" data-task="progression"' + (task ? ' disabled' : '') + '>Edit progression</button><button type="button" data-action="character-task-start" data-task="notes"' + (task ? ' disabled' : '') + '>Edit notes</button></div>'
+      + taskEditor + setup
       + '<p class="muted overview-helper">Personal records remain separate from Native, Prestige, Shrine and Legacy minimums.</p></section>'
     + '<section class="character-overview-summary" data-overview-section="perks"><div><div class="eyebrow">PERKS</div><h2>Perk inventory</h2></div>'
       + '<div class="overview-summary-number"><strong>' + stats.owned + '</strong><span>effective owned</span></div><div class="overview-summary-number"><strong>' + stats.tier3 + '</strong><span>Tier III</span></div>'
       + '<a href="' + characterWorkspaceHref(id, 'perks') + '">View Perks</a></section>'
     + '<section class="character-overview-summary" data-overview-section="inventory"><div><div class="eyebrow">COLLECTION</div><h2>' + (character.role === 'survivor' ? 'Items & Add-ons' : 'Power & Add-ons') + '</h2></div>' + inventorySummary + '</section>'
     + '</div>'
-    + '<section class="character-overview-notes" data-overview-section="notes"><div class="section-title"><h2>Notes</h2></div><p class="character-notes">' + esc(progress.notes || 'No notes recorded.') + '</p></section>'
+    + '<section class="character-overview-notes" data-overview-section="notes"><div class="section-title"><h2>Notes</h2></div><p class="character-notes">' + esc(progress.notes || 'No notes recorded.') + '</p>'
+      + (task ? '' : '<button type="button" data-action="character-task-start" data-task="notes">Edit notes</button>') + '</section>'
     + '</div>';
+}
+function characterOverviewTaskEditor(id, session) {
+  const errors = session.errors.length ? '<div role="alert" class="error" data-character-task-errors><strong>Not saved</strong><ul>'
+    + session.errors.map(error => '<li>' + esc(error.message) + '</li>').join('') + '</ul></div>' : '<div data-character-task-errors hidden></div>';
+  const fields = session.task === 'progression'
+    ? '<label>Prestige<input type="text" inputmode="numeric" data-character-task-field="prestige" value="' + esc(session.rawInputs.prestige) + '" aria-invalid="' + session.errors.some(error => error.field === 'prestige') + '"></label>'
+      + '<label>Bloodweb level (1–50)<input type="text" inputmode="numeric" data-character-task-field="bloodwebLevel" value="' + esc(session.rawInputs.bloodwebLevel) + '" aria-invalid="' + session.errors.some(error => error.field === 'bloodwebLevel') + '"></label>'
+    : '<label>Notes<textarea data-character-task-field="notes" rows="5" aria-invalid="' + session.errors.some(error => error.field === 'notes') + '">' + esc(session.draft.notes) + '</textarea></label>';
+  return '<form class="character-task-editor" data-character-task="' + session.task + '" novalidate>' + errors + fields
+    + '<div class="dialog-actions"><button type="button" data-action="character-task-cancel">Cancel</button><button type="button" class="primary" data-action="character-task-save">Save ' + (session.task === 'progression' ? 'progression' : 'note') + '</button></div></form>';
 }
 function characterWorkspaceUnavailable() {
   return '<section class="panel"><h1>Character/section unavailable</h1><p>This character or section cannot be resolved.</p><a href="#survivors">Survivors</a> · <a href="#killers">Killers</a> · <a href="#dashboard">Dashboard</a></section>';
@@ -1100,6 +1122,32 @@ function saveCharacterEdit({ navigate = true } = {}) {
   else {stockSession=null;stockSessionKey='';stockBlurPending=null;render();}
   return true;
 }
+function saveCharacterTask({ navigate = false } = {}) {
+  if (!characterTaskSession) return false;
+  characterTaskSession = { ...characterTaskSession, errors: characterTaskSession.errors.filter(error => !error.saveFailure) };
+  const result = buildCharacterTaskCandidate(save, characterTaskSession);
+  if (result.errors.length) {
+    characterTaskSession = { ...characterTaskSession, errors: result.errors, conflicted: result.conflict };
+    render();
+    const field = result.errors[0].field;
+    document.querySelector('[data-character-task-field="' + CSS.escape(field) + '"]')?.focus({ preventScroll: true });
+    return false;
+  }
+  const { characterId, task } = characterTaskSession;
+  if (result.changed && !commit(next => {
+    for (const field of Object.keys(characterTaskSession.draft)) {
+      next.characters[characterId][field] = structuredClone(result.candidate.characters[characterId][field]);
+    }
+  }, characterId)) {
+    characterTaskSession = { ...characterTaskSession, errors: [{ field: 'session', saveFailure: true, message: 'Not saved. Your draft is retained for retry.' }] };
+    render();
+    return false;
+  }
+  characterTaskSession = null;
+  render();
+  message(result.changed ? (task === 'progression' ? 'Progression saved.' : 'Note saved.') : 'No changes to save.');
+  return true;
+}
 function captureCharacterSetupInput() {
   const input = $('#character-setup-bloodweb');
   if (!input || !characterSetup) return;
@@ -1121,13 +1169,14 @@ function characterSetupIsDirty(draft = characterSetup) {
     || JSON.stringify(normalizePerks(draft.perks)) !== JSON.stringify(normalizePerks(baseline.perks));
 }
 function hasDirtyWorkspaceDraft() {
-  return Boolean(characterEditSession?.dirty || characterSetupIsDirty());
+  return Boolean(characterEditSession?.dirty || characterTaskSession?.dirty || characterSetupIsDirty());
 }
 async function resolveWorkspaceDraftTransition(intent) {
   if ($('#dirty-navigation').open) return 'stay';
   const editDraft = characterEditSession?.dirty ? characterEditSession : null;
+  const taskDraft = characterTaskSession?.dirty ? characterTaskSession : null;
   const setupDraft = characterSetupIsDirty() ? characterSetup : null;
-  if (!editDraft && !setupDraft) return 'proceed';
+  if (!editDraft && !taskDraft && !setupDraft) return 'proceed';
   const focused = document.activeElement;
   const dialog = $('#dirty-navigation');
   const sourceRoute = route();
@@ -1135,7 +1184,7 @@ async function resolveWorkspaceDraftTransition(intent) {
   const sourceSave = JSON.stringify(save);
   const transitionToken = ++workspaceTransitionToken;
   dialog.returnValue = 'stay';
-  $('#dirty-title').textContent = setupDraft ? 'Unsaved setup changes' : 'Unsaved character changes';
+  $('#dirty-title').textContent = setupDraft ? 'Unsaved setup changes' : taskDraft ? 'Unsaved ' + (taskDraft.task === 'progression' ? 'progression' : 'notes') + ' changes' : 'Unsaved character changes';
   dialog.showModal();
   const choice = await new Promise(resolve => dialog.addEventListener('close', () => resolve(dialog.returnValue), { once: true }));
   if (transitionToken !== workspaceTransitionToken || committedWorkspaceHash !== sourceHash || route() !== sourceRoute) {
@@ -1144,12 +1193,15 @@ async function resolveWorkspaceDraftTransition(intent) {
   }
   if ((editDraft && (characterEditSession?.characterId !== editDraft.characterId
       || characterEditSession?.baseFingerprint !== editDraft.baseFingerprint))
+    || (taskDraft && (characterTaskSession?.characterId !== taskDraft.characterId
+      || characterTaskSession?.task !== taskDraft.task || characterTaskSession?.baseFingerprint !== taskDraft.baseFingerprint))
     || (setupDraft && (characterSetup?.id !== setupDraft.id || characterSetup?.baseFingerprint !== setupDraft.baseFingerprint))) {
     message('The source draft changed while the confirmation was open. Review it before leaving.', true);
     return 'stay';
   }
   if (choice === 'discard') {
     if (editDraft) { characterEditSession = null; stockSession = null; stockSessionKey = ''; stockBlurPending = null; }
+    if (taskDraft) characterTaskSession = null;
     if (setupDraft) { characterSetup = null; setupQueue = null; }
     render();
     return 'proceed';
@@ -1159,6 +1211,7 @@ async function resolveWorkspaceDraftTransition(intent) {
       store.assertWriter();
       if (sourceSave !== JSON.stringify(save)) { message('The saved data changed while this confirmation was open. Reload or discard the draft.', true); return 'stay'; }
       if (editDraft) return saveCharacterEdit({ navigate: false }) ? 'proceed' : 'stay';
+      if (taskDraft) return saveCharacterTask({ navigate: false }) ? 'proceed' : 'stay';
       if (setupDraft) return finishCharacterSetup({ navigate: false, expectedDraft: setupDraft }) ? 'proceed' : 'stay';
     }
     catch (error) { message(error.message, true); return 'stay'; }
@@ -1184,6 +1237,7 @@ function finishWorkspaceNavigation() {
       && !['edit', 'setup'].includes(previous.section) ? previous.canonicalRoute : null;
   }
   if (descriptor?.section !== 'edit') characterEditSession = null;
+  if (descriptor?.status !== 'valid' || descriptor.section !== 'overview' || characterTaskSession?.characterId !== descriptor.characterId) characterTaskSession = null;
   if (!['edit','items-addons'].includes(descriptor?.section) || stockSessionKey !== descriptor.characterId+'/'+descriptor.section) {stockSession=null;stockSessionKey='';}
   if(descriptor?.section!=='power-addons'||killerSessionKey!==descriptor.characterId){killerSession=null;killerSessionKey='';killerBlurPending=null;}
   if (descriptor?.section !== 'setup') { characterSetup = null; setupQueue = null; }
@@ -1551,6 +1605,10 @@ async function handleClick(event) {
     && (requiresEditor(action) || action === 'character' || action === 'enable-editing')) {
     if (await resolveWorkspaceDraftTransition({ action }) !== 'proceed') return;
   }
+  if (characterTaskSession?.dirty && action !== 'character-task-save' && action !== 'character-task-cancel'
+    && (requiresEditor(action) || action === 'character' || action === 'enable-editing')) {
+    if (await resolveWorkspaceDraftTransition({ action }) !== 'proceed') return;
+  }
   if (characterSetupIsDirty() && !action?.startsWith('character-setup-')
     && (requiresEditor(action) || action === 'character' || action === 'enable-editing')) {
     if (await resolveWorkspaceDraftTransition({ action }) !== 'proceed') return;
@@ -1561,6 +1619,30 @@ async function handleClick(event) {
     const target = characterEditSession?.returnRoute || characterWorkspaceHref(characterEditSession.characterId);
     if (await resolveWorkspaceDraftTransition({ action, destination: target }) !== 'proceed') return;
     characterEditSession = null; await requestWorkspaceNavigation(target); return;
+  }
+  if (action === 'character-task-start') {
+    const descriptor = parseCharacterWorkspaceRoute(route());
+    if (descriptor?.status !== 'valid' || descriptor.section !== 'overview') return;
+    const task = button.dataset.task;
+    characterTaskSession = createCharacterTaskSession(save, descriptor.characterId, task);
+    render();
+    document.querySelector('[data-character-task-field]')?.focus({ preventScroll: true });
+    return;
+  }
+  if (action === 'character-task-save') { store.assertWriter(); saveCharacterTask(); return; }
+  if (action === 'character-task-cancel') {
+    const task = characterTaskSession?.task;
+    characterTaskSession = null;
+    render();
+    document.querySelector('[data-action="character-task-start"][data-task="' + task + '"]')?.focus({ preventScroll: true });
+    return;
+  }
+  if (action === 'overview-ownership-toggle') {
+    const wasOwned = save.characters[id].owned;
+    if (commit(next => { next.characters[id].owned = !wasOwned; }, id)) {
+      document.querySelector('[data-action="overview-ownership-toggle"]')?.focus({ preventScroll: true });
+    }
+    return;
   }
   if (action === 'character-edit-all') { characterEditViewState.allRole = !characterEditViewState.allRole; render(); return; }
   if (action === 'enable-editing') return enableEditing();
@@ -1763,7 +1845,9 @@ async function handleClick(event) {
     const cardIndex = [...document.querySelectorAll('.character-collection-card')].indexOf(card);
     const removesFilteredResult = filters.favorite && wasFavorite;
     if (!commit(next => { next.characters[id].favorite = !next.characters[id].favorite; }, id)) return;
-    if (removesFilteredResult) {
+    if (!card) {
+      document.querySelector('.character-workspace-favorite')?.focus({ preventScroll: true });
+    } else if (removesFilteredResult) {
       const cards = [...document.querySelectorAll('.character-collection-card')];
       (cards[Math.min(Math.max(cardIndex, 0), cards.length - 1)]?.querySelector('[data-open-workspace]') || $('#collection-results-heading'))?.focus();
     } else {
@@ -1818,6 +1902,16 @@ document.addEventListener('input', event => {
       const field = event.target.dataset.editField;
       characterEditSession = updateCharacterEditSession(characterEditSession, { field,
         value: event.target.type === 'checkbox' ? event.target.checked : event.target.value }, save);
+    } catch (error) { message(error.message, true); }
+    return;
+  }
+  if (event.target.dataset.characterTaskField) {
+    try {
+      store.assertWriter();
+      characterTaskSession = updateCharacterTaskSession(characterTaskSession, {
+        field: event.target.dataset.characterTaskField,
+        value: event.target.value,
+      });
     } catch (error) { message(error.message, true); }
     return;
   }
@@ -2041,6 +2135,10 @@ window.addEventListener('storage', event => {
       const loaded = store.load({ persistMigration: editor.state === 'editing' });
       if (characterEditSession?.dirty && JSON.stringify(loaded.save) !== characterEditSession.baseFingerprint) {
         characterEditSession = { ...characterEditSession, conflicted: true,
+          errors: [{ field: 'session', message: 'Underlying save changed; conflict. Discard/reload before saving.' }] };
+      }
+      if (characterTaskSession?.dirty && JSON.stringify(loaded.save) !== characterTaskSession.baseFingerprint) {
+        characterTaskSession = { ...characterTaskSession, conflicted: true,
           errors: [{ field: 'session', message: 'Underlying save changed; conflict. Discard/reload before saving.' }] };
       }
       save = loaded.save; migrationPending = loaded.migrationPending; storageBlocked = false;

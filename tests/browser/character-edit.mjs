@@ -30,6 +30,7 @@ export async function characterEditStepperRegression(page,origin){
 }
 
 export async function characterEditRegression(page, origin) {
+  await characterContextualTaskRegression(page, origin);
   await characterEditFamilyRegression(page,origin);
   await characterEditStepperRegression(page,origin);
   page.setDefaultTimeout(5000);
@@ -168,6 +169,76 @@ export async function characterEditRegression(page, origin) {
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await page.getByRole('button', { name: 'Discard', exact: true }).click();
   await page.waitForURL('**/#character/meg-thomas/overview');
+}
+export async function characterContextualTaskRegression(page, origin) {
+  page.setDefaultTimeout(5000);
+  const save = freshSave();
+  save.characters['meg-thomas'].notes = 'Existing note';
+  await page.evaluate(value => localStorage.setItem('dbdTrackerData', JSON.stringify(value)), save);
+  await page.goto(origin + '/#character/meg-thomas/overview');
+  await page.reload();
+  const bytes = () => page.evaluate(() => localStorage.getItem('dbdTrackerData'));
+  const before = await bytes();
+  assert.equal(JSON.parse(before).characters['meg-thomas'].notes, 'Existing note', 'Synthetic starting note was seeded');
+
+  await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
+  await page.locator('[data-character-task-field="prestige"]').fill('1.5');
+  await page.locator('[data-character-task-field="bloodwebLevel"]').fill('43');
+  await page.getByRole('button', { name: 'Save progression', exact: true }).click();
+  assert.equal(await page.locator('[data-character-task-field="prestige"]').inputValue(), '1.5', 'Invalid numeric draft remains visible');
+  assert.equal(await bytes(), before, 'Invalid progression does not write');
+  await page.locator('[data-character-task-field="prestige"]').fill('2');
+  await page.getByRole('button', { name: 'Save progression', exact: true }).click();
+  let stored = JSON.parse(await bytes());
+  assert.equal(stored.characters['meg-thomas'].prestige, 2);
+  assert.equal(stored.characters['meg-thomas'].bloodwebLevel, 43);
+  assert.equal(stored.characters['meg-thomas'].notes, 'Existing note', 'Progression task leaves Notes untouched');
+  assert.equal(stored.characters['the-doctor'].prestige, save.characters['the-doctor'].prestige);
+
+  const afterProgression = await bytes();
+  await page.getByRole('button', { name: 'Edit notes', exact: true }).first().click();
+  const note = '<script>full note</script>'.repeat(30);
+  await page.locator('[data-character-task-field="notes"]').fill(note);
+  await page.getByRole('button', { name: 'Save note', exact: true }).click();
+  stored = JSON.parse(await bytes());
+  assert.equal(stored.characters['meg-thomas'].notes, note, 'Notes preserve complete escaped plain text');
+  assert.equal(await page.locator('[data-overview-section="notes"] script').count(), 0, 'Notes are rendered as text');
+  assert.notEqual(await bytes(), afterProgression);
+
+  await page.locator('[data-action="overview-ownership-toggle"]').click();
+  assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].owned, true);
+  const favorite = page.locator('.character-workspace-favorite');
+  await favorite.click();
+  assert.equal(await favorite.getAttribute('aria-pressed'), 'true');
+  assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].favorite, true, 'Favorite remains independent and immediate');
+
+  await page.getByRole('button', { name: 'Edit notes', exact: true }).first().click();
+  await page.locator('[data-character-task-field="notes"]').fill('Retain on failure');
+  const beforeFailure = await bytes();
+  await page.evaluate(() => {
+    window.originalTaskSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) {
+      if (key === 'dbdTrackerData') throw Error('Synthetic write failure');
+      return window.originalTaskSetItem.call(this, key, value);
+    };
+  });
+  await page.getByRole('button', { name: 'Save note', exact: true }).click();
+  assert.equal(await page.locator('[data-character-task-field="notes"]').inputValue(), 'Retain on failure');
+  assert.equal(await bytes(), beforeFailure, 'Failed save retains canonical bytes and raw draft');
+  await page.evaluate(() => { Storage.prototype.setItem = window.originalTaskSetItem; });
+  await page.getByRole('button', { name: 'Save note', exact: true }).click();
+  assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].notes, 'Retain on failure', 'Restored storage allows retry of the same note draft');
+
+  await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
+  await page.locator('[data-character-task-field="prestige"]').fill('3');
+  await page.getByRole('link', { name: 'Perks', exact: true }).click();
+  await page.getByRole('button', { name: 'Stay', exact: true }).click();
+  assert.ok(page.url().endsWith('/overview'), 'Stay keeps the source task open');
+  assert.equal(await page.locator('[data-character-task-field="prestige"]').inputValue(), '3');
+  await page.getByRole('link', { name: 'Perks', exact: true }).click();
+  await page.getByRole('button', { name: 'Discard', exact: true }).click();
+  await page.waitForURL('**/#character/meg-thomas/perks');
+  assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].prestige, 2, 'Discard does not write the draft');
 }
 export async function characterEditFamilyRegression(page,origin){
  page.setDefaultTimeout(6000);
