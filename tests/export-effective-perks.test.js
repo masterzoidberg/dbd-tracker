@@ -62,6 +62,19 @@ test('export includes the same effective perk inventory shown by the character U
   assert.deepEqual(progress.perks, rawPerksBefore, 'export is non-mutating');
 });
 
+test('unowned native perks are present in exported effective inventory without raw Bloodweb records', () => {
+  const save = freshSave();
+  const characterId = 'meg-thomas';
+  assert.equal(save.characters[characterId].owned, false);
+  assert.deepEqual(save.characters[characterId].perks, {});
+
+  const exported = JSON.parse(exportSave(save)).characters[characterId];
+  for (const perkId of characterById[characterId].nativePerkIds) {
+    assert.equal(exported.effectivePerks[perkId], 1, `${perkId} is an effective Tier I`);
+    assert.equal(Object.hasOwn(exported.perks, perkId), false, `${perkId} is not converted into a raw Bloodweb record`);
+  }
+});
+
 test('effective export data is derived-only and does not become personal Bloodweb state on import', () => {
   const save = freshSave();
   const characterId = 'the-dark-lord';

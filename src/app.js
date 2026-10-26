@@ -1023,7 +1023,9 @@ async function resolveDirtyCharacterEdit(intent) {
     try { store.assertWriter(); return saveCharacterEdit({ navigate: false }) ? 'proceed' : 'stay'; }
     catch (error) { message(error.message, true); return 'stay'; }
   }
-  if (focused?.isConnected) focused.focus();
+  if (focused?.closest('#global-nav') && $('#menu-toggle').getClientRects().length
+    && $('#menu-toggle').getAttribute('aria-expanded') !== 'true') $('#menu-toggle').focus({ preventScroll: true });
+  else if (focused?.isConnected) focused.focus();
   return 'stay';
 }
 function finishWorkspaceNavigation() {
@@ -1563,7 +1565,10 @@ document.addEventListener('click', event => {
   const sidebar = $('.sidebar');
   if (sidebar.dataset.menuOpen !== 'true') return;
   const link = event.target.closest('#global-nav a[href^="#"]');
-  if (!sidebar.contains(event.target) || link?.hash === location.hash) setGlobalMenuOpen(false);
+  const currentRoute = location.hash || '#dashboard';
+  if (!sidebar.contains(event.target) || link?.hash === currentRoute) {
+    setGlobalMenuOpen(false, link?.hash === currentRoute && $('#menu-toggle').getClientRects().length > 0);
+  }
 });
 document.addEventListener('click', event => { handleClick(event).catch(error => message(error.message || 'The action could not be completed.', true)); });
 document.addEventListener('input', event => {
@@ -1693,6 +1698,7 @@ document.addEventListener('submit', event => {
   if (event.target.matches('[data-character-edit]')) { event.preventDefault(); return; }
 });
 document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && $('dialog[open]')) return;
   if (event.key === 'Escape' && $('#menu-toggle').getAttribute('aria-expanded') === 'true') {
     event.preventDefault(); setGlobalMenuOpen(false, true); return;
   }

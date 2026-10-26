@@ -342,6 +342,46 @@ export async function shellNavigationRegression(page, origin) {
   assert.equal(await page.evaluate(() => window.__trackerSaveWrites), 0, 'Keyboard route activation does not write account data');
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before);
 
+  await menu.focus();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Tab');
+  assert.equal(await navigation.getByRole('link').first().evaluate(node => node === document.activeElement), true);
+  await page.keyboard.press('Enter');
+  assert.equal(await menu.getAttribute('aria-expanded'), 'false', 'Activating the current route dismisses Menu');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'menu-toggle', 'Current-route activation returns focus to the visible Menu trigger');
+
+  await page.setViewportSize({ width: 1280, height: 768 });
+  await seed(page, origin, freshSave(), 'survivors');
+  await page.evaluate(() => { location.hash = '#character/meg-thomas/edit'; });
+  await page.locator('#edit-notes').waitFor();
+  await page.locator('#edit-notes').fill('Compact navigation draft');
+  const editBytes = await page.evaluate(() => localStorage.getItem('dbdTrackerData'));
+  await menu.focus();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Tab');
+  assert.equal(await navigation.getByRole('link').first().evaluate(node => node === document.activeElement), true);
+  await page.keyboard.press('Enter');
+  await page.getByRole('button', { name: 'Stay', exact: true }).waitFor();
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('#dirty-navigation').evaluate(dialog => dialog.open), false, 'Escape closes the dirty-edit dialog');
+  assert.equal(await menu.getAttribute('aria-expanded'), 'true', 'Dialog Escape leaves the expanded Menu behind the dialog alone');
+  await page.waitForFunction(() => document.activeElement.matches('#global-nav a'));
+  assert.equal(await navigation.getByRole('link').first().evaluate(node => node === document.activeElement), true,
+    'Dialog Escape restores focus to the navigation link that opened it');
+  assert.equal(await page.locator('#edit-notes').inputValue(), 'Compact navigation draft');
+  assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), editBytes);
+  await page.keyboard.press('Enter');
+  await page.getByRole('button', { name: 'Stay', exact: true }).waitFor();
+  await page.keyboard.press('Enter');
+  assert.equal(await menu.getAttribute('aria-expanded'), 'false', 'Stay dismisses compact Menu');
+  await page.waitForFunction(() => document.activeElement.id === 'menu-toggle');
+  assert.ok(page.url().endsWith('/edit'), 'Blocked compact-menu navigation leaves the current route in place');
+  assert.equal(await page.locator('#edit-notes').inputValue(), 'Compact navigation draft');
+  assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), editBytes, 'Staying in the editor preserves the existing save');
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await page.getByRole('button', { name: 'Discard', exact: true }).click();
+  await page.waitForURL('**/#character/meg-thomas/overview');
+
   const skip = page.locator('.skip-link');
   await skip.focus();
   const bounds = await skip.boundingBox();
@@ -356,6 +396,17 @@ export async function shellNavigationRegression(page, origin) {
     return (Math.max(text, background) + 0.05) / (Math.min(text, background) + 0.05);
   });
   assert.ok(contrast >= 4.5, `Skip link text contrast remains at least 4.5:1 while hovered (got ${contrast.toFixed(2)}:1)`);
+
+  await page.setViewportSize({ width: 1280, height: 768 });
+  await page.goto(origin + '/');
+  await page.getByRole('heading', { name: 'Account overview', exact: true }).waitFor();
+  await menu.focus();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Tab');
+  assert.equal(await navigation.getByRole('link').first().evaluate(node => node === document.activeElement), true);
+  await page.keyboard.press('Enter');
+  assert.equal(await menu.getAttribute('aria-expanded'), 'false', 'Bare-root Dashboard activation dismisses Menu');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'menu-toggle', 'Bare-root Dashboard activation returns focus to Menu');
 }
 
 export async function filteringRegression(page, origin) {
