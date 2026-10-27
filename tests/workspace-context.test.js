@@ -30,14 +30,16 @@ test('workspace context retains only safe role-local browse state', () => {
   assert.equal(memory.read('survivor').perks.search, 'adrenaline', 'reads return an isolated snapshot');
 });
 
-test('workspace sections and perk modes stay role-correct and ordinary tabs clear Update mode', () => {
+test('workspace sections stay role-correct and old Update mode does not enter context', () => {
   const memory = createWorkspaceContextMemory();
   memory.update('killer', { section: 'power-addons', mode: 'update' });
   assert.equal(memory.read('killer').section, 'power-addons');
   assert.equal(memory.read('killer').mode, null, 'non-Perks sections cannot retain an editing mode');
 
   memory.update('killer', { section: 'perks', mode: 'update' });
-  assert.deepEqual([memory.read('killer').section, memory.read('killer').mode], ['perks', 'update']);
+  assert.deepEqual([memory.read('killer').section, memory.read('killer').mode], ['perks', null]);
+  memory.update('killer', { section: 'perks', mode: 'legacy' });
+  assert.deepEqual([memory.read('killer').section, memory.read('killer').mode], ['perks', 'legacy']);
   memory.update('killer', { section: 'overview' });
   assert.deepEqual([memory.read('killer').section, memory.read('killer').mode], ['overview', null]);
 

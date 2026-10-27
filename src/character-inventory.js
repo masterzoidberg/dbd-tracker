@@ -18,15 +18,10 @@ export function normalizeCharacterCardSize(value) {
   return CHARACTER_CARD_SIZES.includes(value) ? value : DEFAULT_CHARACTER_CARD_SIZE;
 }
 
-function updateRouteKey(route) {
-  const parsed = parseCharacterWorkspaceRoute(route);
-  return parsed?.status === 'valid' && parsed.section === 'perks' && parsed.mode === 'update' ? parsed.canonicalRoute : '';
-}
-
 export function parseCharacterInventoryRoute(route) {
   const parsed = parseCharacterWorkspaceRoute(route);
   if (parsed?.status !== 'valid' || parsed.section !== 'perks') return null;
-  return { characterId: parsed.characterId, mode: parsed.mode || 'inventory',
+  return { characterId: parsed.characterId, mode: parsed.mode === 'legacy' ? 'legacy' : 'inventory',
     source: parsed.source === 'experiment' ? 'experiment' : 'canonical', canonicalRoute: parsed.canonicalRoute };
 }
 
@@ -114,25 +109,18 @@ export function setCharacterPersonalTier(save, characterId, perkId, tier) {
 
 export function createCharacterInventorySession(route) {
   return {
-    route: updateRouteKey(route),
+    route: parseCharacterInventoryRoute(route)?.canonicalRoute || '',
     search: '',
     category: 'all',
     onlyUnrecorded: false,
     sort: 'name',
-    selectedPerkId: null,
     quickPerkId: null,
-    changedPerkIds: new Set(),
     failedSelection: null,
     correctionDraft: null,
   };
 }
 
 export function syncCharacterInventorySession(session, route) {
-  const nextRoute = updateRouteKey(route);
+  const nextRoute = parseCharacterInventoryRoute(route)?.canonicalRoute || '';
   return session.route === nextRoute ? session : createCharacterInventorySession(route);
-}
-
-export function markCharacterInventoryChanged(session, perkId) {
-  if (!perkId) return session;
-  return { ...session, changedPerkIds: new Set([...session.changedPerkIds, perkId]) };
 }

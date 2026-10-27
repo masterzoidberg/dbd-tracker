@@ -1954,7 +1954,7 @@ footer span {
 .character-name > span:last-child, .character-title > span:last-child { min-width: 0; overflow-wrap: anywhere; }
 .character-card-top .favorite-button { position:absolute; right:0; bottom:0; flex:none; }
 
-/* Shared character inventory cards and Update Inventory workspace. */
+/* Shared character Perks inventory. */
 .character-inventory-entry {
   display:flex;
   align-items:center;
@@ -2000,13 +2000,6 @@ footer span {
   line-height:1.5;
   text-align:right;
 }
-.character-inventory-session-status {
-  color:var(--muted);
-  font-size:11px;
-  text-align:right;
-  line-height:1.5;
-}
-.character-inventory-session-status strong { color:var(--gold); font-weight:500; }
 .character-inventory-controls { padding-bottom:16px; }
 .character-inventory-control-top { display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .character-inventory-search { max-width:560px; }
@@ -2057,12 +2050,6 @@ footer span {
   font-size:11px;
 }
 .character-inventory-results-label strong { color:var(--text); font-size:14px; font-weight:600; }
-.character-inventory-layout {
-  display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(280px,360px);
-  align-items:start;
-  gap:20px;
-}
 .character-inventory-card-grid,
 .character-inventory-grid {
   display:grid;
@@ -2194,15 +2181,13 @@ footer span {
   color:var(--text);
   overflow-wrap:anywhere;
 }
-.perk-card-badges,
-.character-inventory-editor-badges {
+.perk-card-badges {
   display:flex;
   flex-wrap:wrap;
   gap:5px;
 }
 .character-inventory-badge,
-.perk-card-unrecorded-label,
-.perk-card-changed {
+.perk-card-unrecorded-label {
   display:inline-flex;
   align-items:center;
   width:max-content;
@@ -2217,7 +2202,6 @@ footer span {
   overflow-wrap:anywhere;
 }
 .perk-card-unrecorded-label { color:#aaa8a4; border-color:#55575b; }
-.perk-card-changed { color:var(--gold); border-color:#6a5430; }
 .perk-card.perk-tier-none { color:var(--perk-tier-none); border-color:#45494d; }
 .perk-card.perk-tier-1 { color:#b4cda7; border-color:#4f7657; }
 .perk-card.perk-tier-2 { color:#adc9ed; border-color:#496b95; }
@@ -2234,60 +2218,21 @@ footer span {
 .perk-card-unrecorded:hover,
 .perk-card-unrecorded.is-selected { opacity:1; }
 .perk-card.is-selected { border-color:var(--gold); }
-.changed-this-update { box-shadow:inset 0 0 0 1px var(--gold),0 0 0 2px #d5b1742b; }
-.character-inventory-editor {
-  position:sticky;
-  top:20px;
-  min-width:0;
-  padding:22px;
-  border:1px solid var(--border);
-  border-radius:5px;
-  background:var(--surface);
-}
-.character-inventory-editor-art {
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  min-height:132px;
-  margin-bottom:16px;
-  color:var(--gold);
-}
-.character-inventory-editor-art .perk-art { flex-basis:112px; width:112px; height:112px; }
-.character-inventory-editor-art .perk-art .perk-diamond { font-size:58px; }
-.character-inventory-editor .eyebrow { margin-bottom:5px; }
-.character-inventory-editor h2 { font-size:21px; line-height:1.3; overflow-wrap:anywhere; }
-.character-inventory-editor-badges { margin-top:11px; }
-.character-inventory-effective {
-  display:grid;
-  grid-template-columns:1fr auto;
-  align-items:center;
-  gap:5px 12px;
-  margin:20px 0;
-  padding:13px;
-  border:1px solid #3c3830;
-  border-radius:4px;
-  background:#211e1a;
-}
-.character-inventory-effective>span { color:var(--muted); font-size:9px; letter-spacing:1px; }
-.character-inventory-effective .tier { grid-row:span 2; min-width:38px; padding:8px 10px; font-size:15px; text-align:center; }
-.character-inventory-effective small { grid-column:1; font-size:10px; }
-.character-inventory-editor-facts { margin:0; }
-.character-inventory-editor-facts div { padding:11px 0; border-top:1px solid var(--border); }
-.character-inventory-editor-facts dt { color:var(--muted); font-size:10px; }
-.character-inventory-editor-facts dd { margin:4px 0 0; font-size:12px; line-height:1.5; overflow-wrap:anywhere; }
-.character-inventory-editor h3 { margin:20px 0 10px; font-size:12px; color:var(--muted); letter-spacing:.7px; text-transform:uppercase; }
 .character-inventory-tier-controls { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
 .character-inventory-tier-controls button { padding:9px 5px; font-size:11px; }
 .character-inventory-tier-controls button[aria-pressed="true"] { color:var(--text); border-color:var(--gold); background:#2b251b; }
-.character-inventory-effective .tier-1,
 .character-inventory-tier-controls button[data-tier="1"][aria-pressed="true"] { background:#202c20; border-color:#465e40; color:#b4cda7; }
-.character-inventory-effective .tier-2,
 .character-inventory-tier-controls button[data-tier="2"][aria-pressed="true"] { background:#152842; border-color:#496b95; color:#adc9ed; }
 .character-inventory-tier-controls button[data-tier="3"][aria-pressed="true"] { background:#2c2236; border-color:#614773; color:#cdb0e9; }
 .character-inventory-tier-controls button[data-tier="none"][aria-pressed="true"] { background:#25282c; border-color:#48474b; color:#b4b0ad; }
 .character-inventory-card-anchor { position:relative; display:grid; min-width:0; }
 .character-inventory-quick-picker { position:absolute; z-index:5; top:calc(100% + 6px); left:0; width:min(248px,calc(100vw - 24px)); padding:10px; box-sizing:border-box; background:#191b1e; border:1px solid #777; border-radius:6px; box-shadow:0 6px 16px #0008; }
 .character-inventory-quick-picker strong { display:block; margin-bottom:8px; font-size:12px; line-height:1.35; overflow-wrap:anywhere; }
+.character-inventory-quick-state { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px 8px; margin:0 0 8px; }
+.character-inventory-quick-state div { min-width:0; }
+.character-inventory-quick-state dt { color:var(--muted); font-size:9px; line-height:1.3; }
+.character-inventory-quick-state dd { margin:2px 0 0; font-size:10px; line-height:1.35; overflow-wrap:anywhere; }
+.character-inventory-quick-actions { display:flex; justify-content:flex-end; margin-top:7px; padding-top:6px; border-top:1px solid var(--border); }
 .character-inventory-quick-picker.opens-above { top:auto; bottom:calc(100% + 6px); }
 .character-inventory-quick-picker .character-inventory-tier-controls { grid-template-columns:repeat(4,minmax(0,1fr)); }
 .character-inventory-quick-picker .character-inventory-tier-controls button { min-height:44px; padding:5px 2px; font-size:10px; line-height:1.2; overflow-wrap:anywhere; }
@@ -2297,8 +2242,6 @@ footer span {
 .character-inventory-quick-picker button:focus-visible { outline:2px solid white; outline-offset:2px; }
 .character-inventory-quick-picker .character-inventory-correction { margin-top:6px; padding-top:6px; }
 .character-inventory-quick-picker .character-inventory-correction>button { min-height:44px; }
-.character-inventory-session-status { display:flex; flex-direction:column; gap:4px; }
-.character-inventory-editor-note { margin-top:11px; color:var(--muted); font-size:11px; line-height:1.6; }
 .character-inventory-history-control { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:11px; }
 .character-inventory-history-control select { flex:1; min-width:0; padding:8px; font-size:11px; }
 .character-inventory-correction { margin-top:18px; padding-top:14px; border-top:1px solid var(--border); }
@@ -2316,11 +2259,8 @@ footer span {
 .character-inventory-correction-actions button { min-height:40px; }
 
 @media (max-width:1100px) {
-  .character-inventory-layout { grid-template-columns:minmax(0,1fr) 300px; }
   .character-inventory-card-grid,
   .character-inventory-grid { grid-template-columns:repeat(auto-fill,minmax(var(--character-inventory-card-min),1fr)); }
-  .character-inventory-intro { grid-template-columns:auto minmax(0,1fr); }
-  .character-inventory-helper-link { grid-column:2; text-align:left; }
 }
 @media (max-width:760px) {
   .character-inventory-control-top { flex-wrap:wrap; }
@@ -2334,14 +2274,8 @@ footer span {
     --character-inventory-art-area:128px;
     --character-inventory-card-min-height:224px;
   }
-  .character-inventory-entry { align-items:flex-start; flex-direction:column; gap:9px; }
-  .character-inventory-intro { grid-template-columns:1fr; gap:14px; }
-  .character-inventory-helper-link { grid-column:auto; }
-  .character-inventory-layout { grid-template-columns:1fr; }
-  .character-inventory-editor { position:static; order:-1; }
   .character-inventory-card-size-control { display:none; }
   .character-inventory-only-unrecorded { margin-left:0; width:100%; }
-  .character-inventory-session-status { text-align:left; }
 }
 @media (max-width:430px) {
   .character-inventory-card-grid,

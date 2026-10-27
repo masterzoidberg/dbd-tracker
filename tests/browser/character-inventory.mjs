@@ -24,11 +24,14 @@ async function seed(page, origin) {
   await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), fixture);
   await page.goto(origin + '/#manage/' + character);
   await page.reload();
-  await page.getByRole('link', { name: 'Update Inventory', exact: true }).first().waitFor();
-  await page.goto(origin + '/#character/' + character + '/perks/update');
+  await page.locator('#character-inventory-search').waitFor();
   assert.equal(await page.getByRole('button', { name: 'Native perks', exact: true }).count(), 1);
   assert.equal(await page.locator('[role="tablist"]').count(), 0);
   assert.equal(await page.locator('[data-action="character-inventory-all-role"]').count(), 1);
+  assert.equal(await page.getByRole('button', { name: 'Update Inventory', exact: true }).count(), 0);
+  await page.goto(origin + '/#character/' + character + '/perks/update');
+  await page.waitForFunction(() => location.hash === '#character/the-doctor/perks');
+  assert.equal(new URL(page.url()).hash, '#character/the-doctor/perks', 'Old Update bookmarks normalize to ordinary Perks');
   await page.goto(origin + '/#manage/' + character);
 }
 
@@ -44,15 +47,15 @@ export async function characterInventoryRegression(page, origin) {
   assert.equal(await workspace.locator('h1').count(),1,'Shared identity supplies the only h1');
   assert.equal(await workspace.locator('.character-portrait').count(),1,'Perks cannot repeat the character portrait');
   assert.equal(await workspace.getByRole('heading',{name:'Perks',exact:true}).count(),1,'Normal Perks has a simple section heading');
-  assert.equal(await workspace.locator('.character-inventory-update-action').count(),1);
+  assert.equal(await workspace.locator('.character-inventory-update-action').count(),0);
 
-  // Browse mode is useful and read-only; selection opens a reference before Update is explicit.
+  // The Perks workspace is directly editable; opening a picker stays read-only.
   assert.equal(await page.locator('#character-inventory-search').count(), 1);
   assert.equal(await page.locator('.character-inventory-scopes').count(), 1);
-  assert.equal(await page.locator('[data-character-inventory-toolbar="browse"]').count(), 1);
+  assert.equal(await page.locator('[data-character-inventory-toolbar="perks"]').count(), 1);
   const inventoryCount = await page.locator('.character-inventory-card-grid .perk-card').count();
   assert.ok(inventoryCount > 0);
-  assert.equal(await page.locator('.character-inventory-update-action').count(), 1);
+  assert.equal(await page.getByRole('button', { name: 'Done', exact: true }).count(), 0);
   const beforeBrowse = await page.evaluate(() => localStorage.getItem('dbdTrackerData'));
   await page.locator('#character-inventory-sort').selectOption('tier');
   const displayedTierRanks = await page.locator('.character-inventory-card-grid .perk-card-tier').evaluateAll(nodes =>
@@ -61,20 +64,22 @@ export async function characterInventoryRegression(page, origin) {
   await page.locator('#character-inventory-sort').selectOption('name');
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), beforeBrowse, 'Search and sort remain read-only');
 
-  // A Browse selection reveals record, minimum, effective and account-access facts without writing.
+  // A card opens its compact record editor without writing.
   await page.locator('.character-inventory-card-grid [data-perk="overcharge"]').click();
   assert.equal(new URL(page.url()).hash, '#manage/the-doctor');
-  assert.equal(await page.locator('[data-character-inventory-reference] h2').textContent(), 'Overcharge');
-  assert.equal(await page.locator('[data-character-inventory-reference]').getByText('Recorded tier').count(), 1);
-  assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), beforeBrowse, 'Browse does not mutate account data');
-  await page.locator('[data-open-perk-update="overcharge"]').click();
-  await page.locator('#character-inventory-search').waitFor();
-  assert.equal(new URL(page.url()).hash, '#character/the-doctor/perks/update');
-  assert.equal(await page.locator('[data-character-inventory-detail]').count(), 0, 'Update Inventory does not restore a featured perk editor');
-  assert.equal(await card(page, 'overcharge').count(), 1, 'The source perk stays in its normal grid position');
+  const compactPicker = page.locator('.character-inventory-quick-picker');
+  assert.equal(await compactPicker.locator('strong').textContent(), 'Overcharge');
+  assert.deepEqual(await compactPicker.locator('dt').allTextContents(), ['Recorded', 'Automatic minimum', 'Effective']);
+  assert.equal(await page.locator('[data-character-inventory-reference], .character-inventory-editor').count(), 0,
+    'Perk activation never creates a persistent reference panel');
+  assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), beforeBrowse, 'Opening a picker does not mutate account data');
+  await compactPicker.locator('[data-action="character-inventory-details"]').click();
+  assert.equal(await page.locator('#detail[open]').count(), 1, 'Full reference is opened only through Details');
+  await page.locator('#detail [data-action="close"]').click();
+  await page.keyboard.press('Escape');
 
   const allCount = await cards(page).count();
-  assert.ok(allCount >= 20, 'Update starts from a relevant candidate pool');
+  assert.ok(allCount >= 20, 'The Perks page starts from a relevant candidate pool');
 
   // Category precedence is visible and deduplicated: native-plus-Shrine is one Personal card.
   await page.getByRole('button', { name: 'Native perks', exact: true }).click();
@@ -98,12 +103,11 @@ export async function characterInventoryRegression(page, origin) {
   await page.locator('[data-action="character-inventory-all-role"]').click();
   assert.equal(await cards(page).count(), normalCandidateCount, 'All-role can return to the normal candidate scope');
 
-  // Direct selection writes an ordinary personal record and leaves a session marker.
+  // Direct selection writes one ordinary personal record.
   await card(page, 'bitter-murmur').click();
   await page.locator('.character-inventory-quick-picker [data-action="character-inventory-set-tier"][data-perk="bitter-murmur"][data-tier="3"]').click();
   assert.equal((await stored(page)).characters[character].perks['bitter-murmur'], 3);
-  assert.equal(await page.locator('.changed-this-update').count(), 1);
-  assert.match(await page.locator('.character-inventory-session-status').textContent(), /1 changes saved this session/);
+  assert.equal(await page.locator('.changed-this-update').count(), 0);
   await card(page, 'bitter-murmur').click();
   await page.locator('.character-inventory-quick-picker [data-action="character-inventory-set-tier"][data-perk="bitter-murmur"][data-tier="none"]').click();
   assert.equal(Object.hasOwn((await stored(page)).characters[character].perks, 'bitter-murmur'), false);
@@ -119,7 +123,6 @@ export async function characterInventoryRegression(page, origin) {
   const afterFloorClear = await stored(page);
   assert.equal(afterFloorClear.characters[character].perks.shadowborn, undefined);
   assert.equal(await card(page, 'shadowborn').evaluate(node => node.classList.contains('perk-tier-2')), true);
-  assert.match(await page.locator('.character-inventory-session-status').textContent(), /2 changes saved this session/);
   assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('dbdTrackerData')).changedPerkIds), undefined, 'Session markers are not persisted');
 
   // A failed one-perk write keeps its intent local until it is retried or discarded.
@@ -139,23 +142,12 @@ export async function characterInventoryRegression(page, origin) {
   await page.evaluate(() => { Storage.prototype.setItem = window.inventoryOriginalSetItem; delete window.inventoryOriginalSetItem; });
   await page.getByRole('button', { name: 'Retry failed selection', exact: true }).click();
   assert.equal((await stored(page)).characters[character].perks['monitor-abuse'], 3);
-  assert.match(await page.locator('.character-inventory-session-status').textContent(), /3 changes saved this session/,
-    'A retry preserves earlier successful selection count and records the new success');
   const unchangedTimestamp = (await stored(page)).characters[character].updatedAt;
   await card(page, 'monitor-abuse').click();
   await page.locator('.character-inventory-quick-picker [data-action="character-inventory-set-tier"][data-perk="monitor-abuse"][data-tier="3"]').click();
   assert.equal((await stored(page)).characters[character].updatedAt, unchangedTimestamp, 'Repeating a saved tier is a no-op');
-  assert.match(await page.locator('.character-inventory-session-status').textContent(), /3 changes saved this session/);
-  const beforeDone = await stored(page);
-  await page.locator('[data-action="character-inventory-done"]').click();
-  await page.waitForFunction(() => location.hash === '#character/the-doctor/perks');
-  assert.deepEqual(await stored(page), beforeDone, 'Done exits already-saved Update work without another write');
-  await page.goto(origin + '/#character/' + character + '/perks/update');
-  await page.locator('.character-inventory-session-status').waitFor();
-  assert.match(await page.locator('.character-inventory-session-status').textContent(), /0 changes saved this session/,
-    'A fresh Update entry starts a new session count');
 
-  // A later failed intent blocks Done until Stay or explicit discard is chosen.
+  // A failed intent blocks Perks navigation until the user retries, stays, or discards it.
   await page.evaluate(() => {
     window.inventoryOriginalSetItem = Storage.prototype.setItem;
     Storage.prototype.setItem = function(key, value) {
@@ -163,35 +155,37 @@ export async function characterInventoryRegression(page, origin) {
       return window.inventoryOriginalSetItem.call(this, key, value);
     };
   });
+  const perksRoute = new URL(page.url()).hash;
   await card(page, 'bitter-murmur').click();
   await page.locator('.character-inventory-quick-picker [data-action="character-inventory-set-tier"][data-perk="bitter-murmur"][data-tier="2"]').click();
-  await page.locator('[data-action="character-inventory-done"]').click();
+  await page.locator('[data-workspace-section="overview"]').click();
   assert.equal(await page.locator('#dirty-navigation').isVisible(), true);
   assert.equal(await page.locator('#dirty-navigation [value="retry"]').textContent(), 'Retry');
   assert.equal(await page.locator('#dirty-navigation [value="discard"]').textContent(), 'Discard failed selection');
   assert.equal(await page.locator('#dirty-navigation [value="stay"]').textContent(), 'Stay');
   await page.locator('#dirty-navigation [value="stay"]').click();
-  assert.equal(new URL(page.url()).hash, '#character/the-doctor/perks/update');
-  assert.equal(await page.locator('[data-action="character-inventory-done"]').evaluate(node => node === document.activeElement), true,
-    'Stay returns focus to the navigation action that opened the dialog');
-  await page.locator('[data-action="character-inventory-done"]').click();
+  assert.equal(new URL(page.url()).hash, perksRoute, 'Stay keeps the source Perks route');
+  assert.equal(await page.locator('[data-workspace-section="overview"]').evaluate(node => node === document.activeElement), true,
+    'Stay returns focus to the navigation link that opened the dialog');
+  await page.locator('[data-workspace-section="overview"]').click();
   await page.locator('#dirty-navigation [value="discard"]').click();
-  await page.waitForFunction(() => location.hash === '#character/the-doctor/perks');
-  assert.equal(new URL(page.url()).hash, '#character/the-doctor/perks');
+  await page.waitForFunction(() => location.hash === '#character/the-doctor/overview');
+  assert.equal(new URL(page.url()).hash, '#character/the-doctor/overview');
   assert.equal((await stored(page)).characters[character].perks['monitor-abuse'], 3,
     'Discarding a later failed selection preserves earlier successful records');
   assert.equal((await stored(page)).characters[character].perks['bitter-murmur'], undefined);
   await page.evaluate(() => { Storage.prototype.setItem = window.inventoryOriginalSetItem; delete window.inventoryOriginalSetItem; });
 
-  // Leaving Update clears visual breadcrumbs while ordinary records remain saved.
+  // Returning to Perks shows the saved grid without any editing-mode breadcrumbs.
   await page.goto(origin + '/#manage/' + character);
-  await page.locator('[data-character-inventory-toolbar="browse"]').waitFor();
+  await page.locator('[data-character-inventory-toolbar="perks"]').waitFor();
   assert.equal(await page.locator('.changed-this-update').count(), 0);
   assert.equal(await page.locator('.character-inventory-card-grid [data-perk="bitter-murmur"]').count(), 1,
     'Browse keeps relevant General perks visible even without a personal record');
-  assert.equal(await page.locator('[data-character-inventory-reference]').textContent().then(text => text.includes('Not recorded')), true);
+  assert.equal(await page.locator('[data-character-inventory-reference]').count(), 0);
   await page.goto(origin + '/#manage/' + character + '/update');
   await page.locator('#character-inventory-search').waitFor();
+  assert.equal(new URL(page.url()).hash, '#character/the-doctor/perks');
   assert.equal(await page.locator('.changed-this-update').count(), 0);
   await page.locator('#character-inventory-only-unrecorded').check();
   assert.equal(await card(page, 'bitter-murmur').count(), 1, 'Cleared General records remain candidate-visible as unrecorded');
@@ -213,7 +207,6 @@ export async function characterInventoryRegression(page, origin) {
   await page.waitForFunction(expected => location.hash === expected, nextCharacterHref);
   assert.equal(new URL(page.url()).hash, nextCharacterHref);
   assert.equal(await page.locator('[data-character-inventory-failed-selection]').count(), 0);
-  assert.match(await page.locator('.character-inventory-session-status').textContent(), /0 changes saved this session/);
   assert.equal((await stored(page)).characters[character].perks['bitter-murmur'], undefined,
     'Changing character discards only the failed source intent');
   await page.evaluate(() => { Storage.prototype.setItem = window.inventoryOriginalSetItem; delete window.inventoryOriginalSetItem; });
@@ -279,19 +272,17 @@ export async function characterInventoryRegression(page, origin) {
   await page.goto(origin + '/#experiment/' + character + '/update');
   await page.locator('#character-inventory-search').waitFor();
   assert.equal(await page.locator('[data-action="character-inventory-card-size"][data-size="large"]').getAttribute('aria-pressed'), 'true');
-  assert.equal(new URL(page.url()).hash, '#experiment/the-doctor/update');
+  assert.equal(new URL(page.url()).hash, '#character/the-doctor/perks');
 
   // Survivor canonical routes use the same production renderer and remain role-scoped.
   await page.goto(origin + '/#manage/kate-denson');
-  await page.locator('[data-character-inventory-toolbar="browse"]').waitFor();
+  await page.locator('[data-character-inventory-toolbar="perks"]').waitFor();
   assert.ok(await page.locator('.character-inventory-card-grid .perk-card').count() > 0);
   await page.locator('#character-inventory-search').fill('Will to Live');
   assert.equal(await page.locator('.character-inventory-card-grid .perk-card[data-perk="decisive-strike"]').count(), 1,
     'Browse search resolves the legacy licensed alias to one canonical perk');
   await page.locator('#character-inventory-search').fill('');
-  await page.locator('.character-inventory-update-action').click();
-  await page.locator('#character-inventory-search').waitFor();
-  assert.equal(new URL(page.url()).hash, '#character/kate-denson/perks/update');
+  assert.equal(new URL(page.url()).hash, '#manage/kate-denson');
   assert.ok(await cards(page).count() > 0);
 
   // Mobile keeps the approved two-column grid and hides only the desktop preference control.
@@ -312,7 +303,7 @@ export async function characterInventoryRegression(page, origin) {
   assert.equal(await page.locator('.character-inventory-layout').count(), 0, 'Update does not render a separate editor layout');
   assert.equal(await page.locator('.character-inventory-editor').count(), 0, 'Mobile keeps the perk grid as the dominant surface');
   await page.goto(origin + '/#manage/the-doctor');
-  await page.locator('[data-character-inventory-toolbar="browse"]').waitFor();
+  await page.locator('[data-character-inventory-toolbar="perks"]').waitFor();
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(origin + '/#manage/' + character + '/update');
@@ -347,7 +338,10 @@ async function quickPickerRegression(page, origin) {
     const count = await cards(page).count();
     console.log(`${id}: ${count} candidates`);
     assert.ok(count >= 20);
-    assert.match(await page.locator('.character-inventory-session-status').textContent(), /0 changes saved this session.*Saved automatically/);
+    assert.equal(new URL(page.url()).hash, `#character/${id}/perks`, 'Old update aliases normalize to ordinary Perks');
+    assert.equal(await page.locator('.character-inventory-session-status').count(), 0);
+    assert.equal(await page.getByRole('button', { name: 'Update Inventory', exact: true }).count(), 0);
+    assert.equal(await page.getByRole('button', { name: 'Done', exact: true }).count(), 0);
     assert.equal(await page.getByRole('button', { name: /^(Save|Confirm)( changes)?$/i }).count(), 0);
     for (const [tier, color, gradient] of [
       ['1', 'rgb(180, 205, 167)', '#3e8630'],
@@ -382,7 +376,6 @@ async function quickPickerRegression(page, origin) {
     }
     await card(page, perk).click();
     await choice('none').click();
-    assert.match(await page.locator('.character-inventory-session-status').textContent(), /1 changes saved this session/);
     await card(page, perk).focus();
     await page.keyboard.press('Enter');
     assert.equal(await picker.count(), 1);
@@ -399,11 +392,9 @@ async function quickPickerRegression(page, origin) {
     assert.equal(await choice('1').isDisabled(), true);
     // Exercise domain validation even if UI disabling is bypassed.
     const beforeRejected = (await stored(page)).characters[id].perks[floorPerk];
-    const beforeCount = await page.locator('.character-inventory-session-status').textContent();
     await choice('1').evaluate(node => { node.disabled = false; });
     await choice('1').click();
     assert.equal((await stored(page)).characters[id].perks[floorPerk], beforeRejected);
-    assert.equal(await page.locator('.character-inventory-session-status').textContent(), beforeCount);
     assert.equal(await picker.count(), 1, 'Rejected edits leave the picker available');
     assert.match(await page.locator('#message').textContent(), /automatic minimum/);
     await choice('3').click();
@@ -424,12 +415,10 @@ async function quickPickerRegression(page, origin) {
     await page.locator('#character-inventory-search').waitFor();
     assert.equal((await stored(page)).characters[id].perks[perk], 3);
     assert.equal(await page.locator('.changed-this-update').count(), 0);
-    assert.match(await page.locator('.character-inventory-session-status').textContent(), /0 changes saved this session/);
     assert.equal(await picker.count(), 0);
     assert.equal(await cards(page).count(), count);
     await card(page, perk).click();
     await choice('3').click();
-    assert.match(await page.locator('.character-inventory-session-status').textContent(), /0 changes saved this session/);
     assert.equal(await page.locator('.changed-this-update').count(), 0);
     for (const width of [390, 320]) {
       await page.setViewportSize({ width, height: 844 });
@@ -439,7 +428,7 @@ async function quickPickerRegression(page, origin) {
       const geometry = await picker.boundingBox();
       assert.ok(geometry.x >= 0 && geometry.x + geometry.width <= width);
       assert.equal(await page.locator('.character-inventory-card-grid').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length), 2);
-      assert.equal(await page.locator('.character-inventory-layout').count(), 0, 'Update grid does not retain a second editor column');
+      assert.equal(await page.locator('.character-inventory-layout').count(), 0, 'Perks grid has no separate editor column');
       assert.equal(await page.locator('dialog[open]').count(), 0);
       await page.screenshot({ path: `${process.env.TEMP}/dbd-${id}-${width}-picker.png` });
       await choice('2').click();
@@ -482,10 +471,10 @@ async function correctionRegression(page, origin) {
   await page.evaluate(value => localStorage.setItem('dbdTrackerData', JSON.stringify(value)), save);
   await page.goto(`${origin}/#manage/${character}`);
   await page.reload();
-  await page.locator('[data-character-inventory-toolbar="browse"]').waitFor();
+  await page.locator('[data-character-inventory-toolbar="perks"]').waitFor();
 
   await card(page, 'bitter-murmur').click();
-  const reference = page.locator('[data-character-inventory-reference]');
+  const reference = page.locator('.character-inventory-quick-picker');
   assert.equal(await reference.locator('[data-action="character-inventory-correction-open"]').count(), 1);
   assert.equal(await reference.locator('.character-inventory-correction').locator('[data-action="account-unlock-tier"]').count(), 0,
     'Personal correction stays separate from account-wide controls');
@@ -512,7 +501,7 @@ async function correctionRegression(page, origin) {
     'Discarding a pending correction leaves the saved personal record untouched');
 
   await page.goto(`${origin}/#manage/${character}`);
-  await page.locator('[data-character-inventory-toolbar="browse"]').waitFor();
+  await page.locator('[data-character-inventory-toolbar="perks"]').waitFor();
   await card(page, 'bitter-murmur').click();
   await page.locator('[data-action="character-inventory-correction-open"]').click();
   const bitterCorrection = page.locator('[data-character-inventory-correction]');
@@ -554,7 +543,7 @@ async function correctionRegression(page, origin) {
   assert.equal(await card(page, 'shadowborn').evaluate(node => node.classList.contains('perk-tier-2')), true);
 
   await page.goto(`${origin}/#manage/ash-williams`);
-  await page.locator('[data-character-inventory-toolbar="browse"]').waitFor();
+  await page.locator('[data-character-inventory-toolbar="perks"]').waitFor();
   await card(page, 'camaraderie').click();
   await page.locator('[data-action="character-inventory-correction-open"]').click();
   const historicalCorrection = page.locator('[data-character-inventory-correction]');
@@ -564,18 +553,14 @@ async function correctionRegression(page, origin) {
     'Historical positive records can use the deliberate correction path');
 
   await page.goto(`${origin}/#manage/meg-thomas`);
-  await page.locator('[data-character-inventory-toolbar="browse"]').waitFor();
+  await page.locator('[data-character-inventory-toolbar="perks"]').waitFor();
   await card(page, 'camaraderie').click();
   assert.equal(await page.locator('[data-action="character-inventory-correction-open"]').count(), 0,
     'Historical Not Owned zero remains on its existing acquisition path');
-  await page.locator('.character-inventory-update-action').click();
-  await page.locator('#character-inventory-search').waitFor();
-  await page.locator('#character-inventory-search').fill('camaraderie');
-  await card(page, 'camaraderie').click();
   assert.equal(await page.locator('[data-character-inventory-historical="camaraderie"]').inputValue(), '0');
 
   await page.goto(`${origin}/#manage/${character}`);
-  await page.locator('[data-character-inventory-toolbar="browse"]').waitFor();
+  await page.locator('[data-character-inventory-toolbar="perks"]').waitFor();
   await card(page, 'bitter-murmur').click();
   await page.locator('[data-action="character-inventory-correction-open"]').click();
   const conflictedCorrection = page.locator('[data-character-inventory-correction]');
@@ -599,7 +584,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
       channel: process.argv.includes('--chrome') ? 'chrome' : 'msedge',
       regression: characterInventoryRegression,
     });
-    console.log({ localhost: result.localhost, browser: result.browser, checks: 'canonical character inventory and Update Inventory workflow' });
+    console.log({ localhost: result.localhost, browser: result.browser, checks: 'canonical character Perks inventory and save safety' });
   } catch (error) {
     console.error(error);
     process.exitCode = 1;
