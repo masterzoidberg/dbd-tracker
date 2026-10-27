@@ -149,6 +149,7 @@ export async function taskDraftPerkMutationRegression(page, origin) {
       'Perk-dialog selection waits for the active task draft decision');
     if (scenario.id === 'meg-thomas') {
       await page.locator('#dirty-navigation [value="stay"]').click();
+      await page.waitForFunction(() => document.querySelector('#detail-content [data-personal-tier][data-character="meg-thomas"]')?.value === '0');
       assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before,
         'Stay leaves the selected personal record unchanged');
       assert.equal(await page.locator('[data-character-task-field="notes"]').inputValue(), note,
@@ -302,6 +303,8 @@ async function setupDraftNavigationRegression(page, origin) {
   await page.goBack();
   await page.locator('#dirty-navigation[open]').waitFor();
   await page.locator('#dirty-navigation [value="stay"]').click();
+  await page.waitForFunction(() => !document.querySelector('#dirty-navigation')?.open
+    && document.activeElement?.id === 'character-setup-bloodweb');
   assert.match(page.url(), /#character\/meg-thomas\/setup$/, 'Stay restores the source route without a history loop');
   assert.equal(await page.locator('#character-setup-bloodweb').inputValue(), '12');
   await page.goBack();
