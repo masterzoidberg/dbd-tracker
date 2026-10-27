@@ -65,6 +65,19 @@ export async function dashboardRegression(page, origin) {
     { key: CONTINUE_KEY, save: freshSave() });
   await page.reload();
   await page.getByRole('heading', { name: 'Progression Snapshot', exact: true }).waitFor();
+
+  const malformedUnresolved = freshSave();
+  malformedUnresolved.planning.unresolved.push({ queue: 'prestige', role: 'survivor', rank: 0, record: null });
+  await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), malformedUnresolved);
+  await page.reload();
+  await page.getByRole('heading', { name: 'Progression Snapshot', exact: true }).waitFor();
+  await page.locator('#queue-management > summary').click();
+  assert.match(await page.locator('[data-queue-role="survivor"] [data-management-queue="prestige"]').textContent(), /Unknown character/,
+    'a malformed unresolved record must not crash Dashboard rendering');
+  await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), freshSave());
+  await page.reload();
+  await page.getByRole('heading', { name: 'Progression Snapshot', exact: true }).waitFor();
+
   assert.deepEqual(await page.locator('[data-dashboard-section]').evaluateAll(nodes => nodes.map(node => node.dataset.dashboardSection)), sectionOrder);
   assert.deepEqual(await page.locator('[data-dashboard-section] > h2').allTextContents(), [
     'Progression Snapshot', 'Up Next', 'Continue where you left off',
@@ -142,6 +155,22 @@ export async function dashboardRegression(page, origin) {
   ]);
   assert.match(await page.locator('#filter-status').textContent(), /Meg Thomas moved to position 2 of 5/);
 
+  await page.evaluate(() => {
+    window.originalContinueSaveSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) {
+      if (key === 'dbdTrackerData') throw new Error('save denied');
+      return window.originalContinueSaveSetItem.call(this, key, value);
+    };
+  });
+  try {
+    await page.locator('#up-next-intent-meg-thomas').selectOption('prestige');
+    assert.equal(await page.locator('#up-next-intent-meg-thomas').inputValue(), 'play',
+      'a failed save restores the primary intent from persisted planning state');
+    assert.equal((await storedSave(page)).planning.upNext.survivor.find(pin => pin.characterId === 'meg-thomas').intent, 'play');
+  } finally {
+    await page.evaluate(() => { Storage.prototype.setItem = window.originalContinueSaveSetItem; });
+  }
+
   const fullLane = structuredClone((await storedSave(page)).planning.upNext.survivor);
   await page.locator('[data-up-next-lane="survivor"] [data-action="up-next-pin"]').click();
   assert.equal(await page.locator('#up-next-character option').count(), roleCharacters('survivor').length - 5);
@@ -208,6 +237,8 @@ export async function dashboardRegression(page, origin) {
     await readOnly.goto(origin + '/#dashboard');
     await readOnly.waitForFunction(() => document.querySelector('#save-status').textContent === 'Read-only');
     assert.equal(await readOnly.locator('[data-action="up-next-pin"][data-role="killer"]').isDisabled(), true);
+    assert.equal(await readOnly.locator('#up-next-intent-meg-thomas').isDisabled(), true,
+      'Up Next intent cannot appear editable while the save is read-only');
     assert.equal(await readOnly.locator('#queue-add-killer').isDisabled(), true);
   } finally { await readOnly.close(); }
 
