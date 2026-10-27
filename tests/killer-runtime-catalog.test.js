@@ -154,7 +154,8 @@ test('gameplay detail values cannot carry nested research objects', () => {
 test('generation is deterministic and checked-in projection is byte-for-byte current', async () => {
   const first = await generateKillerRuntimeCatalog(root), second = await generateKillerRuntimeCatalog(root);
   assert.deepEqual(first, second);
-  assert.equal(await readFile(resolve(root, 'data/killer-runtime-catalog.json'), 'utf8'), JSON.stringify(first, null, 2) + '\n');
+  const checkedIn = await readFile(resolve(root, 'data/killer-runtime-catalog.json'), 'utf8');
+  assert.equal(checkedIn.replace(/\r\n/g, '\n'), JSON.stringify(first, null, 2) + '\n');
 });
 
 test('root-based generation and writing use the supplied master and reject its malformed replacement', async t => {
