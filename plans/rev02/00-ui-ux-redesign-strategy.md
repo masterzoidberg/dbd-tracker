@@ -2,17 +2,17 @@
 
 ## Status
 
-**Research and architectural design proposal · Awaiting design review · Not implemented.** Audited 2026-10-21. This strategy recommends a direction; it does not approve a visual identity, individual screen layout, schema change, or implementation roadmap.
+**Audit and consolidated design direction · Planning only · Not implemented.** Audited 2026-10-21; reconciled 2026-10-25 at repository `351ca1c`. Archive when browsing / Tool when editing, contextual editing, perk semantics, Lore fallback and shared compact shell are settled in the user brief. Exact visual tokens remain subject to rendered verification; no schema/UI implementation or roadmap is authorized.
 
 The user confirmed the operating brief: **a balanced mix of desktop browsing and editing; desktop is primary.** Browsing and planning prioritize clarity and hierarchy. Inventory and data entry use greater density for rapid repetitive work. Mobile remains fully usable and deliberately responsive, without determining desktop density.
 
 ### Authority and product context
 
-Authority follows: explicit user decisions → approved Rev02 plans → confirmed product truth and functional requirements → a future approved global design system / DESIGN.md → Impeccable → Taste Skill → UI UX Pro Max → specialist guidance → generic preferences. Diagram tools explain decisions; a component library does not choose them.
+Authority follows: explicit user decisions → approved Rev02 plans → confirmed product truth and functional requirements → shared/global Rev02 principles (plan 06) → Impeccable → Taste Skill → UI UX Pro Max → specialist guidance → generic preferences. Diagram tools explain decisions; a component library does not choose them.
 
-`01-dashboard.md` remains the approved Dashboard record. This strategy and its sibling audit/questions documents are proposals beneath that approval. The audit covers other screens without marking their individual design plans approved.
+`01-dashboard.md` remains the approved Dashboard record. This strategy and its sibling audit/questions documents are proposals beneath that approval. The historical audit remains evidence, while plans 02–06 now cover Rev02 Core. Explicit brief decisions outrank older pending recommendations; recommendations are not blanket visual approval.
 
-Impeccable's context loader found no PRODUCT.md, DESIGN.md, or surface brief. Its product-truth separation is useful: facts below are distinct from proposed visual decisions. For this requested audit, capture that context in Rev02 rather than starting its full init/new-work implementation workflow or generating parallel root documents. A future PRODUCT.md could provide a short facts-only reference back here; a future DESIGN.md should consolidate approved shared decisions after screen reviews. Neither should overrule approved Rev02 decisions. No such files were created in this pass.
+Impeccable's context loader found no PRODUCT.md, DESIGN.md, or surface brief. Its product-truth separation is useful: facts below are distinct from proposed visual decisions. For this requested audit, capture that context in Rev02 rather than starting its full init/new-work implementation workflow or generating parallel root documents. A future PRODUCT.md could provide a short facts-only reference back here; a future DESIGN.md must remain consistent with consolidated shared decisions in plan 06. Neither should overrule approved Rev02 decisions. No such files were created in this pass.
 
 ## Product Purpose
 
@@ -23,7 +23,7 @@ Confirmed product facts:
 - A local-first static web application, with no account required. Browser-local saves and local snapshots are distinct from portable JSON exports.
 - Survivor and Killer share progression/perk concepts, but Survivor stock has item families and compatibility, while Killer Add-ons belong to a particular Killer Power.
 - Global perk availability, automatic tier minimums, and a character's explicit personal record are different facts. Historical/renamed perks have additional supported distinctions that presentation must preserve.
-- Current schema v2 stores character progress, personal inventories, account perk overrides, and one global Prestige Queue. Playing queues, separate Up Next pins, and persistent last-workspace location are approved/proposed future capabilities, not implemented facts.
+- Current schema v2 stores character progress, personal inventories, account perk overrides, and one global Prestige Queue. Playing queues and separate role Up Next pins require new persisted account state; Continue needs a small browser-local stable-location preference. These are planned capabilities, not implemented facts.
 - Canonical IDs, current catalogs, unknown imported records, validation, backup/recovery, and the single-writer guard are functional constraints worth preserving.
 
 Subject inventory for design specificity: named Survivor and Killer identities; recognizable portraits; P1/P2/P3 global perk milestones; Bloodweb level within Prestige; effective versus recorded perk tiers; historical perk provenance; seven Survivor item families and compatibility; Killer-specific Powers and Add-ons; rarity words and asset colors; manual priorities distinct from play interest; numerical stock records; a portable personal ledger. These should shape the structure, not merely decorate a generic shell.
@@ -112,7 +112,7 @@ Precise personal records of progress through the Fog: calm enough to operate rep
 
 Retain the recognizable product name “The Ledger” unless separately changed by the user. Candidate direction names below are design concepts, not proposed product renames.
 
-## Candidate Design Directions
+## Design Direction Exploration (Historical Alternatives)
 
 ### Direction A — Trials Archive
 
@@ -160,13 +160,13 @@ Retain the recognizable product name “The Ledger” unless separately changed 
 | Artwork recognition | Strong | Must be protected | Strong |
 | Risk | Decorative archive / generic horror | Generic console / compressed readability | Game UI imitation / feature invention |
 
-## Recommended Direction
+## Consolidated Direction
 
-**Recommend Trials Archive as the identity, using Bloodweb Terminal's precision for editing.** This is one product with two task-appropriate densities and the same navigation, type roles, control states, and save vocabulary. It is not two themes or a new mode switch requiring user management.
+**Settled direction: Archive when browsing. Tool when editing.** Trials Archive and Bloodweb Terminal describe the recognition/precision split. This is one product with two task-appropriate densities and the same navigation, type roles, control states, and save vocabulary. It is not two themes or a new mode switch requiring user management.
 
 The user's confirmed browsing/editing split is the deciding factor. Archive-only would slow repetitive work; Terminal-only would underuse recognition and character context; Preparation Bench would imply features beyond the tracker. The hybrid lets the Dashboard keep its approved orientation hierarchy and lets inventories devote their geometry to names, quantities and tier changes.
 
-This remains a recommendation. Exact fonts, colors, widths, textures and screen geometry require review. The key concept to validate on subsequent screen plans is: **DBD's automatic perk access and personal records become the ledger's meaningful structure; rarity and artwork identify what is being recorded.**
+The conceptual direction is settled by the consolidation brief. Exact fonts, colors, widths and screen geometry remain recommendations for rendered verification; texture is not a requirement. The governing concept is: **DBD's automatic perk access and personal records become the ledger's meaningful structure; rarity and artwork identify what is being recorded.**
 
 ## Proposed Design Principles
 
@@ -234,14 +234,14 @@ Provisional exploration: body/control text around 14–16px with supporting labe
 | Filters / sort | Clearly scoped to the visible collection, preserve meaningful context, expose active restrictions and recovery from no results. Global account and character-personal scopes stay distinct. |
 | Quantity | Direct value plus useful steps; numeric input hint, explicit saved/pending/error feedback, zero/invalid behavior consistent between roles. At narrow sizes protect input width before less-used +5/+10. |
 | Reorder | Named Move Up/Down or equivalent single-pointer action alongside any drag affordance; keyboard operation, focus retention and position announcement. |
-| Saving | Distinguish autosaved workspace changes from explicit Character Edit drafts locally. Do not present the global stored-save timestamp as proof the draft is saved. |
+| Saving | Distinguish autosaved workspace changes from scoped progression/note/correction/setup drafts locally; the giant editor retires after parity. Do not present the global stored-save timestamp as proof the draft is saved. |
 | Dialog / detail | Preserve Escape and focus restoration. Reference details should be skimmable; repeated implementation keys do not belong in the visible reading hierarchy. |
 
-Quantity and tier autosave behavior is existing functionality, not approval to change its semantics. Local undo, a compact progression editor, or new keyboard shortcuts require their own screen decisions. Preserve current validation floors and unknown-record handling.
+Quantity and tier autosave behavior is existing functionality, not approval to change its semantics. Focused progression editing is settled in plans 03/05. New undo or custom shortcut systems remain deferred without demonstrated need. Preserve current validation floors and unknown-record handling.
 
 ## Artwork and Game Assets
 
-Use existing portraits for character recognition and existing perk, item, Add-on and Power images for object recognition. Scale imagery by task: stronger on rosters, smaller beside numerical editing, selectively enlarged in reference details. Keep names legible and available independently of images; avoid reducing all stock identity to a generic glyph.
+Use existing role-correct portraits for recognition, with Killer Lore identity and neutral named fallback (The Slasher is currently missing; no square exception) and existing perk, item, Add-on and Power images for object recognition. Scale imagery by task: stronger on rosters, smaller beside numerical editing, selectively enlarged in reference details. Keep names legible and available independently of images; avoid reducing all stock identity to a generic glyph.
 
 Keep rarity words and tier numerals alongside semantic color; distinguish a missing asset from an unknown saved record. The Animatronic Power currently shows a labelled fallback, while Add-on art renders. Preserve truthful fallback and leave research datasets unchanged.
 
@@ -257,7 +257,7 @@ Do not require every major block to fit the first viewport if that would squeeze
 
 ## Accessibility Baseline
 
-Use WCAG 2.2 AA as the proposed baseline, pending final shared standards review: keyboard access; meaningful names, roles and state; visible, unobscured focus; normal text at least 4.5:1, large text 3:1; essential non-text control/state cues 3:1; text resize and reflow; no color-only or hover-only meaning; single-pointer alternatives to drag. Treat 44×44px as a practical touch target goal for frequent controls, distinct from the WCAG 2.2 24px minimum/spacing exceptions.
+Use WCAG 2.2 AA as the proposed baseline, as consolidated in plan 06: keyboard access; meaningful names, roles and state; visible, unobscured focus; normal text at least 4.5:1, large text 3:1; essential non-text control/state cues 3:1; text resize and reflow; no color-only or hover-only meaning; single-pointer alternatives to drag. Treat 44×44px as a practical touch target goal for frequent controls, distinct from the WCAG 2.2 24px minimum/spacing exceptions.
 
 Native controls and dialogs are useful foundations, not proof of conformance. Progress bars need semantic values if they convey information beyond adjacent text. Quantity errors should stay associated with the field, preserve input, and be recoverable without reading unrelated content. Save confirmations must not overwhelm screen readers during hundreds of edits.
 
@@ -283,7 +283,7 @@ Specialist comparison, expressed as current versus proposed principle rather tha
 2. Consistent page/character context, navigation and local action hierarchy, including a deliberately compact editing header treatment for review.
 3. Unified label, scope and save-status vocabulary for account access, effective tier, personal record, stock, autosaved changes and drafts.
 4. Shared quantity/tier control and focus/error patterns across role workspaces, retaining current functional protections.
-5. A surface/typography/spacing/color-state vocabulary consolidated after individual screen review; no dependency or framework change implied.
+5. A surface/typography/spacing/color-state vocabulary consolidated in plan 06; no dependency or framework change implied.
 6. Responsive shell and control priorities that free tablet width and preserve mobile numerical input usability.
 7. A repeatable later validation set using realistic populated accounts, long names, zero/unknown quantities, lock states and storage failures. Existing tests are evidence of intended contracts, not a substitute for new rendered review.
 
@@ -303,16 +303,16 @@ Specialist comparison, expressed as current versus proposed principle rather tha
 ### Existing Rev02 tensions
 
 - **No change recommended to the three Dashboard jobs, role separation, caps or manual ranking.** Balanced role summaries are true peers; generic advice to avoid symmetry does not supersede them.
-- **Width evidence qualifies the earlier diagnosis:** `01-dashboard.md` discusses unused horizontal space. At observed 1920px the shell already uses most available width; the stronger problem is ineffective interior grouping and empty framed areas. Recommend carrying that clarification into a later approved visual refinement, not changing the document silently.
+- **Width evidence qualifies the earlier diagnosis:** `01-dashboard.md` discusses unused horizontal space. At observed 1920px the shell already uses most available width; the stronger problem is ineffective interior grouping and empty framed areas. The Dashboard plan now records that measured clarification without changing its approved three jobs.
 - **Compact Continue remains valid:** calling it a “card” should not require a bordered panel if the approved global surface strategy later achieves the same compact actionable unit.
-- **Shared actions remain a review boundary:** the approved Dashboard document explicitly leaves the top bar unchanged. A future global review may challenge its space/action priority, but must record that decision rather than treating this strategy as authorization.
+- **Shared actions remain a review boundary:** the approved Dashboard document explicitly leaves the top bar unchanged. The current consolidation explicitly approves global responsive adaptation; plan 06 preserves these capabilities while allowing labeled Menu/Actions disclosures where width requires it.
 - The Dashboard's “no full-site redesign yet” non-goal described that earlier screen-only task. The current user explicitly authorizes this site-wide audit; it still authorizes no production redesign or speculative final screen plans.
 
 ## Skill-Assisted Findings
 
 | Recommendation | Source | Decision | Reason |
 | --- | --- | --- | --- |
-| Architectural exploration with alternatives and review before implementation | Superpowers brainstorming | ACCEPTED | Three direction proposals and a recommendation stay unapproved; screen review and later roadmap gates remain. |
+| Architectural exploration with alternatives and review before implementation | Superpowers brainstorming | ACCEPTED | Historical alternatives remain recorded; the current user brief selects Archive browsing / Tool editing. Consolidation stops before roadmap/implementation. |
 | Dependency-aware implementation planning | Superpowers writing-plans, discovered in installed catalog | DEFERRED; NOT INVOKED | The user explicitly reserves this stage until the major screen plans are complete and reviewed. |
 | Operate-mode precision, familiar affordances, data truth separate from visual choices | Impeccable / Operate and init references | ACCEPTED | The tracker is repeatedly operated; conceptual novelty must not disrupt values or save safety. |
 | Compare independent design judgment with detector evidence | Impeccable critique | ACCEPTED | Separate assessments were completed; scanner warnings are evaluated in context. See audit matrix methodology for limitations. |
@@ -338,7 +338,7 @@ Skill conflicts are resolved by product needs: Taste's one-color preference yiel
 - No redesign merely for novelty, generic AI-dashboard styling, or copy of DBD's game UI.
 - No component-library migration merely because a skill supports it.
 - No fabricated progression metrics, automatic queue intent, completion history, loadout system or trial-consumption model.
-- No final screen layouts for unreviewed screens and no final implementation roadmap.
+- Full Core planning is covered in plans 01–06; no task-by-task implementation roadmap or production layouts are created in this pass.
 - No final global token/font/palette decision or DESIGN.md before review.
 
-The next design step is review of these proposals, followed by the existing screen-by-screen sequence. Record approved shared patterns as those reviews progress; consolidate them before the dependency-aware roadmap.
+Next: create a dependency-aware implementation roadmap from this consolidated Core set, carrying D01/D02 as explicit pre-schema product gates. Do not implement yet. Standalone perk libraries and Data & Backups keep existing information architecture initially, with functional shell/schema compatibility.

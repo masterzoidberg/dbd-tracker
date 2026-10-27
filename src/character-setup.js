@@ -7,9 +7,11 @@ const esc = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<'
 
 export function characterSetupView(save, draft, { workspace = false } = {}) {
   const html = characterSetupContent(save, draft);
-  return workspace ? '<section class="panel" data-character-setup><h2>Initial Setup</h2>'
+  const conflict = draft.conflicted
+    ? '<p class="error" role="alert">Saved data changed while setup was open. Discard and reopen setup before saving.</p>' : '';
+  return workspace ? '<section class="panel" data-character-setup><h2>Initial Setup</h2>' + conflict
     + html.replaceAll('data-action="close"', 'data-action="character-setup-exit"')
-      .replace('aria-label="Close details"', 'aria-label="Exit initial setup"') + '</section>' : html;
+      .replace('aria-label="Close details"', 'aria-label="Exit initial setup"') + '</section>' : conflict + html;
 }
 function characterSetupContent(save, draft) {
   const c = characterById[draft.id];

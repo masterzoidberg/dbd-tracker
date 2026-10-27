@@ -2,9 +2,9 @@
 
 ## Status
 
-**Design-direction plan · Planning only · Not implemented · 2026-10-21.** The user's six-character pagination, responsive grid direction, stronger artwork/progression hierarchy and broad card navigation are settled direction. The detailed treatments below are recommendations for review, not blanket approval of this document or of implementation. Genuine remaining decisions are listed under Open Questions.
+**Design-direction plan · Planning only · Not implemented · 2026-10-21.** The user's six-character pagination, responsive grid direction, stronger artwork/progression hierarchy and broad card navigation are settled direction. The detailed treatments below are recommendations for review, not blanket approval of this document or of implementation. The 2026-10-25 consolidation closes ownership, perk terminology and shared-shell decisions; geometry remains subject to rendered verification.
 
-Read with the [global strategy](00-ui-ux-redesign-strategy.md), [audit matrix](00a-ux-audit-matrix.md), [open design questions](00b-open-design-questions.md), and approved [Dashboard plan](01-dashboard.md). The global Archive browsing / Terminal editing concept remains a recommendation awaiting review; this plan uses the explicit principles of artwork, legibility and task-appropriate density without approving a visual system. The Dashboard direction is unchanged.
+Read with the [global strategy](00-ui-ux-redesign-strategy.md), [audit matrix](00a-ux-audit-matrix.md), [open design questions](00b-open-design-questions.md), and approved [Dashboard plan](01-dashboard.md). Archive when browsing / Tool when editing is settled direction. Shared behavior is consolidated in plan 06; exact visual tokens remain subject to rendered review. The Dashboard direction is unchanged.
 
 ## Screen Purpose
 
@@ -55,7 +55,7 @@ Evidence reused for this review: [desktop roster](evidence/survivor-roster-1440.
 - Most card space opens the workspace; Favorite remains separately operable.
 - Primary pagination follows the roster immediately.
 
-Recommendations beyond these explicit decisions remain identified as such below. No screen implementation is authorized.
+Ownership is displayed as Owned / Locked and edited in Overview. Shared content-fit navigation and perk terminology are settled; detailed geometry remains a recommendation. No screen implementation is authorized.
 
 ## Information Hierarchy
 
@@ -94,11 +94,7 @@ Use consistent alignment within each row, allowing content to grow with text sca
 
 ### Ownership
 
-Keep quiet **Owned** / **Not owned** text near identity. Not owned should have an additional simple non-color distinction if useful, while remaining fully readable. The workspace remains available for unowned Survivors; the roster is a record, not a purchase gate.
-
-On an all-owned account, the Owned label can stay understated without a full-width switch or badge. Do not mute the entire unowned card or hide progression that is legitimately in the save. Ownership and global perk access are separate facts; access may exist while the character is unowned.
-
-**Recommend moving the direct ownership toggle into the existing character-management workflow.** This removes an accidental mutation target from broad card navigation. This is a proposed interaction change requiring review, not a current behavior or an already approved workspace redesign.
+Display quiet **Owned / Locked** status; changing ownership belongs in the character workspace Overview. This is settled user direction, not an optional roster switch. Favorite remains independently operable. Locked does not disable workspace inspection or erase progress/inventory, and it does not mean every perk is unavailable. Use text rather than art dimming alone. Contextual editing is specified in plan 03.
 
 ### Prestige
 
@@ -116,11 +112,11 @@ Recommend retaining a thin, subordinate level track only if it helps scanning af
 
 Minimum useful context is **the three native perk names and one clearly scoped state per perk**. No descriptions, personal inventory totals or extra columns are needed. Recommend three aligned text rows, readable names with wrapping, and short state text. Omit icons initially: the portrait already supplies recognition and tiny additional images would consume space without replacing names.
 
-**Recommended scope for review: account-wide access to these native perks.** Use a group label such as “Native perks · Account access,” with each row showing “Not unlocked” or “Tier I / II / III” from `globalTier(save, perk)`. This helps assess account value when choosing a progression target. It includes the existing Prestige and per-perk overrides; it must not be calculated from character Prestige alone. Mixed access across a trio is possible, so do not compress all three into one tier badge unless all underlying states agree.
+**Consolidation recommendation: account-wide access to these native perks.** Use a group label such as “Native perks · Account access,” with each row showing “Not unlocked,” “Tier I / II / III,” or “General · available” as appropriate using **both** `isAvailable` and `globalTier`. General can be available at global tier zero. This helps assess account value when choosing a progression target. It includes the existing Prestige and per-perk overrides; it must not be calculated from character Prestige alone. Mixed access across a trio is possible, so do not compress all three into one tier badge unless all underlying states agree.
 
 Scope explanation must remain available without hover: these are account unlock tiers, not manually recorded tiers on this Survivor. A short shared explanation near the roster controls can carry this rather than repeat a paragraph on every card. Do not label the rows “Owned.” A zero global tier does not mean the perk is absent on its source character: the model supplies native Tier I automatically. Historical naming/alias rules also remain unchanged; detailed provenance belongs in the workspace/perk library.
 
-Alternative: retain effective personal tiers with an explicit “On this Survivor · Effective tier” label. That preserves today's fact but is less useful for evaluating account unlock value and still requires explaining automatic native Tier I on unowned characters. A names-only trio is simpler but omits useful account state. Recommend account access; **the scope choice is not approved yet** and connects to global question W05.
+Alternative: retain effective personal tiers with an explicit “On this Survivor · Effective tier” label. That preserves today's fact but is less useful for evaluating account unlock value and still requires explaining automatic native Tier I on unowned characters. A names-only trio is simpler but omits useful account state. Use account access as the coherent roster recommendation; workspaces lead with effective character tier and separately show recorded/minimum/account facts. W05 terminology is resolved; this recommendation does not change calculation rules.
 
 Recommend making these rows informational, moving perk-dialog access to the workspace. That gives the card one primary destination and avoids three additional controls competing with it. Do not remove the existing perk-reference capability from the application.
 
@@ -147,12 +143,12 @@ No direct Edit label, inline progression fields or new section shortcuts are pro
 | Lore portrait | KEEP; increase useful recognition area | Actual artwork supplies identity and richness. Separate it from overlaid text. |
 | Character name link | KEEP; strengthen heading and broaden link target | Primary discovery/navigation fact; use one logical link. |
 | Favorite star | KEEP; secondary independent button | Useful collection shortcut with existing filter support. |
-| Owned/Locked full-width toggle | SIMPLIFY status; MOVE mutation to workspace (recommendation) | Ownership remains clear without a competing immediate edit. |
+| Owned/Locked full-width toggle | DISPLAY status; MOVE mutation to Overview (settled) | Ownership remains clear without a competing immediate edit. |
 | Pn badge/link | KEEP value; SIMPLIFY duplicate link | Strong progression anchor; same card destination does not need another tab stop. |
 | Bloodweb level /50 | KEEP; group with Prestige | Reliable stored progression fact. |
 | Thin Bloodweb track | SIMPLIFY; optional subordinate reinforcement | Numbers communicate exact level; track must not imply effort percentage. |
 | Three native-perk names | KEEP in a compact block | Smallest meaningful identity/account-value context. |
-| Native effective inventory tiers headed OWNED | SIMPLIFY; recommend account-access scope, pending review | Current automatic tiers are easy to mistake for recorded ownership. Preserve model truth. |
+| Native effective inventory tiers headed OWNED | SIMPLIFY; account-access scope with General availability qualification | Current automatic tiers are easy to mistake for recorded ownership. Preserve model truth. |
 | Native-perk dialog buttons | MOVE reference interaction to workspace | Reduce conflicting click destinations and tab stops. |
 | Effective owned perks / role perk total | MOVE to workspace | Personal inventory completeness is secondary to recognition/progression. Counts include automatic tiers. |
 | Tier III personal perk total | MOVE to workspace | Detailed inventory state duplicates the workspace job. |
@@ -169,7 +165,7 @@ Recommend one organized control region: **[Search Survivors…] [Filters] [Sort:
 - Search operates over the full Survivor catalog, before slicing pages, with the current case-insensitive name matching. Do not imply that native perk names or descriptions are searched; they currently are not. Search remains visible with a clear action and a proper accessible label independent of placeholder text.
 - Filters exposes the existing ownership choice (All / Owned / Not owned), Prestige (Any / P0 / P1 / P2 / P3+) and Favorites-only toggle. These dimensions combine with AND; ownership and Prestige each allow one choice. Do not add DLC, rarity, stock, queue or recommendation facets.
 - Recommend one disclosure anchored beside search, expanding into an inline region below the control row. The same form can fit mobile without a new dialog/drawer system. It avoids overlay focus complexity for three small filter groups. Changes apply immediately; no separate Apply step or draft filter state is needed. Escape/collapse returns focus appropriately to the trigger without clearing choices.
-- Retain supported sorts: Name, Prestige descending/ascending, Bloodweb descending, effective perks owned descending, Recently updated. Default Name; retain name as the tie-breaker. Clarify the perk sort label as “Effective perks owned ↓” while keeping its present calculation. Removing a card statistic does not require removing a useful discovery sort.
+- Retain supported sorts: Name, Prestige descending/ascending, Bloodweb descending, effective perks descending, Recently updated. Default Name; retain name as the tie-breaker. Clarify the perk sort label as “Effective perks ↓” while keeping its present calculation. Removing a card statistic does not require removing a useful discovery sort.
 - Recently updated reflects saved edits, including Favorite/ownership changes through `commit`; it is not recently visited or played. Do not repurpose timestamps silently.
 - Preserve input focus/caret during search rerenders. Sorting and filtering are immediate, with no staggered entrances or layout animation.
 
@@ -219,7 +215,7 @@ Do not force both rows into every laptop's first viewport: header, controls, leg
 
 Target two columns and three rows while preserving six items. At 768px the **current** sidebar is 185px and main padding totals 56px, leaving only about 527px: two 320px cards will not fit. At 1100px the same shell leaves about 859px, which does fit two.
 
-Therefore the preferred two-column portrait-tablet layout depends on the shared shell releasing sidebar width earlier than today's 760px threshold. With a compact shell and about 40px total gutters, a 768px viewport leaves approximately 728px, enough for two 354px cards. Recommend carrying that requirement into global shell review for the roughly 700–900px range. Do not introduce an isolated Survivor-only navigation shell. Until that shared decision is approved, use the content-fit rule rather than shrink text to promise two columns.
+Therefore the preferred two-column portrait-tablet layout depends on the shared shell releasing sidebar width earlier than today's 760px threshold. With a compact shell and about 40px total gutters, a 768px viewport leaves approximately 728px, enough for two 354px cards. The shared compact shell must already be active in that constrained range; plan 06 derives its initial transition candidate from ordinary laptop content fit. Do not introduce an isolated Survivor-only navigation shell. Plan 06 resolves the shared compact Menu shell, with an initial ~1300px sidebar transition candidate validated by content fit. Use actual inner width rather than shrink text to promise two columns.
 
 Filters can expand below the search row and sort can wrap in the same region. They should remain reachable without several permanently expanded control bands.
 
@@ -248,12 +244,12 @@ Filters can expand below the search row and sort can wrap in the same region. Th
 
 | Likely reusable contract | Boundary / later role review |
 | --- | --- |
-| Header/count scopes, search/filter/sort grouping, active restrictions | Confirm labels and priorities when reviewing Killers; do not approve their screen now. |
+| Header/count scopes, search/filter/sort grouping, active restrictions | Use the aligned Killer contract in plan 04; retain role-specific Power identity. |
 | Page slicing/reset/clamping, result ranges and return context | Keep state independent by role; any shared renderer must not force a new Survivor decision onto Killers prematurely. |
 | Card navigation semantics, Favorite behavior and focus recovery | Same familiar operation can serve both roles without identical visual composition. |
 | Portrait mapping/fallback, readable names, Prestige/Bloodweb grouping | Actual art crops, character naming and role-specific identity need separate review. |
-| Content-fit grids and task-width policy | Shared responsive shell is a prerequisite; final Killer density/page size remains its screen decision. |
-| Perk-state terminology and access versus effective records | The meaning can be consistent; what leads each role card still needs review. |
+| Content-fit grids and task-width policy | Shared responsive shell is a prerequisite; both roles use six per page; Power identity remains Killer-specific. |
+| Perk-state terminology and access versus effective records | Both role rosters recommend Native perks · Account access; effective/recorded/minimum detail belongs in workspaces. |
 
 Survivor stock spans item families and compatible Add-ons; Killer identity can involve a unique Power and its Add-ons. Do not invent a Survivor Power equivalent or add stock panels for symmetry. This plan specifies Survivor card content only.
 
@@ -271,7 +267,7 @@ Source inspected at the current repository baseline; paths identify responsibili
 | `src/app.js`: `commit`, `preserveRender`, navigation handlers | Favorite/ownership saves use writer guard and update both save and character `updatedAt`; Recently updated can reorder on Favorite. `preserveRender` restores an element by DOM ID, while Favorite currently has no unique ID. Page events explicitly refocus their buttons. General workspace navigation renders, scrolls to top and focuses main; origin-card scroll/focus restoration is not implemented by those helpers. |
 | `src/model.js` | Schema v2 stores owned/favorite/prestige/bloodwebLevel, personal tiers, stock and timestamps. `inventoryTier` takes the maximum of recorded and automatic tiers; `automaticTier` includes native Tier I, even on an unowned source. `globalTier` uses source Prestige plus Shrine/Legacy/manual overrides. `characterStats` counts effective inventory, not explicit records. Preserve all calculations and validation. |
 | `src/survivor-collection.js` | Despite its filename, supplies both Survivor stock counts and Killer Add-on counts. Counts known positive **types**, not copies; unknown IDs are excluded from these summaries. Removing a visible summary does not require deleting saved stock or selectors. |
-| `src/character-workspace.js` | Supplies canonical hrefs/parser and same-role neighbors. Overview is the roster entry. Neighbors follow the full role catalog rather than the invoking filtered set. Filtered neighbor traversal remains question W03 for workspace review; roster return context need not change neighbor behavior. |
+| `src/character-workspace.js` | Supplies canonical hrefs/parser and same-role neighbors. Overview is the roster entry. Neighbors follow the full role catalog rather than the invoking filtered set. W03 retains canonical catalog neighbors as a conservative recommendation; roster return context need not change neighbor behavior. |
 | `src/assets.js`, `data/asset-manifest.json`, `data/catalog.js` | Explicit Lore image mappings, stable character/native-perk IDs and display-name relationships already exist. `collectionPortraitPath` returns null for missing mappings; the present helper then omits the image. No generated replacement assets or research changes are needed. |
 | `styles.css` | Shared base card/grid/heading rules plus late collection overrides near line 2462. Final grid uses auto-fill with a 250px minimum and 16px gaps. Hero 190px/contain; card content begins at 112px; name 16px; native heading 8px/row 11px; Favorite 44px; ownership minimum 34px; footer minimum 48px. Final phone card adjustments occur at 430px. |
 | `styles.css`, `index.html` shell | Main maximum 1750px, padding 36px (44px at 1600+); sidebar 220px, 185px at 1100 and below; sidebar becomes horizontal navigation at 760px and below, main horizontal padding 20px there. Shared layout constrains the proposed 3/2/1 grid. Global focus and navigation layers affect this screen too. |
@@ -279,12 +275,12 @@ Source inspected at the current repository baseline; paths identify responsibili
 
 ### Dependencies for Later Design / Roadmap Review
 
-- Review ownership-toggle removal and native-perk scope before treating this detailed card proposal as approved.
-- Consolidate shared shell widths, page headers, typography, controls/focus and the tablet-width requirement after major screen reviews. Exact dimensions here remain exploration targets.
+- Ownership-toggle removal is settled. Use the reconciled account-access recommendation with General qualification; exact card geometry remains for rendered verification.
+- Apply consolidated shared shell widths, page headers, typography, controls/focus and tablet-width contract in plan 06. Exact dimensions here remain exploration targets.
 - Define same-session per-role page/return state and origin focus consistently with current browser navigation and dirty-workspace protections; no persistence/schema mechanism is prescribed now.
-- Review the Survivor workspace as the destination for displaced inventory detail and ownership management. Existing functionality supplies access; this document does not redesign that destination or approve a new quick editor.
+- Review the Survivor workspace as the destination for displaced inventory detail and ownership management. Plan 03 audits the contextual ownership/progression/note destination; the roster adds no duplicate editor.
 - Preserve writer locking, read-only presentation, save-failure feedback, canonical IDs, alias naming, imports/exports and unknown saved data. Browser navigation/filter changes must not mutate progression.
-- Later implementation planning must account for shared Killer rendering/styles and existing browser expectations, including focus after Favorite removal, six-item pages, responsive fit and broken artwork. No tests or builds were run for this planning task.
+- Later implementation planning must account for shared Killer rendering/styles and existing browser expectations, including focus after Favorite removal, six-item pages, responsive fit and broken artwork. The original roster review ran no tests/builds; current consolidation verification is recorded in the audit matrix.
 
 ## Skill-Assisted Findings
 
@@ -302,11 +298,9 @@ Relevant installed references were inspected during the preceding Rev02 audit an
 
 ## Open Questions
 
-1. **Native-perk meaning (W05):** approve account-wide native-perk access as recommended, or keep explicitly labeled effective personal tiers? Names plus one scoped state per perk is the proposed minimum; do not silently switch the meaning of OWNED.
-2. **Ownership interaction:** approve replacing the roster switch with status and managing ownership in the existing workspace? Keeping a direct toggle preserves a shortcut but adds another mutation target that must be isolated from card navigation.
-3. **Global layout dependency (G04/G07):** which shared shell treatment releases enough width for two readable portrait-tablet columns? The content-width thresholds and earlier compact-shell requirement are recommended; final viewport cutoffs await shared review.
+No Survivor-roster-specific product question blocks roadmap creation. Ownership mutation is settled in Overview; perk terminology distinguishes recorded, automatic, effective and account access; plan 06 defines the shared compact shell. Native account-access rows are the consolidation recommendation, using availability plus tier rather than a false zero-tier lock.
 
-Exact typography, artwork proportions and surface tokens need later visual review against long names, real art, populated accounts and zoom. These are validation details, not additional feature decisions. Same-session context restoration is recommended; persistence across refresh/export is not required here. W03 filtered workspace traversal stays deferred to that workspace review.
+Same-session per-role page/query/filter/sort/origin restoration is the recommended navigation contract. Preserve canonical full-catalog workspace neighbors; filtered traversal is deferred. Exact type, art proportions, card widths and shell cutoffs are engineering/visual verification details, not additional product gates.
 
 ## Shared / Global Findings
 
@@ -320,14 +314,14 @@ Exact typography, artwork proportions and surface tokens need later visual revie
 - **Artwork/fallbacks:** preserve recognition without text on unstable image backgrounds, guessed assets or unreadable unowned states. No ornamental gradient system is required.
 - **Favorite timestamps/focus:** immediate saving and rerender can alter Recently updated order or remove a filtered card. Focus recovery and truthful feedback are shared interaction concerns.
 
-These feed the later `11-shared-global-design.md`; no global design document or final roadmap is created now.
+These contracts are consolidated in `06-shared-global-design.md`. No final implementation roadmap is created in this pass.
 
 ## Explicit Non-Goals
 
 - No implementation or application behavior changes.
 - No production source or CSS changes.
-- No complete Survivor workspace redesign or new inline editor.
-- No Killer roster redesign yet; no automatic application of these choices to Killers.
+- This roster plan delegates contextual character editing to plan 03.
+- Killer roster behavior is reconciled separately in plan 04; no forced identical composition.
 - No Dashboard analytics, recommendations, new queue/pin controls or activity panels added here.
 - No speculative redesign of unreviewed screens.
 - No changes to research datasets, perk rules, inventory schemas or saved-data meaning.

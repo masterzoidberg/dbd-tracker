@@ -2,7 +2,7 @@
 
 ## Status
 
-**Design-direction plan and read-only asset audit · Planning only · Not implemented · 2026-10-22.** Covers the Killer roster and character-identity artwork policy. It does not design the full Killer workspace or change production mappings, images, code or CSS.
+**Design-direction plan and read-only asset audit · Planning only · Not implemented · 2026-10-22; reconciled 2026-10-25.** Covers the Killer roster and character-identity artwork policy. It does not design the full Killer workspace or change production mappings, images, code or CSS.
 
 Read with the [global strategy](00-ui-ux-redesign-strategy.md), [audit matrix](00a-ux-audit-matrix.md), [questions register](00b-open-design-questions.md), approved [Dashboard direction](01-dashboard.md), [Survivor roster](02-survivor-roster.md) and [Survivor workspace](03-survivor-workspace.md). Earlier documents' detailed recommendations remain recommendations unless explicitly approved. The user's current brief settles six-item Killer paging and Lore-first Killer identity imagery; it does not approve every detail proposed below.
 
@@ -57,7 +57,7 @@ The roster is a browsing and navigation surface. Detailed Power reference, perso
 - Broad card navigation and a visible View Killer cue; independent controls must not accidentally navigate.
 - Deliberate pagination below the roster. No All default or proliferation of analytics panels.
 
-These are settled directions from the brief. The exact card composition, native access scope, optional icon and ownership interaction below are recommendations for review.
+These are settled directions from the brief. Ownership interaction and neutral fallback are settled in the consolidation brief; shared perk semantics and shell are reconciled in plan 06. Exact composition and optional icon qualification remain review/verification recommendations.
 
 ## Killer-Specific Information Hierarchy
 
@@ -86,9 +86,7 @@ Use the canonical name, including its article/diacritics, as a readable card hea
 
 ### Ownership
 
-Keep understated Owned / Not owned text, with a non-color distinction where useful. Unowned characters remain readable and their workspaces accessible. Never infer ownership from portrait availability or erase existing records when unowned.
-
-Recommend status rather than a full-width roster ownership switch, matching the Survivor proposal. Ownership management can remain in the current character workflow until the Killer workspace receives its own approved plan. This recommendation does not approve a workspace redesign or remove today's capability.
+Display quiet **Owned / Locked** status; mutation belongs in Killer Overview (plan 05). This is settled user direction. Unowned characters remain readable and their workspaces accessible. Never infer ownership from portrait availability or erase progress, notes or inventory. The broad card is navigational; Favorite is its only lightweight independent mutation.
 
 ### Favorite
 
@@ -114,13 +112,13 @@ No Power description, mechanical stats, Details button or second navigation targ
 
 ### Native Perks
 
-Keep three readable names in a consistent compact block; no perk descriptions, extra icon strip, many chips or tiny columns. Recommend account-progression scope, consistent with the Survivor roster's pending recommendation: **Native perks · Account access**.
+Keep three readable names in a consistent compact block; no perk descriptions, extra icon strip, many chips or tiny columns. Recommend account-progression scope, consistent with the reconciled Survivor roster recommendation: **Native perks · Account access**.
 
 For each native perk, show a clearly scoped state from availability and global tier: unlocked Tier I/II/III, General availability without a guaranteed global tier, or not unlocked. Use `isAvailable` as well as `globalTier`: The Shape/Cenobite definitions include General availability and can be available at global tier zero. Do not reproduce effective native Tier I as proof of global unlock or personal acquisition.
 
 Prestige derives global tiers up to III; Shrine/Legacy/manual overrides can already grant access. Do not say “level this Killer to unlock all three” when current access is already present. Account facts and source naming must follow existing canonical aliases/display preferences; no rule changes or data rewrites. Brief shared scope explanation can avoid repeating a paragraph per card.
 
-Recommend informational native rows, with detailed personal records/provenance and perk dialogs reachable in the workspace. This leaves one primary card destination. The global W05 terminology and Survivor roster scope choice are still pending; approval should keep both roster roles semantically consistent without collapsing the workspace's richer personal/recorded/account presentation.
+Recommend informational native rows, with detailed personal records/provenance and perk dialogs reachable in the workspace. This leaves one primary card destination. W05 terminology is resolved: both roster recommendations use account access, while workspace personal browsing leads with effective tier and exposes recorded/minimum/account facts. General availability is not a guaranteed positive tier.
 
 ### Workspace Navigation
 
@@ -136,7 +134,7 @@ Keep real link behavior: Enter, new tab, context menu and browser Back. Do not i
 
 `G:\Projects\dbd-tracker\images\updated-images\Character Portraits\Killers\Lore`
 
-Apply this preference to roster cards, the future Killer workspace character header and appropriate character-identity surfaces. This establishes asset-source direction only for the workspace; its layout/editing remains unreviewed. Do not change Survivor imagery or use Lore art for Power, perk, Add-on or unrelated detail images.
+Apply this preference to roster cards, the future Killer workspace character header and appropriate character-identity surfaces. Plan 05 applies this source policy to the full Killer workspace; canonical Power/perk/Add-on imagery remains separate. Do not change Survivor imagery or use Lore art for Power, perk, Add-on or unrelated detail images.
 
 ### Canonical Mapping Strategy
 
@@ -152,7 +150,7 @@ Known mappings worth retaining explicitly:
 | `the-ghost-face` / The Ghost Face | `Ghostface.png` | Valid explicit asset alias; joined filename does not match ordinary title normalization. |
 | `the-onryo` / The Onryō | `Onryo.png` | Diacritic normalization; exact existing file casing is correct. |
 | Remaining 40 mapped Killers | Normalized canonical title without leading The | Standard existing mapping; no renaming needed. |
-| `the-slasher` / The Slasher | No Lore file | Keep a deliberate missing entry until a genuine source/approved exception exists. |
+| `the-slasher` / The Slasher | No Lore file | Keep a deliberate missing entry and neutral named fallback until a genuine Lore source exists; no square exception is approved. |
 
 The 41 standard normalized-title matches include Onryō. There are **zero ambiguous mappings, duplicate Lore paths or byte-identical Lore files**. No mass filename normalization is warranted.
 
@@ -174,7 +172,7 @@ A contained contact-sheet inspection of all 43 against a neutral dark surface sh
 
 ### Missing / Ambiguous Lore Assets
 
-The Slasher is the sole missing Lore portrait; no ambiguous/unused extra Lore file was found. A valid existing 512px square portrait is available elsewhere. Recommend a stable neutral “Portrait unavailable” state by default, with the name and navigation fully intact, rather than silently mixing sources. **KR01** records whether to permit that square image as an explicit temporary Slasher-only exception while genuine Lore art is absent. Missing-file acquisition itself is an asset dependency, not a user-design question.
+The Slasher is the sole missing Lore portrait; no ambiguous/unused extra Lore file was found. A valid existing 512px square portrait is available elsewhere. Recommend a stable neutral “Portrait unavailable” state by default, with the name and navigation fully intact, rather than silently mixing sources. **KR01 is resolved: neutral named fallback until genuine Lore art exists; no square-portrait exception is approved.** Missing-file acquisition itself is an asset dependency, not a user-design question.
 
 If a mapped Lore file later fails to load, preserve the image slot and readable identity, show the same calm fallback, and keep navigation available. Do not substitute Power icons, another Killer, guessed remote art or generated replacement art.
 
@@ -185,7 +183,7 @@ If a mapped Lore file later fails to load, preserve the image slot and readable 
 | Current collection portrait | KEEP Lore source; strengthen useful area/fallback | Already correct source for 43 Killers; consistency and presentation need work, not an invented roster asset migration. |
 | Name link | KEEP; broaden primary link and strengthen heading | Primary identity/navigation. |
 | Favorite button | KEEP secondary independent control | Useful shortlist filter with existing save semantics. |
-| Full-width Owned/Locked toggle | SIMPLIFY status; recommend MOVE mutation to character workflow | Reduces accidental edits under broad card navigation; preserve capability. |
+| Full-width Owned/Locked toggle | DISPLAY Owned/Locked status; MOVE mutation to Overview (settled) | Reduces accidental edits under broad card navigation; preserve capability. |
 | Prestige value/link | KEEP value; SIMPLIFY duplicate link | Scan progression without another identical navigation stop. |
 | Bloodweb /50 and thin track | KEEP numbers; SIMPLIFY optional track | Reliable recorded state, grouped with Prestige. |
 | Three native names | KEEP compact | Account value without workspace detail. |
@@ -246,7 +244,7 @@ Explore roughly 1200–1320px task bounding on wider screens to prevent excessiv
 
 Target two columns × three rows at six items. The current sidebar remains until 760px; at 768px it leaves roughly 527px after 185px sidebar and 56px main padding, insufficient for two 320px cards. A compact shared shell would leave about 728px with 40px gutters, enough for two roughly 354px cards.
 
-This repeats the Survivor/global dependency: release sidebar width earlier in the approximately 700–900px range, subject to shared review. Do not invent Killer-specific global navigation or shrink card facts to preserve a nominal tablet grid. Content fit governs until that shell decision is approved.
+This repeats the Survivor/global requirement: the shell must already be compact at constrained tablet widths, rather than wait for 760px. Do not invent Killer-specific global navigation or shrink card facts to preserve a nominal tablet grid. Plan 06 resolves the compact labeled Menu shell with an initial ~1300px content-fit transition candidate; exact cutoff is verified during engineering.
 
 ## Mobile Layout
 
@@ -298,7 +296,7 @@ The local rendering chain explains the reported blank portrait exactly:
 
 Therefore this is **missing Lore coverage plus a deliberate no-fallback rendering path**, not a bad canonical slug, casing error, corrupt referenced image or failure to copy an existing Lore file in the checked-in implementation. The existing collection test explicitly asserts null for this entry. A deployed-version discrepancy would need separate live verification; the source cause already accounts for the visible symptom.
 
-**Usable Slasher Lore portrait: none in the specified directory.** The valid square portrait is an alternative source, not a Lore portrait. Do not rename/copy it into Lore and claim coverage complete. KR01 governs a temporary exception versus neutral fallback; no asset was swapped.
+**Usable Slasher Lore portrait: none in the specified directory.** The valid square portrait is an alternative source, not a Lore portrait. Do not rename/copy it into Lore and claim coverage complete. KR01 now mandates neutral named fallback, with no approved square exception; no asset was swapped.
 
 ### Power Icon Coverage
 
@@ -312,7 +310,7 @@ Compact exception table (all other mappings passed the checks above):
 
 | Killer / group | Current roster portrait | Lore portrait | Power icon | Issue / implication |
 | --- | --- | --- | --- | --- |
-| The Slasher | Missing; null | Missing | Present, REVIEW | No roster image emitted. Valid square workspace alternative exists; source exception/fallback policy pending KR01. |
+| The Slasher | Missing; null | Missing | Present, REVIEW | No roster image emitted. Valid square workspace alternative exists; KR01 resolved: neutral named fallback; no square exception. |
 | The Cenobite | Valid Lore | `Pinhead.png` | Present, EXACT | Known explicit filename alias; keep mapping. |
 | The Ghost Face | Valid Lore | `Ghostface.png` | Present, EXACT | Known explicit filename alias; keep mapping. |
 | The Onryō | Valid Lore | `Onryo.png` | Present, EXACT | Valid diacritic normalization; preserve canonical name and exact path. |
@@ -364,7 +362,7 @@ Do not require identical card height/content between role screens or differentia
 | `styles.css` | Shared late collection rules near line 2462: auto-fill 250px minimum/16px gaps, 190px contained hero, dimming/gradient overlays, 112px content offset; name 16px, native heading 8px and row 11px, Favorite 44px. Global sidebar/main breakpoints constrain grid width. |
 | `images/updated-images/Character Portraits/Killers/Lore`, `images/killer-images`, mapped `images/portrait-runtime` and Power files | All relevant mapped files checked locally for existence/case/signature/hash/dimensions/decode; Lore contact sheet inspected. No source image was edited, copied into production, renamed or substituted. |
 
-Later dependencies: approved fallback exception, Power icon qualification, source policy across identity surfaces, per-asset fit where needed, shared header/control/focus contracts, tablet shell width, independent per-role navigation state and existing asset/release assumptions. This is not an implementation sequence. No schema change, build, release or new UI dependency is justified by this review.
+Later dependencies: verified neutral fallback, Power icon qualification, source policy across identity surfaces, per-asset fit where needed, shared header/control/focus contracts, tablet shell width, independent per-role navigation state and existing asset/release assumptions. This is not an implementation sequence. No schema change, build, release or new UI dependency is justified by this review.
 
 ## Skill-Assisted Findings
 
@@ -384,13 +382,13 @@ No skill preference overrides six-per-page, Lore identity direction, semantic ti
 
 ## Open Questions
 
-**KR01 — Missing-Lore fallback policy:** while a Killer has no Lore asset, permit an explicit temporary exception using its valid older character portrait, or show neutral fallback until authentic Lore art is supplied? Recommend neutral fallback as the default; The Slasher is currently the only affected Killer. A permitted exception must be visible in the mapping policy and must not override available Lore imagery. This is a genuine source-consistency decision; the routine missing-file defect remains an asset dependency.
+No Killer-roster-specific product blocker remains. KR01 is resolved by the user: neutral named fallback until authentic Lore exists, including The Slasher; no older-square exception. Ownership is display-only on roster and edited in Overview. Plan 06 resolves shared terminology, context and compact navigation.
 
-Existing shared choices remain open rather than duplicated: native-perk account scope (W05/Survivor roster), ownership switch removal, and global width/tablet shell (G04/G07). Power name is the proposed baseline; optional icon qualification and measured crop refinements can be handled in later asset/visual review without inventing a user question for each missing file. Alias search is investigated and deferred, not a pending requirement.
+Power name is the baseline; optional icon qualification and non-destructive per-image fit are engineering/visual checks. Alias search remains investigated and deferred, not a pending Core requirement. Exact geometry is a verification detail.
 
 ## Shared / Global Findings
 
-- **Identity-source policy crosses surfaces:** checked-in roster already uses Lore; workspace uses square portraits. The user's new direction should govern future Killer identity work, without redesigning that workspace now.
+- **Identity-source policy crosses surfaces:** checked-in roster already uses Lore; workspace uses square portraits. The user's new direction should govern future Killer identity work, with full workspace planning in plan 05, without application implementation now.
 - **An absent mapping differs from a failed request:** Slasher emits no `<img>`; a file-not-found/caching diagnosis would be wrong for that source chain. Keep named fallback and decode-failure behavior explicit.
 - **Separate asset domains:** portrait, Power, perk and Add-on mappings must retain different meaning. A complete portrait set cannot solve missing Power icons.
 - **Availability and tier differ:** General access at global tier zero qualifies the earlier roster account-state recommendation for both roles.
@@ -398,20 +396,18 @@ Existing shared choices remain open rather than duplicated: native-perk account 
 - **Counts, controls and navigation are common contracts:** page/range/account scopes, resets/clamping, return state and independent actions should align across rosters.
 - **Shared width dependency persists:** a 768px tablet with the existing sidebar cannot fit two readable peer cards; no Killer-only shell workaround is proposed.
 
-### Earlier Plans to Reconsider at Review
+### Reconciliation with Earlier Plans
 
-The global audit's generic “portraits” wording should distinguish Lore roster art from square workspace art. Its missing Slasher observation is confirmed, not fixed. The Survivor roster native-account-access proposal needs the General exception already recorded by the Survivor workspace review. The new Killer Lore policy supersedes any future assumption that existing square workspace portraits are the desired Killer identity assets; it does not change Survivor sources or authorize edits to prior approved plans. Dashboard hierarchy and queue decisions remain untouched.
-
-These findings feed the later shared/global design document; none is created now.
+The strategy now distinguishes Lore roster/identity policy from current square workspace lookup. Both roster recommendations handle General access at global tier zero, show Owned/Locked with workspace ownership editing, and share content-fit navigation. The Slasher remains a known missing source with settled neutral fallback. Plan 05 covers the full Killer workspace; plan 06 consolidates shared contracts. Dashboard jobs/caps/manual ranks remain unchanged. No implementation roadmap is created.
 
 ## Explicit Non-Goals
 
 - No implementation, production code/behavior/CSS changes or asset swaps.
-- No Killer workspace redesign yet; only its character-portrait source direction is recorded.
+- Full Killer workspace planning is in plan 05; this file remains the roster and artwork record.
 - No Add-ons or Add-on summaries on roster cards; no stock editing here.
 - No meta/tier-list/build/difficulty/performance integration or new analytics panels.
 - No alias-search subsystem, new dataset or speculative Power categorization.
 - No framework/component-library migration, new dependencies or official DBD UI copy.
 - No mass asset cleanup, raster preprocessing, invented replacement art or false coverage claims.
-- No continued reliance on old Killer portraits where the intended Lore source exists; any missing-source exception requires explicit policy approval.
+- No continued reliance on old Killer portraits where the intended Lore source exists; use neutral named fallback for missing Lore; no square-source exception is approved.
 - No global design-system approval, implementation phases, coding checklist, writing-plans invocation or final implementation roadmap.

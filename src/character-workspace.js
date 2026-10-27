@@ -3,7 +3,7 @@ import { roleCharacters } from './model.js';
 
 export function characterWorkspaceHref(id, section = 'overview', mode = null) {
   if (!Object.hasOwn(characterById, id)) throw new Error('Unknown character.');
-  const sections = ['overview', 'perks', 'edit', 'setup',
+  const sections = ['overview', 'perks', 'setup',
     characterById[id].role === 'survivor' ? 'items-addons' : 'power-addons'];
   if (!sections.includes(section) || (mode !== null && (section !== 'perks' || !['update', 'legacy'].includes(mode)))) {
     throw new Error('Unavailable character section.');
@@ -30,11 +30,12 @@ export function parseCharacterWorkspaceRoute(hash) {
   const parts = value.split('/'), source = parts[0], id = parts[1] ?? null;
   const unavailable = reason => ({ kind: 'character', status: 'unavailable', reason, characterId: id });
   if (!id || !Object.hasOwn(characterById, id)) return unavailable('unknown-character');
-  let section, mode = null;
+  let section, mode = null, legacyEdit = false;
   if (source === 'character') {
     if (parts.length > 4) return unavailable('invalid-path');
     section = parts.length === 2 ? 'overview' : parts[2];
     if (parts.length === 4) mode = parts[3];
+    if (section === 'edit') { section = 'overview'; legacyEdit = true; }
   } else {
     if (parts.length > 3) return unavailable('invalid-path');
     section = 'perks';
@@ -47,7 +48,7 @@ export function parseCharacterWorkspaceRoute(hash) {
     || (section === 'power-addons' && characterById[id].role !== 'killer')) return unavailable('wrong-role');
   try {
     return { kind: 'character', status: 'valid', characterId: id, section, mode,
-      source: source === 'character' ? 'canonical' : source,
+      source: legacyEdit ? 'legacy-edit' : source === 'character' ? 'canonical' : source,
       canonicalRoute: characterWorkspaceHref(id, section, mode) };
   } catch { return unavailable('invalid-path'); }
 }

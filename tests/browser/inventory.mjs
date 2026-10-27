@@ -5,7 +5,10 @@ import {freshSave} from '../../src/model.js';
 import {inventoryEntities,inventoryEntityById,inventoryCatalogStatus,survivorInventorySource} from '../../data/inventory-catalog.js';
 export async function familyNavigationRegression(page,origin){
  page.setDefaultTimeout(6000);
- await page.evaluate(s=>localStorage.setItem('dbdTrackerData',JSON.stringify(s)),freshSave());
+ const fixture=freshSave();
+ const sharedAddon=inventoryEntities.find(entity=>entity.map==='addons'&&entity.compatibleItemIds.length>1);
+ fixture.characters['meg-thomas'].inventory.addons[sharedAddon.id]=6;
+ await page.evaluate(s=>localStorage.setItem('dbdTrackerData',JSON.stringify(s)),fixture);
  await page.goto(origin+'/#character/meg-thomas/items-addons');await page.reload();
  await page.locator('[data-stock-workspace]').waitFor();
  const families=survivorInventorySource.itemFamilies;
@@ -35,6 +38,8 @@ export async function familyNavigationRegression(page,origin){
   assert.equal(await page.locator('.stock-family-heading p').textContent(),familyItems+' Items · '+familyAddons+' Add-ons (catalog totals)');
   const itemRows=inventoryEntities.filter(entity=>entity.familyId===family.id&&entity.map==='items').sort((a,b)=>a.order-b.order);
   const itemSelect=page.locator('#inventory-item');
+  assert.equal(await page.locator('[data-stock-subsection="items"] [data-stock-card] [data-action="stock-item-select"]').count(),itemRows.length,
+   'Every Item has a separate Select Item action, distinct from quantity and Details');
   assert.deepEqual(await itemSelect.locator('option').evaluateAll(nodes=>nodes.map(node=>node.value)),itemRows.map(item=>item.id),
    'Each family exposes its Items in catalog order for Add-on compatibility');
   for(const map of ['items','addons']){
@@ -45,7 +50,9 @@ export async function familyNavigationRegression(page,origin){
    assert.deepEqual(await page.locator('[data-stock-subsection="'+map+'"] [data-stock-card]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockCard)),expected);
   }
   for(const item of itemRows){
-   await itemSelect.selectOption(item.id);
+   await page.locator('[data-stock-card="'+item.id+'"] [data-action="stock-item-select"]').click();
+   assert.equal(await itemSelect.inputValue(),item.id,'The Item selector stays synchronized with Item-card selection');
+   assert.equal(await page.locator('[data-stock-card="'+item.id+'"] [data-action="stock-item-select"]').getAttribute('aria-pressed'),'true');
    assert.equal(await page.locator('[data-stock-subsection="addons"]').getAttribute('data-compatible-item-id'),item.id);
    const compatible=inventoryEntities.filter(entity=>entity.familyId===family.id&&entity.map==='addons'&&entity.compatibleItemIds.includes(item.id));
    assert.deepEqual(await page.locator('[data-stock-subsection="addons"] [data-stock-card]').evaluateAll(nodes=>nodes.map(node=>node.dataset.stockCard)),sortIds(compatible,'highest-to-lowest'),
@@ -53,6 +60,24 @@ export async function familyNavigationRegression(page,origin){
   }
   assert.equal(await page.evaluate(()=>localStorage.dbdTrackerData),before,'Family selection cannot persist');
  }
+ const sharedItems=sharedAddon.compatibleItemIds.slice(0,2).map(id=>inventoryEntityById[id]);
+ const sharedFamily=families.find(family=>family.id===sharedItems[0].familyId);
+ await nav.getByRole('button',{name:sharedFamily.displayName,exact:true}).click();
+ for(const sharedItem of sharedItems){
+  await page.locator('[data-stock-card="'+sharedItem.id+'"] [data-action="stock-item-select"]').click();
+  const sharedStock=page.locator('[data-stock-subsection="addons"] [data-stock-card="'+sharedAddon.id+'"] [data-inventory-quantity="'+sharedAddon.id+'"]');
+  assert.equal(await sharedStock.inputValue(),'6','A shared Add-on keeps its single Survivor quantity under each compatible Item');
+  assert.equal(await page.locator('[data-stock-subsection="addons"] [data-stock-card="'+sharedAddon.id+'"]').count(),1,
+   'Compatible Item contexts do not duplicate Add-on stock records');
+ }
+ const firecrackerFamily=families.find(family=>family.id==='firecracker');
+ await nav.getByRole('button',{name:firecrackerFamily.displayName,exact:true}).click();
+ for(const firecracker of inventoryEntities.filter(entity=>entity.familyId===firecrackerFamily.id&&entity.map==='items')){
+  await page.locator('[data-stock-card="'+firecracker.id+'"] [data-action="stock-item-select"]').click();
+  assert.match(await page.locator('[data-stock-subsection="addons"]').textContent(),/This item does not use Add-ons\./,
+   'Firecracker-like Items explicitly state that they have no compatible Add-ons');
+ }
+ await nav.getByRole('button',{name:families.at(-1).displayName,exact:true}).click();
  await page.locator('#inventory-search').fill('unlikely-search-token');
  assert.equal(await page.locator('[data-stock-family]').getAttribute('data-stock-family'),families.at(-1).id,'Rerender retains selection');
  await page.locator('#inventory-search').fill('');
@@ -68,10 +93,8 @@ export async function familyNavigationRegression(page,origin){
  }finally{await reader.close();}
  await page.goto(origin+'/#character/feng-min/items-addons');
  await page.locator('[data-stock-workspace]').waitFor();
- assert.equal(await page.locator('[data-stock-family]').getAttribute('data-stock-family'),families[0].id,'New character session resets selection');
+ assert.equal(await page.locator('[data-stock-family]').getAttribute('data-stock-family'),families.at(-1).id,'Safe Survivor family context carries to a same-role character');
  await page.locator('#stock-family-nav-'+families.at(-1).id).click();
- await page.getByRole('link',{name:'Edit Character',exact:true}).click();
- assert.equal(await page.locator('[data-stock-family]').getAttribute('data-stock-family'),families[0].id,'New page stock session resets selection');
 }
 export async function familyTransitionsRegression(page,origin){
  page.setDefaultTimeout(6000);
@@ -93,11 +116,18 @@ export async function familyTransitionsRegression(page,origin){
  await field(first.id).fill('40');await page.locator('#inventory-filters summary').focus();await page.locator('#inventory-filters summary').press('Enter');
  assert.equal(await page.locator('#inventory-filters').evaluate(n=>n.open),false,'Keyboard Filters toggles after quantity commit');
  await field(first.id).fill('0');await field(first.id).press('Enter');
+ const selectedItemBeforeSearch=await page.locator('#inventory-item').inputValue();
  await page.locator('#inventory-search').fill(second.name);
  assert.equal(await page.locator('[data-stock-card]').count(),0,'Other-family search matches cannot leak into selection');
  assert.equal(await current(),first.familyId);assert.match(await page.locator('.stock-family-heading').textContent(),new RegExp(families[0].displayName));
+ assert.match(await page.locator('[data-selected-item-context]').textContent(),/Selected Item hidden by current filters/);
+ assert.equal(await page.locator('[data-action="stock-filter-reset"]').count(),1,'Active stock filters expose a reset action');
  assert.equal(await page.getByRole('searchbox',{name:'Search '+families[0].displayName,exact:true}).count(),1,'Search communicates selected-family scope');
  assert.match(await page.locator('[data-stock-workspace] .empty').textContent(),/No matches in/);
+ await page.locator('[data-action="stock-filter-reset"]').click();
+ assert.equal(await page.locator('#inventory-search').inputValue(),'');
+ assert.equal(await page.locator('#inventory-item').inputValue(),selectedItemBeforeSearch,'Reset keeps the selected Item context');
+ await page.locator('#inventory-search').fill(second.name);
  await select(second.familyId).click();assert.equal(await field(second.id).count(),1);assert.equal(await page.locator('#inventory-search').inputValue(),second.name);
  await page.locator('#inventory-filters').evaluate(n=>n.open=true);
  await page.locator('#inventory-map').selectOption('items');
@@ -111,7 +141,7 @@ export async function familyTransitionsRegression(page,origin){
  await page.locator('#inventory-filters').evaluate(n=>n.open=true);await page.locator('#inventory-map').selectOption('');
  const noAddonFamily=families.find(f=>!inventoryEntities.some(e=>e.familyId===f.id&&e.map==='addons'));
  await select(noAddonFamily.id).click();
- assert.match(await page.locator('[data-stock-subsection="addons"]').textContent(),/No compatible Add-ons in this catalog./);
+ assert.match(await page.locator('[data-stock-subsection="addons"]').textContent(),/This item does not use Add-ons\./);
  assert.equal(await page.locator('[data-stock-subsection="addons"] .stock-grid').count(),0);
  assert.deepEqual(await page.locator('[data-stock-subsection]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockSubsection)),['items','addons']);
  await select(first.familyId).click();
@@ -412,60 +442,26 @@ export async function inventoryRegression(page,origin){
   await field(addon.id).fill('11');
  await page.getByRole('link',{name:'Overview',exact:true}).click();
   assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].inventory.addons[addon.id],11,'Valid blur commits before navigation');
- await page.getByRole('link',{name:'Edit Character',exact:true}).click();
- const draftBefore=await bytes();
+  await page.locator('[data-workspace-section="items-addons"]').click();
+  await page.locator('#inventory-filters-toggle').click();
+  assert.equal(await page.locator('#inventory-map').inputValue(), 'addons', 'Contextual workspace return preserves the selected stock filter');
+  await page.locator('#inventory-map').selectOption('items');
+  const quantityBeforeValidation=await bytes();
   await field(item.id).fill('bad');
-  await page.locator('#inventory-search').fill('nothing matches');
-  await page.getByRole('button',{name:'Save Character',exact:true}).click();
-  assert.equal(await bytes(),draftBefore);
-  assert.equal(await field(item.id).evaluate(n=>document.activeElement===n),true);
+  await field(item.id).press('Enter');
+  assert.equal(await bytes(),quantityBeforeValidation,'Invalid quantity remains local and never writes');
   assert.equal(await field(item.id).getAttribute('aria-invalid'),'true');
-  for(const width of [320,500,760,1100,1440,1600]){
-    await page.setViewportSize({width,height:900});
-    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Edit stock overflow '+width);
-    assert.ok((await page.getByRole('button',{name:'Save Character',exact:true}).boundingBox()).height>=44,'Save touch target');
-  }
-  await page.setViewportSize({width:1440,height:900});
- await field(item.id).fill('6'); await field(item.id).press('Enter');
- await page.locator('#inventory-filters').evaluate(el=>el.open=true);
- await page.locator('#inventory-map').selectOption('addons');
- await field(addon.id).fill('12'); await field(addon.id).press('Tab');
- assert.equal(await bytes(),draftBefore);
- await page.locator('#inventory-search').fill('nothing matches');
- await page.getByRole('button',{name:'Save Character',exact:true}).click();
- const saved=JSON.parse(await bytes());
- assert.equal(saved.characters['meg-thomas'].inventory.items[item.id],6);
- assert.equal(saved.characters['meg-thomas'].inventory.addons[addon.id],12);
- assert.equal(saved.characters['meg-thomas'].inventory.items['survivor-item-future-unresolved'],11);
- assert.equal(saved.characters['meg-thomas'].updatedAt,saved.updatedAt);
-  await page.getByRole('link',{name:'Edit Character',exact:true}).click();
-  const discardBefore=await bytes();
-  await field(item.id).fill('77');
-  await page.evaluate(()=>{
-    const button=document.createElement('button');button.id='draft-reset';button.dataset.action='reset';button.textContent='Synthetic reset';
-    document.querySelector('main').append(button);
-  });
-  await page.locator('#draft-reset').click();
-  await page.getByRole('button',{name:'Discard',exact:true}).click();
-  await page.locator('#confirmation [value="cancel"]').click();
-  assert.equal(await bytes(),discardBefore,'Discard followed by canceled reset cannot autosave a draft quantity');
-  assert.equal(await field(item.id).inputValue(),'6','Canceled mutation leaves a fresh canonical edit session');
-  await field(item.id).fill('7');
-  await page.evaluate(()=>{
-    const button=document.createElement('button');button.id='draft-reset';button.dataset.action='reset';button.textContent='Synthetic reset';
-    document.querySelector('main').append(button);
-  });
-  await page.locator('#draft-reset').click();
-  await page.getByRole('button',{name:'Save',exact:true}).click();
-  await page.locator('#confirmation [value="cancel"]').click();
-  await field(item.id).fill('8');
-  await page.getByRole('button',{name:'Save Character',exact:true}).click();
-  assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].inventory.items[item.id],8,'Saved guard followed by canceled replacement remains editable');
-  await page.getByRole('link',{name:'Edit Character',exact:true}).click();
-  await field(item.id).fill('9');
-  await page.getByRole('button',{name:'Cancel',exact:true}).click();
-  await page.getByRole('button',{name:'Discard',exact:true}).click();
-  await page.waitForURL('**/#character/meg-thomas/overview');
+  await field(item.id).fill('6');
+  await field(item.id).press('Enter');
+  await page.locator('#inventory-filters-toggle').click();
+  await page.locator('#inventory-map').selectOption('');
+  await field(addon.id).fill('12');
+  await field(addon.id).press('Enter');
+  const saved=JSON.parse(await bytes());
+  assert.equal(saved.characters['meg-thomas'].inventory.items[item.id],6);
+  assert.equal(saved.characters['meg-thomas'].inventory.addons[addon.id],12);
+  assert.equal(saved.characters['meg-thomas'].inventory.items['survivor-item-future-unresolved'],11,
+    'Contextual quantity commits preserve unresolved imported records');
  await page.goto(origin+'/#character/the-doctor/power-addons');
  await page.waitForFunction(()=>document.querySelector('[data-character-workspace] h1')?.textContent==='The Doctor');
  assert.equal(await page.locator('[data-killer-quantity]').count(),20);

@@ -1,11 +1,11 @@
-import { characters, characterById, perks, perkById, catalogInfo, perkName, perkSearchText } from '../data/catalog.js';
+import { characters, characterById, perkById, catalogInfo, perkName } from '../data/catalog.js';
 import { freshSave, globalTier, isAvailable, unlockSource, inventoryTier, roleCharacters, rolePerks, characterStats, perkStats, parseSave, exportSave, setGlobalPerkUnlocked, syncGlobalInventories, completeCharacterSetup, automaticTier, recordedTier, ownedUnlockSource, bloodwebNextTier, bloodwebEligible, setHistoricalPerkTier } from './model.js';
 import { TrackerStorage } from './storage.js';
 import { parseCharacterWorkspaceRoute, characterWorkspaceHref, characterWorkspaceNeighbors } from './character-workspace.js';
 import {inventoryEntities,inventoryEntityById,inventoryCatalogStatus,survivorInventorySource,killerPowerByCharacterId} from '../data/inventory-catalog.js';
 import {inventoryIconPath,killerPowerIconPath} from './assets.js';
 import {createQuantityInteraction,updateQuantityInput,acceptQuantityInput,visibleQuantityEntries,regroupQuantityEntries,quantityFocusAfterCommit,groupQuantityEntries,groupQuantityEntriesByItem,sortQuantityEntriesByRarity,stepQuantityInput} from './inventory-interaction.js';
-import { createCharacterEditSession, updateCharacterEditSession, buildCharacterEditCandidate, characterEditPreview } from './character-edit.js';
+import { createCharacterTaskSession, updateCharacterTaskSession, buildCharacterTaskCandidate } from './character-edit.js';
 import { EditorGuard } from './editor.js';
 import { setupView } from './setup.js';
 import { characterSetupView } from './character-setup.js';
@@ -13,9 +13,11 @@ import { historicalPerkNote, historicalOwnershipControl } from './historical-per
 import {derivePrestigeQueue,applyPrestigeQueueAction} from './prestige-queue.js';
 import {suggestedP1Targets,recentCharacters,favoriteCharacters} from './dashboard-selectors.js';
 import { correctPersonalPerkTier } from './model.js';
+import { createRosterStateMemory, paginateRoster } from './roster-state.js';
+import { createWorkspaceContextMemory } from './workspace-context.js';
+import { killerAddonCount, survivorInventoryCounts } from './survivor-collection.js';
 import assetManifest from '../data/asset-manifest.json' with { type: 'json' };
 import { perkIconPath, characterPortraitPath, collectionPortraitPath } from './assets.js';
-import { survivorInventoryCounts, killerAddonCount } from './survivor-collection.js';
 
 import { getFilterContext, perkFilterDefinitions, matchesPerkFilterState, selectQuickView, toggleAdvancedOption, clearAdvancedFilters, activeAdvancedGroupCount, perkFacetCounts, createFilterRouteMemory } from './perk-filters.js';
 import { CHARACTER_INVENTORY_CATEGORIES, CHARACTER_CARD_SIZES, DEFAULT_CHARACTER_CARD_SIZE, normalizeCharacterCardSize, characterInventoryCandidatePool, filterCharacterInventoryCandidates, characterNormalInventory, setCharacterPersonalTier, createCharacterInventorySession, syncCharacterInventorySession, markCharacterInventoryChanged, parseCharacterInventoryRoute } from './character-inventory.js';
@@ -36,10 +38,11 @@ let queueView = {expanded:false,role:'all'};
 let queueTargetEditor = null;
 let queueOpener = null;
 let filters = { search: '', status: 'all', prestige: 'all', favorite: false, sort: 'name' };
-let collectionPageSize = 'all';
-let collectionPage = 0;
-let collectionPageRole = '';
+let collectionFiltersOpen = false;
+const collectionState = createRosterStateMemory();
+const workspaceContext = createWorkspaceContextMemory();
 let lastRoute = '';
+let workspacePerkSelectionIntent = null;
 let managerView = 'detailed';
 const filterMemory = createFilterRouteMemory();
 let panelContext = '';
@@ -49,9 +52,7 @@ let setupStep = 0;
 let setupSearch = '';
 let setupFilter = 'all';
 let characterSetup = null;
-let characterEditSession = null;
-let characterEditViewState = { search: '', allRole: false };
-let characterEditReturnRoute = null;
+let characterTaskSession = null;
 let stockSession = null;
 let stockSessionKey = '';
 let stockRendering = false;
@@ -64,16 +65,18 @@ let killerDetailOpener = null;
 let killerSession = null;
 let killerSessionKey = '';
 let killerBlurPending = null;
+let killerFilters = { search: '', rarity: '', inStock: false };
 let addonRarityDirection = 'highest-to-lowest';
 let workspaceHistoryIndex = 0;
 let committedWorkspaceHash = location.hash || '#dashboard';
 let restoringWorkspaceHistory = null;
+let workspaceTransitionToken = 0;
 history.replaceState({ ...history.state, workspaceIndex: 0 }, '', location.href);
 let setupQueue = null;
 let characterInventorySession = createCharacterInventorySession('');
 const characterInventoryCardSizeStorageKey = 'dbdTrackerUi.characterCardSize';
 const legacyCharacterCardSizeStorageKey = 'dbdTrackerUi.experimentCardSize';
-const characterCardSizeLabels = { small: 'Small', medium: 'Medium', large: 'Large' };
+const characterCardSizeLabels = { small: 'Compact', medium: 'Standard', large: 'Large' };
 
 function loadCharacterCardSize() {
   try {
@@ -95,8 +98,8 @@ function message(text, error = false) {
   detailMessage.textContent = detailMessage.hidden ? '' : text;
 }
 
-const editingActions = new Set(['favorite', 'ownership', 'cycle', 'character-inventory-set-tier', 'account-unlock-tier', 'import', 'restore', 'reset', 'delete-backup', 'setup-open', 'setup-p1', 'setup-next', 'setup-back']);
-const editingControls = '#detail-content select, [data-setup-owned], [data-setup-prestige], [data-setup-perk], [data-character-setup-perk], [data-character-setup-tier], [data-historical-ownership], [data-character-inventory-historical], #character-setup-bloodweb, #halloween-names, #hellraiser-names, #import-file';
+const editingActions = new Set(['favorite', 'overview-ownership-toggle', 'ownership', 'cycle', 'character-inventory-set-tier', 'character-inventory-correction-open', 'character-inventory-correction-apply', 'account-unlock-tier', 'import', 'restore', 'reset', 'delete-backup', 'setup-open', 'setup-p1', 'setup-next', 'setup-back', 'character-task-start', 'character-task-save']);
+const editingControls = '#detail-content select, [data-character-task-field], [data-setup-owned], [data-setup-prestige], [data-setup-perk], [data-character-setup-perk], [data-character-setup-tier], [data-historical-ownership], [data-character-inventory-historical], [data-character-inventory-correction-tier], #character-setup-bloodweb, #halloween-names, #hellraiser-names, #import-file';
 function requiresEditor(action) { return editingActions.has(action) || ['queue-add','queue-target','queue-remove','queue-move','queue-move-down','queue-save','queue-shortcut','queue-select'].includes(action) || (action?.startsWith('character-setup-') && action !== 'character-setup-exit'); }
 function editorPresentation() {
   const editing = initialized && editor.state === 'editing';
@@ -119,13 +122,10 @@ function editorPresentation() {
     }
   });
   document.querySelectorAll('[data-action="export"]').forEach(button => { button.disabled = !initialized || storageBlocked; });
-  document.querySelectorAll('[data-edit-field], [data-edit-perk], [data-edit-correction], [data-inventory-quantity], [data-action="character-edit-save"]').forEach(control => {
-    control.disabled = !editing || storageBlocked || Boolean(characterEditSession?.conflicted);
+  document.querySelectorAll('[data-character-task-field], [data-action="character-task-save"], [data-action="character-task-start"], [data-action="overview-ownership-toggle"], [data-action="favorite"]').forEach(control => {
+    control.disabled = !editing || storageBlocked || Boolean(characterTaskSession?.conflicted);
   });
   updateStockStepControls();
-  if (characterEditSession) {
-    $('#detail-content').querySelectorAll('select, [data-action="account-unlock-tier"], [data-action="cycle"]').forEach(control => { control.disabled = true; });
-  }
   if (!initialized) $('#save-status').textContent = 'Checking editing availability';
   else if (!editing) $('#save-status').textContent = editor.state === 'unavailable' ? 'Editing unavailable' : 'Read-only';
   else if (storageBlocked) $('#save-status').textContent = 'Stored save needs recovery';
@@ -135,9 +135,8 @@ async function enableEditing() {
   const acquisition = editor.acquire();
   editorPresentation();
   await acquisition;
-  // A retry never commits a draft or keeps a form based on the previous view.
+  // A retry reloads the canonical save before rendering the current route.
   $('#detail').close(); modal = null; characterSetup = null; setupQueue = null;
-  characterEditSession = null;
   setupOpen = false; pendingImport = null;
   try {
     const loaded = store.load({ persistMigration: editor.state === 'editing' });
@@ -150,7 +149,7 @@ async function enableEditing() {
   initialized = true;
   $('#save-status').textContent = 'Saved locally';
   render();
-  if(parseCharacterWorkspaceRoute(route())) $('#main').focus();
+  if(parseCharacterWorkspaceRoute(route())) $('#main').focus({ preventScroll: true });
 }
 
 // Account setup remains available explicitly; character setup is offered on click.
@@ -184,9 +183,16 @@ function characterArtwork(character, size = 64) {
   const portraitSizeClass = size === 80 ? ' portrait-large' : size === 112 ? ' portrait-card' : '';
   return `<span class="character-portrait${portraitSizeClass}${path ? ' has-art' : ''}" aria-hidden="true"><span class="portrait-fallback"><svg viewBox="0 0 40 48" width="32" height="40"><circle cx="20" cy="13" r="9"/><path d="M3 46v-7a17 17 0 0 1 34 0v7z"/></svg></span>${path ? `<img data-character-portrait="${character.id}" src="${esc(path)}" alt="" width="${size}" height="${size}" loading="lazy" decoding="async">` : ''}</span>`;
 }
+function workspaceCharacterArtwork(character, size = 80) {
+  if (character.role === 'survivor') return characterArtwork(character, size);
+  const path = collectionPortraitPath(character.id, assetManifest);
+  return `<span class="character-portrait portrait-large workspace-lore-portrait${path ? ' has-art' : ''}" aria-hidden="true"><span class="workspace-lore-fallback">${esc(character.name)}</span>${path ? `<img data-character-portrait="${character.id}" src="${esc(path)}" alt="" width="${size}" height="${size}" loading="lazy" decoding="async">` : ''}</span>`;
+}
 function collectionArtwork(character) {
   const path = collectionPortraitPath(character.id, assetManifest);
-  return path ? `<img data-collection-hero-art src="${esc(path)}" alt="" aria-hidden="true" loading="lazy" decoding="async">` : '';
+  return path
+    ? `<img data-collection-hero-art src="${esc(path)}" alt="" aria-hidden="true" loading="lazy" decoding="async">`
+    : '<span class="collection-art-fallback" aria-hidden="true">Portrait unavailable</span>';
 }
 function tierButton(characterId, perk, idPrefix = '') {
   const tier = inventoryTier(save, characterId, perk.id);
@@ -281,22 +287,28 @@ function dashboard() {
 }
 
 function characterCollectionCard(c) {
-  const progress = save.characters[c.id], stats = characterStats(save, c.id);
+  const progress = save.characters[c.id];
   const survivor = c.role === 'survivor';
-  const stock = survivor ? survivorInventoryCounts(save, c.id) : null;
-  const addonTypes = survivor ? stock.addons : killerAddonCount(save, c.id);
   const workspace = characterWorkspaceHref(c.id, 'overview');
-  const stockSummary = survivor
-    ? `<span><b>${stock.items}</b> Items</span><span><b>${stock.addons}</b> Add-ons</span>`
-    : `<span><b>${addonTypes}</b> Add-ons</span>`;
-  return `<article class="character-card character-collection-card ${c.role}-collection-card${progress.owned ? '' : ' locked-card'}" data-character-id="${c.id}"><div class="character-card-hero" aria-hidden="true">${collectionArtwork(c)}</div><div class="character-card-content"><div class="character-card-top"><a class="character-name" href="${workspace}" data-id="${c.id}"><span>${esc(c.name)}</span></a><button class="favorite-button ${progress.favorite ? 'is-favorite' : ''}" data-action="favorite" data-id="${c.id}" aria-pressed="${progress.favorite}" aria-label="Favorite ${esc(c.name)}">${progress.favorite ? '★' : '☆'}</button></div><button class="ownership ${progress.owned ? 'is-owned' : ''}" data-action="ownership" data-id="${c.id}" aria-pressed="${progress.owned}"><span class="ownership-dot" aria-hidden="true"></span><span>${progress.owned ? 'OWNED' : 'LOCKED'}</span><span class="toggle-track" aria-hidden="true"><span></span></span></button><div class="character-progress"><a class="prestige large" href="${workspace}">P${progress.prestige}</a><div class="collection-bloodweb"><div><span>Bloodweb</span><strong data-bloodweb-value>${progress.bloodwebLevel} <small>/ 50</small></strong></div><span class="collection-bloodweb-track" aria-hidden="true"><span style="width:${progress.bloodwebLevel / 50 * 100}%"></span></span></div></div><section class="native-perks" data-native-perks aria-label="Native perks"><h3>NATIVE PERKS <span>OWNED</span></h3>${c.nativePerkIds.map(id => `<button class="native-row" data-action="perk" data-id="${id}"><span>${esc(perkName(save, perkById[id]))}</span>${badge(inventoryTier(save, c.id, id))}</button>`).join('')}</section><div class="collection-summary" data-collection-summary><div class="collection-summary-row"><span><b>${stats.owned} / ${stats.total}</b> Perks</span><span><b>${stats.tier3}</b> Tier III</span></div><div class="collection-summary-row">${stockSummary}</div></div><a class="manage-button collection-workspace-action" data-open-workspace href="${workspace}">Open workspace <span aria-hidden="true">→</span></a></div></article>`;
+  const nativeRows = c.nativePerkIds.map(id => {
+    const perk = perkById[id];
+    const name = esc(perkName(save, perk));
+    const tier = globalTier(save, perk);
+    const access = isAvailable(save, perk) ? (tier ? `Tier ${roman[tier]}` : 'General · available') : 'Not unlocked';
+    return `<div class="native-row"><span>${name}</span><span class="native-access">${esc(access)}</span></div>`;
+  }).join('');
+  const nativeSection = `<section class="native-perks" data-native-perks aria-label="Native perks, account access"><h3>Native perks <span>Account access</span></h3>${nativeRows}</section>`;
+  const power = survivor ? null : killerPowerByCharacterId[c.id];
+  const powerArtwork = power?.artwork.confidence === 'EXACT' ? killerPowerIconPath(c.id, assetManifest) : null;
+  const powerIdentity = survivor ? '' : `<div class="killer-power-identity" data-killer-power>${powerArtwork ? `<img data-killer-power-art src="${esc(artworkUrl(powerArtwork))}" alt="" aria-hidden="true" loading="lazy" decoding="async">` : ''}<div><span>Power</span><strong data-power-name>${esc(power.powerName)}</strong></div></div>`;
+  return `<article class="character-card character-collection-card ${c.role}-collection-card${progress.owned ? '' : ' locked-card'}" data-character-id="${c.id}"><a class="collection-card-link" data-open-workspace data-id="${c.id}" href="${workspace}" aria-label="View ${esc(c.name)} workspace"><div class="character-card-hero" aria-hidden="true">${collectionArtwork(c)}</div><div class="character-card-content"><div class="character-card-top"><h2 class="character-name">${esc(c.name)}</h2></div><div class="ownership ${progress.owned ? 'is-owned' : ''}" data-ownership-status><span class="ownership-dot" aria-hidden="true"></span><span>${progress.owned ? 'Owned' : 'Locked'}</span></div><div class="character-progress"><span class="prestige large" aria-label="Prestige ${progress.prestige}">P${progress.prestige}</span><div class="collection-bloodweb"><div><span>Bloodweb</span><strong data-bloodweb-value aria-label="Bloodweb level ${progress.bloodwebLevel} of 50">${progress.bloodwebLevel} <small>/ 50</small></strong></div><span class="collection-bloodweb-track" aria-hidden="true"><span style="width:${progress.bloodwebLevel / 50 * 100}%"></span></span></div></div>${powerIdentity}${nativeSection}<span class="manage-button collection-workspace-action">View character <span aria-hidden="true">→</span></span></div></a><button class="favorite-button ${progress.favorite ? 'is-favorite' : ''}" data-action="favorite" data-id="${c.id}" aria-pressed="${progress.favorite}" aria-label="Favorite ${esc(c.name)}">${progress.favorite ? '★' : '☆'}</button></article>`;
 }
 function characterMatches(c, status = filters.status) {
   const p = save.characters[c.id];
   return (status === 'all' || (status === 'owned' ? p.owned : !p.owned)) && (filters.prestige === 'all' || (filters.prestige === '3' ? p.prestige >= 3 : p.prestige === Number(filters.prestige))) && (!filters.favorite || p.favorite) && c.name.toLowerCase().includes(filters.search.toLowerCase());
 }
 function collection(role) {
-  if (collectionPageRole !== role) { collectionPageRole = role; collectionPage = 0; }
+  const rosterState = collectionState.update(role, { ...filters });
   const list = roleCharacters(role);
   const visible = list.filter(c => characterMatches(c));
   visible.sort((a, b) => {
@@ -304,13 +316,25 @@ function collection(role) {
     const order = { 'prestige-desc': pb.prestige - pa.prestige, 'prestige-asc': pa.prestige - pb.prestige, bloodweb: pb.bloodwebLevel - pa.bloodwebLevel, perks: characterStats(save, b.id).owned - characterStats(save, a.id).owned, recent: (pb.updatedAt || '').localeCompare(pa.updatedAt || '') }[filters.sort];
     return order || a.name.localeCompare(b.name);
   });
-  const pageSize = collectionPageSize === 'all' ? Math.max(visible.length, 1) : Number(collectionPageSize);
-  const pageCount = Math.max(1, Math.ceil(visible.length / pageSize));
-  collectionPage = Math.min(collectionPage, pageCount - 1);
-  const pageCharacters = visible.slice(collectionPage * pageSize, (collectionPage + 1) * pageSize);
-  const cards = pageCharacters.map(characterCollectionCard).join('');
-  const pageControls = collectionPageSize !== 'all' ? `<nav class="collection-pagination" aria-label="Character pages"><button type="button" id="collection-page-prev" data-action="collection-page" data-delta="-1"${collectionPage === 0 ? ' disabled' : ''}>Previous Page</button><span aria-live="polite">Page ${collectionPage + 1} of ${pageCount}</span><button type="button" id="collection-page-next" data-action="collection-page" data-delta="1"${collectionPage === pageCount - 1 ? ' disabled' : ''}>Next Page</button></nav>` : '';
-  return pageHeading('CHARACTER COLLECTION', role === 'survivor' ? 'Survivors' : 'Killers', 'Track your collection and the next step through the Bloodweb.', `<div class="heading-count">${list.filter(c => save.characters[c.id].owned).length}<span>/ ${list.length} owned</span></div>`) + `<section class="collection-controls"><div class="toolbar">${searchInput('Search characters…')}${selectControl('prestige-filter', 'Prestige', [['all', 'Any prestige'], ['0', 'P0'], ['1', 'P1'], ['2', 'P2'], ['3', 'P3+']], filters.prestige)}<button data-action="favorites-filter" class="${filters.favorite ? 'selected' : ''}" aria-pressed="${filters.favorite}">★ Favorites</button>${selectControl('sort', 'Sort', [['name', 'Name'], ['prestige-desc', 'Prestige ↓'], ['prestige-asc', 'Prestige ↑'], ['bloodweb', 'Bloodweb ↓'], ['perks', 'Perks owned ↓'], ['recent', 'Recently updated']], filters.sort)}${selectControl('collection-page-size', 'Show', [['5', '5'], ['10', '10'], ['all', 'All']], collectionPageSize)}</div>${filterPills([['all', 'All characters'], ['owned', 'Owned'], ['locked', 'Locked']], status => list.filter(c => characterMatches(c, status)).length)}</section><div class="results-label">${visible.length} CHARACTERS<span>Click a name or prestige badge to edit</span></div>${pageControls}<div class="character-grid character-collection-grid ${role}-collection-grid">${cards}</div>${visible.length ? '' : empty()}`;
+  const page = paginateRoster(visible, rosterState.page);
+  collectionState.update(role, { page: page.page });
+  const cards = page.results.map(characterCollectionCard).join('');
+  const activeFilters = [
+    ...(filters.status !== 'all' ? [`<button type="button" data-action="collection-clear-filter" data-filter-key="status" data-active-filter="ownership">${filters.status === 'owned' ? 'Owned' : 'Locked'} ×</button>`] : []),
+    ...(filters.prestige !== 'all' ? [`<button type="button" data-action="collection-clear-filter" data-filter-key="prestige" data-active-filter="prestige">${filters.prestige === '3' ? 'Prestige 3+' : `Prestige ${filters.prestige}`} ×</button>`] : []),
+    ...(filters.favorite ? ['<button type="button" data-action="collection-clear-filter" data-filter-key="favorite" data-active-filter="favorite">Favorites ×</button>'] : []),
+  ].join('');
+  const resetDisabled = filters.status === 'all' && filters.prestige === 'all' && !filters.favorite;
+  const ownershipOptions = [['all', 'Any ownership'], ['owned', 'Owned'], ['locked', 'Locked']];
+  const pageControls = visible.length ? `<nav class="collection-pagination" aria-label="Character pages"><button type="button" id="collection-page-prev" data-action="collection-page" data-delta="-1"${page.page === 0 ? ' disabled' : ''}>Previous Page</button><span id="collection-page-status" role="status" aria-live="polite">Page ${page.page + 1} of ${page.pageCount} · ${page.start}–${page.end} of ${page.total}</span><button type="button" id="collection-page-next" data-action="collection-page" data-delta="1"${page.page === page.pageCount - 1 ? ' disabled' : ''}>Next Page</button></nav>` : '';
+  const ownedCount = list.filter(c => save.characters[c.id].owned).length;
+  const headingCount = role === 'survivor'
+    ? `<div class="heading-count survivor-catalog-count">${ownedCount}<span>owned · ${list.length} Survivors</span></div>`
+    : `<div class="heading-count">${ownedCount}<span>/ ${list.length} owned</span></div>`;
+  const scopeNote = role === 'survivor'
+    ? '<p class="collection-scope-note">Native perk states show account access, not recorded tiers on this Survivor. General perks can be available without an automatic tier.</p>' : '';
+  const view = pageHeading('CHARACTER COLLECTION', role === 'survivor' ? 'Survivors' : 'Killers', 'Track your collection and the next step through the Bloodweb.', headingCount) + `<section class="collection-controls"><div class="collection-toolbar"><div class="collection-search-group">${searchInput('Search characters…')}${filters.search ? '<button type="button" data-action="collection-clear-search">Clear search</button>' : ''}</div><details id="collection-filters"${collectionFiltersOpen ? ' open' : ''}><summary>Filters${activeFilters ? `<span class="collection-filter-count">${(filters.status !== 'all' ? 1 : 0) + (filters.prestige !== 'all' ? 1 : 0) + (filters.favorite ? 1 : 0)} active</span>` : ''}</summary><div class="collection-filter-options">${selectControl('ownership-filter', 'Ownership', ownershipOptions, filters.status)}${selectControl('prestige-filter', 'Prestige', [['all', 'Any prestige'], ['0', 'P0'], ['1', 'P1'], ['2', 'P2'], ['3', 'P3+']], filters.prestige)}<button type="button" data-action="favorites-filter" class="${filters.favorite ? 'selected' : ''}" aria-pressed="${filters.favorite}">★ Favorites</button><button type="button" data-action="collection-reset-filters"${resetDisabled ? ' disabled' : ''}>Reset filters</button></div></details>${selectControl('sort', 'Sort', [['name', 'Name'], ['prestige-desc', 'Prestige ↓'], ['prestige-asc', 'Prestige ↑'], ['bloodweb', 'Bloodweb ↓'], ['perks', 'Perks owned ↓'], ['recent', 'Recently updated']], filters.sort)}</div>${activeFilters ? `<div class="collection-active-filters" aria-label="Active filters">${activeFilters}</div>` : ''}${scopeNote}</section><div class="results-label" id="collection-results-heading" tabindex="-1">${visible.length} CHARACTERS<span>${page.total ? `${page.start}–${page.end} of ${page.total} matching` : 'No matching characters'}</span></div><div class="character-grid character-collection-grid ${role}-collection-grid">${cards}</div>${visible.length ? '' : empty('No characters match these search and filters.')} ${pageControls}`;
+  return `<div class="${role}-roster-layout">${view}</div>`;
 }
 
 function perkMatches(perk) {
@@ -346,7 +370,7 @@ function compactPerks(list, characterId) {
   }).join('')}${list.length ? '' : perkEmpty()}</div>`;
 }
 
-const characterInventoryCategoryLabels = { personal: 'Native perks', general: 'General', unlocked: 'Unlocked', retained: 'Retained on this character' };
+const characterInventoryCategoryLabels = { personal: 'Native perks', general: 'General', unlocked: 'Unlocked', retained: 'Retained' };
 
 function characterInventoryBadges(row) {
   const labels = [characterInventoryCategoryLabels[row.primaryCategory]];
@@ -383,7 +407,7 @@ function characterPerkCard(row, characterId, selected = false) {
   const changed = characterInventorySession.changedPerkIds.has(row.perk.id);
   const name = perkName(save, row.perk);
   const tierClass = tier ? `perk-tier-${tier}` : 'perk-tier-none';
-  return `<button class="perk-card ${tierClass}${tier === 0 ? ' perk-card-unrecorded' : ''}${selected ? ' is-selected' : ''}${changed ? ' changed-this-update' : ''}" data-action="character-inventory-select" data-character="${characterId}" data-perk="${row.perk.id}" aria-pressed="${selected}" aria-label="${esc(name)}: effective Tier ${esc(roman[tier])}"><span class="perk-card-art">${perkArtwork(row.perk, 78)}</span><span class="perk-card-content"><span class="perk-card-tier-line"><span class="perk-card-tier">${roman[tier]}</span>${tier === 0 ? '<span class="perk-card-unrecorded-label">UNRECORDED</span>' : ''}${changed ? '<span class="perk-card-changed">Changed this update</span>' : ''}</span><strong>${esc(name)}</strong><span class="perk-card-badges">${characterInventoryBadges(row)}</span></span></button>`;
+  return `<button class="perk-card ${tierClass}${tier === 0 ? ' perk-card-unrecorded' : ''}${selected ? ' is-selected' : ''}${changed ? ' changed-this-update' : ''}" data-action="character-inventory-select" data-character="${characterId}" data-perk="${row.perk.id}" aria-pressed="${selected}" aria-label="${esc(name)}: effective Tier ${esc(roman[tier])}; recorded ${esc(characterInventoryRecordedLabel(characterId, row.perk))}"><span class="perk-card-art">${perkArtwork(row.perk, 78)}</span><span class="perk-card-content"><span class="perk-card-tier-line"><span class="perk-card-tier">${roman[tier]}</span>${tier === 0 ? '<span class="perk-card-unrecorded-label">NO EFFECTIVE TIER</span>' : ''}${changed ? '<span class="perk-card-changed">Changed this update</span>' : ''}</span><strong>${esc(name)}</strong><span class="perk-card-badges">${characterInventoryBadges(row)}</span></span></button>`;
 }
 
 function historicalCharacterInventoryControl(characterId, perk) {
@@ -392,12 +416,12 @@ function historicalCharacterInventoryControl(characterId, perk) {
   const tier = inventory[perk.id] ?? 0;
   const floor = recordedTier(save, characterId, perk.id);
   const options = [['', 'Not Confirmed'], [0, 'Not Owned'], [1, 'Tier I'], [2, 'Tier II'], [3, 'Tier III']];
-  return `<label class="character-inventory-history-control">Historical record<select data-character-inventory-historical="${perk.id}" data-character="${characterId}" aria-label="Historical ownership of ${esc(perkName(save, perk))} on ${esc(characterById[characterId].name)}">${options.map(([value, label]) => `<option value="${value}" ${(confirmed ? value === tier : value === '') ? 'selected' : ''} ${(value === '' && confirmed) || (value !== '' && value < floor) ? 'disabled' : ''}>${label}</option>`).join('')}</select></label>`;
+  return `<label class="character-inventory-history-control">Historical record<select data-character-inventory-historical="${perk.id}" data-character="${characterId}" aria-label="Historical ownership of ${esc(perkName(save, perk))} on ${esc(characterById[characterId].name)}" ${characterInventorySession.failedSelection ? 'disabled' : ''}>${options.map(([value, label]) => `<option value="${value}" ${(confirmed ? value === tier : value === '') ? 'selected' : ''} ${(value === '' && confirmed) || (value !== '' && value < floor) ? 'disabled' : ''}>${label}</option>`).join('')}</select></label>`;
 }
 
 function characterInventoryTierButtons(row, characterId) {
   const name = perkName(save, row.perk);
-  return `<div class="character-inventory-tier-controls" role="group" aria-label="Set current tier for ${esc(name)}">${[['none', 'Not recorded', 0], ['1', 'I', 1], ['2', 'II', 2], ['3', 'III', 3]].map(([value, label, tier]) => `<button data-action="character-inventory-set-tier" data-character="${characterId}" data-perk="${row.perk.id}" data-tier="${value}" aria-label="Set ${esc(name)} to ${tier ? `Tier ${label}` : label}" aria-pressed="${row.recordedTier === tier}" ${tier && tier < row.automaticMinimum ? 'disabled title="Below the automatic minimum"' : ''}>${label}</button>`).join('')}</div>`;
+  return `<div class="character-inventory-tier-controls" role="group" aria-label="Set current tier for ${esc(name)}">${[['none', 'Not recorded', 0], ['1', 'I', 1], ['2', 'II', 2], ['3', 'III', 3]].map(([value, label, tier]) => `<button data-action="character-inventory-set-tier" data-character="${characterId}" data-perk="${row.perk.id}" data-tier="${value}" aria-label="Set ${esc(name)} to ${tier ? `Tier ${label}` : label}" aria-pressed="${row.recordedTier === tier}" ${characterInventorySession.failedSelection || (tier && tier < row.automaticMinimum) ? 'disabled title="Resolve the failed selection first"' : ''}>${label}</button>`).join('')}</div>`;
 }
 
 function characterInventoryQuickCard(row, characterId, selected) {
@@ -410,6 +434,61 @@ function closeCharacterInventoryQuickPicker(restoreFocus = false) {
   characterInventorySession = { ...characterInventorySession, quickPerkId: null };
   $('.character-inventory-quick-picker')?.remove();
   if (restoreFocus && perkId) $(`.perk-card[data-perk="${perkId}"]`)?.focus();
+}
+
+function captureWorkspaceContext(path) {
+  const descriptor = parseCharacterWorkspaceRoute(path);
+  if (descriptor?.status !== 'valid') return;
+  const role = characterById[descriptor.characterId].role;
+  workspaceContext.update(role, {
+    section: descriptor.section,
+    mode: descriptor.mode,
+    perks: {
+      search: characterInventorySession.search,
+      category: characterInventorySession.category,
+      onlyUnrecorded: characterInventorySession.onlyUnrecorded,
+      allRole: characterInventorySession.allRole,
+      sort: characterInventorySession.sort,
+      density: characterCardSize,
+    },
+    ...(role === 'survivor' ? {
+      survivorInventory: {
+        ...stockFilters,
+        familyId: selectedFamilyId,
+        selectedItemId,
+        rarityDirection: addonRarityDirection,
+      },
+    } : {
+      killerInventory: {
+        ...killerFilters,
+        rarityDirection: addonRarityDirection,
+      },
+    }),
+  });
+}
+
+function restoreWorkspaceContext(descriptor) {
+  const role = characterById[descriptor.characterId].role;
+  const context = workspaceContext.update(role, { section: descriptor.section, mode: descriptor.mode });
+  const updateRoute = descriptor.section === 'perks' && descriptor.mode === 'update' ? descriptor.canonicalRoute : '';
+  characterInventorySession = {
+    ...createCharacterInventorySession(updateRoute),
+    search: context.perks.search,
+    category: context.perks.category,
+    onlyUnrecorded: context.perks.onlyUnrecorded,
+    allRole: context.perks.allRole,
+    sort: context.perks.sort,
+  };
+  if (role === 'survivor') {
+    const inventory = context.survivorInventory;
+    stockFilters = { map: inventory.map, rarity: inventory.rarity, search: inventory.search, inStock: inventory.inStock };
+    selectedFamilyId = inventory.familyId;
+    selectedItemId = inventory.selectedItemId;
+    addonRarityDirection = inventory.rarityDirection;
+  } else {
+    killerFilters = { search: context.killerInventory.search, rarity: context.killerInventory.rarity, inStock: context.killerInventory.inStock };
+    addonRarityDirection = context.killerInventory.rarityDirection;
+  }
 }
 
 function positionCharacterInventoryQuickPicker() {
@@ -431,26 +510,67 @@ function characterInventoryEditor(row, characterId) {
   if (!row) return '<aside class="character-inventory-editor"><p class="empty">Select a perk to inspect its provenance and set its current tier.</p></aside>';
   const character = characterById[characterId];
   const perk = row.perk;
-  return `<aside class="character-inventory-editor" data-character-inventory-detail><div class="character-inventory-editor-art">${perkArtwork(perk, 100)}</div><div class="eyebrow">SELECTED PERK</div><h2>${esc(perkName(save, perk))}</h2><div class="character-inventory-editor-badges">${characterInventoryBadges(row)}</div><div class="character-inventory-effective"><span>EFFECTIVE TIER</span>${badge(row.effectiveTier)}<small>What you compare against DBD</small></div><dl class="character-inventory-editor-facts"><div><dt>Recorded tier</dt><dd>${esc(characterInventoryRecordedLabel(characterId, perk))}</dd></div><div><dt>Automatic minimum</dt><dd>${row.automaticMinimum ? roman[row.automaticMinimum] : 'None'}</dd></div><div><dt>Why it appears</dt><dd>${esc(characterInventoryExplanation(row, character))}</dd></div><div><dt>Source</dt><dd>${esc(perk.sourceCharacterName)}</dd></div></dl><h3>Set current tier</h3>${characterInventoryTierEditor(row, characterId)}</aside>`;
+  return `<aside class="character-inventory-editor" data-character-inventory-detail><div class="character-inventory-editor-art">${perkArtwork(perk, 100)}</div><div class="eyebrow">SELECTED PERK</div><h2>${esc(perkName(save, perk))}</h2><div class="character-inventory-editor-badges">${characterInventoryBadges(row)}</div><div class="character-inventory-effective"><span>EFFECTIVE TIER</span>${badge(row.effectiveTier)}<small>What you compare against DBD</small></div><dl class="character-inventory-editor-facts"><div><dt>Recorded tier</dt><dd>${esc(characterInventoryRecordedLabel(characterId, perk))}</dd></div><div><dt>Automatic minimum</dt><dd>${row.automaticMinimum ? roman[row.automaticMinimum] : 'None'}</dd></div><div><dt>Why it appears</dt><dd>${esc(characterInventoryExplanation(row, character))}</dd></div><div><dt>Source</dt><dd>${esc(perk.sourceCharacterName)}</dd></div></dl><h3>Set current tier</h3>${characterInventoryTierEditor(row, characterId)}${characterInventoryCorrectionMarkup(row, characterId)}</aside>`;
+}
+
+function characterInventoryCorrectionMarkup(row, characterId) {
+  if (!row?.hasRecordedRecord || row.recordedTier < 1) return '';
+  const perk = row.perk;
+  const draft = characterInventorySession.correctionDraft?.characterId === characterId
+    && characterInventorySession.correctionDraft.perkId === perk.id ? characterInventorySession.correctionDraft : null;
+  const correctionId = `character-inventory-correction-${characterId}-${perk.id}`;
+  const trigger = `<button type="button" data-action="character-inventory-correction-open" data-character="${characterId}" data-perk="${perk.id}" aria-expanded="${Boolean(draft)}" aria-controls="${correctionId}">Correct personal record</button>`;
+  if (!draft) return `<section class="character-inventory-correction">${trigger}</section>`;
+  const preview = structuredClone(save);
+  correctPersonalPerkTier(preview, characterId, perk.id, draft.tier);
+  const effective = inventoryTier(preview, characterId, perk.id);
+  const effectiveLabel = effective ? `Tier ${roman[effective]}` : 'No effective tier';
+  const error = draft.conflicted ? 'Stored data changed. Cancel this correction and reopen it before applying.' : draft.error;
+  return `<section class="character-inventory-correction">${trigger}<div class="character-inventory-correction-editor" id="${correctionId}" data-character-inventory-correction><h3>Correct personal record</h3><p class="character-inventory-correction-note">This changes the recorded tier for ${esc(perkName(save, perk))}. Automatic minimums remain derived.</p><dl class="character-inventory-correction-facts"><div><dt>Current recorded tier</dt><dd>${esc(characterInventoryRecordedLabel(characterId, perk))}</dd></div><div><dt>Automatic minimum</dt><dd>${row.automaticMinimum ? `Tier ${roman[row.automaticMinimum]}` : 'None'}</dd></div><div><dt>Effective tier after correction</dt><dd data-character-inventory-correction-preview>${effectiveLabel}</dd></div></dl><label for="character-inventory-correction-tier">Corrected personal tier</label><select id="character-inventory-correction-tier" data-character-inventory-correction-tier="${perk.id}" data-character="${characterId}" ${draft.conflicted ? 'disabled' : ''}><option value="none" ${draft.tier === null ? 'selected' : ''}>Not recorded</option>${[1, 2, 3].map(tier => `<option value="${tier}" ${draft.tier === tier ? 'selected' : ''}>Tier ${roman[tier]}</option>`).join('')}</select>${error ? `<p class="error" data-character-inventory-correction-error role="alert">${esc(error)}</p>` : ''}<div class="character-inventory-correction-actions"><button type="button" class="primary" data-action="character-inventory-correction-apply" ${!draft.dirty || draft.conflicted ? 'disabled' : ''}>Apply correction</button><button type="button" data-action="character-inventory-correction-cancel">Cancel</button></div></div></section>`;
+}
+
+function characterInventoryReference(row, characterId) {
+  if (!row) return '<aside class="character-inventory-editor"><p class="empty">No perks match these filters.</p></aside>';
+  const perk = row.perk;
+  const accountAccess = isAvailable(save, perk)
+    ? row.unlockReasons.length ? row.unlockReasons.join(' · ') : perk.general ? 'General · available in the Bloodweb' : 'Available'
+    : 'Not currently available';
+  return `<aside class="character-inventory-editor" data-character-inventory-reference><div class="character-inventory-editor-art">${perkArtwork(perk, 100)}</div><div class="eyebrow">PERK REFERENCE</div><h2>${esc(perkName(save, perk))}</h2><div class="character-inventory-editor-badges">${characterInventoryBadges(row)}</div><div class="character-inventory-effective"><span>EFFECTIVE TIER</span>${badge(row.effectiveTier)}<small>What this character can use</small></div><dl class="character-inventory-editor-facts"><div><dt>Recorded tier</dt><dd>${esc(characterInventoryRecordedLabel(characterId, perk))}</dd></div><div><dt>Automatic minimum</dt><dd>${row.automaticMinimum ? roman[row.automaticMinimum] : 'None'}</dd></div><div><dt>Account access</dt><dd>${esc(accountAccess)}</dd></div><div><dt>Source</dt><dd>${esc(perk.sourceCharacterName || 'General')}</dd></div></dl>${characterInventoryCorrectionMarkup(row, characterId)}<a class="primary button-link" data-open-perk-update="${perk.id}" href="${characterWorkspaceHref(characterId, 'perks', 'update')}">Update Inventory</a></aside>`;
+}
+
+function characterInventoryToolbar(candidates, visible, mode) {
+  const update = mode === 'update';
+  const failed = update && characterInventorySession.failedSelection;
+  const failedPerk = failed && perkById[failed.perkId];
+  const failedTier = failed && (failed.type === 'historical' ? failed.tier === 0 ? 'Not Owned' : `Tier ${roman[failed.tier]}` : failed.tier === null ? 'Not recorded' : `Tier ${roman[failed.tier]}`);
+  const failure = failed ? `<div class="error character-inventory-failed-selection" data-character-inventory-failed-selection role="alert"><p><strong>Not saved:</strong> ${esc(failedPerk ? perkName(save, failedPerk) : 'Perk')} · ${esc(failedTier)}. ${failed.conflicted ? 'Stored data changed; retry is unavailable.' : 'Retry this selection or discard it before continuing.'}</p><div><button type="button" data-action="character-inventory-retry" ${failed.conflicted ? 'disabled' : ''}>Retry failed selection</button><button type="button" data-action="character-inventory-discard-failed">Discard failed selection</button></div></div>` : '';
+  return `<section class="panel character-inventory-controls" data-character-inventory-toolbar="${mode}"><div class="character-inventory-control-top"><label class="search character-inventory-search"><span aria-hidden="true">⌕</span><input id="character-inventory-search" type="search" placeholder="Search perks…" aria-label="Search perks" value="${esc(characterInventorySession.search)}"></label>${selectControl('character-inventory-sort', 'Sort', [['name', 'Perk name'], ['source', 'Source character'], ['tier', 'Effective tier ↓']], characterInventorySession.sort)}${characterInventoryCardSizeControl()}</div><button data-action="character-inventory-all-role" aria-pressed="${Boolean(characterInventorySession.allRole)}">Show all same-role perks / special acquisitions</button><div class="character-inventory-scopes" role="group" aria-label="Perk categories">${CHARACTER_INVENTORY_CATEGORIES.map(category => `<button data-action="character-inventory-category" data-category="${category}" aria-pressed="${characterInventorySession.category === category}" class="${characterInventorySession.category === category ? 'selected' : ''}">${category === 'all' ? 'All' : characterInventoryCategoryLabels[category]}</button>`).join('')}<label class="character-inventory-only-unrecorded"><input id="character-inventory-only-unrecorded" type="checkbox" ${characterInventorySession.onlyUnrecorded ? 'checked' : ''}>No effective tier</label></div><div class="character-inventory-results-label"><strong>${visible.length}</strong> shown · ${candidates.length} candidates · ${candidates.filter(row => row.effectiveTier === 0).length} with no effective tier</div>${failure}${update ? '<p class="muted">Each selection saves immediately. Done leaves Update Inventory without saving anything else.</p>' : '<p class="muted">Browse is read-only. Select a perk to review its record, automatic minimum, effective tier, and account access.</p>'}</section>`;
 }
 
 function characterInventory(id) {
   const character = characterById[id];
-  const rows = characterNormalInventory(save, id);
-  const maxed = rows.filter(row => row.effectiveTier === 3).length;
-  const upgradable = rows.filter(row => bloodwebEligible(save, id, row.perk)).length;
-  return `<div class="section-title"><h2>Perks</h2><a class="primary button-link character-inventory-update-action" href="${characterWorkspaceHref(id, 'perks', 'update')}">Update Inventory</a></div><section class="character-inventory-intro"><div><strong>${rows.length} perks tracked</strong><span>${maxed} maxed${upgradable ? ` · ${upgradable} can upgrade` : ''}</span></div><p>Your effective perk inventory. Use Update Inventory to compare and sync with Dead by Daylight.</p><div class="character-inventory-size">${characterInventoryCardSizeControl()}</div></section><section class="character-inventory-grid ${characterInventoryGridClass()}" aria-label="${esc(character.name)} effective perk inventory">${rows.length ? rows.map(row => characterPerkCard(row, id)).join('') : empty('No effective perks are currently tracked for this character.')}</section>`;
+  const candidates = characterInventoryCandidatePool(save, id, { allRole: characterInventorySession.allRole });
+  const visible = filterCharacterInventoryCandidates(save, id, candidates, characterInventorySession);
+  const correction = characterInventorySession.correctionDraft;
+  const selected = correction?.characterId === id
+    ? characterInventoryCandidatePool(save, id, { allRole: true }).find(row => row.perk.id === correction.perkId) || null
+    : visible.find(row => row.perk.id === characterInventorySession.selectedPerkId) || visible[0] || null;
+  if (!correction && selected && selected.perk.id !== characterInventorySession.selectedPerkId) characterInventorySession = { ...characterInventorySession, selectedPerkId: selected.perk.id };
+  return `<div class="section-title"><h2>Perks</h2><a class="primary button-link character-inventory-update-action" href="${characterWorkspaceHref(id, 'perks', 'update')}">Update Inventory</a></div>${characterInventoryToolbar(candidates, visible, 'browse')}<div class="character-inventory-layout"><section class="character-inventory-card-grid ${characterInventoryGridClass()}" aria-label="${esc(character.name)} perk browser">${visible.length ? visible.map(row => characterPerkCard(row, id, row.perk.id === selected?.perk.id)).join('') : empty('No perks match this search and scope.')}</section>${characterInventoryReference(selected, id)}</div>`;
 }
 
 function characterInventoryUpdate(id) {
   const character = characterById[id];
   const candidates = characterInventoryCandidatePool(save, id, { allRole: characterInventorySession.allRole });
   const visible = filterCharacterInventoryCandidates(save, id, candidates, characterInventorySession);
-  const selected = visible.find(row => row.perk.id === characterInventorySession.selectedPerkId) || visible[0] || null;
-  if (selected && characterInventorySession.selectedPerkId !== selected.perk.id) characterInventorySession = { ...characterInventorySession, selectedPerkId: selected.perk.id };
+  const correction = characterInventorySession.correctionDraft;
+  const selected = correction?.characterId === id
+    ? characterInventoryCandidatePool(save, id, { allRole: true }).find(row => row.perk.id === correction.perkId) || null
+    : visible.find(row => row.perk.id === characterInventorySession.selectedPerkId) || visible[0] || null;
+  if (!correction && selected && characterInventorySession.selectedPerkId !== selected.perk.id) characterInventorySession = { ...characterInventorySession, selectedPerkId: selected.perk.id };
   const unrecorded = candidates.filter(row => row.effectiveTier === 0).length;
   const changed = characterInventorySession.changedPerkIds.size;
-  return `<a class="back-link" href="${characterWorkspaceHref(id, 'perks')}">← ${esc(character.name)} inventory</a>${pageHeading('UPDATE INVENTORY', `${esc(character.name)} · Reconcile perks`, 'Compare and sync this character with your in-game perk inventory.', `<div class="character-inventory-session-status"><strong>${changed} changes saved this session</strong><span>Saved automatically</span></div>`)}<section class="panel character-inventory-controls"><div class="character-inventory-control-top"><label class="search character-inventory-search"><span aria-hidden="true">⌕</span><input id="character-inventory-search" type="search" placeholder="Search perks…" aria-label="Search perks" value="${esc(characterInventorySession.search)}"></label>${characterInventoryCardSizeControl()}</div><button data-action="character-inventory-all-role" aria-pressed="${Boolean(characterInventorySession.allRole)}">Show all same-role perks / special acquisitions</button><div class="character-inventory-scopes" role="group" aria-label="Perk categories">${CHARACTER_INVENTORY_CATEGORIES.map(category => `<button data-action="character-inventory-category" data-category="${category}" aria-pressed="${characterInventorySession.category === category}" class="${characterInventorySession.category === category ? 'selected' : ''}">${category === 'all' ? 'All' : characterInventoryCategoryLabels[category]}</button>`).join('')}<label class="character-inventory-only-unrecorded"><input id="character-inventory-only-unrecorded" type="checkbox" ${characterInventorySession.onlyUnrecorded ? 'checked' : ''}>Only unrecorded</label></div><div class="character-inventory-results-label"><strong>${visible.length}</strong> shown · ${candidates.length} candidates · ${unrecorded} unrecorded</div></section><div class="character-inventory-layout"><section class="character-inventory-card-grid ${characterInventoryGridClass()}" aria-label="${esc(character.name)} Update Inventory candidates">${visible.length ? visible.map(row => characterInventoryQuickCard(row, id, row.perk.id === selected?.perk.id)).join('') : empty('No candidate perks match this search and scope.')}</section>${characterInventoryEditor(selected, id)}</div>`;
+  return `<div class="character-inventory-update-heading"><a class="back-link" href="${characterWorkspaceHref(id, 'perks')}">← ${esc(character.name)} Perks</a><a class="button-link" data-action="character-inventory-done" href="${characterWorkspaceHref(id, 'perks')}">Done</a></div>${pageHeading('UPDATE INVENTORY', `${esc(character.name)} · Reconcile perks`, 'Compare and sync this character with your in-game perk inventory.', `<div class="character-inventory-session-status"><strong>${changed} changes saved this session</strong><span>Saved automatically</span></div>`)}${characterInventoryToolbar(candidates, visible, 'update')}<div class="character-inventory-layout"><section class="character-inventory-card-grid ${characterInventoryGridClass()}" aria-label="${esc(character.name)} Update Inventory candidates">${visible.length ? visible.map(row => characterInventoryQuickCard(row, id, row.perk.id === selected?.perk.id)).join('') : empty('No candidate perks match this search and scope.')}</section>${characterInventoryEditor(selected, id)}</div>`;
 }
 
 function perkControls(role, characterId) {
@@ -537,7 +657,23 @@ function preserveRender(element, html) {
   }
   [...element.querySelectorAll('.table-scroll')].forEach((n, i) => { if (scrolls[i]) [n.scrollLeft, n.scrollTop] = scrolls[i]; });
 }
-function route() { return location.hash.slice(1) || 'dashboard'; }
+function route() {
+  const current = location.hash.slice(1) || 'dashboard';
+  const workspace = parseCharacterWorkspaceRoute(current);
+  if (workspace?.source === 'legacy-edit') {
+    history.replaceState(history.state, '', workspace.canonicalRoute);
+    return workspace.canonicalRoute.slice(1);
+  }
+  return current;
+}
+function setGlobalMenuOpen(open, returnFocus = false) {
+  const sidebar = $('.sidebar');
+  const trigger = $('#menu-toggle');
+  trigger.setAttribute('aria-expanded', String(open));
+  if (open) sidebar.dataset.menuOpen = 'true';
+  else delete sidebar.dataset.menuOpen;
+  if (!open && returnFocus) trigger.focus({ preventScroll: true });
+}
 function characterRosterNavigation(character, descriptor) {
   const role = character.role === 'survivor' ? 'Survivor' : 'Killer';
   const { previous, next } = characterWorkspaceNeighbors(character.id, descriptor.section, descriptor.mode);
@@ -566,13 +702,14 @@ function characterWorkspaceHeader(character, descriptor) {
   return '<header class="character-workspace-header" data-character-header>'
     + '<a class="character-workspace-back" href="#' + character.role + 's">← ' + collectionLabel + '</a>'
     + characterRosterNavigation(character, descriptor)
-    + '<div class="character-workspace-hero"><div class="character-workspace-summary"><div class="character-workspace-identity">' + characterArtwork(character, 80)
+    + '<div class="character-workspace-hero"><div class="character-workspace-summary"><div class="character-workspace-identity">' + workspaceCharacterArtwork(character, 80)
     + '<div class="character-workspace-title"><div class="eyebrow">' + roleLabel.toUpperCase() + '</div><h1>' + esc(character.name) + '</h1>'
-    + '<div class="character-workspace-status"><span class="status-chip ' + (progress.owned ? 'is-owned' : 'is-unowned') + '">' + (progress.owned ? 'Owned' : 'Not owned') + '</span>'
+    + '<div class="character-workspace-status"><span class="status-chip ' + (progress.owned ? 'is-owned' : 'is-unowned') + '">' + (progress.owned ? 'Owned' : 'Locked') + '</span>'
     + '<span class="status-chip ' + (progress.favorite ? 'is-favorite' : '') + '">' + (progress.favorite ? 'Favorite ★' : 'Not favorite') + '</span></div></div></div>'
     + '<div class="character-workspace-progress" aria-label="Character progression"><div data-character-progress="prestige"><span>PRESTIGE</span><strong>P' + progress.prestige + '</strong></div>'
     + '<div data-character-progress="bloodweb"><span>BLOODWEB</span><strong>' + progress.bloodwebLevel + ' / 50</strong></div></div></div>'
-    + '<a class="primary button-link character-workspace-edit" href="' + characterWorkspaceHref(character.id, 'edit') + '">Edit Character</a></div>'
+    + '<button type="button" class="character-workspace-favorite" data-action="favorite" data-id="' + character.id + '" aria-pressed="' + progress.favorite + '" aria-label="Favorite ' + esc(character.name) + '">' + (progress.favorite ? '★ Favorite' : '☆ Favorite') + '</button>'
+    + '</div>'
     + '<nav class="character-workspace-nav" aria-label="Character workspace">' + sections.map(([section, label]) =>
       '<a data-workspace-section="' + section + '" href="' + characterWorkspaceHref(character.id, section) + '"'
       + (descriptor.section === section ? ' aria-current="page"' : '') + '>' + label + '</a>').join('') + '</nav></header>';
@@ -582,45 +719,81 @@ function characterOverview(id) {
   const stock = Object.entries({...progress.inventory.items,...progress.inventory.addons});
   const knownStock = stock.filter(([entityId]) => Object.hasOwn(inventoryEntityById, entityId));
   const unresolved = stock.length - knownStock.length;
+  const survivorCounts = character.role === 'survivor' ? survivorInventoryCounts(save, id) : null;
+  const killerStockTypes = character.role === 'killer' ? killerAddonCount(save, id) : 0;
   const killerPower = killerPowerByCharacterId[id];
   const killerAddons = character.role === 'killer'
     ? Object.values(inventoryEntityById).filter(entity => entity.role === 'killer' && entity.characterId === id)
     : [];
   const nativeCards = character.nativePerkIds.map(perkId => {
     const perk = perkById[perkId], tier = inventoryTier(save, id, perkId);
-    return '<article class="overview-native-perk">' + perkArtwork(perk, 64)
+    const minimum = automaticTier(save, id, perk);
+    const account = globalTier(save, perk);
+    const accountDescription = account ? `Tier ${roman[account]} · ${unlockSource(save, perk)}`
+      : isAvailable(save, perk) ? (perk.general ? 'Available in the Bloodweb' : 'Available') : 'Not account-unlocked';
+    const roleName = character.role === 'survivor' ? 'Survivor' : 'Killer';
+    return '<article class="overview-native-perk" data-overview-native-perk="' + perkId + '">' + perkArtwork(perk, 64)
       + '<div class="overview-native-copy"><div class="overview-native-title"><button data-action="perk" data-id="' + perkId + '">' + esc(perkName(save, perk)) + '</button>' + badge(tier) + '</div>'
-      + '<small>Personal record: ' + (recordedTier(save, id, perkId) || 'None') + ' · ' + esc(ownedUnlockSource(save, id, perk)) + '</small></div></article>';
+      + '<strong>On this ' + roleName + ' · Effective Tier ' + roman[tier] + '</strong>'
+      + '<small>Recorded: ' + esc(characterInventoryRecordedLabel(id, perk)) + '</small>'
+      + '<small>Automatic minimum: ' + (minimum ? 'Tier ' + roman[minimum] : 'None') + '</small>'
+      + '<small>Account: ' + esc(accountDescription) + '</small>'
+      + '<a data-open-perk-update="' + perkId + '" href="' + characterWorkspaceHref(id, 'perks', 'update') + '">Update record</a></div></article>';
   }).join('');
+  const task = characterTaskSession?.characterId === id ? characterTaskSession : null;
+  const progressionEditor = task?.task === 'progression' ? characterOverviewTaskEditor(id, task) : '';
+  const notesEditor = task?.task === 'notes' ? characterOverviewTaskEditor(id, task) : '';
   const setup = progress.owned
     ? '<div class="overview-context ' + (progress.setupComplete ? 'is-complete' : 'needs-attention') + '"><strong>' + (progress.setupComplete ? 'Initial setup complete' : 'Initial setup incomplete') + '</strong>'
       + '<p>' + (progress.setupComplete ? 'Review the saved Bloodweb setup when you need to reconcile older progress.' : 'Record the starting Bloodweb context before relying on setup-specific progression details.') + '</p>'
       + '<a href="' + characterWorkspaceHref(id, 'setup') + '">' + (progress.setupComplete ? 'Review initial setup' : 'Start initial setup') + '</a></div>'
     : '<p class="muted">This character is not marked Owned. Initial setup remains optional until ownership changes.</p>';
   const inventorySummary = character.role === 'survivor' && inventoryCatalogStatus.survivor === 'ready'
-    ? '<p>38 Items · 54 Add-ons · Survivor inventory ' + esc(survivorInventorySource.patch) + '.</p>'
-      + '<strong class="overview-summary-value">' + (knownStock.length ? knownStock.length + ' stocked ' + (knownStock.length === 1 ? 'entry' : 'entries') + ' recorded.' : 'No quantities recorded yet.') + '</strong>'
+    ? '<p><strong>Catalog</strong> · ' + inventoryEntities.filter(entity => entity.role === 'survivor' && entity.map === 'items').length + ' Items · '
+      + inventoryEntities.filter(entity => entity.role === 'survivor' && entity.map === 'addons').length + ' Add-ons</p>'
+      + '<p class="overview-stock-counts"><strong>This Survivor</strong> · ' + survivorCounts.items + ' Item '
+      + (survivorCounts.items === 1 ? 'type' : 'types') + ' in stock · ' + survivorCounts.addons + ' Add-on '
+      + (survivorCounts.addons === 1 ? 'type' : 'types') + ' in stock</p>'
       + (unresolved ? '<p class="overview-unresolved">' + unresolved + ' imported ' + (unresolved === 1 ? 'record' : 'records') + ' not in current catalog.</p>' : '')
       + '<a href="' + characterWorkspaceHref(id, 'items-addons') + '">View Items & Add-ons</a>'
     : character.role === 'killer' && inventoryCatalogStatus.killerPowers === 'ready'
       && inventoryCatalogStatus.killerAddons === 'ready' && killerPower
-    ? '<p>Power: ' + esc(killerPower.powerName) + ' · ' + killerAddons.length + ' Add-ons.</p>'
-      + '<strong class="overview-summary-value">' + (knownStock.length ? knownStock.length + ' stocked Add-on' + (knownStock.length === 1 ? '' : 's') + ' recorded.' : 'No Add-on quantities recorded yet.') + '</strong>'
+    ? '<p><strong>Catalog</strong> · ' + killerAddons.length + ' Add-ons</p>'
+      + '<p><strong>This Killer</strong> · ' + killerStockTypes + ' Add-on ' + (killerStockTypes === 1 ? 'type' : 'types') + ' in stock</p>'
       + (unresolved ? '<p class="overview-unresolved">' + unresolved + ' imported ' + (unresolved === 1 ? 'record' : 'records') + ' not in current catalog.</p>' : '')
       + '<a href="' + characterWorkspaceHref(id, 'power-addons') + '">View Power & Add-ons</a>'
     : '<p>Verified inventory and Power reference data is not yet available.</p><a href="' + characterWorkspaceHref(id, 'power-addons') + '">View Power & Add-ons</a>';
+  const killerPowerIdentity = character.role === 'killer' && killerPower
+    ? '<section class="overview-killer-power" data-overview-section="power"><div><span class="eyebrow">KILLER POWER</span><h2>' + esc(killerPower.powerName) + '</h2>'
+      + '<p>' + esc(killerPower.shortSummary) + '</p></div><button type="button" id="overview-power-details-' + id
+      + '" data-action="killer-power-details" data-character="' + id + '">Power Details</button></section>'
+    : '';
   return '<div class="character-overview">'
-    + '<div class="character-overview-grid">'
+    + killerPowerIdentity + '<div class="character-overview-grid">'
     + '<section class="character-overview-section overview-native" data-overview-section="native-perks"><div class="section-title"><h2>Native Perks</h2></div><div class="overview-native-grid">' + nativeCards + '</div></section>'
-    + '<section class="character-overview-section overview-progress" data-overview-section="progress"><div class="section-title"><h2>Progress / setup</h2></div>' + setup
+    + '<section class="character-overview-section overview-progress" data-overview-section="progress"><div class="section-title"><h2>Progress / setup</h2></div>'
+      + '<div class="overview-character-state"><span>' + (progress.owned ? 'Owned' : 'Locked') + '</span><button type="button" data-action="overview-ownership-toggle" data-id="' + id + '">' + (progress.owned ? 'Mark Locked' : 'Mark Owned') + '</button></div>'
+      + '<div class="overview-contextual-actions"><button type="button" data-action="character-task-start" data-task="progression"' + (task ? ' disabled' : '') + '>Edit progression</button></div>'
+      + progressionEditor + setup
       + '<p class="muted overview-helper">Personal records remain separate from Native, Prestige, Shrine and Legacy minimums.</p></section>'
     + '<section class="character-overview-summary" data-overview-section="perks"><div><div class="eyebrow">PERKS</div><h2>Perk inventory</h2></div>'
       + '<div class="overview-summary-number"><strong>' + stats.owned + '</strong><span>effective owned</span></div><div class="overview-summary-number"><strong>' + stats.tier3 + '</strong><span>Tier III</span></div>'
       + '<a href="' + characterWorkspaceHref(id, 'perks') + '">View Perks</a></section>'
     + '<section class="character-overview-summary" data-overview-section="inventory"><div><div class="eyebrow">COLLECTION</div><h2>' + (character.role === 'survivor' ? 'Items & Add-ons' : 'Power & Add-ons') + '</h2></div>' + inventorySummary + '</section>'
     + '</div>'
-    + '<section class="character-overview-notes" data-overview-section="notes"><div class="section-title"><h2>Notes</h2></div><p class="character-notes">' + esc(progress.notes || 'No notes recorded.') + '</p></section>'
+    + '<section class="character-overview-notes" data-overview-section="notes"><div class="section-title"><h2>Notes</h2></div><p class="character-notes">' + esc(progress.notes || 'No notes recorded.') + '</p>'
+      + (task?.task === 'notes' ? notesEditor : task ? '' : '<button type="button" data-action="character-task-start" data-task="notes">Edit notes</button>') + '</section>'
     + '</div>';
+}
+function characterOverviewTaskEditor(id, session) {
+  const errors = session.errors.length ? '<div role="alert" class="error" data-character-task-errors><strong>Not saved</strong><ul>'
+    + session.errors.map(error => '<li>' + esc(error.message) + '</li>').join('') + '</ul></div>' : '<div data-character-task-errors hidden></div>';
+  const fields = session.task === 'progression'
+    ? '<label>Prestige<input type="text" inputmode="numeric" data-character-task-field="prestige" value="' + esc(session.rawInputs.prestige) + '" aria-invalid="' + session.errors.some(error => error.field === 'prestige') + '"></label>'
+      + '<label>Bloodweb level (1–50)<input type="text" inputmode="numeric" data-character-task-field="bloodwebLevel" value="' + esc(session.rawInputs.bloodwebLevel) + '" aria-invalid="' + session.errors.some(error => error.field === 'bloodwebLevel') + '"></label>'
+    : '<label>Notes<textarea data-character-task-field="notes" rows="5" aria-invalid="' + session.errors.some(error => error.field === 'notes') + '">' + esc(session.draft.notes) + '</textarea></label>';
+  return '<form class="character-task-editor" data-character-task="' + session.task + '" novalidate>' + errors + fields
+    + '<div class="dialog-actions"><button type="button" data-action="character-task-cancel">Cancel</button><button type="button" class="primary" data-action="character-task-save">Save ' + (session.task === 'progression' ? 'progression' : 'note') + '</button></div></form>';
 }
 function characterWorkspaceUnavailable() {
   return '<section class="panel"><h1>Character/section unavailable</h1><p>This character or section cannot be resolved.</p><a href="#survivors">Survivors</a> · <a href="#killers">Killers</a> · <a href="#dashboard">Dashboard</a></section>';
@@ -630,15 +803,8 @@ function characterWorkspaceView(descriptor) {
   const id = descriptor.characterId;
   let content;
   if (descriptor.section === 'overview') content = characterOverview(id);
-  else if (descriptor.section === 'items-addons' && inventoryCatalogStatus.survivor==='ready') content = stockView(id,'detail');
+  else if (descriptor.section === 'items-addons' && inventoryCatalogStatus.survivor==='ready') content = stockView(id);
   else if (descriptor.section === 'power-addons' && inventoryCatalogStatus.killerPowers==='ready' && inventoryCatalogStatus.killerAddons==='ready') content = killerPowerAddonsView(id);
-  else if (descriptor.section === 'edit') {
-    if (characterEditSession?.characterId !== id) {
-      characterEditSession = createCharacterEditSession(save, id, characterEditReturnRoute);
-      characterEditViewState = { search: '', allRole: false };
-    }
-    content = characterEditView(id, characterEditSession);
-  }
   else if (descriptor.section === 'setup') {
     if (!save.characters[id].owned) content = '<section class="panel"><h2>Initial Setup</h2><p>Initial setup requires an owned character.</p></section>';
     else {
@@ -648,46 +814,10 @@ function characterWorkspaceView(descriptor) {
   }
   else if (descriptor.section === 'perks') content = descriptor.mode === 'legacy' ? legacyManager(id)
     : descriptor.mode === 'update' ? characterInventoryUpdate(id) : characterInventory(id);
-  else content = '<section class="panel"><h2>' + esc(descriptor.section === 'edit' ? 'Edit Character' : descriptor.section === 'setup' ? 'Initial setup' : 'Reference and inventory')
+  else content = '<section class="panel"><h2>' + esc(descriptor.section === 'setup' ? 'Initial setup' : 'Reference and inventory')
     + '</h2><p>This workspace content is currently unavailable.</p></section>';
   content = content.replace(/<h1(\s[^>]*)?>/g, '<h2$1>').replace(/<\/h1>/g, '</h2>');
   return '<section data-character-workspace>' + characterWorkspaceHeader(characterById[id], descriptor) + content + '</section>';
-}
-function characterEditView(id, session) {
-  const preview = characterEditPreview(save, session);
-  const rows = characterInventoryCandidatePool(preview, id, { allRole: characterEditViewState.allRole })
-    .filter(row => perkSearchText(row.perk).toLowerCase().includes(characterEditViewState.search.toLowerCase()));
-  const input = (field, label, type = 'number') => '<label>' + label + '<input id="edit-' + (field === 'bloodwebLevel' ? 'bloodweb' : field)
-    + '" data-edit-field="' + field + '" type="' + type + '"' + (type === 'checkbox'
-      ? (session.draft[field] ? ' checked' : '') : ' value="' + esc(session.rawInputs[field] ?? session.draft[field]) + '" step="1"')
-    + '></label>';
-  const errors = session.errors.length ? '<div class="error" role="alert" data-edit-errors tabindex="-1"><strong>Not saved</strong><ul>'
-    + session.errors.map(error => '<li>' + esc(error.message) + '</li>').join('') + '</ul></div>' : '<div data-edit-errors hidden></div>';
-  return '<form data-character-edit novalidate><h2>Edit Character</h2><p>Changes are not saved until Save Character. This draft is kept in memory only.</p>'
-    + errors + '<fieldset><legend>Progression</legend><div class="two-column edit-numbers">' + input('prestige', 'Prestige')
-    + input('bloodwebLevel', 'Bloodweb level (1–50)') + '</div></fieldset>'
-    + '<fieldset><legend>Character state</legend>' + input('owned', 'Owned', 'checkbox') + input('favorite', 'Favorite', 'checkbox')
-    + '<label>Notes<textarea id="edit-notes" data-edit-field="notes" rows="3">' + esc(session.draft.notes) + '</textarea></label></fieldset>'
-    + '<fieldset><legend>Personal Perks</legend><label>Search perks<input id="character-edit-search" type="search" value="' + esc(characterEditViewState.search) + '"></label>'
-    + '<button type="button" data-action="character-edit-all" aria-pressed="' + characterEditViewState.allRole + '">Show all same-role perks / special acquisitions</button>'
-    + '<div class="character-edit-perks">' + rows.map(row => {
-      const perk = row.perk, historical = row.isHistorical, personal = session.draft.perks[perk.id];
-      const options = historical ? [['', 'Not Confirmed'], ['0', 'Not Owned'], ['1', 'I'], ['2', 'II'], ['3', 'III']]
-        : [['none', 'Not recorded'], ['1', 'I'], ['2', 'II'], ['3', 'III']];
-      const selected = personal === undefined ? (historical ? '' : 'none') : String(personal);
-      return '<article><h3><button type="button" data-action="perk" data-id="' + perk.id + '">' + esc(perkName(preview, perk)) + '</button></h3>'
-        + '<p>Effective ' + roman[row.effectiveTier] + ' · Automatic minimum ' + roman[row.automaticMinimum]
-        + ' · ' + esc(ownedUnlockSource(preview, id, perk)) + '</p><label>Personal record'
-        + '<select data-edit-perk="' + perk.id + '" data-mode="' + (historical ? 'historical' : 'personal') + '" aria-label="Personal tier of ' + esc(perkName(preview, perk)) + '">'
-        + options.map(([value, label]) => '<option value="' + value + '"' + (selected === value ? ' selected' : '')
-          + (historical ? ((value === '' && Object.hasOwn(session.baseline.perks, perk.id)) || (value !== '' && Number(value) < (session.baseline.perks[perk.id] || 0)) ? ' disabled' : '')
-            : (value !== 'none' && Number(value) < row.automaticMinimum ? ' disabled' : '')) + '>' + label + '</option>').join('')
-        + '</select></label><details><summary>Correct personal record</summary><p>Deliberate correction; automatic minimums still apply.</p>'
-        + '<select data-edit-correction="' + perk.id + '" aria-label="Correct personal record of ' + esc(perkName(preview, perk)) + '">'
-        + [['', 'Choose correction'], ['none', 'Clear record'], ['1', 'I'], ['2', 'II'], ['3', 'III']].map(([value,label]) =>
-          '<option value="' + value + '">' + label + '</option>').join('') + '</select></details></article>';
-    }).join('') + '</div></fieldset>' + (characterById[id].role==='survivor'&&inventoryCatalogStatus.survivor==='ready' ? stockView(id,'draft') : '<section><h3>Inventory</h3><p>Verified inventory data is not yet available. Existing unresolved quantities are preserved.</p></section>')
-    + '<div class="dialog-actions"><button type="button" data-action="character-edit-cancel">Cancel</button><button type="button" class="primary" data-action="character-edit-save">Save Character</button></div></form>';
 }
 function inventoryProvenanceView(){
   const unknown=Object.entries(save.characters).flatMap(([characterId,progress])=>Object.entries({...progress.inventory.items,...progress.inventory.addons})
@@ -697,14 +827,17 @@ function inventoryProvenanceView(){
     +esc(survivorInventorySource.provenance.sourcePolicy)+'</p><p>Three optional Banquet underlying rarity assignments remain flagged; Event presentation is preserved.</p>'
     +(unknown.length?'<details><summary>'+unknown.length+' unresolved inventory records (preserved/read-only)</summary><ul>'+unknown.map(e=>'<li>'+esc(e.characterId)+' / '+esc(e.id)+': '+e.quantity+'</li>').join('')+'</ul></details>':'')+'</section>';
 }
-function stockView(id,mode) {
-  const inventory=(mode==='draft'?characterEditSession.draft:save.characters[id]).inventory;
-  const key=id+'/'+(mode==='draft'?'edit':'items-addons');
+function stockView(id) {
+  const inventory=save.characters[id].inventory;
+  const key=id+'/items-addons';
   if(stockSessionKey!==key || !stockSession){
-    stockSession=createQuantityInteraction(inventoryEntities,{...inventory.items,...inventory.addons},{mode});
-    stockSessionKey=key;stockFilters={map:'',rarity:'',search:'',inStock:false};
-    selectedFamilyId=survivorInventorySource.itemFamilies[0].id;
-    selectedItemId='';
+    stockSession=createQuantityInteraction(inventoryEntities,{...inventory.items,...inventory.addons},{mode:'detail'});
+    stockSessionKey=key;
+    const context=workspaceContext.read('survivor').survivorInventory;
+    stockFilters={map:context.map,rarity:context.rarity,search:context.search,inStock:context.inStock};
+    selectedFamilyId=context.familyId;
+    selectedItemId=context.selectedItemId;
+    addonRarityDirection=context.rarityDirection;
   }
   const select=(id,label,options,value)=>'<label>'+label+'<select id="'+id+'">'+options.map(([v,n])=>'<option value="'+esc(v)+'"'+(value===v?' selected':'')+'>'+esc(n)+'</option>').join('')+'</select></label>';
   const unresolved=Object.entries({...inventory.items,...inventory.addons}).filter(([entityId])=>!Object.hasOwn(inventoryEntityById,entityId));
@@ -720,13 +853,14 @@ function stockView(id,mode) {
     return '<article data-stock-card="'+entity.id+'" data-stock-rarity="'+esc(entity.rarity)+'" class="stock-card '+((stockSession.baseline[entity.id]||0)>0?'':'zero-stock')+'">'
       +'<div class="stock-card-media">'+(art?'<img src="'+esc(art)+'" alt="" loading="lazy" data-inventory-icon>':'<span aria-hidden="true" class="stock-art-fallback">◇</span>')+'</div>'
       +'<h5 class="stock-card-title">'+esc(entity.name)+'</h5><div class="stock-card-meta">'+esc(entity.rarity)+' · '+(entity.map==='items'?'Item':'Add-on')+'</div>'
+      +(entity.map==='items'?'<button type="button" id="stock-select-item-'+esc(entity.id)+'" class="stock-item-select" data-action="stock-item-select" data-id="'+esc(entity.id)+'" aria-label="Select '+esc(entity.name)+' for Add-ons" aria-pressed="'+(entity.id===selectedItemId)+'">'+(entity.id===selectedItemId?'Selected Item':'Select Item')+'</button>':'')
       +'<label for="quantity-'+entity.id+'">Quantity of '+esc(entity.name)+'</label><div class="stock-quantity-control">'
       +'<button type="button" id="stock-decrement-'+entity.id+'" data-action="stock-step" data-stock-step data-id="'+entity.id+'" data-delta="-1" aria-label="Decrease quantity of '+esc(entity.name)+'">−</button>'
       +'<input id="quantity-'+entity.id+'" data-inventory-quantity="'+entity.id+'" inputmode="numeric" type="text" value="'+esc(stockSession.raw[entity.id])+'" aria-invalid="'+Boolean(error)+'" aria-describedby="stock-error-'+entity.id+'">'
       +'<button type="button" id="stock-increment-'+entity.id+'" data-action="stock-step" data-stock-step data-id="'+entity.id+'" data-delta="1" aria-label="Increase quantity of '+esc(entity.name)+'">+1</button>'
       +'<button type="button" id="stock-increment-5-'+entity.id+'" data-action="stock-step" data-stock-step data-id="'+entity.id+'" data-delta="5" aria-label="Increase quantity of '+esc(entity.name)+' by 5">+5</button>'
       +'<button type="button" id="stock-increment-10-'+entity.id+'" data-action="stock-step" data-stock-step data-id="'+entity.id+'" data-delta="10" aria-label="Increase quantity of '+esc(entity.name)+' by 10">+10</button></div>'
-      +'<p id="stock-error-'+entity.id+'" data-stock-error role="status">'+esc(error|| (stockSession.pending[entity.id]?(mode==='draft'?'Unsaved draft':'Pending change'):''))+'</p>'
+      +'<p id="stock-error-'+entity.id+'" data-stock-error role="status">'+esc(error|| (stockSession.pending[entity.id]?'Pending change':''))+'</p>'
       +'<button type="button" id="stock-details-'+entity.id+'" class="stock-details-action" data-action="stock-details" data-id="'+entity.id+'">Details</button></article>';
   };
   const familyMarkup=visibleGroups.map(group=>{
@@ -737,22 +871,27 @@ function stockView(id,mode) {
     const familyItems=stockSession.order.map(entityId=>inventoryEntityById[entityId])
       .filter(entity=>entity?.familyId===group.family.id&&entity.map==='items');
     const selectedItem=familyItems.find(item=>item.id===selectedItemId)||familyItems[0];
+    const selectedItemCatalogAddons=selectedItem?inventoryEntities.filter(entity=>entity.familyId===group.family.id&&entity.map==='addons'
+      &&entity.compatibleItemIds?.includes(selectedItem.id)):[];
     const selectedItemAddons=selectedItem
       ?groupQuantityEntriesByItem([selectedItem],group.addons)[0].addons:[];
     const addonMarkup=selectedItemAddons.length
       ?'<div class="stock-grid">'+sortQuantityEntriesByRarity(selectedItemAddons,killerRarityOrder,addonRarityDirection).map(renderCard).join('')+'</div>'
-      :(!catalogAddonCount?'<p class="stock-empty-line">No compatible Add-ons in this catalog.</p>':'<p class="stock-empty-line">No compatible Add-ons for this Item.</p>');
+      :(!selectedItemCatalogAddons.length?'<p class="stock-empty-line">This item does not use Add-ons.</p>':'<p class="stock-empty-line">No matching Add-ons for this Item.</p>');
+    const selectedItemHidden=selectedItem&&!group.items.some(item=>item.id===selectedItem.id);
     return '<section class="stock-family" data-stock-family="'+esc(group.family.id)+'"><div class="stock-family-heading"><h3>'+esc(group.family.displayName)+'</h3><p>'+catalogItemCount+' Items · '+catalogAddonCount+' Add-ons <span class="muted">(catalog totals)</span></p></div>'
       +'<div class="stock-family-content">'
       +(showItems?'<section class="stock-subsection" data-stock-subsection="items"><h4>Items</h4>'+(group.items.length?'<div class="stock-grid">'+group.items.map(renderCard).join('')+'</div>':'<p class="stock-empty-line">No matching Items.</p>')+'</section>':'<section data-stock-subsection="items" hidden></section>')
       +(showAddons?'<section class="stock-subsection" data-stock-subsection="addons" data-compatible-item-id="'+esc(selectedItem?.id||'')+'"><h4>Add-ons for '+esc(selectedItem?.name||'Item')+'</h4>'
         +'<label class="stock-item-selector"><span>Item</span><select id="inventory-item" aria-label="Item for Add-ons">'+familyItems.map(item=>'<option value="'+esc(item.id)+'"'+(item.id===selectedItem?.id?' selected':'')+'>'+esc(item.name)+'</option>').join('')+'</select></label>'
+        +(selectedItemHidden?'<p data-selected-item-context class="muted">Selected Item hidden by current filters: '+esc(selectedItem.name)+'.</p>':'')
         +addonMarkup+'</section>':'<section data-stock-subsection="addons" hidden></section>')
       +'</div></section>';
   }).join('');
-  return '<section data-stock-workspace><div class="stock-page-heading"><div><h2>Survivor Items &amp; Add-ons</h2><p>'+(mode==='detail'?'Track the quantities currently recorded for this Survivor. Quantities save on Enter or leaving the field.':'Stock changes stay in this draft until Save Character.')+'</p></div><p class="muted">Survivor inventory '+esc(survivorInventorySource.patch)+' · research '+esc(survivorInventorySource.verifiedAt)+'.</p></div>'
+  const hasStockFilters=Boolean(stockFilters.map||stockFilters.rarity||stockFilters.search||stockFilters.inStock);
+  return '<section data-stock-workspace><div class="stock-page-heading"><div><h2>Survivor Items &amp; Add-ons</h2><p>Track the quantities currently recorded for this Survivor. Quantities save on Enter or leaving the field.</p></div><p class="muted">Survivor inventory '+esc(survivorInventorySource.patch)+' · research '+esc(survivorInventorySource.verifiedAt)+'.</p></div>'
     +'<div class="stock-toolbar"><div class="stock-primary-controls"><label class="stock-search">Search '+esc(visibleGroups[0].family.displayName)+'<input id="inventory-search" type="search" value="'+esc(stockFilters.search)+'"></label><label class="stock-in-stock"><input id="inventory-in-stock" type="checkbox"'+(stockFilters.inStock?' checked':'')+'> In Stock</label>'
-    +'<details id="inventory-filters"><summary id="inventory-filters-toggle">Filters'+(secondaryCount?' ('+secondaryCount+')':'')+'</summary><div class="stock-secondary-filters">'+select('inventory-map','Type',[['','All'],['items','Items'],['addons','Add-ons']],stockFilters.map)+select('inventory-rarity','Rarity',[['','All rarities'],...[...new Set(inventoryEntities.map(e=>e.rarity))].map(r=>[r,r])],stockFilters.rarity)+'</div></details>'+(stockFilters.map==='items'?'':renderAddonRarityOrderControl())+'</div>'
+    +'<details id="inventory-filters"><summary id="inventory-filters-toggle">Filters'+(secondaryCount?' ('+secondaryCount+')':'')+'</summary><div class="stock-secondary-filters">'+select('inventory-map','Type',[['','All'],['items','Items'],['addons','Add-ons']],stockFilters.map)+select('inventory-rarity','Rarity',[['','All rarities'],...[...new Set(inventoryEntities.map(e=>e.rarity))].map(r=>[r,r])],stockFilters.rarity)+'</div></details>'+(stockFilters.map==='items'?'':renderAddonRarityOrderControl())+(hasStockFilters?'<button type="button" data-action="stock-filter-reset">Reset filters</button>':'')+'</div>'
     +'</div><nav class="stock-family-nav" aria-label="Item families">'+survivorInventorySource.itemFamilies.map(family=>'<button type="button" id="stock-family-nav-'+esc(family.id)+'" data-action="stock-family-select" data-family="'+esc(family.id)+'" aria-pressed="'+(family.id===selectedFamilyId)+'">'+esc(family.displayName)+'</button>').join('')+'</nav>'
     +(Object.keys(stockSession.errors).length?'<div role="alert" data-stock-error-summary>'+Object.entries(stockSession.errors).map(([entityId,error])=>'<p><button type="button" data-action="stock-error-focus" data-id="'+entityId+'">Fix quantity of '+esc(inventoryEntityById[entityId].name)+'</button>: '+esc(error)+'</p>').join('')+'</div>':'')
     +'<div class="stock-families">'+familyMarkup+'</div>'+(visibleGroups.every(group=>!group.items.length&&!group.addons.length)?'<p class="empty">No matches in '+esc(visibleGroups[0].family.displayName)+'.</p>':'')
@@ -770,16 +909,29 @@ function killerPowerAddonsView(characterId) {
   if(!power)return '<section class="panel"><h2>Power &amp; Add-ons unavailable</h2><p>Verified Power and Add-on data is not available for this Killer.</p></section>';
   const character=characterById[characterId], powerArt=killerPowerIconPath(characterId,assetManifest);
   const addons=Object.values(inventoryEntityById).filter(entity=>entity.role==='killer'&&entity.characterId===characterId).sort((a,b)=>a.order-b.order);
+  const unknownAddons=Object.entries(save.characters[characterId].inventory.addons).filter(([id])=>!Object.hasOwn(inventoryEntityById,id));
   if(killerSessionKey!==characterId||!killerSession){
     killerSession=createQuantityInteraction(addons,save.characters[characterId].inventory.addons);
     killerSessionKey=characterId;
   }
+  const search=killerFilters.search.trim().toLocaleLowerCase();
+  const matchingAddons=addons.filter(addon=>(!search||(addon.name+' '+addon.effect).toLocaleLowerCase().includes(search))
+    &&(!killerFilters.rarity||addon.rarity===killerFilters.rarity)
+    &&(!killerFilters.inStock||(killerSession.baseline[addon.id]||0)>0));
+  const rarities=[...new Set(addons.map(addon=>addon.rarity))].sort((a,b)=>killerRarityOrder.indexOf(a)-killerRarityOrder.indexOf(b));
+  const filtersActive=Boolean(killerFilters.search||killerFilters.rarity||killerFilters.inStock);
   const art=powerArt?'<img src="'+esc(artworkUrl(powerArt))+'" alt="" data-power-art>':'<span class="stock-art-fallback" role="img" aria-label="Power artwork unavailable" data-power-art-fallback>◇</span>';
+  const unknownMarkup=unknownAddons.length?'<section class="unresolved-stock" data-killer-unresolved-addons><h4>Imported Add-ons not in this Killer catalog</h4><p class="muted">These records are preserved and read-only until resolved.</p><ul>'+unknownAddons.map(([unknown,quantity])=>'<li><code>'+esc(unknown)+'</code><span>Quantity '+quantity+'</span><small>Read-only</small></li>').join('')+'</ul></section>':'';
   return '<section class="killer-power-addons" data-killer-power-addons>'
     +'<section class="panel killer-power-panel" data-killer-power-panel><div class="killer-power-art">'+art+'</div><div class="killer-power-copy"><span class="eyebrow">KILLER POWER</span><h3 data-power-name>'+esc(power.powerName)+'</h3><p data-power-summary>'+esc(power.shortSummary)+'</p><button type="button" data-action="killer-power-details" data-character="'+esc(characterId)+'" id="killer-power-details-'+esc(characterId)+'">Power Details</button></div></section>'
-    +'<section class="killer-addon-inventory" aria-labelledby="killer-addons-heading"><div class="stock-page-heading"><div><span class="eyebrow">INVENTORY</span><h3 id="killer-addons-heading">'+esc(character.name)+' Add-ons</h3><p>All 20 Add-ons, sorted by rarity.</p></div></div>'
-    +'<div class="addon-rarity-toolbar">'+renderAddonRarityOrderControl()+'</div>'
-    +'<div class="stock-grid">'+sortQuantityEntriesByRarity(addons,killerRarityOrder,addonRarityDirection).map(killerAddonCard).join('')+'</div>'
+    +'<section class="killer-addon-inventory" aria-labelledby="killer-addons-heading"><div class="stock-page-heading"><div><span class="eyebrow">INVENTORY</span><h3 id="killer-addons-heading">'+esc(character.name)+' Add-ons</h3><p data-killer-addon-results>Showing '+matchingAddons.length+' of '+addons.length+' Add-ons.</p></div></div>'
+    +'<div class="killer-addon-toolbar"><label class="killer-addon-search">Search Add-ons<input id="killer-addon-search" type="search" value="'+esc(killerFilters.search)+'"></label>'
+    +'<label class="killer-addon-in-stock"><input id="killer-addon-in-stock" type="checkbox"'+(killerFilters.inStock?' checked':'')+'> In Stock</label>'
+    +'<label class="killer-addon-rarity"><span>Rarity</span><select id="killer-addon-rarity"><option value="">All rarities</option>'+rarities.map(value=>'<option value="'+esc(value)+'"'+(killerFilters.rarity===value?' selected':'')+'>'+esc(value)+'</option>').join('')+'</select></label>'
+    +renderAddonRarityOrderControl()+(filtersActive?'<button type="button" data-action="killer-addon-filter-reset">Reset filters</button>':'')+'</div>'
+    +'<div class="stock-grid">'+sortQuantityEntriesByRarity(matchingAddons,killerRarityOrder,addonRarityDirection).map(killerAddonCard).join('')+'</div>'
+    +(matchingAddons.length?'':'<p class="stock-empty-line" data-killer-addon-empty>No Add-ons match these filters.</p>')
+    +unknownMarkup
     +'</section></section>';
 }
 function killerAddonCard(addon) {
@@ -797,7 +949,7 @@ function killerAddonCard(addon) {
     +'<button type="button" id="killer-addon-details-'+esc(addon.id)+'" class="stock-details-action" data-action="killer-addon-details" data-id="'+esc(addon.id)+'">Details</button></article>';
 }
 function updateStockStepControls(id=null) {
-  const blocked=!initialized||editor.state!=='editing'||storageBlocked||Boolean(characterEditSession?.conflicted);
+  const blocked=!initialized||editor.state!=='editing'||storageBlocked;
   for(const input of document.querySelectorAll('[data-inventory-quantity]')){
     const entityId=input.dataset.inventoryQuantity;
     if(id && entityId!==id)continue;
@@ -845,9 +997,16 @@ function acceptKillerQuantity(id,trigger,nextTargetId=null) {
       if(previous.errors[other])killerSession.errors[other]=previous.errors[other];
     }
     const order=sortQuantityEntriesByRarity(killerSession.entities,killerRarityOrder,addonRarityDirection).map(entity=>entity.id);
+    const search=killerFilters.search.trim().toLocaleLowerCase();
+    const visibleIds=order.filter(addonId=>{
+      const addon=inventoryEntityById[addonId];
+      return (!search||(addon.name+' '+addon.effect).toLocaleLowerCase().includes(search))
+        &&(!killerFilters.rarity||addon.rarity===killerFilters.rarity)
+        &&(!killerFilters.inStock||(killerSession.baseline[addonId]||0)>0);
+    });
     const destination=quantityFocusAfterCommit(order,{entityId:id,nextTargetId,trigger,
-      visibleIds:[...order,...(nextTargetId&&document.getElementById(nextTargetId)?[nextTargetId]:[])]});
-    render();($('#killer-quantity-'+destination)||document.getElementById(destination))?.focus({preventScroll:true});
+      visibleIds:[...visibleIds,...(nextTargetId&&document.getElementById(nextTargetId)?[nextTargetId]:[])]});
+    render();($('#killer-quantity-'+destination)||document.getElementById(destination)||$('#killer-addon-search'))?.focus({preventScroll:true});
     message('Quantity saved: '+inventoryEntityById[id].name+' '+result.quantity+'.');
     return true;
   }catch(error){
@@ -858,9 +1017,6 @@ function stockInput(target) {
   store.assertWriter();
   const id=target.dataset.inventoryQuantity;
   stockSession=updateQuantityInput(stockSession,id,target.value);
-  if(characterEditSession) {
-    characterEditSession=updateCharacterEditSession(characterEditSession,{field:'quantity',map:inventoryEntityById[id].map,id,text:target.value},save);
-  }
   updateStockStepControls(id);
 }
 function normalizeKillerQuantityOnBlur(input,id) {
@@ -868,24 +1024,30 @@ function normalizeKillerQuantityOnBlur(input,id) {
   input.value='0';
   killerSession=updateQuantityInput(killerSession,id,'0');
 }
+function setKillerAddonFilter(key,value) {
+  if(!acceptPendingKillerQuantities())return false;
+  killerFilters={...killerFilters,[key]:value};
+  render();
+  return true;
+}
+function resetKillerAddonFilters() {
+  if(!acceptPendingKillerQuantities())return;
+  killerFilters={search:'',rarity:'',inStock:false};
+  render();$('#killer-addon-search')?.focus({preventScroll:true});
+}
 function normalizeStockQuantityOnBlur(input,id) {
   if(input.value!==''||!stockSession)return;
   input.value='0';
   stockSession=updateQuantityInput(stockSession,id,'0');
-  if(characterEditSession)characterEditSession=updateCharacterEditSession(characterEditSession,
-    {field:'quantity',map:inventoryEntityById[id].map,id,text:'0'},save);
 }
 function stepStock(button) {
   store.assertWriter();
-  if(storageBlocked||characterEditSession?.conflicted)return false;
+  if(storageBlocked)return false;
   const id=button.dataset.id;
   if(stockBlurPending?.id===id)stockBlurPending=null;
   const result=stepQuantityInput(stockSession,id,Number(button.dataset.delta));
   stockSession=result.state;
   if(result.error){render();$('#quantity-'+id)?.focus({preventScroll:true});return false;}
-  if(characterEditSession){
-    characterEditSession=updateCharacterEditSession(characterEditSession,{field:'quantity',map:inventoryEntityById[id].map,id,text:String(result.quantity)},save);
-  }
   return acceptStock(id,'step');
 }
 function stockFocusOrder() {
@@ -903,8 +1065,7 @@ function selectStockFamily(family) {
     && (stockSession.pending[entity.id]||stockSession.errors[entity.id]));
   stockBlurPending=null;
   for(const entity of pending){
-    if(stockSession.mode==='draft')stockSession=acceptQuantityInput(stockSession,entity.id).state;
-    else if(!acceptStock(entity.id,'enter'))return;
+    if(!acceptStock(entity.id,'enter'))return;
   }
   selectedFamilyId=family;
   selectedItemId=stockSession.order.map(entityId=>inventoryEntityById[entityId])
@@ -912,17 +1073,21 @@ function selectStockFamily(family) {
   render();
   document.getElementById('stock-family-nav-'+family)?.focus({preventScroll:true});
 }
-function selectStockItem(itemId) {
+function selectStockItem(itemId, source='selector') {
   const item=inventoryEntityById[itemId];
   if(!item||item.map!=='items'||item.familyId!==selectedFamilyId)return;
   const pending=stockSession.entities.filter(entity=>entity.familyId===selectedFamilyId
     &&(stockSession.pending[entity.id]||stockSession.errors[entity.id]));
   stockBlurPending=null;
   for(const entity of pending){
-    if(stockSession.mode==='draft')stockSession=acceptQuantityInput(stockSession,entity.id).state;
-    else if(!acceptStock(entity.id,'enter'))return;
+    if(!acceptStock(entity.id,'enter'))return;
   }
-  selectedItemId=itemId;render();$('#inventory-item')?.focus({preventScroll:true});
+  selectedItemId=itemId;render();
+  (source==='card'?$('#stock-select-item-'+itemId):$('#inventory-item'))?.focus({preventScroll:true});
+}
+function resetStockFilters() {
+  stockFilters={...stockFilters,map:'',rarity:'',search:'',inStock:false};
+  render();$('#inventory-search')?.focus({preventScroll:true});
 }
 function keepStockFamilyVisible(button) {
   const nav=button.parentElement, bounds=nav.getBoundingClientRect(), target=button.getBoundingClientRect();
@@ -948,7 +1113,6 @@ function acceptStock(id,trigger,nextTargetId=null) {
   if(stockBlurPending?.id===id&&stockBlurPending.key===stockSessionKey)stockBlurPending=null;
   const result=acceptQuantityInput(stockSession,id);stockSession=result.state;
   if(result.error){render();if(trigger==='enter')$('#quantity-'+id)?.focus({preventScroll:true});return false;}
-  if(stockSession.mode==='draft'){render();if(trigger==='step')$('#quantity-'+id)?.focus({preventScroll:true});return true;}
   const characterId=stockSessionKey.split('/')[0], entity=inventoryEntityById[id];
   const before=stockFocusOrder();
   try {
@@ -976,64 +1140,146 @@ function acceptStock(id,trigger,nextTargetId=null) {
     return true;
   }catch(error){stockSession.errors[id]='Not saved. '+error.message;render();if(trigger==='enter'||trigger==='step')$('#quantity-'+id)?.focus({preventScroll:true});return false;}
 }
-function saveCharacterEdit({ navigate = true } = {}) {
-  if (!characterEditSession) return false;
-  characterEditSession = { ...characterEditSession, errors: characterEditSession.errors.filter(error => !error.saveFailure) };
-  const result = buildCharacterEditCandidate(save, characterEditSession);
+function saveCharacterTask({ navigate = false } = {}) {
+  if (!characterTaskSession) return false;
+  characterTaskSession = { ...characterTaskSession, errors: characterTaskSession.errors.filter(error => !error.saveFailure) };
+  const result = buildCharacterTaskCandidate(save, characterTaskSession);
   if (result.errors.length) {
-    characterEditSession = { ...characterEditSession, errors: result.errors, conflicted: result.conflict };
+    characterTaskSession = { ...characterTaskSession, errors: result.errors, conflicted: result.conflict };
     render();
-    const first = result.errors[0];
-    if(first.field==='quantity'){revealStockQuantity(first.id);}
-    const control = first.field === 'quantity' ? $('#quantity-'+first.id) : first.field === 'perk' ? $('[data-edit-perk="' + first.id + '"]')
-      : $('[data-edit-field="' + first.field + '"]');
-    (control || $('[data-edit-errors]'))?.focus();
+    const field = result.errors[0].field;
+    document.querySelector('[data-character-task-field="' + CSS.escape(field) + '"]')?.focus({ preventScroll: true });
     return false;
   }
-  const id = characterEditSession.characterId, target = characterEditSession.returnRoute || characterWorkspaceHref(id);
-  if (result.changed && !commit(next => { next.characters[id] = structuredClone(result.candidate.characters[id]); }, id)) {
-    characterEditSession = { ...characterEditSession, errors: [{ field: 'session', saveFailure: true, message: 'Not saved. Your draft is retained for retry.' }] };
-    render(); return false;
+  const { characterId, task } = characterTaskSession;
+  if (result.changed && !commit(next => {
+    for (const field of Object.keys(characterTaskSession.draft)) {
+      next.characters[characterId][field] = structuredClone(result.candidate.characters[characterId][field]);
+    }
+  }, characterId)) {
+    characterTaskSession = { ...characterTaskSession, errors: [{ field: 'session', saveFailure: true, message: 'Not saved. Your draft is retained for retry.' }] };
+    render();
+    return false;
   }
-  characterEditSession = null;
-  if (navigate) { void requestWorkspaceNavigation(target); message(result.changed ? 'Character saved.' : 'No changes to save.'); }
-  else {stockSession=null;stockSessionKey='';stockBlurPending=null;render();}
+  characterTaskSession = null;
+  render();
+  message(result.changed ? (task === 'progression' ? 'Progression saved.' : 'Note saved.') : 'No changes to save.');
   return true;
 }
-async function resolveDirtyCharacterEdit(intent) {
-  if (!characterEditSession?.dirty) return 'proceed';
+function captureCharacterSetupInput() {
+  const input = $('#character-setup-bloodweb');
+  if (!input || !characterSetup) return;
+  const raw = input.value;
+  if (raw === '') characterSetup.bloodwebLevel = '';
+  else {
+    const value = Number(raw);
+    characterSetup.bloodwebLevel = Number.isSafeInteger(value) ? value : raw;
+  }
+}
+function characterSetupIsDirty(draft = characterSetup) {
+  if (!draft) return false;
+  captureCharacterSetupInput();
+  const baseline = draft.baseline;
+  const bloodweb = typeof draft.bloodwebLevel === 'number' ? draft.bloodwebLevel : Number(draft.bloodwebLevel);
+  const validBloodweb = Number.isSafeInteger(bloodweb) && bloodweb >= 1 && bloodweb <= 50;
+  const normalizePerks = perks => Object.keys(perks || {}).sort().map(id => [id, perks[id]]);
+  return !validBloodweb || bloodweb !== baseline.bloodwebLevel
+    || JSON.stringify(normalizePerks(draft.perks)) !== JSON.stringify(normalizePerks(baseline.perks));
+}
+function hasDirtyWorkspaceDraft() {
+  return Boolean(characterTaskSession?.dirty || characterSetupIsDirty() || characterInventoryCorrectionIsDirty());
+}
+async function resolveWorkspaceDraftTransition(intent) {
+  if ($('#dirty-navigation').open) return 'stay';
+  if (characterInventorySession.failedSelection) return resolveFailedInventoryTransition();
+  const taskDraft = characterTaskSession?.dirty ? characterTaskSession : null;
+  const setupDraft = characterSetupIsDirty() ? characterSetup : null;
+  const correctionDraft = characterInventoryCorrectionIsDirty() ? characterInventorySession.correctionDraft : null;
+  if (!taskDraft && !setupDraft && !correctionDraft) return 'proceed';
   const focused = document.activeElement;
   const dialog = $('#dirty-navigation');
+  const sourceRoute = route();
+  const sourceHash = committedWorkspaceHash;
+  const sourceSave = JSON.stringify(save);
+  const transitionToken = ++workspaceTransitionToken;
   dialog.returnValue = 'stay';
+  configureWorkspaceTransitionDialog({
+    title: correctionDraft ? 'Unsaved perk correction changes' : setupDraft ? 'Unsaved setup changes' : 'Unsaved ' + (taskDraft.task === 'progression' ? 'progression' : 'notes') + ' changes',
+    text: correctionDraft ? 'Apply this personal record correction, discard it, or stay and continue editing.'
+      : setupDraft ? 'Save this setup, discard the draft, or stay and continue editing.'
+        : 'Save this task, discard the draft, or stay and continue editing.',
+    applyLabel: correctionDraft ? 'Apply correction' : undefined,
+  });
   dialog.showModal();
   const choice = await new Promise(resolve => dialog.addEventListener('close', () => resolve(dialog.returnValue), { once: true }));
+  if (transitionToken !== workspaceTransitionToken || committedWorkspaceHash !== sourceHash || route() !== sourceRoute) {
+    message('The pending transition changed. Review the current draft before leaving.', true);
+    return 'stay';
+  }
+  if ((taskDraft && (characterTaskSession?.characterId !== taskDraft.characterId
+      || characterTaskSession?.task !== taskDraft.task || characterTaskSession?.baseFingerprint !== taskDraft.baseFingerprint))
+    || (setupDraft && (characterSetup?.id !== setupDraft.id || characterSetup?.baseFingerprint !== setupDraft.baseFingerprint))
+    || (correctionDraft && characterInventorySession.correctionDraft !== correctionDraft)) {
+    message('The source draft changed while the confirmation was open. Review it before leaving.', true);
+    return 'stay';
+  }
+  const destinationWorkspace = intent.destination ? parseCharacterWorkspaceRoute(intent.destination) : null;
+  const continuingSetupBatch = Boolean(setupQueue && characterSetup?.batch
+    && destinationWorkspace?.status === 'valid' && destinationWorkspace.section === 'setup');
   if (choice === 'discard') {
-    characterEditSession = null;stockSession=null;stockSessionKey='';stockBlurPending=null;
-    render();return 'proceed';
+    if (taskDraft) characterTaskSession = null;
+    if (setupDraft) { characterSetup = null; if (!continuingSetupBatch) setupQueue = null; }
+    if (correctionDraft) characterInventorySession = { ...characterInventorySession, correctionDraft: null };
+    render();
+    return 'proceed';
   }
   if (choice === 'save') {
-    try { store.assertWriter(); return saveCharacterEdit({ navigate: false }) ? 'proceed' : 'stay'; }
+    try {
+      store.assertWriter();
+      if (sourceSave !== JSON.stringify(save)) { message('The saved data changed while this confirmation was open. Reload or discard the draft.', true); return 'stay'; }
+      if (taskDraft) return saveCharacterTask({ navigate: false }) ? 'proceed' : 'stay';
+      if (setupDraft) return finishCharacterSetup({ navigate: false, expectedDraft: setupDraft }) ? 'proceed' : 'stay';
+      if (correctionDraft) return applyCharacterInventoryCorrection() ? 'proceed' : 'stay';
+    }
     catch (error) { message(error.message, true); return 'stay'; }
   }
-  if (focused?.isConnected) focused.focus();
+  if (focused?.closest('#global-nav') && $('#menu-toggle').getClientRects().length
+    && $('#menu-toggle').getAttribute('aria-expanded') !== 'true') $('#menu-toggle').focus({ preventScroll: true });
+  else if (focused?.isConnected) focused.focus();
   return 'stay';
 }
 function finishWorkspaceNavigation() {
+  const contextWasCaptured = route() !== lastRoute;
+  if (contextWasCaptured) captureWorkspaceContext(lastRoute);
+  const currentRoute = route();
+  const rosterRole = currentRoute === 'survivors' ? 'survivor' : currentRoute === 'killers' ? 'killer' : null;
+  const previousWorkspace = parseCharacterWorkspaceRoute(lastRoute);
+  const rosterReturn = rosterRole && previousWorkspace?.status === 'valid'
+    && characterById[previousWorkspace.characterId].role === rosterRole
+    ? collectionState.read(rosterRole) : null;
   const descriptor = parseCharacterWorkspaceRoute(route());
-  if (descriptor?.section === 'edit' && !characterEditSession) {
-    const previous = parseCharacterWorkspaceRoute(lastRoute);
-    characterEditReturnRoute = previous?.status === 'valid' && previous.characterId === descriptor.characterId
-      && !['edit', 'setup'].includes(previous.section) ? previous.canonicalRoute : null;
-  }
-  if (descriptor?.section !== 'edit') characterEditSession = null;
-  if (!['edit','items-addons'].includes(descriptor?.section) || stockSessionKey !== descriptor.characterId+'/'+descriptor.section) {stockSession=null;stockSessionKey='';}
+  if (descriptor?.status !== 'valid' || descriptor.section !== 'overview' || characterTaskSession?.characterId !== descriptor.characterId) characterTaskSession = null;
+  if (descriptor?.section !== 'items-addons' || stockSessionKey !== descriptor.characterId+'/items-addons') {stockSession=null;stockSessionKey='';}
   if(descriptor?.section!=='power-addons'||killerSessionKey!==descriptor.characterId){killerSession=null;killerSessionKey='';killerBlurPending=null;}
   if (descriptor?.section !== 'setup') { characterSetup = null; setupQueue = null; }
-  closeFilters(); setupOpen = false;
+  closeFilters(); setupOpen = false; setGlobalMenuOpen(false);
   if ($('#detail').open) $('#detail').close();
   if ($('#message').className !== 'error') message('');
   committedWorkspaceHash = location.hash || '#dashboard';
-  render(); window.scrollTo(0, 0); $('#main').focus();
+  render({ workspaceContextCaptured: contextWasCaptured });
+  const returnLink = rosterReturn && previousWorkspace?.status === 'valid'
+    && rosterReturn.originCharacterId === previousWorkspace.characterId
+    ? [...document.querySelectorAll('.character-collection-card [data-open-workspace]')]
+      .find(link => link.dataset.id === rosterReturn.originCharacterId)
+    : null;
+  if (returnLink) {
+    window.scrollTo(0, rosterReturn.scrollY);
+    returnLink.focus({ preventScroll: true });
+  } else if (rosterRole && previousWorkspace?.status === 'valid') {
+    const resultsHeading = $('#collection-results-heading');
+    if (resultsHeading) { resultsHeading.scrollIntoView({ block: 'start' }); resultsHeading.focus({ preventScroll: true }); }
+    else { window.scrollTo(0, 0); $('#main').focus({ preventScroll: true }); }
+  } else { window.scrollTo(0, 0); $('#main').focus({ preventScroll: true }); }
 }
 function acceptPendingKillerQuantities() {
   if(killerSession){
@@ -1045,7 +1291,7 @@ function acceptPendingKillerQuantities() {
   return true;
 }
 function acceptPendingStockQuantities() {
-  if(stockSession?.mode==='detail'){
+  if(stockSession){
     const pending=stockSession.entities.filter(entity=>stockSession.pending[entity.id]||stockSession.errors[entity.id]);
     for(const entity of pending){
       if(!acceptStock(entity.id,'enter'))return false;
@@ -1059,22 +1305,35 @@ async function requestWorkspaceNavigation(destination, { source = 'link' } = {})
   if(!acceptPendingKillerQuantities())return false;
   stockBlurPending=null;
   if(!acceptPendingStockQuantities())return false;
-  if (await resolveDirtyCharacterEdit({ destination: hash, source }) !== 'proceed') return false;
+  if (await resolveWorkspaceDraftTransition({ destination: hash, source }) !== 'proceed') return false;
   history.pushState({ ...history.state, workspaceIndex: ++workspaceHistoryIndex }, '', hash);
   finishWorkspaceNavigation();
   return true;
 }
-function render() {
+function render({ workspaceContextCaptured = false } = {}) {
   if (!initialized) { $('#main').innerHTML = '<section class="panel"><h1>Loading tracker…</h1></section>'; editorPresentation(); return; }
   const current = route(), workspaceRoute = parseCharacterWorkspaceRoute(current), characterRoute = parseCharacterInventoryRoute(current),
     section = workspaceRoute?.status === 'valid' ? characterById[workspaceRoute.characterId].role + 's' : current;
-  characterInventorySession = syncCharacterInventorySession(characterInventorySession, current);
   if (current !== lastRoute) {
+    if (!workspaceContextCaptured) captureWorkspaceContext(lastRoute);
     closeFilters();
     filterMemory.write(lastRoute, filters);
     filters = filterMemory.read(current) || { search: '', status: 'all', prestige: 'all', favorite: false, sort: 'name' };
     lastRoute = current;
-  }
+    if (workspaceRoute?.status === 'valid') {
+      restoreWorkspaceContext(workspaceRoute);
+      const selectionIntent = workspacePerkSelectionIntent;
+      workspacePerkSelectionIntent = null;
+      if (selectionIntent?.characterId === workspaceRoute.characterId
+        && selectionIntent.route === current
+        && workspaceRoute.section === 'perks' && workspaceRoute.mode === 'update') {
+        characterInventorySession = { ...characterInventorySession, selectedPerkId: selectionIntent.perkId };
+      }
+    } else {
+      workspacePerkSelectionIntent = null;
+      characterInventorySession = syncCharacterInventorySession(characterInventorySession, current);
+    }
+  } else characterInventorySession = syncCharacterInventorySession(characterInventorySession, current);
   document.querySelectorAll('nav a').forEach(a => { a.classList.toggle('active', a.dataset.page === section); if (a.dataset.page === section) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
   $('#survivor-count').textContent = roleCharacters('survivor').filter(c => save.characters[c.id].owned).length;
   $('#killer-count').textContent = roleCharacters('killer').filter(c => save.characters[c.id].owned).length;
@@ -1113,21 +1372,38 @@ function render() {
 function dialogHeader(eyebrow, title, artwork = '') {
   return `<div class="dialog-heading"><div><span class="eyebrow">${eyebrow}</span><h2 id="detail-title"${artwork ? ' class="perk-detail-title"' : ''}>${artwork}${esc(title)}</h2></div><button class="close-dialog" data-action="close" aria-label="Close details">×</button></div>`;
 }
-function killerPowerDataMarkup(value) {
-  if(Array.isArray(value))return value.length?'<ul>'+value.map(item=>'<li>'+killerPowerDataMarkup(item)+'</li>').join('')+'</ul>':'<p>None recorded.</p>';
-  if(value&&typeof value==='object')return '<dl>'+Object.entries(value).map(([key,item])=>'<div><dt>'+esc(key.replace(/([A-Z])/g,' $1'))+'</dt><dd>'+killerPowerDataMarkup(item)+'</dd></div>').join('')+'</dl>';
+function killerPowerDataMarkup(value,component=false) {
+  if(Array.isArray(value))return value.length?'<ul>'+value.map(item=>'<li>'+killerPowerDataMarkup(item,component)+'</li>').join('')+'</ul>':'<p>None recorded.</p>';
+  if(value&&typeof value==='object'){
+    if(typeof value.name==='string'){
+      const fields=Object.entries(value).filter(([key,item])=>key!=='name'&&item!==undefined&&item!==null&&item!=='');
+      const type=value.type?'<p class="killer-power-type"><span>Type</span> '+esc(value.type)+'</p>':'';
+      const description=value.description?'<p class="killer-power-description">'+esc(value.description)+'</p>':'';
+      const measurement=value.value!==undefined?'<p class="killer-power-measurement"><strong>'+esc(value.value)+(value.unit?' '+esc(value.unit):'')+'</strong></p>':'';
+      const known=new Set(['type','description','value','unit','conditions']);
+      const other=fields.filter(([key])=>!known.has(key)).map(([key,item])=>'<div><dt>'+esc(key.replace(/([A-Z])/g,' $1'))+'</dt><dd>'+killerPowerDataMarkup(item)+'</dd></div>').join('');
+      const conditions=value.conditions?'<p class="killer-power-conditions"><span>Conditions</span> '+esc(value.conditions)+'</p>':'';
+      return '<article class="killer-power-entry"'+(component?' data-power-component':'')+'><h4>'+esc(value.name)+'</h4>'+type+measurement+conditions+description+(other?'<dl>'+other+'</dl>':'')+'</article>';
+    }
+    return '<dl>'+Object.entries(value).map(([key,item])=>'<div><dt>'+esc(key.replace(/([A-Z])/g,' $1'))+'</dt><dd>'+killerPowerDataMarkup(item)+'</dd></div>').join('')+'</dl>';
+  }
   if(value===null||value===undefined||value==='')return '<span>—</span>';
   return esc(value);
+}
+function killerPowerFieldLabel(key) {
+  return ({shortSummary:'Summary',fullExplanation:'Full mechanics',components:'Components',mechanics:'Mechanics',resources:'Resources',
+    survivorInteractions:'Survivor interactions',powerStates:'Power states',addonRelevantMechanics:'Add-on-relevant mechanics',complexRules:'Complex rules'})[key]
+    ||key.replace(/([A-Z])/g,' $1').replace(/^./,letter=>letter.toUpperCase());
 }
 function killerPowerDetail(characterId) {
   const power=killerPowerByCharacterId[characterId];
   if(!power)return dialogHeader('KILLER POWER DETAILS','Unavailable Power')+'<p class="muted">This Killer Power is not in the current verified catalog.</p>';
   const art=killerPowerIconPath(characterId,assetManifest);
-  const artwork=art?'<img src="'+esc(artworkUrl(art))+'" alt="">':'<span class="stock-art-fallback" role="img" aria-label="Power artwork unavailable">◇</span>';
-  const fields=[['fullExplanation','Full Explanation'],['components','Components'],['mechanics','Mechanics'],['resources','Resources'],['survivorInteractions','Survivor Interactions'],['powerStates','Power States'],['addonRelevantMechanics','Add-on-Relevant Mechanics'],['complexRules','Complex Rules']];
-  return dialogHeader('KILLER POWER',power.powerName,artwork)+'<div class="stock-detail-body killer-detail-body">'
-    +fields.filter(([key])=>power[key]!==undefined&&power[key]!==null&&power[key]!==''&&(!Array.isArray(power[key])||power[key].length))
-      .map(([key,label])=>'<section data-power-detail-field="'+key+'"><h3>'+label+'</h3>'+killerPowerDataMarkup(power[key])+'</section>').join('')
+  const artwork=art?'<img src="'+esc(artworkUrl(art))+'" alt="">':'<span class="stock-art-fallback" role="img" aria-label="Power artwork unavailable" data-power-art-fallback>◇</span>';
+  const fields=Object.entries(power).filter(([key])=>!['powerName','artwork'].includes(key));
+  return dialogHeader('KILLER POWER',power.powerName,artwork)+'<div class="stock-detail-body killer-detail-body killer-power-reference" tabindex="0" aria-label="Power reference">'
+    +fields.map(([key,value])=>'<section data-power-detail-field="'+esc(key)+'"><h3>'+esc(killerPowerFieldLabel(key))+'</h3>'
+      +(value===null||value===''||(Array.isArray(value)&&!value.length)?'<p class="muted">No additional content recorded.</p>':killerPowerDataMarkup(value,key==='components'))+'</section>').join('')
     +'</div>';
 }
 function killerAddonDetail(addonId) {
@@ -1259,62 +1535,233 @@ async function reset() {
 }
 function createCharacterSetupDraft(id, returnRoute = characterWorkspaceHref(id)) {
   const progress = save.characters[id];
+  const perks = Object.fromEntries(Object.entries(progress.perks).filter(([perkId, tier]) => perkById[perkId]
+    && (tier > 0 || perkById[perkId].historicalAvailability?.manualOwnership)));
   return { id, step: 'bloodweb', bloodwebLevel: progress.bloodwebLevel,
-    perks: Object.fromEntries(Object.entries(progress.perks).filter(([perkId, tier]) => perkById[perkId]
-      && (tier > 0 || perkById[perkId].historicalAvailability?.manualOwnership))), search: '', returnRoute };
+    perks, baseline: { bloodwebLevel: progress.bloodwebLevel, perks: structuredClone(perks) },
+    baseFingerprint: JSON.stringify(save), conflicted: false, search: '', returnRoute };
 }
-function openCharacterSetup(id, { batch = null, returnRoute = null } = {}) {
+async function openCharacterSetup(id, { batch = null, returnRoute = null } = {}) {
   store.assertWriter();
   if (!save.characters[id]?.owned) throw new Error('Initial setup requires an owned character.');
-  characterSetup = createCharacterSetupDraft(id, returnRoute || characterWorkspaceHref(id));
+  const destination = characterWorkspaceHref(id, 'setup');
+  if (!await requestWorkspaceNavigation(destination)) return false;
+  if (characterSetup?.id !== id) characterSetup = createCharacterSetupDraft(id, returnRoute || characterWorkspaceHref(id));
+  characterSetup.returnRoute = returnRoute || characterSetup.returnRoute || characterWorkspaceHref(id);
   characterSetup.batch = batch;
-  location.hash = characterWorkspaceHref(id, 'setup');
   if ($('#detail').open) $('#detail').close();
   render();
   $('#character-setup-bloodweb')?.focus();
+  return true;
 }
-function advanceCharacterSetup() {
-  while (setupQueue.index < setupQueue.ids.length) {
-    const id = setupQueue.ids[setupQueue.index];
+async function advanceCharacterSetup(startIndex = setupQueue?.index ?? 0) {
+  const queue = setupQueue;
+  if (!queue) return false;
+  let index = startIndex;
+  while (index < queue.ids.length) {
+    const id = queue.ids[index];
     if (save.characters[id].owned && !save.characters[id].setupComplete) {
-      openCharacterSetup(id, { batch: { position: setupQueue.index + 1, total: setupQueue.ids.length },
-        returnRoute: setupQueue.returnRoute });
-      return;
+      const opened = await openCharacterSetup(id, { batch: { position: index + 1, total: queue.ids.length },
+        returnRoute: queue.returnRoute });
+      if (opened && setupQueue === queue) queue.index = index;
+      return opened;
     }
-    setupQueue.index++;
+    index++;
   }
-  const completed = setupQueue.completed;
-  const returnRoute = setupQueue.returnRoute || '#dashboard';
-  setupQueue = null;
+  const completed = queue.completed;
+  const returnRoute = queue.returnRoute || '#dashboard';
+  if (!await requestWorkspaceNavigation(returnRoute)) return false;
+  if (setupQueue === queue) setupQueue = null;
   characterSetup = null;
-  location.hash = returnRoute; render();
   message(`Setup pass finished. ${completed} character${completed === 1 ? '' : 's'} completed. Run character setups again to continue any skipped characters.`);
+  return true;
 }
-function finishCharacterSetup() {
+function finishCharacterSetup({ navigate = true, expectedDraft = characterSetup } = {}) {
   store.assertWriter();
-  const draft = characterSetup;
-  if (storageBlocked) { message('Import a valid save before completing character setup.', true); return; }
+  const draft = expectedDraft;
+  if (!draft || characterSetup !== draft) { message('The setup draft changed. Review it before saving.', true); return false; }
+  if (storageBlocked) { message('Import a valid save before completing character setup.', true); return false; }
+  if (draft.conflicted || draft.baseFingerprint !== JSON.stringify(save)) {
+    draft.conflicted = true;
+    message('The saved data changed while setup was open. Discard this draft and reopen setup before saving.', true);
+    render();
+    return false;
+  }
+  try {
+    completeCharacterSetup(structuredClone(save), draft.id, draft.bloodwebLevel, draft.perks);
+  } catch (error) { message(error.message, true); return false; }
   store.backup(save, `Before character setup: ${characterById[draft.id].name}`);
-  if (commit(next => completeCharacterSetup(next, draft.id, draft.bloodwebLevel, draft.step === 'bloodweb' ? {} : draft.perks), draft.id)) {
-    if (setupQueue) {
+  if (commit(next => completeCharacterSetup(next, draft.id, draft.bloodwebLevel, draft.perks), draft.id)) {
+    if (setupQueue && navigate) {
       setupQueue.completed++;
-      setupQueue.index++;
-      advanceCharacterSetup();
-      return;
+      const nextIndex = setupQueue.index + 1;
+      characterSetup = null;
+      void advanceCharacterSetup(nextIndex).catch(error => message(error.message, true));
+      return true;
     }
     const returnRoute = draft.returnRoute || characterWorkspaceHref(draft.id);
-    characterSetup = null; location.hash = returnRoute; render(); message('Character setup completed. Personal records preserved; automatic minimums remain in effect.');
+    characterSetup = null;
+    if (!navigate) {
+      if (setupQueue) setupQueue.completed++;
+      return true;
+    }
+    location.hash = returnRoute; render(); message('Character setup completed. Personal records preserved; automatic minimums remain in effect.');
+    return true;
   }
+  return false;
 }
 function characterInventoryRecordKey(currentSave, characterId, perkId) {
   const inventory = currentSave.characters[characterId]?.perks || {};
   return Object.hasOwn(inventory, perkId) ? `present:${inventory[perkId]}` : 'absent';
 }
+function characterInventoryCorrectionIsDirty() {
+  return Boolean(characterInventorySession.correctionDraft?.dirty);
+}
+function applyCharacterInventoryCorrection() {
+  const draft = characterInventorySession.correctionDraft;
+  if (!draft?.dirty) return false;
+  if (draft.baseFingerprint !== JSON.stringify(save) || draft.conflicted) {
+    characterInventorySession = { ...characterInventorySession,
+      correctionDraft: { ...draft, conflicted: true, error: 'Stored data changed. Cancel this correction and reopen it before applying.' } };
+    message('Stored data changed while the correction was open. Cancel and reopen it before applying.', true);
+    render();
+    return false;
+  }
+  try { correctPersonalPerkTier(structuredClone(save), draft.characterId, draft.perkId, draft.tier); }
+  catch (error) {
+    characterInventorySession = { ...characterInventorySession, correctionDraft: { ...draft, error: error.message } };
+    message(error.message, true);
+    render();
+    return false;
+  }
+  const before = characterInventoryRecordKey(save, draft.characterId, draft.perkId);
+  if (!commit(next => correctPersonalPerkTier(next, draft.characterId, draft.perkId, draft.tier), draft.characterId)) {
+    characterInventorySession = { ...characterInventorySession, correctionDraft: { ...draft, error: 'Not saved. Retry Apply correction or Cancel this draft.' } };
+    render();
+    $('[data-action="character-inventory-correction-apply"]')?.focus({ preventScroll: true });
+    return false;
+  }
+  if (parseCharacterInventoryRoute(route())?.mode === 'update'
+    && before !== characterInventoryRecordKey(save, draft.characterId, draft.perkId)) {
+    characterInventorySession = markCharacterInventoryChanged(characterInventorySession, draft.perkId);
+  }
+  characterInventorySession = { ...characterInventorySession, correctionDraft: null, selectedPerkId: draft.perkId };
+  render();
+  $(`[data-action="character-inventory-correction-open"][data-perk="${draft.perkId}"]`)?.focus({ preventScroll: true });
+  return true;
+}
+function saveCharacterInventorySelection(intent) {
+  const descriptor = parseCharacterInventoryRoute(route());
+  if (descriptor?.mode !== 'update' || descriptor.characterId !== intent.characterId) return false;
+  if (intent.baseFingerprint !== JSON.stringify(save)) {
+    characterInventorySession = { ...characterInventorySession, failedSelection: { ...intent, conflicted: true } };
+    message('Stored data changed after this selection failed. Discard the failed selection before continuing.', true);
+    render();
+    return false;
+  }
+  const before = characterInventoryRecordKey(save, intent.characterId, intent.perkId);
+  const expected = intent.type === 'historical' || intent.tier !== null ? `present:${intent.tier}` : 'absent';
+  const wasQuick = Boolean(characterInventorySession.quickPerkId);
+  const applySelection = next => intent.type === 'historical'
+    ? setHistoricalPerkTier(next, intent.characterId, intent.perkId, intent.tier)
+    : setCharacterPersonalTier(next, intent.characterId, intent.perkId, intent.tier);
+  try { applySelection(structuredClone(save)); }
+  catch (error) { message(error.message, true); return false; }
+  if (before === expected) {
+    characterInventorySession = { ...characterInventorySession, selectedPerkId: intent.perkId, quickPerkId: null, failedSelection: null };
+    render();
+    if (wasQuick) $(`.perk-card[data-perk="${intent.perkId}"]`)?.focus({ preventScroll: true });
+    return true;
+  }
+  characterInventorySession = { ...characterInventorySession, quickPerkId: null, failedSelection: null };
+  const saved = commit(applySelection, intent.characterId);
+  if (!saved) {
+    characterInventorySession = { ...characterInventorySession, selectedPerkId: intent.perkId, quickPerkId: null, failedSelection: intent };
+    render();
+    $('[data-action="character-inventory-retry"]')?.focus({ preventScroll: true });
+    return false;
+  }
+  if (before !== characterInventoryRecordKey(save, intent.characterId, intent.perkId)) {
+    characterInventorySession = markCharacterInventoryChanged(characterInventorySession, intent.perkId);
+  }
+  characterInventorySession = { ...characterInventorySession, selectedPerkId: intent.perkId, quickPerkId: null, failedSelection: null };
+  render();
+  if (wasQuick) $(`.perk-card[data-perk="${intent.perkId}"]`)?.focus({ preventScroll: true });
+  return true;
+}
+function discardCharacterInventoryFailedSelection() {
+  const intent = characterInventorySession.failedSelection;
+  if (!intent) return;
+  characterInventorySession = { ...characterInventorySession, failedSelection: null, selectedPerkId: intent.perkId, quickPerkId: null };
+  message('');
+  render();
+  $(`.perk-card[data-perk="${intent.perkId}"]`)?.focus({ preventScroll: true });
+}
+function configureWorkspaceTransitionDialog({ title, text, failedSelection = false, retryDisabled = false, applyLabel = 'Save' }) {
+  const dialog = $('#dirty-navigation');
+  $('#dirty-title').textContent = title;
+  $('#dirty-text').textContent = text;
+  const discard = dialog.querySelector('[value="discard"]');
+  const action = dialog.querySelector('.primary');
+  discard.textContent = failedSelection ? 'Discard failed selection' : 'Discard';
+  action.value = failedSelection ? 'retry' : 'save';
+  action.textContent = failedSelection ? 'Retry' : applyLabel;
+  action.disabled = failedSelection && retryDisabled;
+}
+async function resolveFailedInventoryTransition() {
+  if ($('#dirty-navigation').open) return 'stay';
+  const failed = characterInventorySession.failedSelection;
+  if (!failed) return 'proceed';
+  const focused = document.activeElement;
+  const sourceRoute = route(), sourceHash = committedWorkspaceHash, sourceSave = JSON.stringify(save);
+  const transitionToken = ++workspaceTransitionToken;
+  const conflict = failed.baseFingerprint !== sourceSave || failed.conflicted;
+  const dialog = $('#dirty-navigation');
+  dialog.returnValue = 'stay';
+  configureWorkspaceTransitionDialog({
+    title: 'Perk selection not saved',
+    text: conflict ? 'Stored data changed after the failed selection. Retry is unavailable; discard it or stay to review.'
+      : 'This perk selection was not saved. Retry it, discard only this failed selection, or stay in Update Inventory.',
+    failedSelection: true,
+    retryDisabled: conflict,
+  });
+  dialog.showModal();
+  const choice = await new Promise(resolve => dialog.addEventListener('close', () => resolve(dialog.returnValue), { once: true }));
+  if (transitionToken !== workspaceTransitionToken || committedWorkspaceHash !== sourceHash || route() !== sourceRoute
+    || characterInventorySession.failedSelection !== failed) {
+    message('The pending transition changed. Review the current failed selection before leaving.', true);
+    return 'stay';
+  }
+  if (choice === 'retry') return saveCharacterInventorySelection(failed) ? 'proceed' : 'stay';
+  if (choice === 'discard') {
+    discardCharacterInventoryFailedSelection();
+    return 'proceed';
+  }
+  if (focused?.isConnected) focused.focus({ preventScroll: true });
+  return 'stay';
+}
 async function handleClick(event) {
-  if (event.target.closest('.skip-link')) { event.preventDefault(); $('#main').focus(); $('#main').scrollIntoView(); return; }
+  if (event.target.closest('.skip-link')) {
+    event.preventDefault(); setGlobalMenuOpen(false);
+    $('#main').focus({ preventScroll: true }); $('#main').scrollIntoView({ block: 'start' }); return;
+  }
   const link = event.target.closest('a[href]');
   if (link?.getAttribute('href').startsWith('#') && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey
     && link.target !== '_blank' && event.button === 0) {
+    if (link.dataset.openPerkUpdate) {
+      const descriptor = parseCharacterWorkspaceRoute(route());
+      if (descriptor?.status === 'valid') {
+        characterInventorySession = { ...characterInventorySession, selectedPerkId: link.dataset.openPerkUpdate, quickPerkId: null };
+        workspacePerkSelectionIntent = { characterId: descriptor.characterId, perkId: link.dataset.openPerkUpdate,
+          route: characterWorkspaceHref(descriptor.characterId, 'perks', 'update').slice(1) };
+      }
+    }
+    const rosterRole = route() === 'survivors' ? 'survivor' : route() === 'killers' ? 'killer' : null;
+    if (rosterRole && link.hasAttribute('data-open-workspace')) {
+      collectionState.update(rosterRole, {
+        ...filters, originCharacterId: link.dataset.id, scrollY: window.scrollY,
+      });
+    }
     event.preventDefault(); await requestWorkspaceNavigation(link.getAttribute('href')); return;
   }
   if (setupOpen && event.target.closest('nav a')) { setupOpen = false; render(); }
@@ -1329,26 +1776,54 @@ async function handleClick(event) {
   const { action, id, character, perk, mode, family } = button.dataset;
   if(action==='stock-step'){stepStock(button);return;}
   if(action==='killer-stock-step'){stepKillerQuantity(button);return;}
+  if(action==='killer-addon-filter-reset'){resetKillerAddonFilters();return;}
   if(action==='stock-family-select'){selectStockFamily(family);return;}
+  if(action==='stock-item-select'){selectStockItem(id,'card');return;}
+  if(action==='stock-filter-reset'){resetStockFilters();return;}
   if(action==='queue-manage'){queueView.expanded=!queueView.expanded;render();$('[data-action="queue-manage"]')?.focus();return;}
   if(action==='queue-filter'){queueView.role=button.dataset.role;render();$('[data-action="queue-filter"][data-role="'+queueView.role+'"]')?.focus();return;}
   if(action==='stock-error-focus'){
     revealStockQuantity(id);return;
   }
-  if (characterEditSession?.dirty && action !== 'character-edit-save' && action !== 'character-edit-cancel'
+  if (characterTaskSession?.dirty && action !== 'character-task-save' && action !== 'character-task-cancel'
     && (requiresEditor(action) || action === 'character' || action === 'enable-editing')) {
-    if (await resolveDirtyCharacterEdit({ action }) !== 'proceed') return;
+    if (await resolveWorkspaceDraftTransition({ action }) !== 'proceed') return;
   }
-  if (characterEditSession && $('#detail').contains(button) && requiresEditor(action)) { message('Reference only during Edit Character.', true); return; }
-  if (action === 'character-edit-save') { store.assertWriter(); saveCharacterEdit(); return; }
-  if (action === 'character-edit-cancel') {
-    const target = characterEditSession?.returnRoute || characterWorkspaceHref(characterEditSession.characterId);
-    if (await resolveDirtyCharacterEdit({ action }) !== 'proceed') return;
-    characterEditSession = null; await requestWorkspaceNavigation(target); return;
+  if (characterSetupIsDirty() && !action?.startsWith('character-setup-')
+    && (requiresEditor(action) || action === 'character' || action === 'enable-editing')) {
+    if (await resolveWorkspaceDraftTransition({ action }) !== 'proceed') return;
   }
-  if (action === 'character-edit-all') { characterEditViewState.allRole = !characterEditViewState.allRole; render(); return; }
+  if (characterInventoryCorrectionIsDirty()
+    && !['character-inventory-correction-apply', 'character-inventory-correction-cancel'].includes(action)
+    && (requiresEditor(action) || action === 'character' || action === 'enable-editing' || action === 'character-inventory-select')) {
+    if (await resolveWorkspaceDraftTransition({ action }) !== 'proceed') return;
+  }
+  if (action === 'character-task-start') {
+    const descriptor = parseCharacterWorkspaceRoute(route());
+    if (descriptor?.status !== 'valid' || descriptor.section !== 'overview') return;
+    const task = button.dataset.task;
+    characterTaskSession = createCharacterTaskSession(save, descriptor.characterId, task);
+    render();
+    document.querySelector('[data-character-task-field]')?.focus({ preventScroll: true });
+    return;
+  }
+  if (action === 'character-task-save') { store.assertWriter(); saveCharacterTask(); return; }
+  if (action === 'character-task-cancel') {
+    const task = characterTaskSession?.task;
+    characterTaskSession = null;
+    render();
+    document.querySelector('[data-action="character-task-start"][data-task="' + task + '"]')?.focus({ preventScroll: true });
+    return;
+  }
+  if (action === 'overview-ownership-toggle') {
+    const wasOwned = save.characters[id].owned;
+    if (commit(next => { next.characters[id].owned = !wasOwned; }, id)) {
+      document.querySelector('[data-action="overview-ownership-toggle"]')?.focus({ preventScroll: true });
+    }
+    return;
+  }
   if (action === 'enable-editing') return enableEditing();
-  if (requiresEditor(action)) store.assertWriter();
+  if (requiresEditor(action) && action !== 'character-inventory-set-tier') store.assertWriter();
   if(action==='queue-add'||action==='queue-target'){openPrestigeTargetEditor(id,action==='queue-add',button);return;}
   if(action==='queue-select'){openPrestigeTargetEditor($('#queue-character').value,true,queueOpener);return;}
   if(action==='queue-shortcut'){
@@ -1391,23 +1866,29 @@ async function handleClick(event) {
       return;
     }
     setupQueue = { ids: pending.map(c => c.id), index: 0, completed: 0, returnRoute: '#' + route() };
-    advanceCharacterSetup();
+    void advanceCharacterSetup().catch(error => message(error.message, true));
     return;
   }
-  if (action === 'character-setup-next-character' && setupQueue) { setupQueue.index++; advanceCharacterSetup(); return; }
+  if (action === 'character-setup-next-character' && setupQueue) {
+    await advanceCharacterSetup(setupQueue.index + 1);
+    return;
+  }
   if (action === 'character-setup-exit') {
     const target = characterSetup?.returnRoute || '#dashboard';
-    setupQueue = null; characterSetup = null; location.hash = target; render(); return;
+    await requestWorkspaceNavigation(target); return;
   }
   if (action === 'character-setup-skip') { characterSetup = null; refreshDetail(); return; }
   if (action === 'character-setup-edit') {
-    openCharacterSetup(id); return;
+    return openCharacterSetup(id);
   }
-  if (action === 'character-setup-start') { openCharacterSetup(characterSetup.id); return; }
+  if (action === 'character-setup-start') return openCharacterSetup(characterSetup.id);
   if (action === 'character-setup-p1' && characterSetup?.step === 'bloodweb') {
     characterSetup.bloodwebLevel = $('#character-setup-bloodweb').value;
     const characterId = characterSetup.id;
-    if (commit(next => { next.characters[characterId].prestige = Math.max(1, next.characters[characterId].prestige); }, characterId)) refreshDetail();
+    if (commit(next => { next.characters[characterId].prestige = Math.max(1, next.characters[characterId].prestige); }, characterId)) {
+      characterSetup.baseFingerprint = JSON.stringify(save);
+      refreshDetail();
+    }
     return;
   }
   if (action === 'character-setup-next') {
@@ -1440,12 +1921,37 @@ async function handleClick(event) {
     characterInventorySession = { ...characterInventorySession, selectedPerkId: perk, quickPerkId: perkById[perk]?.historicalAvailability?.manualOwnership ? null : perk };
     const characterRoute = parseCharacterInventoryRoute(route());
     if (characterRoute?.mode === 'inventory') {
-      characterInventorySession = { ...createCharacterInventorySession(characterWorkspaceHref(character, 'perks', 'update')), selectedPerkId: perk };
-      location.hash = characterWorkspaceHref(character, 'perks', 'update');
+      characterInventorySession = { ...characterInventorySession, selectedPerkId: perk, quickPerkId: null };
+      render();
+      $(`.character-inventory-card-grid .perk-card[data-perk="${perk}"]`)?.focus({ preventScroll: true });
     } else {
       render();
       $('.character-inventory-quick-picker button:not(:disabled)')?.focus({ preventScroll: true });
     }
+    return;
+  }
+  if (action === 'character-inventory-correction-open') {
+    const characterId = button.dataset.character, perkId = button.dataset.perk;
+    const row = characterInventoryCandidatePool(save, characterId, { allRole: true }).find(candidate => candidate.perk.id === perkId);
+    if (!row?.hasRecordedRecord || row.recordedTier < 1) return;
+    characterInventorySession = { ...characterInventorySession, selectedPerkId: perkId, correctionDraft: {
+      characterId, perkId, originalTier: row.recordedTier, tier: row.recordedTier,
+      dirty: false, conflicted: false, error: null, baseFingerprint: JSON.stringify(save),
+    } };
+    render();
+    $('#character-inventory-correction-tier')?.focus({ preventScroll: true });
+    return;
+  }
+  if (action === 'character-inventory-correction-cancel') {
+    const perkId = characterInventorySession.correctionDraft?.perkId;
+    characterInventorySession = { ...characterInventorySession, correctionDraft: null };
+    render();
+    if (perkId) $(`[data-action="character-inventory-correction-open"][data-perk="${perkId}"]`)?.focus({ preventScroll: true });
+    return;
+  }
+  if (action === 'character-inventory-correction-apply') {
+    store.assertWriter();
+    applyCharacterInventoryCorrection();
     return;
   }
   if (action === 'character-inventory-all-role') { characterInventorySession = { ...characterInventorySession, allRole: !characterInventorySession.allRole }; render(); return; }
@@ -1454,16 +1960,20 @@ async function handleClick(event) {
     render();
     return;
   }
+  if (action === 'character-inventory-retry') {
+    const intent = characterInventorySession.failedSelection;
+    if (intent && !intent.conflicted) saveCharacterInventorySelection(intent);
+    return;
+  }
+  if (action === 'character-inventory-discard-failed') {
+    discardCharacterInventoryFailedSelection();
+    return;
+  }
   if (action === 'character-inventory-set-tier') {
+    if (characterInventorySession.failedSelection) return;
     const characterId = button.dataset.character, perkId = button.dataset.perk;
     const tier = button.dataset.tier === 'none' ? null : Number(button.dataset.tier);
-    const before = characterInventoryRecordKey(save, characterId, perkId);
-    if (!commit(next => setCharacterPersonalTier(next, characterId, perkId, tier), characterId)) return;
-    if (before !== characterInventoryRecordKey(save, characterId, perkId)) characterInventorySession = markCharacterInventoryChanged(characterInventorySession, perkId);
-    const wasQuick = Boolean(characterInventorySession.quickPerkId);
-    characterInventorySession = { ...characterInventorySession, selectedPerkId: perkId, quickPerkId: null };
-    render();
-    if (wasQuick) $(`.perk-card[data-perk="${perkId}"]`)?.focus();
+    saveCharacterInventorySelection({ type: 'personal', characterId, perkId, tier, baseFingerprint: JSON.stringify(save) });
     return;
   }
   if (action === 'account-unlock-tier') {
@@ -1512,17 +2022,48 @@ async function handleClick(event) {
     if (!insidePanel) (document.querySelectorAll('.filter-summary > button:first-child')[Math.max(0, index)] || $('#filters-trigger'))?.focus({ preventScroll: true });
     return;
   }
-  if (action === 'filter') { filters.status = button.dataset.filter; collectionPage = 0; render(); return; }
-  if (action === 'favorites-filter') { filters.favorite = !filters.favorite; collectionPage = 0; render(); return; }
-  if (action === 'collection-page') {
-    collectionPage = Math.max(0, collectionPage + Number(button.dataset.delta));
+  if (action === 'collection-clear-search') { filters.search = ''; render(); $('#search')?.focus({ preventScroll: true }); return; }
+  if (action === 'collection-reset-filters') { filters.status = 'all'; filters.prestige = 'all'; filters.favorite = false; render(); $('#collection-filters summary')?.focus({ preventScroll: true }); return; }
+  if (action === 'collection-clear-filter') {
+    if (button.dataset.filterKey === 'status') filters.status = 'all';
+    if (button.dataset.filterKey === 'prestige') filters.prestige = 'all';
+    if (button.dataset.filterKey === 'favorite') filters.favorite = false;
+    render(); $('#collection-filters summary')?.focus({ preventScroll: true }); return;
+  }
+  if (action === 'filter') { filters.status = button.dataset.filter; render(); return; }
+  if (action === 'favorites-filter') {
+    collectionFiltersOpen = $('#collection-filters')?.open ?? false;
+    filters.favorite = !filters.favorite;
     render();
-    document.getElementById(Number(button.dataset.delta) < 0 ? 'collection-page-prev' : 'collection-page-next')?.focus({ preventScroll: true });
+    $('[data-action="favorites-filter"]')?.focus({ preventScroll: true });
     return;
   }
-  if (action === 'favorite' || action === 'ownership') {
-    const field = action === 'favorite' ? 'favorite' : 'owned';
-    commit(next => { next.characters[id][field] = !next.characters[id][field]; }, id); return;
+  if (action === 'collection-page') {
+    const role = route() === 'survivors' ? 'survivor' : 'killer';
+    const currentPage = collectionState.read(role).page;
+    collectionState.update(role, { page: Math.max(0, currentPage + Number(button.dataset.delta)) });
+    render();
+    document.getElementById('collection-results-heading')?.focus();
+    return;
+  }
+  if (action === 'favorite') {
+    const wasFavorite = save.characters[id].favorite;
+    const card = button.closest('.character-collection-card');
+    const cardIndex = [...document.querySelectorAll('.character-collection-card')].indexOf(card);
+    const removesFilteredResult = filters.favorite && wasFavorite;
+    if (!commit(next => { next.characters[id].favorite = !next.characters[id].favorite; }, id)) return;
+    if (!card) {
+      document.querySelector('.character-workspace-favorite')?.focus({ preventScroll: true });
+    } else if (removesFilteredResult) {
+      const cards = [...document.querySelectorAll('.character-collection-card')];
+      (cards[Math.min(Math.max(cardIndex, 0), cards.length - 1)]?.querySelector('[data-open-workspace]') || $('#collection-results-heading'))?.focus();
+    } else {
+      const favorites = [...document.querySelectorAll('.character-collection-card [data-action="favorite"]')];
+      (favorites.find(candidate => candidate.dataset.id === id)
+        || favorites[Math.min(cardIndex, favorites.length - 1)]
+        || $('#collection-results-heading'))?.focus({ preventScroll: true });
+    }
+    return;
   }
   if (action === 'cycle') {
     if (inventoryTier(save, character, perk) === 3 || !bloodwebEligible(save, character, perkById[perk])) return;
@@ -1543,21 +2084,36 @@ async function handleClick(event) {
 document.addEventListener('pointerdown', event => {
   if (characterInventorySession.quickPerkId && !event.target.closest('.character-inventory-quick-picker, .perk-card[data-action="character-inventory-select"]')) closeCharacterInventoryQuickPicker();
 });
+document.addEventListener('click', event => {
+  const trigger = event.target.closest('#menu-toggle');
+  if (trigger) {
+    setGlobalMenuOpen(trigger.getAttribute('aria-expanded') !== 'true');
+    return;
+  }
+  const sidebar = $('.sidebar');
+  if (sidebar.dataset.menuOpen !== 'true') return;
+  const link = event.target.closest('#global-nav a[href^="#"]');
+  const currentRoute = location.hash || '#dashboard';
+  if (!sidebar.contains(event.target) || link?.hash === currentRoute) {
+    setGlobalMenuOpen(false, link?.hash === currentRoute && $('#menu-toggle').getClientRects().length > 0);
+  }
+});
 document.addEventListener('click', event => { handleClick(event).catch(error => message(error.message || 'The action could not be completed.', true)); });
 document.addEventListener('input', event => {
   if(event.target.hasAttribute('data-killer-quantity')){try{killerQuantityInput(event.target);}catch(error){message(error.message,true);}return;}
   if(event.target.dataset.inventoryQuantity){try{stockInput(event.target);}catch(error){message(error.message,true);}return;}
+  if(event.target.id==='killer-addon-search'){setKillerAddonFilter('search',event.target.value);return;}
   if(event.target.id==='inventory-search'){stockFilters={...stockFilters,search:event.target.value};render();return;}
-  if (event.target.dataset.editField) {
+  if (event.target.dataset.characterTaskField) {
     try {
       store.assertWriter();
-      const field = event.target.dataset.editField;
-      characterEditSession = updateCharacterEditSession(characterEditSession, { field,
-        value: event.target.type === 'checkbox' ? event.target.checked : event.target.value }, save);
+      characterTaskSession = updateCharacterTaskSession(characterTaskSession, {
+        field: event.target.dataset.characterTaskField,
+        value: event.target.value,
+      });
     } catch (error) { message(error.message, true); }
     return;
   }
-  if (event.target.id === 'character-edit-search') { characterEditViewState.search = event.target.value; render(); return; }
   if (event.target.id === 'character-setup-search') { characterSetup.search = event.target.value; refreshDetail(); }
   if (event.target.id === 'character-inventory-search') { characterInventorySession = { ...characterInventorySession, search: event.target.value }; render(); }
   if (event.target.id === 'setup-search') { setupSearch = event.target.value; render(); }
@@ -1566,51 +2122,70 @@ document.addEventListener('input', event => {
     target.setCustomValidity(target.value && !Number.isSafeInteger(value) ? 'Enter a valid whole-number Prestige.' : '');
     if (target.checkValidity() && Number.isSafeInteger(value)) commit(next => { next.characters[id].prestige = value; }, id);
   }
-  if (event.target.id === 'search') { filters.search = event.target.value; collectionPage = 0; render(); }
+  if (event.target.id === 'search') {
+    const start = event.target.selectionStart, end = event.target.selectionEnd;
+    filters.search = event.target.value; render();
+    const restored = $('#search');
+    restored?.focus({ preventScroll: true });
+    if (restored && Number.isInteger(start) && Number.isInteger(end)) restored.setSelectionRange(start, end);
+  }
 });
 document.addEventListener('change', async event => {
   const target = event.target;
   try {
+    if(target.id==='killer-addon-rarity'){
+      const validRarity=['',...new Set(Object.values(inventoryEntityById).filter(entity=>entity.role==='killer').map(entity=>entity.rarity))];
+      if(validRarity.includes(target.value))setKillerAddonFilter('rarity',target.value);
+      return;
+    }
+    if(target.id==='killer-addon-in-stock'){setKillerAddonFilter('inStock',target.checked);return;}
     if(target.id==='addon-rarity-order'){
       if(['highest-to-lowest','lowest-to-highest'].includes(target.value))addonRarityDirection=target.value;
       render();return;
     }
-    if(target.id==='collection-page-size'){
-      if(['5','10','all'].includes(target.value))collectionPageSize=target.value;
-      collectionPage=0;render();$('#collection-page-size')?.focus({preventScroll:true});return;
-    }
+    if (target.id === 'ownership-filter' && ['all', 'owned', 'locked'].includes(target.value)) { collectionFiltersOpen = $('#collection-filters')?.open ?? false; filters.status = target.value; render(); return; }
     if(target.id==='inventory-item'){selectStockItem(target.value);return;}
     if(['inventory-map','inventory-rarity','inventory-in-stock'].includes(target.id)){
       const key={'inventory-map':'map','inventory-rarity':'rarity','inventory-in-stock':'inStock'}[target.id];
       stockFilters={...stockFilters,[key]:target.type==='checkbox'?target.checked:target.value};render();return;
     }
     if(target.dataset.inventoryQuantity)return;
-    if (target.dataset.editField) return;
-    if (target.dataset.editPerk || target.dataset.editCorrection) {
-      store.assertWriter();
-      if (target.dataset.editCorrection && target.value === '') return;
-      const perkId = target.dataset.editPerk || target.dataset.editCorrection;
-      characterEditSession = updateCharacterEditSession(characterEditSession, { field: 'perk', id: perkId,
-        value: target.value === 'none' || target.value === '' ? null : Number(target.value),
-        mode: target.dataset.editCorrection ? 'correction' : target.dataset.mode }, save);
-      render(); return;
-    }
-    if (characterEditSession && $('#detail').contains(target)) { message('Reference only during Edit Character.', true); return; }
-    if (target.matches(editingControls)) store.assertWriter();
+    if (target.matches(editingControls) && !target.matches('[data-character-inventory-historical]')) store.assertWriter();
     if (target.dataset.characterInventoryHistorical) {
       if (target.value === '') return;
       const perkId = target.dataset.characterInventoryHistorical, characterId = target.dataset.character;
-      const before = characterInventoryRecordKey(save, characterId, perkId);
-      if (!commit(next => setHistoricalPerkTier(next, characterId, perkId, Number(target.value)), characterId)) return;
-      if (before !== characterInventoryRecordKey(save, characterId, perkId)) characterInventorySession = markCharacterInventoryChanged(characterInventorySession, perkId);
-      characterInventorySession = { ...characterInventorySession, selectedPerkId: perkId };
+      if (characterInventorySession.failedSelection) { render(); return; }
+      saveCharacterInventorySelection({ type: 'historical', characterId, perkId, tier: Number(target.value), baseFingerprint: JSON.stringify(save) });
+      return;
+    }
+    if (target.dataset.characterInventoryCorrectionTier) {
+      const draft = characterInventorySession.correctionDraft;
+      const characterId = target.dataset.character, perkId = target.dataset.characterInventoryCorrectionTier;
+      if (!draft || draft.characterId !== characterId || draft.perkId !== perkId || draft.conflicted) return;
+      const tier = target.value === 'none' ? null : Number(target.value);
+      characterInventorySession = { ...characterInventorySession, correctionDraft: {
+        ...draft, tier, dirty: tier !== draft.originalTier, error: null,
+      } };
       render();
+      $('#character-inventory-correction-tier')?.focus({ preventScroll: true });
       return;
     }
     if (target.id === 'character-inventory-only-unrecorded') { characterInventorySession = { ...characterInventorySession, onlyUnrecorded: target.checked }; render(); return; }
+    if (target.id === 'character-inventory-sort' && ['name', 'source', 'tier'].includes(target.value)) {
+      characterInventorySession = { ...characterInventorySession, sort: target.value };
+      render(); $('#character-inventory-sort')?.focus({ preventScroll: true }); return;
+    }
     if (target.dataset.personalTier) {
+      const characterId = target.dataset.character;
+      const perkId = target.dataset.personalTier;
       const tier = Number(target.value);
-      commit(next => correctPersonalPerkTier(next, target.dataset.character, target.dataset.personalTier, tier === 0 ? null : tier), target.dataset.character);
+      if (hasDirtyWorkspaceDraft()
+        && await resolveWorkspaceDraftTransition({ action: 'detail-personal-tier', characterId, perkId, tier }) !== 'proceed') {
+        refreshDetail();
+        $('#personal-tier-' + CSS.escape(characterId) + '-' + CSS.escape(perkId))?.focus({ preventScroll: true });
+        return;
+      }
+      commit(next => correctPersonalPerkTier(next, characterId, perkId, tier === 0 ? null : tier), characterId);
       refreshDetail();
       return;
     }
@@ -1625,7 +2200,17 @@ document.addEventListener('change', async event => {
         setHistoricalPerkTier(preview, characterId, perkId, tier);
         characterSetup.perks[perkId] = tier;
         refreshDetail();
-      } else if (commit(next => setHistoricalPerkTier(next, characterId, perkId, tier), characterId)) refreshDetail();
+      } else {
+        if (hasDirtyWorkspaceDraft()
+          && await resolveWorkspaceDraftTransition({ action: 'detail-historical-tier', characterId, perkId, tier }) !== 'proceed') {
+          refreshDetail();
+          [...document.querySelectorAll('[data-historical-ownership]')]
+            .find(control => control.dataset.character === characterId && control.dataset.historicalOwnership === perkId)
+            ?.focus({ preventScroll: true });
+          return;
+        }
+        if (commit(next => setHistoricalPerkTier(next, characterId, perkId, tier), characterId)) refreshDetail();
+      }
       return;
     }
     if (target.dataset.characterSetupPerk) {
@@ -1646,10 +2231,10 @@ document.addEventListener('change', async event => {
     }
     if (target.id === 'halloween-names') { commit(next => { next.settings.halloweenNames = target.value; }); refreshDetail(); }
     if (target.id === 'hellraiser-names') { commit(next => { next.settings.hellraiserNames = target.value; }); refreshDetail(); }
-    if (target.id === 'sort') { filters.sort = target.value; collectionPage = 0; render(); }
-    if (target.id === 'prestige-filter') { filters.prestige = target.value; collectionPage = 0; render(); }
+    if (target.id === 'sort') { filters.sort = target.value; render(); $('#sort')?.focus({ preventScroll: true }); }
+    if (target.id === 'prestige-filter') { collectionFiltersOpen = $('#collection-filters')?.open ?? false; filters.prestige = target.value; render(); $('#prestige-filter')?.focus({ preventScroll: true }); }
     if (target.id === 'import-file') {
-      if (await resolveDirtyCharacterEdit({ action: 'import-file' }) !== 'proceed') { target.value = ''; return; }
+      if (await resolveWorkspaceDraftTransition({ action: 'import-file' }) !== 'proceed') { target.value = ''; return; }
       const file = target.files[0]; target.value = '';
       if (!file) return;
       pendingImport = parseSave(await file.text());
@@ -1667,10 +2252,16 @@ document.addEventListener('change', async event => {
     }
   } catch (error) { pendingImport = null; message(error.message || 'Could not complete this change.', true); }
 });
-document.addEventListener('submit', event => {
-  if (event.target.matches('[data-character-edit]')) { event.preventDefault(); return; }
-});
 document.addEventListener('keydown', event => {
+  if (event.target.matches('.killer-power-reference') && (event.key === 'PageDown' || event.key === 'PageUp')) {
+    event.preventDefault();
+    event.target.scrollTop += (event.key === 'PageDown' ? 1 : -1) * event.target.clientHeight;
+    return;
+  }
+  if (event.key === 'Escape' && $('dialog[open]')) return;
+  if (event.key === 'Escape' && $('#menu-toggle').getAttribute('aria-expanded') === 'true') {
+    event.preventDefault(); setGlobalMenuOpen(false, true); return;
+  }
   if(event.key==='Enter'&&event.target.hasAttribute('data-killer-quantity')){event.preventDefault();acceptKillerQuantity(event.target.dataset.killerQuantity,'enter');return;}
   if(event.key==='Enter'&&event.target.dataset.inventoryQuantity){event.preventDefault();acceptStock(event.target.dataset.inventoryQuantity,'enter');return;}
   if (event.key === 'Escape' && characterInventorySession.quickPerkId) { event.preventDefault(); closeCharacterInventoryQuickPicker(true); return; }
@@ -1741,7 +2332,7 @@ $('#detail').addEventListener('close', () => {
 window.addEventListener('hashchange', async () => {
   if (restoringWorkspaceHistory) { const restored = restoringWorkspaceHistory; restoringWorkspaceHistory = null; restored(); return; }
   const target = location.hash || '#dashboard', targetIndex = history.state?.workspaceIndex;
-  if (characterEditSession?.dirty || killerSession?.entities.some(entity=>killerSession.pending[entity.id]||killerSession.errors[entity.id])
+  if (hasDirtyWorkspaceDraft() || characterInventorySession.failedSelection || killerSession?.entities.some(entity=>killerSession.pending[entity.id]||killerSession.errors[entity.id])
     || stockSession?.mode==='detail'&&stockSession.entities.some(entity=>stockSession.pending[entity.id]||stockSession.errors[entity.id])) {
     if (Number.isInteger(targetIndex) && targetIndex !== workspaceHistoryIndex) {
       await new Promise(resolve => { restoringWorkspaceHistory = resolve; history.go(workspaceHistoryIndex - targetIndex); });
@@ -1749,7 +2340,7 @@ window.addEventListener('hashchange', async () => {
     if(!acceptPendingKillerQuantities())return;
     stockBlurPending=null;
     if(!acceptPendingStockQuantities())return;
-    if (await resolveDirtyCharacterEdit({ destination: target, source: 'history' }) !== 'proceed') return;
+    if (await resolveWorkspaceDraftTransition({ destination: target, source: 'history' }) !== 'proceed') return;
     if (Number.isInteger(targetIndex) && targetIndex !== workspaceHistoryIndex) {
       history.go(targetIndex - workspaceHistoryIndex); return;
     }
@@ -1760,7 +2351,7 @@ window.addEventListener('hashchange', async () => {
   finishWorkspaceNavigation();
 });
 window.addEventListener('beforeunload', event => {
-  if (characterEditSession?.dirty) { event.preventDefault(); event.returnValue = ''; }
+  if (hasDirtyWorkspaceDraft() || characterInventorySession.failedSelection) { event.preventDefault(); event.returnValue = ''; }
 });
 window.addEventListener('storage', event => {
   if (!initialized) return;
@@ -1768,11 +2359,31 @@ window.addEventListener('storage', event => {
     closeFilters();
     try {
       const loaded = store.load({ persistMigration: editor.state === 'editing' });
-      if (characterEditSession?.dirty && JSON.stringify(loaded.save) !== characterEditSession.baseFingerprint) {
-        characterEditSession = { ...characterEditSession, conflicted: true,
+      if (characterTaskSession?.dirty && JSON.stringify(loaded.save) !== characterTaskSession.baseFingerprint) {
+        characterTaskSession = { ...characterTaskSession, conflicted: true,
           errors: [{ field: 'session', message: 'Underlying save changed; conflict. Discard/reload before saving.' }] };
       }
+      if (characterInventorySession.failedSelection?.baseFingerprint !== undefined
+        && JSON.stringify(loaded.save) !== characterInventorySession.failedSelection.baseFingerprint) {
+        characterInventorySession = { ...characterInventorySession,
+          failedSelection: { ...characterInventorySession.failedSelection, conflicted: true } };
+      }
+      if (characterInventorySession.correctionDraft?.baseFingerprint !== undefined
+        && JSON.stringify(loaded.save) !== characterInventorySession.correctionDraft.baseFingerprint) {
+        characterInventorySession = { ...characterInventorySession,
+          correctionDraft: { ...characterInventorySession.correctionDraft, conflicted: true } };
+      }
       save = loaded.save; migrationPending = loaded.migrationPending; storageBlocked = false;
+      if (characterSetup && JSON.stringify(loaded.save) !== characterSetup.baseFingerprint) {
+        if (characterSetupIsDirty()) characterSetup = { ...characterSetup, conflicted: true };
+        else {
+          const previous = characterSetup;
+          characterSetup = createCharacterSetupDraft(previous.id, previous.returnRoute);
+          characterSetup.step = previous.step;
+          characterSetup.search = previous.search;
+          characterSetup.batch = previous.batch;
+        }
+      }
       if(killerSession){
         const previous=killerSession;
         killerSession=regroupQuantityEntries(previous,save.characters[killerSessionKey].inventory.addons);
@@ -1799,6 +2410,14 @@ window.addEventListener('storage', event => {
 $('#perk-filter-panel').addEventListener('toggle', () => $('#filters-trigger')?.setAttribute('aria-expanded', String($('#perk-filter-panel').matches(':popover-open'))));
 document.addEventListener('error', event => {
   const image = event.target;
+  if (image instanceof HTMLImageElement && image.hasAttribute('data-collection-hero-art')
+    && image.closest('.character-collection-card')) {
+    const fallback = document.createElement('span');
+    fallback.className = 'collection-art-fallback';
+    fallback.setAttribute('aria-hidden', 'true');
+    fallback.textContent = 'Portrait unavailable';
+    image.replaceWith(fallback); return;
+  }
   if(image instanceof HTMLImageElement && image.hasAttribute('data-inventory-icon')){
     const fallback=document.createElement('span');fallback.className='stock-art-fallback';fallback.setAttribute('aria-hidden','true');fallback.textContent='◇';
     image.replaceWith(fallback);return;

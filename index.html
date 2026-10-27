@@ -9,9 +9,12 @@
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <aside class="sidebar">
-    <a class="brand" href="#dashboard"><svg class="mark" aria-hidden="true" viewBox="0 0 36 32"><path d="M3 29 9 3M11 29 17 3M19 29 25 3M27 29 33 3" fill="none" stroke="currentColor" stroke-width="3"/></svg><span>THE LEDGER<small>DEAD BY DAYLIGHT</small></span></a>
+    <div class="sidebar-header">
+      <a class="brand" href="#dashboard"><svg class="mark" aria-hidden="true" viewBox="0 0 36 32"><path d="M3 29 9 3M11 29 17 3M19 29 25 3M27 29 33 3" fill="none" stroke="currentColor" stroke-width="3"/></svg><span>THE LEDGER<small>DEAD BY DAYLIGHT</small></span></a>
+      <button type="button" id="menu-toggle" class="menu-toggle" aria-controls="global-nav" aria-expanded="false">Menu</button>
+    </div>
     <div class="nav-label">YOUR ACCOUNT</div>
-    <nav aria-label="Main navigation">
+    <nav id="global-nav" aria-label="Main navigation">
       <a href="#dashboard" data-page="dashboard"><span aria-hidden="true">◫</span>Dashboard</a>
       <a href="#survivors" data-page="survivors"><span aria-hidden="true">♙</span>Survivors<span class="nav-count" id="survivor-count"></span></a>
       <a href="#killers" data-page="killers"><span aria-hidden="true">♜</span>Killers<span class="nav-count" id="killer-count"></span></a>
@@ -44,7 +47,7 @@ npm run build</code></pre>
   <dialog id="detail" aria-labelledby="detail-title"><p id="detail-message" class="error" role="alert" hidden></p><div id="detail-content"></div></dialog>
   <dialog id="confirmation" aria-labelledby="confirm-title"><form method="dialog"><h2 id="confirm-title"></h2><p id="confirm-text"></p><div class="dialog-actions"><button value="cancel" autofocus>Cancel</button><button id="confirm-accept" class="primary" value="accept">Confirm</button></div></form></dialog>
   <input id="import-file" type="file" accept=".json,application/json" hidden>
-  <dialog id="dirty-navigation" aria-labelledby="dirty-title"><form method="dialog"><h2 id="dirty-title">Unsaved character changes</h2><p>Save this character, discard the draft, or stay and continue editing.</p><div class="dialog-actions"><button value="stay" autofocus>Stay</button><button value="discard">Discard</button><button value="save" class="primary">Save</button></div></form></dialog>
+  <dialog id="dirty-navigation" aria-labelledby="dirty-title"><form method="dialog"><h2 id="dirty-title">Unsaved changes</h2><p id="dirty-text">Save this task, discard the draft, or stay and continue editing.</p><div class="dialog-actions"><button value="stay" autofocus>Stay</button><button value="discard">Discard</button><button value="save" class="primary">Save</button></div></form></dialog>
   <noscript>This tracker requires JavaScript to store and manage your progression.</noscript>
   <script defer src="dist/app.js"></script>
 </body>

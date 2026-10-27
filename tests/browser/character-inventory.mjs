@@ -24,7 +24,7 @@ async function seed(page, origin) {
   await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), fixture);
   await page.goto(origin + '/#manage/' + character);
   await page.reload();
-  await page.getByRole('link', { name: 'Update Inventory', exact: true }).waitFor();
+  await page.getByRole('link', { name: 'Update Inventory', exact: true }).first().waitFor();
   await page.goto(origin + '/#character/' + character + '/perks/update');
   assert.equal(await page.getByRole('button', { name: 'Native perks', exact: true }).count(), 1);
   assert.equal(await page.locator('[role="tablist"]').count(), 0);
@@ -44,18 +44,30 @@ export async function characterInventoryRegression(page, origin) {
   assert.equal(await workspace.locator('h1').count(),1,'Shared identity supplies the only h1');
   assert.equal(await workspace.locator('.character-portrait').count(),1,'Perks cannot repeat the character portrait');
   assert.equal(await workspace.getByRole('heading',{name:'Perks',exact:true}).count(),1,'Normal Perks has a simple section heading');
-  assert.equal(await workspace.getByRole('link',{name:'Update Inventory',exact:true}).count(),1);
+  assert.equal(await workspace.locator('.character-inventory-update-action').count(),1);
 
-  // Normal mode is an effective inventory, not a missing-perk filter.
-  assert.equal(await page.locator('#character-inventory-search').count(), 0);
-  assert.match(await page.locator('.character-inventory-intro').textContent(), /\d+ perks tracked/);
-  const inventoryCount = await page.locator('.character-inventory-grid .perk-card').count();
+  // Browse mode is useful and read-only; selection opens a reference before Update is explicit.
+  assert.equal(await page.locator('#character-inventory-search').count(), 1);
+  assert.equal(await page.locator('.character-inventory-scopes').count(), 1);
+  assert.equal(await page.locator('[data-character-inventory-toolbar="browse"]').count(), 1);
+  const inventoryCount = await page.locator('.character-inventory-card-grid .perk-card').count();
   assert.ok(inventoryCount > 0);
-  assert.equal(await page.getByText('Update Inventory', { exact: true }).count(), 1);
-  assert.equal(await page.locator('.character-inventory-scopes').count(), 0);
+  assert.equal(await page.locator('.character-inventory-update-action').count(), 1);
+  const beforeBrowse = await page.evaluate(() => localStorage.getItem('dbdTrackerData'));
+  await page.locator('#character-inventory-sort').selectOption('tier');
+  const displayedTierRanks = await page.locator('.character-inventory-card-grid .perk-card-tier').evaluateAll(nodes =>
+    nodes.map(node => ({ '—': 0, I: 1, II: 2, III: 3 }[node.textContent.trim()])));
+  assert.deepEqual(displayedTierRanks, [...displayedTierRanks].sort((a, b) => b - a), 'The tier sort affects the rendered Browse order');
+  await page.locator('#character-inventory-sort').selectOption('name');
+  assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), beforeBrowse, 'Search and sort remain read-only');
 
-  // A normal-view card opens the focused reconciliation editor.
-  await page.locator('.character-inventory-grid [data-perk="overcharge"]').click();
+  // A Browse selection reveals record, minimum, effective and account-access facts without writing.
+  await page.locator('.character-inventory-card-grid [data-perk="overcharge"]').click();
+  assert.equal(new URL(page.url()).hash, '#manage/the-doctor');
+  assert.equal(await page.locator('[data-character-inventory-reference] h2').textContent(), 'Overcharge');
+  assert.equal(await page.locator('[data-character-inventory-reference]').getByText('Recorded tier').count(), 1);
+  assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), beforeBrowse, 'Browse does not mutate account data');
+  await page.locator('[data-open-perk-update="overcharge"]').click();
   await page.locator('#character-inventory-search').waitFor();
   assert.equal(new URL(page.url()).hash, '#character/the-doctor/perks/update');
   assert.equal(await page.locator('[data-character-inventory-detail] h2').textContent(), 'Overcharge');
@@ -78,6 +90,12 @@ export async function characterInventoryRegression(page, origin) {
   assert.ok((await cards(page).count()) < generalCount);
   assert.equal(await card(page, 'bitter-murmur').count(), 0, 'Only unrecorded uses effective tier zero');
   await page.locator('#character-inventory-only-unrecorded').uncheck();
+  await page.getByRole('button', { name: 'All', exact: true }).click();
+  const normalCandidateCount = await cards(page).count();
+  await page.locator('[data-action="character-inventory-all-role"]').click();
+  assert.ok((await cards(page).count()) > normalCandidateCount, 'All-role expands the same-role special acquisition scope');
+  await page.locator('[data-action="character-inventory-all-role"]').click();
+  assert.equal(await cards(page).count(), normalCandidateCount, 'All-role can return to the normal candidate scope');
 
   // Direct selection writes an ordinary personal record and leaves a session marker.
   await card(page, 'bitter-murmur').click();
@@ -101,16 +119,100 @@ export async function characterInventoryRegression(page, origin) {
   assert.match(await page.locator('.character-inventory-session-status').textContent(), /2 changes saved this session/);
   assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('dbdTrackerData')).changedPerkIds), undefined, 'Session markers are not persisted');
 
+  // A failed one-perk write keeps its intent local until it is retried or discarded.
+  const beforeFailedWrite = await stored(page);
+  await page.evaluate(() => {
+    window.inventoryOriginalSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) {
+      if (key === 'dbdTrackerData') throw Error('Synthetic inventory write failure');
+      return window.inventoryOriginalSetItem.call(this, key, value);
+    };
+  });
+  await card(page, 'monitor-abuse').click();
+  await page.locator('[data-character-inventory-detail] [data-action="character-inventory-set-tier"][data-perk="monitor-abuse"][data-tier="3"]').click();
+  assert.deepEqual(await stored(page), beforeFailedWrite, 'A failed selection leaves canonical data unchanged');
+  assert.equal(await page.locator('[data-character-inventory-failed-selection]').count(), 1);
+  assert.match(await page.locator('[data-character-inventory-failed-selection]').textContent(), /Not saved/);
+  await page.evaluate(() => { Storage.prototype.setItem = window.inventoryOriginalSetItem; delete window.inventoryOriginalSetItem; });
+  await page.getByRole('button', { name: 'Retry failed selection', exact: true }).click();
+  assert.equal((await stored(page)).characters[character].perks['monitor-abuse'], 3);
+  assert.match(await page.locator('.character-inventory-session-status').textContent(), /3 changes saved this session/,
+    'A retry preserves earlier successful selection count and records the new success');
+  const unchangedTimestamp = (await stored(page)).characters[character].updatedAt;
+  await page.locator('[data-character-inventory-detail] [data-action="character-inventory-set-tier"][data-perk="monitor-abuse"][data-tier="3"]').click();
+  assert.equal((await stored(page)).characters[character].updatedAt, unchangedTimestamp, 'Repeating a saved tier is a no-op');
+  assert.match(await page.locator('.character-inventory-session-status').textContent(), /3 changes saved this session/);
+  const beforeDone = await stored(page);
+  await page.locator('[data-action="character-inventory-done"]').click();
+  await page.waitForFunction(() => location.hash === '#character/the-doctor/perks');
+  assert.deepEqual(await stored(page), beforeDone, 'Done exits already-saved Update work without another write');
+  await page.goto(origin + '/#character/' + character + '/perks/update');
+  await page.locator('.character-inventory-session-status').waitFor();
+  assert.match(await page.locator('.character-inventory-session-status').textContent(), /0 changes saved this session/,
+    'A fresh Update entry starts a new session count');
+
+  // A later failed intent blocks Done until Stay or explicit discard is chosen.
+  await page.evaluate(() => {
+    window.inventoryOriginalSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) {
+      if (key === 'dbdTrackerData') throw Error('Synthetic inventory write failure');
+      return window.inventoryOriginalSetItem.call(this, key, value);
+    };
+  });
+  await card(page, 'bitter-murmur').click();
+  await page.locator('[data-character-inventory-detail] [data-action="character-inventory-set-tier"][data-perk="bitter-murmur"][data-tier="2"]').click();
+  await page.locator('[data-action="character-inventory-done"]').click();
+  assert.equal(await page.locator('#dirty-navigation').isVisible(), true);
+  assert.equal(await page.locator('#dirty-navigation [value="retry"]').textContent(), 'Retry');
+  assert.equal(await page.locator('#dirty-navigation [value="discard"]').textContent(), 'Discard failed selection');
+  assert.equal(await page.locator('#dirty-navigation [value="stay"]').textContent(), 'Stay');
+  await page.locator('#dirty-navigation [value="stay"]').click();
+  assert.equal(new URL(page.url()).hash, '#character/the-doctor/perks/update');
+  assert.equal(await page.locator('[data-action="character-inventory-done"]').evaluate(node => node === document.activeElement), true,
+    'Stay returns focus to the navigation action that opened the dialog');
+  await page.locator('[data-action="character-inventory-done"]').click();
+  await page.locator('#dirty-navigation [value="discard"]').click();
+  await page.waitForFunction(() => location.hash === '#character/the-doctor/perks');
+  assert.equal(new URL(page.url()).hash, '#character/the-doctor/perks');
+  assert.equal((await stored(page)).characters[character].perks['monitor-abuse'], 3,
+    'Discarding a later failed selection preserves earlier successful records');
+  assert.equal((await stored(page)).characters[character].perks['bitter-murmur'], undefined);
+  await page.evaluate(() => { Storage.prototype.setItem = window.inventoryOriginalSetItem; delete window.inventoryOriginalSetItem; });
+
   // Leaving Update clears visual breadcrumbs while ordinary records remain saved.
   await page.goto(origin + '/#manage/' + character);
-  await page.locator('.character-inventory-grid').waitFor();
+  await page.locator('[data-character-inventory-toolbar="browse"]').waitFor();
   assert.equal(await page.locator('.changed-this-update').count(), 0);
-  assert.equal(await page.locator('.character-inventory-grid [data-perk="bitter-murmur"]').count(), 0);
+  assert.equal(await page.locator('.character-inventory-card-grid [data-perk="bitter-murmur"]').count(), 1,
+    'Browse keeps relevant General perks visible even without a personal record');
+  assert.equal(await page.locator('[data-character-inventory-reference]').textContent().then(text => text.includes('Not recorded')), true);
   await page.goto(origin + '/#manage/' + character + '/update');
   await page.locator('#character-inventory-search').waitFor();
   assert.equal(await page.locator('.changed-this-update').count(), 0);
   await page.locator('#character-inventory-only-unrecorded').check();
   assert.equal(await card(page, 'bitter-murmur').count(), 1, 'Cleared General records remain candidate-visible as unrecorded');
+
+  // Failed Update intent cannot follow the character neighbor into another record.
+  await page.evaluate(() => {
+    window.inventoryOriginalSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) {
+      if (key === 'dbdTrackerData') throw Error('Synthetic inventory write failure');
+      return window.inventoryOriginalSetItem.call(this, key, value);
+    };
+  });
+  await card(page, 'bitter-murmur').click();
+  await page.locator('[data-character-inventory-detail] [data-action="character-inventory-set-tier"][data-perk="bitter-murmur"][data-tier="2"]').click();
+  const nextCharacterHref = await page.locator('[data-roster-neighbor="next"]').getAttribute('href');
+  assert.ok(nextCharacterHref);
+  await page.locator('[data-roster-neighbor="next"]').click();
+  await page.locator('#dirty-navigation [value="discard"]').click();
+  await page.waitForFunction(expected => location.hash === expected, nextCharacterHref);
+  assert.equal(new URL(page.url()).hash, nextCharacterHref);
+  assert.equal(await page.locator('[data-character-inventory-failed-selection]').count(), 0);
+  assert.match(await page.locator('.character-inventory-session-status').textContent(), /0 changes saved this session/);
+  assert.equal((await stored(page)).characters[character].perks['bitter-murmur'], undefined,
+    'Changing character discards only the failed source intent');
+  await page.evaluate(() => { Storage.prototype.setItem = window.inventoryOriginalSetItem; delete window.inventoryOriginalSetItem; });
 
   // Existing manager and account-wide library controls remain on their old routes.
   await page.goto(origin + '/#manage/' + character + '/legacy');
@@ -125,11 +227,11 @@ export async function characterInventoryRegression(page, origin) {
   // Collection cards open Character Overview for both roles.
   await page.goto(origin + '/#survivors');
   await page.getByPlaceholder('Search characters…').fill('Kate');
-  await page.locator('.character-card').filter({ hasText: 'Kate Denson' }).getByRole('link', { name: /Open workspace/ }).click();
+  await page.locator('.character-card').filter({ hasText: 'Kate Denson' }).locator('[data-open-workspace]').click();
   assert.equal(new URL(page.url()).hash, '#character/kate-denson/overview');
   await page.goto(origin + '/#killers');
   await page.getByPlaceholder('Search characters…').fill('Doctor');
-  await page.locator('.character-card').filter({ hasText: 'The Doctor' }).getByRole('link', { name: /Open workspace/ }).click();
+  await page.locator('.character-card').filter({ hasText: 'The Doctor' }).locator('[data-open-workspace]').click();
   assert.equal(new URL(page.url()).hash, '#character/the-doctor/overview');
 
   // Account Shrine unlocks continue to flow through globalTier into canonical Update candidates.
@@ -139,6 +241,9 @@ export async function characterInventoryRegression(page, origin) {
   await page.getByRole('button', { name: 'Close details', exact: true }).click();
   await page.goto(origin + '/#manage/the-doctor/update');
   await page.locator('#character-inventory-search').waitFor();
+  assert.equal(await page.locator('#character-inventory-only-unrecorded').isChecked(), true,
+    'Safe Perks filters survive workspace route changes');
+  await page.locator('#character-inventory-only-unrecorded').uncheck();
   await page.getByRole('button', { name: 'Unlocked', exact: true }).click();
   assert.equal(await card(page, 'hex-ruin').count(), 1, 'Shrine unlock appears through globalTier in canonical Update');
 
@@ -174,9 +279,13 @@ export async function characterInventoryRegression(page, origin) {
 
   // Survivor canonical routes use the same production renderer and remain role-scoped.
   await page.goto(origin + '/#manage/kate-denson');
-  await page.locator('.character-inventory-grid').waitFor();
-  assert.ok(await page.locator('.character-inventory-grid .perk-card').count() > 0);
-  await page.getByRole('link', { name: 'Update Inventory', exact: true }).click();
+  await page.locator('[data-character-inventory-toolbar="browse"]').waitFor();
+  assert.ok(await page.locator('.character-inventory-card-grid .perk-card').count() > 0);
+  await page.locator('#character-inventory-search').fill('Will to Live');
+  assert.equal(await page.locator('.character-inventory-card-grid .perk-card[data-perk="decisive-strike"]').count(), 1,
+    'Browse search resolves the legacy licensed alias to one canonical perk');
+  await page.locator('#character-inventory-search').fill('');
+  await page.locator('.character-inventory-update-action').click();
   await page.locator('#character-inventory-search').waitFor();
   assert.equal(new URL(page.url()).hash, '#character/kate-denson/perks/update');
   assert.ok(await cards(page).count() > 0);
@@ -185,6 +294,10 @@ export async function characterInventoryRegression(page, origin) {
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.locator('.character-inventory-card-size-control').count(), 1);
   assert.equal(await page.locator('.character-inventory-card-size-control').isVisible(), false);
+  assert.ok(await page.locator('#character-inventory-sort').evaluate(node => {
+    const rect = node.getBoundingClientRect();
+    return rect.left >= 0 && rect.right <= innerWidth;
+  }), 'Mobile sort control remains within the viewport');
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   const mobileCards = await page.locator('.character-inventory-card-grid .perk-card').evaluateAll(nodes => nodes.map(node => {
     const rect = node.getBoundingClientRect();
@@ -195,7 +308,7 @@ export async function characterInventoryRegression(page, origin) {
   assert.equal(await page.locator('.character-inventory-layout').evaluate(node => getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).length), 1, 'Mobile editor stacks full-width');
   assert.equal(await page.locator('.character-inventory-editor').evaluate(node => getComputedStyle(node).order), '-1');
   await page.goto(origin + '/#manage/the-doctor');
-  await page.locator('.character-inventory-grid').waitFor();
+  await page.locator('[data-character-inventory-toolbar="browse"]').waitFor();
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(origin + '/#manage/' + character + '/update');
@@ -215,6 +328,7 @@ export async function characterInventoryRegression(page, origin) {
   }
   await page.setViewportSize({ width: 1440, height: 900 });
   await quickPickerRegression(page, origin);
+  await correctionRegression(page, origin);
 }
 
 async function quickPickerRegression(page, origin) {
@@ -352,6 +466,125 @@ async function quickPickerRegression(page, origin) {
   assert.equal(await picker.count(), 1);
   await page.goto(`${origin}/#manage/ash-williams/update`);
   assert.equal(await picker.count(), 0);
+}
+
+async function correctionRegression(page, origin) {
+  const save = structuredClone(fixture);
+  save.characters[character].perks['bitter-murmur'] = 2;
+  save.characters[character].perks.shadowborn = 3;
+  save.characters['ash-williams'].perks.camaraderie = 2;
+  save.characters['meg-thomas'].perks.camaraderie = 0;
+  await page.evaluate(value => localStorage.setItem('dbdTrackerData', JSON.stringify(value)), save);
+  await page.goto(`${origin}/#manage/${character}`);
+  await page.reload();
+  await page.locator('[data-character-inventory-toolbar="browse"]').waitFor();
+
+  await card(page, 'bitter-murmur').click();
+  const reference = page.locator('[data-character-inventory-reference]');
+  assert.equal(await reference.locator('[data-action="character-inventory-correction-open"]').count(), 1);
+  assert.equal(await reference.locator('.character-inventory-correction').locator('[data-action="account-unlock-tier"]').count(), 0,
+    'Personal correction stays separate from account-wide controls');
+  await reference.locator('[data-action="character-inventory-correction-open"]').click();
+  const correction = page.locator('[data-character-inventory-correction]');
+  const tier = correction.locator('[data-character-inventory-correction-tier]');
+  assert.equal(await reference.locator('[data-action="character-inventory-correction-open"]').getAttribute('aria-expanded'), 'true');
+  assert.match(await correction.locator('.character-inventory-correction-facts dd').nth(0).textContent(), /Tier II/);
+  assert.match(await correction.locator('[data-character-inventory-correction-preview]').textContent(), /Tier II/);
+  await tier.selectOption('1');
+  assert.match(await correction.locator('[data-character-inventory-correction-preview]').textContent(), /Tier I/);
+
+  // An explicit correction draft must be resolved before leaving for account-wide perks.
+  await page.locator('#global-nav a[href="#killer-perks"]').click();
+  assert.equal(await page.locator('#dirty-navigation').isVisible(), true);
+  assert.match(await page.locator('#dirty-title').textContent(), /perk correction/i);
+  await page.locator('#dirty-navigation [value="stay"]').click();
+  assert.equal(new URL(page.url()).hash, '#manage/the-doctor');
+  await page.locator('#global-nav a[href="#killer-perks"]').click();
+  assert.equal(await page.locator('#dirty-navigation [value="save"]').textContent(), 'Apply correction');
+  await page.locator('#dirty-navigation [value="discard"]').click();
+  await page.waitForFunction(() => location.hash === '#killer-perks');
+  assert.equal((await stored(page)).characters[character].perks['bitter-murmur'], 2,
+    'Discarding a pending correction leaves the saved personal record untouched');
+
+  await page.goto(`${origin}/#manage/${character}`);
+  await page.locator('[data-character-inventory-toolbar="browse"]').waitFor();
+  await card(page, 'bitter-murmur').click();
+  await page.locator('[data-action="character-inventory-correction-open"]').click();
+  const bitterCorrection = page.locator('[data-character-inventory-correction]');
+  await bitterCorrection.locator('[data-character-inventory-correction-tier]').selectOption('1');
+  assert.match(await bitterCorrection.locator('[data-character-inventory-correction-preview]').textContent(), /Tier I/);
+  await bitterCorrection.locator('[data-action="character-inventory-correction-cancel"]').click();
+  assert.equal((await stored(page)).characters[character].perks['bitter-murmur'], 2,
+    'Cancel discards only the unsaved correction draft');
+  await page.locator('[data-action="character-inventory-correction-open"]').click();
+  const applyBitterCorrection = page.locator('[data-character-inventory-correction]');
+  await applyBitterCorrection.locator('[data-character-inventory-correction-tier]').selectOption('1');
+  await page.evaluate(() => {
+    window.inventoryOriginalSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) {
+      if (key === 'dbdTrackerData') throw Error('Synthetic correction write failure');
+      return window.inventoryOriginalSetItem.call(this, key, value);
+    };
+  });
+  await applyBitterCorrection.locator('[data-action="character-inventory-correction-apply"]').click();
+  assert.equal((await stored(page)).characters[character].perks['bitter-murmur'], 2,
+    'A failed Apply retains the original saved record');
+  assert.equal(await page.locator('[data-character-inventory-correction]').count(), 1,
+    'A failed Apply retains the correction draft for retry or Cancel');
+  assert.match(await page.locator('[data-character-inventory-correction-error]').textContent(), /Not saved/);
+  await page.evaluate(() => { Storage.prototype.setItem = window.inventoryOriginalSetItem; delete window.inventoryOriginalSetItem; });
+  await page.locator('[data-action="character-inventory-correction-apply"]').click();
+  assert.equal((await stored(page)).characters[character].perks['bitter-murmur'], 1,
+    'Apply correction commits a deliberate lower personal record');
+
+  await card(page, 'shadowborn').click();
+  await page.locator('[data-action="character-inventory-correction-open"]').click();
+  const floorCorrection = page.locator('[data-character-inventory-correction]');
+  await floorCorrection.locator('[data-character-inventory-correction-tier]').selectOption('none');
+  assert.match(await floorCorrection.locator('[data-character-inventory-correction-preview]').textContent(), /Tier II/,
+    'The effective preview retains the derived automatic minimum');
+  await floorCorrection.locator('[data-action="character-inventory-correction-apply"]').click();
+  assert.equal((await stored(page)).characters[character].perks.shadowborn, undefined,
+    'Clearing a record preserves the derived automatic minimum');
+  assert.equal(await card(page, 'shadowborn').evaluate(node => node.classList.contains('perk-tier-2')), true);
+
+  await page.goto(`${origin}/#manage/ash-williams`);
+  await page.locator('[data-character-inventory-toolbar="browse"]').waitFor();
+  await card(page, 'camaraderie').click();
+  await page.locator('[data-action="character-inventory-correction-open"]').click();
+  const historicalCorrection = page.locator('[data-character-inventory-correction]');
+  await historicalCorrection.locator('[data-character-inventory-correction-tier]').selectOption('1');
+  await historicalCorrection.locator('[data-action="character-inventory-correction-apply"]').click();
+  assert.equal((await stored(page)).characters['ash-williams'].perks.camaraderie, 1,
+    'Historical positive records can use the deliberate correction path');
+
+  await page.goto(`${origin}/#manage/meg-thomas`);
+  await page.locator('[data-character-inventory-toolbar="browse"]').waitFor();
+  await card(page, 'camaraderie').click();
+  assert.equal(await page.locator('[data-action="character-inventory-correction-open"]').count(), 0,
+    'Historical Not Owned zero remains on its existing acquisition path');
+  await page.locator('.character-inventory-update-action').click();
+  await page.locator('#character-inventory-search').waitFor();
+  await page.locator('#character-inventory-search').fill('camaraderie');
+  await card(page, 'camaraderie').click();
+  assert.equal(await page.locator('[data-character-inventory-historical="camaraderie"]').inputValue(), '0');
+
+  await page.goto(`${origin}/#manage/${character}`);
+  await page.locator('[data-character-inventory-toolbar="browse"]').waitFor();
+  await card(page, 'bitter-murmur').click();
+  await page.locator('[data-action="character-inventory-correction-open"]').click();
+  const conflictedCorrection = page.locator('[data-character-inventory-correction]');
+  await conflictedCorrection.locator('[data-character-inventory-correction-tier]').selectOption('2');
+  await page.evaluate(() => {
+    const changed = JSON.parse(localStorage.getItem('dbdTrackerData'));
+    changed.characters['the-doctor'].favorite = !changed.characters['the-doctor'].favorite;
+    localStorage.setItem('dbdTrackerData', JSON.stringify(changed));
+    window.dispatchEvent(new StorageEvent('storage', { key: 'dbdTrackerData' }));
+  });
+  assert.equal(await conflictedCorrection.locator('[data-character-inventory-correction-tier]').isDisabled(), true,
+    'A correction is locked after its source save changes externally');
+  assert.match(await conflictedCorrection.locator('[data-character-inventory-correction-error]').textContent(), /Stored data changed/);
+  await conflictedCorrection.locator('[data-action="character-inventory-correction-cancel"]').click();
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

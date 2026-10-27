@@ -6,11 +6,15 @@ import { schemaV1Fixture } from '../fixtures/schema-v1.js';
 
 const bytes = page => page.evaluate(() => Object.fromEntries(Object.entries(localStorage)));
 const ready = page => page.waitForFunction(() => ['Saved locally', 'Read-only', 'Editing unavailable', 'Stored save needs recovery'].includes(document.querySelector('#save-status').textContent));
+async function openGlobalDestination(page, name) {
+  const navigation = page.getByRole('navigation', { name: 'Main navigation' });
+  if (!await navigation.isVisible()) await page.getByRole('button', { name: 'Menu', exact: true }).click();
+  await navigation.getByRole('link', { name }).click();
+}
 async function detail(page, role, name) {
-  await page.getByRole('link', { name: new RegExp('^' + role) }).click();
+  await openGlobalDestination(page, new RegExp('^' + role));
   await page.getByPlaceholder('Search characters…').fill(name);
-  await page.getByRole('link', { name, exact: true }).click();
-  await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
+  await page.getByRole('link', { name: `View ${name} workspace`, exact: true }).click();
 }
 async function forcedChange(page, selector, value, type = 'change') {
   await page.locator(selector).evaluate((node, { value, type }) => { node.value = value; node.dispatchEvent(new Event(type, { bubbles: true })); }, { value, type });
@@ -31,11 +35,12 @@ export async function editorRegression(a, origin) {
     await independent.close();
     const before = await bytes(a);
     await detail(b, 'Killers', 'The Trapper');
-    assert.equal(await b.locator('#edit-bloodweb').isDisabled(), true);
-    await forcedChange(b, '#edit-bloodweb', '42', 'input');
+    await b.getByRole('button', { name: 'Edit progression', exact: true }).dispatchEvent('click');
+    assert.equal(await b.locator('[data-character-task-field="bloodwebLevel"]').isDisabled(), true);
+    await forcedChange(b, '[data-character-task-field="bloodwebLevel"]', '42', 'input');
     assert.deepEqual(await bytes(b), before, 'Programmatic progression edit must not write');
     await b.getByRole('button', { name: 'Cancel', exact: true }).click();
-    await b.getByRole('link', { name: 'Data & backups' }).click();
+    await openGlobalDestination(b, 'Data & backups');
     for (const action of ['import', 'reset']) {
       assert.equal(await b.locator(`[data-action="${action}"]`).first().isDisabled(), true);
       await b.locator(`[data-action="${action}"]`).first().dispatchEvent('click');
@@ -51,8 +56,9 @@ export async function editorRegression(a, origin) {
       assert.ok(await b.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     }
     await detail(a, 'Survivors', 'Meg Thomas');
-    await a.locator('#edit-bloodweb').fill('29');
-    await a.getByRole('button', { name: 'Save Character', exact: true }).click();
+    await a.getByRole('button', { name: 'Edit progression', exact: true }).click();
+    await a.locator('[data-character-task-field="bloodwebLevel"]').fill('29');
+    await a.getByRole('button', { name: 'Save progression', exact: true }).click();
     await b.waitForFunction(() => document.querySelector('#message').textContent.includes('another tab'));
     await a.close();
     await b.waitForFunction(async () => !(await navigator.locks.query()).held.some(l => l.name === 'dbdTracker-editor'));
@@ -65,11 +71,10 @@ export async function editorRegression(a, origin) {
     // users close the modal before clicking the notice behind it.
     await b.locator('[data-action="enable-editing"]').dispatchEvent('click');
     await b.waitForFunction(() => document.querySelector('#save-status').textContent === 'Saved locally');
-    assert.equal(await b.locator('#detail').isVisible(), false, 'Retry discards mounted forms/drafts');
-    await detail(b, 'Survivors', 'Meg Thomas');
-    assert.equal(await b.locator('#edit-bloodweb').inputValue(), '37');
-    await b.locator('#edit-bloodweb').fill('38');
-    await b.getByRole('button', { name: 'Save Character', exact: true }).click();
+    await b.getByRole('button', { name: 'Edit progression', exact: true }).click();
+    assert.equal(await b.locator('[data-character-task-field="bloodwebLevel"]').inputValue(), '37');
+    await b.locator('[data-character-task-field="bloodwebLevel"]').fill('38');
+    await b.getByRole('button', { name: 'Save progression', exact: true }).click();
     assert.equal(JSON.parse((await bytes(b)).dbdTrackerData).characters['meg-thomas'].bloodwebLevel, 38);
     assert.equal(await c.locator('#save-status').textContent(), 'Read-only');
   } finally { await b.close(); await c.close(); }
@@ -90,7 +95,7 @@ export async function editorRegression(a, origin) {
   assert.equal(migrated.schemaVersion, 2);
   assert.deepEqual(migrated.prestigeQueue, []);
   assert.deepEqual(migrated.characters['meg-thomas'].inventory, { items: {}, addons: {} });
-  await reader.getByRole('link', { name: 'Data & backups' }).click();
+  await openGlobalDestination(reader, 'Data & backups');
   const stable = await bytes(reader);
   for (const action of ['restore', 'delete-backup']) {
     assert.equal(await reader.locator(`[data-action="${action}"]`).first().isDisabled(), true);
@@ -130,7 +135,9 @@ export async function editorRegression(a, origin) {
     assert.equal(await page.locator('#save-status').textContent(), 'Editing unavailable');
     assert.match(await page.locator('#editor-notice').textContent(), /unavailable/i);
     await detail(page, 'Survivors', 'Meg Thomas');
-    await forcedChange(page, '#edit-bloodweb', '22', 'input');
+    await page.getByRole('button', { name: 'Edit progression', exact: true }).dispatchEvent('click');
+    assert.equal(await page.locator('[data-character-task-field="bloodwebLevel"]').isDisabled(), true);
+    await forcedChange(page, '[data-character-task-field="bloodwebLevel"]', '22', 'input');
     assert.deepEqual(await bytes(page), {});
     await isolated.close();
   }

@@ -21,6 +21,10 @@ export async function workspaceLayouts(page, origin) {
   for(const route of routes){
     await page.goto(origin+'/#'+route);await page.reload();
     await page.locator('[data-character-workspace]').waitFor();
+    if (route.endsWith('/edit')) {
+      await page.waitForFunction(() => location.hash === '#character/meg-thomas/overview');
+      assert.equal(await page.locator('[data-character-edit]').count(), 0, 'Retired Edit bookmark resolves to Overview');
+    }
     assert.equal(await page.locator('h1').textContent(),route.includes('the-doctor')?'The Doctor':'Meg Thomas');
     assert.equal(await page.evaluate(()=>document.activeElement.id),'main');
     if(route.includes('perks')||route.startsWith('manage/')||route.startsWith('experiment/'))

@@ -5,6 +5,8 @@ import killerRuntime from '../../data/killer-runtime-catalog.json' with { type: 
 import assetManifest from '../../data/asset-manifest.json' with { type: 'json' };
 
 const rarityOrder = ['Ultra Rare', 'Very Rare', 'Rare', 'Uncommon', 'Common'];
+const killerAddonCount = characterId => Object.values(inventoryEntityById)
+  .filter(entity => entity.role === 'killer' && entity.characterId === characterId).length;
 
 export async function killerPowerAddonsRegression(page, origin, manifest) {
   manifest ||= assetManifest;
@@ -14,14 +16,19 @@ export async function killerPowerAddonsRegression(page, origin, manifest) {
     .filter(entity => entity.role === 'killer' && entity.characterId === doctorId)
     .sort((a, b) => a.order - b.order);
 
+  const fixture = freshSave();
+  fixture.characters[doctorId].inventory.addons[doctorAddons[0].id] = 4;
+  fixture.characters[doctorId].inventory.addons['killer-addon-unresolved'] = 9;
+  await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), fixture);
   await page.goto(origin + '/#character/' + doctorId + '/power-addons');
+  await page.reload();
   const workspace = page.locator('[data-character-workspace]');
   await workspace.locator('[data-killer-power-panel]').waitFor();
   const powerPanel = workspace.locator('[data-killer-power-panel]');
   assert.equal(await powerPanel.locator('[data-power-name]').textContent(), doctorPower.powerName);
   assert.equal(await powerPanel.locator('[data-power-summary]').textContent(), doctorPower.shortSummary);
 
-  assert.equal(await workspace.locator('[data-killer-addon-card]').count(), 20);
+  assert.equal(await workspace.locator('[data-killer-addon-card]').count(), doctorAddons.length);
   assert.equal(await workspace.locator('[data-addon-rarity-section], [data-addon-rarity-toggle]').count(), 0,
     'Killer Add-ons render without rarity subgroup containers or collapse controls');
   const displayedIds = await workspace.locator('[data-killer-addon-card]').evaluateAll(nodes =>
@@ -30,28 +37,103 @@ export async function killerPowerAddonsRegression(page, origin, manifest) {
     .filter(addon => addon.rarity === rarity).map(addon => addon.id)), 'Add-ons retain source order inside each rarity');
   assert.deepEqual(await workspace.locator('[data-killer-addon-card]').evaluateAll(nodes =>
     [...new Set(nodes.map(node => node.dataset.characterId))]), [doctorId], 'Only the selected Killer Add-ons are shown');
-  assert.equal(await workspace.locator('[data-killer-quantity]').count(), 20);
+  assert.equal(await workspace.locator('[data-killer-quantity]').count(), doctorAddons.length);
   assert.equal(await workspace.locator('[data-action="stock-family-select"], [data-action="stock-family-toggle"], #inventory-in-stock').count(), 0);
+  const search = workspace.locator('#killer-addon-search');
+  const inStock = workspace.locator('#killer-addon-in-stock');
+  const rarity = workspace.locator('#killer-addon-rarity');
+  assert.equal(await search.count(), 1, 'Power & Add-ons has an Add-on name/effect search');
+  assert.equal(await inStock.count(), 1, 'Power & Add-ons has an In Stock restriction');
+  assert.equal(await rarity.count(), 1, 'Power & Add-ons has an optional rarity restriction');
+  assert.equal(await workspace.locator('[data-killer-addon-results]').textContent(), `Showing ${doctorAddons.length} of ${doctorAddons.length} Add-ons.`);
+  assert.equal(await workspace.locator('[data-killer-unresolved-addons] li').count(), 1,
+    'Unknown imported Add-on records stay separate and read-only');
+  const effectWord = doctorAddons.find(addon => addon.effect)?.effect.match(/[A-Za-z]{6,}/)?.[0];
+  assert.ok(effectWord);
+  await search.fill(effectWord);
+  const effectMatches = doctorAddons.filter(addon => (addon.name + ' ' + addon.effect).toLowerCase().includes(effectWord.toLowerCase()));
+  assert.deepEqual(await workspace.locator('[data-killer-addon-card]').evaluateAll(nodes => nodes.map(node => node.dataset.addonId)),
+    rarityOrder.flatMap(r => effectMatches.filter(addon => addon.rarity === r).map(addon => addon.id)),
+    'Search matches Add-on effects and names while keeping the flat rarity order');
+  await search.fill('no-match-token');
+  assert.match(await workspace.locator('[data-killer-addon-empty]').textContent(), /No Add-ons match these filters\./);
+  await workspace.locator('[data-action="killer-addon-filter-reset"]').click();
+  assert.equal(await search.inputValue(), '');
+  await inStock.check();
+  assert.deepEqual(await workspace.locator('[data-killer-addon-card]').evaluateAll(nodes => nodes.map(node => node.dataset.addonId)), [doctorAddons[0].id]);
+  await inStock.uncheck();
+  await rarity.selectOption(doctorAddons[0].rarity);
+  const rarityMatches = doctorAddons.filter(addon => addon.rarity === doctorAddons[0].rarity);
+  assert.deepEqual(await workspace.locator('[data-killer-addon-card]').evaluateAll(nodes => nodes.map(node => node.dataset.addonId)),
+    rarityOrder.flatMap(r => rarityMatches.filter(addon => addon.rarity === r).map(addon => addon.id)));
+  await workspace.locator('[data-action="killer-addon-filter-reset"]').click();
+
+  const firstQuantity = workspace.locator(`[data-killer-quantity="${doctorAddons[1].id}"]`);
+  await firstQuantity.fill('7');
+  await search.fill('hide-pending-row');
+  await page.waitForFunction(id => JSON.parse(localStorage.dbdTrackerData).characters['the-doctor'].inventory.addons[id] === 7, doctorAddons[1].id);
+  assert.equal(await workspace.locator('[data-killer-addon-card][data-addon-id="' + doctorAddons[1].id + '"]').count(), 0,
+    'Applying a filter settles a pending quantity before hiding its row');
+  await workspace.locator('[data-action="killer-addon-filter-reset"]').click();
+  const invalidQuantity = workspace.locator(`[data-killer-quantity="${doctorAddons[1].id}"]`);
+  await invalidQuantity.fill('invalid');
+  await search.fill('hide-invalid-row');
+  assert.equal(await search.inputValue(), '', 'Invalid quantity blocks the new filter');
+  assert.equal(await invalidQuantity.inputValue(), 'invalid', 'Invalid quantity remains available to correct');
+  assert.equal(await invalidQuantity.getAttribute('aria-invalid'), 'true');
+  assert.equal(await invalidQuantity.evaluate(node => node === document.activeElement), true);
+  await invalidQuantity.fill('7');
+  await invalidQuantity.press('Enter');
+
+  await search.fill(effectWord);
+  await page.getByRole('link', { name: /^Next Killer:/ }).click();
+  assert.equal(await page.locator('#killer-addon-search').inputValue(), effectWord, 'Safe Add-on filters carry to Killer neighbors');
+  assert.equal(await page.locator('[data-killer-addon-card][data-character-id="the-doctor"]').count(), 0,
+    'Neighbor Add-ons remain owner-specific while filters carry');
+  await page.goto(origin + '/#character/' + doctorId + '/power-addons');
+  await page.locator('[data-killer-power-panel]').waitFor();
 
   const detailsTrigger = workspace.locator('[data-action="killer-power-details"]');
   await detailsTrigger.click();
-  assert.equal(await page.locator('#detail').isVisible(), true);
+  assert.equal(await page.getByRole('dialog', { name: doctorPower.powerName, exact: true }).isVisible(), true);
+  assert.equal(await page.getByRole('button', { name: 'Close details', exact: true }).evaluate(node => node === document.activeElement), true,
+    'Power dialog moves keyboard focus to its named close control');
   const powerDetails = page.locator('#detail-content');
+  assert.equal(await powerDetails.locator('[data-power-detail-field="shortSummary"] h3').textContent(), 'Summary');
+  assert.equal(await powerDetails.locator('[data-power-detail-field="fullExplanation"] h3').textContent(), 'Full mechanics');
+  const renderedComponents = await powerDetails.locator('[data-power-component]').evaluateAll(nodes => nodes.map(node => ({
+    name:node.querySelector('h4')?.textContent,
+    type:node.querySelector('.killer-power-type')?.textContent,
+    description:node.querySelector('.killer-power-description')?.textContent,
+  })));
+  for (const component of doctorPower.components) {
+    const cards=renderedComponents.filter(card=>card.name===component.name);
+    assert.equal(cards.length,1,`Component ${component.name} has its own heading`);
+    assert.ok(cards[0].type.includes(component.type),`Component type is readable: ${component.name}`);
+    assert.equal(cards[0].description,component.description,`Component description is preserved: ${component.name}`);
+  }
+  assert.equal(await powerDetails.locator('[data-power-component] dt').count(), 0,
+    'Components use reading labels/headings rather than repeated raw implementation keys');
   for (const [field, heading, firstValue] of [
-    ['fullExplanation', 'Full Explanation', doctorPower.fullExplanation],
+    ['fullExplanation', 'Full mechanics', doctorPower.fullExplanation],
     ['components', 'Components', doctorPower.components[0].name],
     ['mechanics', 'Mechanics', doctorPower.mechanics[0].name],
     ['resources', 'Resources', doctorPower.resources[0].name],
-    ['survivorInteractions', 'Survivor Interactions', doctorPower.survivorInteractions[0].name],
-    ['powerStates', 'Power States', doctorPower.powerStates[0].name],
-    ['addonRelevantMechanics', 'Add-on-Relevant Mechanics', typeof doctorPower.addonRelevantMechanics === 'string' ? doctorPower.addonRelevantMechanics : (typeof doctorPower.addonRelevantMechanics[0] === 'string' ? doctorPower.addonRelevantMechanics[0] : doctorPower.addonRelevantMechanics[0].name)],
-    ['complexRules', 'Complex Rules', doctorPower.complexRules[0].name],
+    ['survivorInteractions', 'Survivor interactions', doctorPower.survivorInteractions[0].name],
+    ['powerStates', 'Power states', doctorPower.powerStates[0].name],
+    ['addonRelevantMechanics', 'Add-on-relevant mechanics', typeof doctorPower.addonRelevantMechanics === 'string' ? doctorPower.addonRelevantMechanics : (typeof doctorPower.addonRelevantMechanics[0] === 'string' ? doctorPower.addonRelevantMechanics[0] : doctorPower.addonRelevantMechanics[0].name)],
+    ['complexRules', 'Complex rules', doctorPower.complexRules[0].name],
   ]) {
     assert.equal(await powerDetails.locator(`[data-power-detail-field="${field}"] h3`).textContent(), heading, field);
     const rendered = await powerDetails.locator(`[data-power-detail-field="${field}"]`).textContent();
     assert.ok(rendered.includes(firstValue), `${field}: ${rendered} does not include ${firstValue}`);
   }
   assert.doesNotMatch(await powerDetails.textContent(), /research sources|verification notes|confidence|patch history/i);
+  const powerText = await powerDetails.textContent();
+  const leaves = value => value && typeof value === 'object'
+    ? Object.entries(value).filter(([key]) => key !== 'artwork').flatMap(([, item]) => leaves(item))
+    : [String(value)];
+  for (const text of leaves(doctorPower).filter(value => value.length > 8)) assert.ok(powerText.includes(text), `Power reference preserves: ${text}`);
   await page.getByRole('button', { name: 'Close details', exact: true }).click();
   assert.equal(await detailsTrigger.evaluate(node => document.activeElement === node), true, 'Power dialog restores focus');
 
@@ -63,11 +145,22 @@ export async function killerPowerAddonsRegression(page, origin, manifest) {
   await page.getByRole('button', { name: 'Close details', exact: true }).click();
   assert.equal(await addonTrigger.evaluate(node => document.activeElement === node), true, 'Add-on dialog restores focus');
 
+  await addonTrigger.click();
+  await page.evaluate(() => {
+    const search = document.querySelector('#killer-addon-search');
+    search.value = 'remove-opener-from-filtered-results';
+    search.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await page.getByRole('button', { name: 'Close details', exact: true }).press('Escape');
+  await page.waitForFunction(() => document.activeElement?.id === 'main' || document.activeElement?.id === 'killer-addon-search');
+  assert.equal(await page.locator('#detail').isVisible(), false, 'Add-on dialog closes on Escape after opener removal');
+  await page.locator('[data-action="killer-addon-filter-reset"]').click();
+
   const doctorSave = await page.evaluate(() => localStorage.getItem('dbdTrackerData'));
   await page.goto(origin + '/#character/the-trapper/power-addons');
   const trapper = killerRuntime.killers.find(killer => killer.characterId === 'the-trapper');
   assert.equal(await page.locator('[data-power-name]').textContent(), trapper.power.powerName);
-  assert.equal(await page.locator('[data-killer-addon-card]').count(), 20);
+  assert.equal(await page.locator('[data-killer-addon-card]').count(), killerAddonCount(trapper.characterId));
   assert.equal(await page.locator('[data-killer-addon-card][data-character-id="the-doctor"]').count(), 0);
 
   await page.goto(origin + '/#character/the-dark-lord/power-addons');
@@ -75,6 +168,12 @@ export async function killerPowerAddonsRegression(page, origin, manifest) {
   assert.equal(await fallback.count(), 1);
   assert.equal(await fallback.getAttribute('role'), 'img');
   assert.equal(await fallback.getAttribute('aria-label'), 'Power artwork unavailable');
+  await page.locator('[data-action="killer-power-details"]').click();
+  assert.equal(await page.locator('#detail-content [data-power-art-fallback]').count(), 1,
+    'A Power without a mapped icon retains its named fallback in the reference');
+  await page.getByRole('button', { name:'Close details', exact:true }).click();
+
+  await killerLongPowerReferenceRegression(page, origin);
 
   await page.goto(origin + '/#character/the-trapper/power-addons');
   const mappedPower = trapper.power.artwork.path;
@@ -99,6 +198,72 @@ export async function killerPowerAddonsRegression(page, origin, manifest) {
   await killerQuantityRegression(page, origin);
   await killerPendingNavigationRegression(page, origin);
   await killerRarityNavigationRegression(page, origin);
+  await killerFilteredZeroFocusRegression(page, origin);
+}
+
+export async function killerFilteredZeroFocusRegression(page, origin) {
+  const addons = Object.values(inventoryEntityById)
+    .filter(entity => entity.role === 'killer' && entity.characterId === 'the-doctor')
+    .sort((a, b) => a.order - b.order);
+  const save = freshSave();
+  save.characters['the-doctor'].inventory.addons[addons[0].id] = 1;
+  save.characters['the-doctor'].inventory.addons[addons[1].id] = 1;
+  await page.evaluate(value => localStorage.setItem('dbdTrackerData', JSON.stringify(value)), save);
+  await page.reload();
+  await page.goto(origin + '/#character/the-doctor/power-addons');
+  await page.locator('#killer-addon-in-stock').waitFor();
+  await page.locator('#killer-addon-in-stock').check();
+
+  const first = page.locator('[data-killer-quantity]').first();
+  const firstId = await first.getAttribute('data-killer-quantity');
+  await first.fill('0');
+  await first.press('Enter');
+  const remaining = page.locator('[data-killer-quantity]').first();
+  const remainingId = await remaining.getAttribute('data-killer-quantity');
+  const enterKeptFocus = await remaining.evaluate(node => document.activeElement === node);
+
+  await page.locator('[data-killer-stock-step][data-id="' + remainingId + '"][data-delta="-1"]').click();
+  const lastRowFocusedSearch = await page.locator('#killer-addon-search').evaluate(node => document.activeElement === node);
+  assert.equal(enterKeptFocus, true,
+    'Enter-zeroing under In Stock focuses the next remaining Add-on quantity');
+  assert.equal(lastRowFocusedSearch, true,
+    'Decrementing the last visible Add-on to zero focuses the Killer Add-on search');
+  assert.equal((await page.evaluate(() => JSON.parse(localStorage.getItem('dbdTrackerData')))
+    ).characters['the-doctor'].inventory.addons[firstId], undefined);
+}
+
+async function killerLongPowerReferenceRegression(page, origin) {
+  const killer = killerRuntime.killers.find(entry => entry.characterId === 'the-slasher');
+  const viewport = page.viewportSize();
+  await page.setViewportSize({ width:390, height:844 });
+  await page.goto(origin + '/#character/the-slasher/power-addons');
+  const opener = page.locator('[data-action="killer-power-details"]');
+  await opener.click();
+  const dialog = page.getByRole('dialog', { name:killer.power.powerName, exact:true });
+  assert.equal(await dialog.isVisible(), true);
+  const geometry = await dialog.evaluate(node => {
+    const rect=node.getBoundingClientRect();
+    const scroller=node.querySelector('.killer-power-reference');
+    const style=getComputedStyle(node);
+    return {x:rect.x,y:rect.y,width:rect.width,height:rect.height,computedWidth:style.width,maxWidth:style.maxWidth,boxSizing:style.boxSizing,
+      scrollHeight:scroller.scrollHeight,clientHeight:scroller.clientHeight};
+  });
+  assert.deepEqual({x:geometry.x,y:geometry.y,width:geometry.width,height:geometry.height},{x:0,y:0,width:390,height:844},
+    'Power reference fills a phone-height dialog');
+  assert.ok(geometry.scrollHeight>geometry.clientHeight,'Long Power mechanics use one internal scroll region');
+  const reference=dialog.locator('.killer-power-reference');
+  await reference.focus();
+  const documentScrollBefore = await page.evaluate(() => document.scrollingElement.scrollTop);
+  await reference.press('PageDown');
+  assert.ok(await reference.evaluate(node=>node.scrollTop>0),'PageDown scrolls the focused Power reference');
+  assert.equal(await page.evaluate(() => document.scrollingElement.scrollTop), documentScrollBefore,
+    'Keyboard scrolling stays inside the Power reference');
+  const title=await dialog.locator('#detail-title').textContent();
+  assert.ok(title.includes(killer.power.powerName));
+  await page.getByRole('button',{name:'Close details',exact:true}).press('Escape');
+  assert.equal(await opener.evaluate(node=>node===document.activeElement),true,
+    'Escape returns focus to the Power Details opener');
+  await page.setViewportSize(viewport);
 }
 
 export async function killerPendingNavigationRegression(page, origin) {
@@ -205,17 +370,17 @@ export async function killerResponsiveRegression(page, origin) {
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Killer page overflow at ${width}`);
         assert.equal(await page.locator('[data-killer-rarity-section], [data-addon-rarity-toggle]').count(), 0,
           'Flat Killer Add-on lists have no rarity headers or collapse controls at ' + width);
-        assert.equal(await page.locator('[data-killer-addon-card]').count(), 20);
+        assert.equal(await page.locator('[data-killer-addon-card]').count(), killerAddonCount(characterId));
         const bounds = await page.locator('[data-killer-power-addons]').evaluate(node => {
-          const elements = [...node.querySelectorAll('.stock-grid, [data-killer-addon-card], button, input')];
+          const elements = [...node.querySelectorAll('.stock-grid, [data-killer-addon-card], button, input, .killer-addon-in-stock')];
           return elements.map(element => {
             const { x, width, height } = element.getBoundingClientRect();
-            return { tag: element.tagName, x, width, height };
+            return { tag: element.tagName, type: element.type, className:element.className, x, width, height };
           });
         });
         for (const box of bounds) {
           assert.ok(box.x >= 0 && box.x + box.width <= width, `Killer content stays inside ${width}: ${JSON.stringify(box)}`);
-          if (box.tag === 'BUTTON' || box.tag === 'INPUT') {
+          if (box.tag === 'BUTTON' || (box.tag === 'INPUT' && box.type !== 'checkbox') || box.className === 'killer-addon-in-stock') {
             assert.ok(box.width >= 44 && box.height >= 44, `44px action/quantity target at ${width}: ${JSON.stringify(box)}`);
           }
         }
@@ -248,7 +413,10 @@ export async function killerQuantityRegression(page, origin) {
   const quantity = async id => JSON.parse(await bytes()).characters['the-doctor'].inventory.addons[id];
   const initial = JSON.parse(await bytes());
   const originalOthers = Object.fromEntries(Object.entries(initial.characters).filter(([id]) => id !== 'the-doctor'));
-  assert.equal(await page.locator('[data-killer-quantity]').count(), 20);
+  for (const addon of addons) delete initial.characters['the-doctor'].inventory.addons[addon.id];
+  await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), initial);
+  await page.reload();
+  assert.equal(await page.locator('[data-killer-quantity]').count(), addons.length);
   for (const delta of [-1, 1, 5, 10]) assert.equal(await step(first.id, delta).count(), 1,
     'Killer quantity controls include step ' + delta);
   const rarityOrderControl = page.locator('#addon-rarity-order');
@@ -271,7 +439,7 @@ export async function killerQuantityRegression(page, origin) {
   await page.keyboard.press('Tab');
   await page.waitForFunction(id => document.querySelector('[data-killer-quantity="' + id + '"]').value === '0', firstRarityId);
   assert.equal(await quantity(firstRarityId), undefined, 'Leaving a zero field blank restores zero without a save entry');
-  assert.deepEqual(await page.locator('[data-killer-quantity]').evaluateAll(nodes => nodes.map(node => node.value)), Array(20).fill('0'));
+  assert.deepEqual(await page.locator('[data-killer-quantity]').evaluateAll(nodes => nodes.map(node => node.value)), Array(addons.length).fill('0'));
   const sourceOrder = await page.locator('[data-killer-addon-card]').evaluateAll(nodes => nodes.map(node => node.dataset.addonId));
   await step(first.id, 1).click();
   assert.equal(await quantity(first.id), 1, 'Increment persists to the selected Killer Add-on map');
@@ -369,9 +537,9 @@ export async function killerQuantityRegression(page, origin) {
   try {
     await reader.goto(origin + '/#character/the-doctor/power-addons');
     await reader.waitForFunction(() => document.querySelector('#save-status').textContent === 'Read-only');
-    assert.equal(await reader.locator('[data-inventory-quantity][data-killer-quantity]').count(), 20);
-    assert.equal(await reader.locator('[data-killer-quantity]:disabled').count(), 20);
-    assert.equal(await reader.locator('[data-killer-stock-step]:disabled').count(), 80);
+    assert.equal(await reader.locator('[data-inventory-quantity][data-killer-quantity]').count(), addons.length);
+    assert.equal(await reader.locator('[data-killer-quantity]:disabled').count(), addons.length);
+    assert.equal(await reader.locator('[data-killer-stock-step]:disabled').count(), addons.length * 4);
     const before = await bytes();
     const readerQuantity = await reader.locator('[data-killer-quantity]').first().inputValue();
     await reader.locator('[data-killer-stock-step][data-delta="1"]').first().dispatchEvent('click');
@@ -412,7 +580,7 @@ export async function killerRarityNavigationRegression(page, origin) {
     .filter(addon => addon.rarity === rarity).map(addon => addon.id)), ...shapeAddons
     .filter(addon => !rarityOrder.includes(addon.rarity)).map(addon => addon.id)];
   const cards = page.locator('[data-killer-addon-card]');
-  assert.equal(await page.locator('[data-killer-addon-card]').count(), 20);
+  assert.equal(await page.locator('[data-killer-addon-card]').count(), shapeAddons.length);
   assert.equal(await page.locator('[data-killer-rarity-section], [data-addon-rarity-section], [data-addon-rarity-toggle]').count(), 0,
     'Killer Add-ons render as one flat list without rarity groups or collapse controls');
   assert.deepEqual(await cards.evaluateAll(nodes => nodes.map(card => card.dataset.addonId)), expectedIds(rarityOrder),

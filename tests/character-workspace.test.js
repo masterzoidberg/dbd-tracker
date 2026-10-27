@@ -6,8 +6,8 @@ import { characters } from '../data/catalog.js';
 
 test('canonical routes and bare alias use one explicit descriptor', () => {
   for (const [id, sections] of [
-    ['meg-thomas', ['overview', 'perks', 'items-addons', 'edit', 'setup']],
-    ['the-doctor', ['overview', 'perks', 'power-addons', 'edit', 'setup']],
+    ['meg-thomas', ['overview', 'perks', 'items-addons', 'setup']],
+    ['the-doctor', ['overview', 'perks', 'power-addons', 'setup']],
   ]) for (const section of sections) {
     const href = '#character/' + id + '/' + section;
     assert.equal(characterWorkspaceHref(id, section), href);
@@ -27,6 +27,19 @@ test('five old aliases keep Perks meaning without inventing legacy experiment', 
     ['experiment/meg-thomas/update', 'perks/update'],
   ]) assert.equal(parseCharacterWorkspaceRoute('#' + old).canonicalRoute, '#character/meg-thomas/' + target);
   assert.equal(parseCharacterWorkspaceRoute('#experiment/meg-thomas/legacy').status, 'unavailable');
+});
+
+test('retired Edit bookmarks resolve to Overview while manage and experiment aliases keep Perks meaning', () => {
+  for (const id of ['meg-thomas', 'the-doctor']) {
+    const route = parseCharacterWorkspaceRoute('#character/' + id + '/edit');
+    assert.equal(route.status, 'valid');
+    assert.equal(route.section, 'overview');
+    assert.equal(route.source, 'legacy-edit');
+    assert.equal(route.canonicalRoute, '#character/' + id + '/overview');
+    assert.throws(() => characterWorkspaceHref(id, 'edit'));
+  }
+  assert.equal(parseCharacterWorkspaceRoute('#manage/meg-thomas').canonicalRoute, '#character/meg-thomas/perks');
+  assert.equal(parseCharacterWorkspaceRoute('#experiment/meg-thomas').canonicalRoute, '#character/meg-thomas/perks');
 });
 
 test('recognized invalid hashes remain unavailable instead of top-level fallback', () => {

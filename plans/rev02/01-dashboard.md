@@ -67,13 +67,13 @@ Show only pinned Killers, in the user's independent Killer ranking. Each can car
 
 The Prestige Queue answers **“Who do I intend to level or prestige?”** It may contain more characters than the Dashboard shortlist. A queued character may be pinned to Up Next, but pin ranking is curated separately from Prestige Queue rank. Queue membership or a recommendation must not automatically promote a character to Up Next.
 
-The current application has a persisted Prestige Queue, but it is one globally ordered list of character IDs and target Prestige values. It does not currently have a role-specific queue, an Up Next pin, or an independent Up Next rank. The current Dashboard's “My Prestige Queue” panel previews and manages this longer list, and derives one Current Focus from the first available, unfinished goal. Rev02 should surface only pinned entries in Up Next; it should not repeat the entire queue or add a separate Current Focus block that duplicates the curated list. A later queue-management design must define how the longer list is accessed and edited.
+The current application has a persisted Prestige Queue, but it is one globally ordered list of character IDs and target Prestige values. It does not currently have a role-specific queue, an Up Next pin, or an independent Up Next rank. The current Dashboard's “My Prestige Queue” panel previews and manages this longer list, and derives one Current Focus from the first available, unfinished goal. Rev02 should surface only pinned entries in Up Next; it should not repeat the entire queue or add a separate Current Focus block that duplicates the curated list. Rev02 Core must include a subordinate Manage queues surface reached from Up Next, with role and Prestige/Playing separation. It need not add a seventh global navigation destination. Preserve existing Prestige add/target/remove/reorder capabilities; queue/pin contract gates D01/D02 remain explicit below.
 
 #### Relationship to Playing Queue
 
 The Playing Queue answers **“Who do I actually want to play soon?”** It is separate from Prestige intent because a progression goal and a play-interest priority can differ. It is also role-separated: Playing Survivors and Playing Killers have their own lists.
 
-The current application has no Playing Queue or persisted Playing intent. Up Next must not infer this intent from Favorites, recent edits, or Prestige recommendations. The complete Playing Queue management UI is deferred to future queue-design work.
+The current application has no Playing Queue or persisted Playing intent. Up Next must not infer this intent from Favorites, recent edits, or Prestige recommendations. A subordinate Manage queues surface is required in Core to add/remove/reorder Playing entries independently per role. Exact dialog/inline geometry is an engineering detail; membership/pin semantics await D01/D02. This does not add a fourth primary Dashboard job.
 
 ### 3. Continue Where You Left Off
 
@@ -83,7 +83,9 @@ The current “Continue where you left off” area is a list of up to five recen
 
 The route system already expresses a character and section in the URL. `parseCharacterWorkspaceRoute()` and `characterWorkspaceHref()` in `src/character-workspace.js` handle canonical routes, and the character workspace navigation exposes Overview, Perks, and the role-specific Items & Add-ons or Power & Add-ons section. The URL, current route, and browser history can identify a location while navigating, but no persisted `lastLocation` or recent-route record exists in the save. `lastRoute` and workspace history bookkeeping in `src/app.js` are runtime navigation state, not a saved resume preference. The existing `updatedAt` is changed by saved edits in `commit()`, not by opening a workspace.
 
-Supporting the intended Continue action therefore needs a later decision and persistence design for a last-used character plus workspace section. Role can be derived from the character catalog. The design must decide where that navigation state lives and how it behaves through refresh, import, restore, and a missing or invalid character. It should also decide whether only stable workspace tabs are resumable or whether temporary flows such as Edit, Setup, or perk Update are included. Until then, the current recent-edits list is only secondary edit context, not a valid last-location substitute.
+The consolidation recommendation is one small **browser-local last meaningful workspace** record, separate from progression data, edit timestamps and export. Record only a successfully resolved stable character/section navigation (optionally visit time), not every render, input, search or hover. Stable Overview, Perks browse, Items & Add-ons and Power & Add-ons are resumable. Temporary Edit/Setup map to Overview; Update/legacy Perks map to browse. Do not overwrite the last valid stable location merely because a temporary dialog opens.
+
+Validate via canonical parser/href and current catalog. No local record means quiet “Open a character to continue”; bad/unknown/wrong-role record is ignored. Derive role/name from catalog. Preference write failure must not block real save/navigation. Store no drafts or interaction history. Refresh may restore this one location; import/restore invalidates it and reset clears it to avoid misleading resume across replaced account data. Session-only detailed filters are retained only while valid in the running session; do not promise their cross-refresh restoration. D04/D05 are resolved recommendations consistent with the brief.
 
 ## Existing Dashboard Content Review
 
@@ -100,11 +102,11 @@ Supporting the intended Continue action therefore needs a later decision and per
 | Prestige distribution charts | MOVE | Remove the analytics block from the opening hierarchy. A deeper collection or statistics destination can be considered when those screens are reviewed; no destination is chosen here. |
 | Favorites disclosure and character shortcuts | MOVE | Favorites are useful navigation shortcuts but do not express current Prestige or Playing intent. Keep them available in the role rosters if still useful there; do not use them to populate Up Next. |
 
-Global shell actions such as save status, Export JSON, and Run character setups are in the shared top bar, not Dashboard content. This Dashboard plan does not change their placement.
+Global shell actions such as save status, Export JSON, and Run character setups are in the shared top bar, not Dashboard content. The earlier Dashboard-only placement boundary is superseded by the explicit global shell brief: plan 06 preserves the capabilities and visible status while adapting labeled Menu/Actions placement to width.
 
 ## Desktop Layout Direction
 
-- Use the available workspace width more effectively. The current shell gives `main` a 1750px maximum with 36px desktop padding (44px at wider breakpoints), but the Dashboard breaks content into several separate two-column and full-width regions. The result is a tall stack of similarly framed boxes, with some paired information cards narrower than the workspace needs to be.
+- Use the available workspace width more effectively. The current shell gives `main` a 1750px maximum with 36px desktop padding (44px at wider breakpoints), but the Dashboard breaks content into several separate two-column and full-width regions. At the audited 1920px the shell already uses most available width. The problem is interior grouping and repeated enclosures rather than simply a narrow main cap: a tall stack of similarly framed boxes, with some paired information cards narrower than the workspace needs to be.
 - Give the three primary sections clear separation and weight. Keep Survivor and Killer measures balanced within Progression Snapshot, and keep the two Up Next rankings visibly separate. Continue should be compact and easy to act on.
 - Make the three-section hierarchy apparent through grouping, spacing, and relative emphasis rather than giving every statistic its own panel. Avoid adding a collection of equally prominent boxes.
 - Do not lock a new color system, card treatment, or global max-width here. Reuse the current visual language as a starting point; record broader questions below for the shared/global review.
@@ -133,27 +135,66 @@ Global shell actions such as save status, Export JSON, and Run character setups 
 - `src/model.js` is at schema version 2. `freshSave()` creates `prestigeQueue: []`; `src/storage.js` validates and stores saves in local storage. Character records have `updatedAt`, but the save has no Playing Queue, Up Next pin/order, intent marker, or last-workspace-location field.
 - `src/character-workspace.js` defines canonical character routes and role-specific workspace sections. `src/app.js` tracks the active route and browser history at runtime, but does not save the last character section as a user preference.
 - `styles.css` sets `main` to `max-width: 1750px`, styles `.two-column` at equal widths, and collapses it at 760px. Dashboard summaries, perk summaries, and panels use related but distinct card rules. These are relevant existing constraints, not a prescribed global redesign.
-- Dashboard behavior is covered by `tests/dashboard-selectors.test.js`, `tests/prestige-queue.test.js`, and `tests/browser/dashboard.mjs`. The browser regression currently asserts the old section order, one global Prestige Queue, Current Focus, and its management interactions. Later implementation and verification planning must revisit those expectations against the completed Rev02 decisions. No tests were run for this planning task.
+- Dashboard behavior is covered by `tests/dashboard-selectors.test.js`, `tests/prestige-queue.test.js`, and `tests/browser/dashboard.mjs`. The browser regression currently asserts the old section order, one global Prestige Queue, Current Focus, and its management interactions. Later implementation and verification planning must revisit those expectations against the completed Rev02 decisions. The original Dashboard review ran no tests; current consolidation verification is recorded in the audit matrix.
 
-## Dependencies / Future Design Work
+## Dashboard Data Model Review — 2026-10-25
 
-- **Queue and pin model:** Define separate Prestige and Playing queues for Survivors and Killers, plus independent Up Next pin membership and ordering within each role. Current persistence supports only one globally ordered Prestige Queue with targets. A future architecture/roadmap review must determine the save-model, validation, import/export, backup, and migration implications.
-- **Queue-management screen:** Design the full longer-term queue experience separately. The Dashboard plan only defines how a capped, editable shortlist is surfaced and how it relates to those queues.
-- **Continue state:** Define how the last stable character workspace location is recorded, persisted, refreshed, imported/restored, and recovered if unavailable. Decide whether it is part of the portable progression save or local navigation preference, and whether temporary workflows are eligible resume targets.
-- **Other screen destinations:** Decide where catalog details, setup, suggestions, favorites, and detailed Prestige analytics belong as the Data / Backups, Survivor roster, Killer roster, and perk screens are reviewed.
-- **Verification:** Once all screen plans and the implementation roadmap are reviewed, specify model/selector coverage for independent queue and pin order, route-resume behavior, keyboard reordering, and responsive Dashboard layouts. Existing Dashboard browser assertions will need to be reconciled with the approved hierarchy.
+### Current Relevant State and Reusable Logic
 
-### Open decisions exposed by this plan
+`SCHEMA_VERSION = 2`; `freshSave` has one `prestigeQueue: []`. Each entry is `{ characterId, targetPrestige }`; array index is rank. `validatePrestigeQueue` rejects holes, duplicate/unsafe IDs and invalid targets, but preserves syntactically valid unknown character IDs. `derivePrestigeQueue` calculates unavailable/completed state and Current Focus without persisting it. Add requires an owned resolved character and a positive safe target greater than current Prestige; saved completed/unowned/unresolved goals remain representable. Preserve those distinctions.
 
-1. Can the same character be in both Prestige and Playing queues? If so, should Up Next show one row with both intents or separate rows, and how does that interact with the five-character cap?
-2. Is Up Next pinning limited to characters already present in one of the two queues, or can a user pin a character directly without queue membership?
-3. When a role's five Up Next slots are full, what explicit edit/swap flow should be offered?
-4. Should Continue remember only stable tabs (Overview, Perks, Items & Add-ons, or Power & Add-ons), or also temporary Edit, Setup, and Update workflows?
-5. Should last-location state travel with the user's exported save, or remain a browser-local navigation preference?
+`save.characters` stores owned/favorite/prestige/bloodwebLevel/setupComplete/notes/perks/inventory/updatedAt; `perkOverrides` and naming `settings` are separate account facts. There are no Playing queues, pins or Continue fields. `queueView.role` is a runtime filter over the one global queue, not independent saved role order. `recentCharacters` reads edited timestamps and cannot recover visits. Reuse progression/access helpers and target-benefit calculations without reinterpreting timestamps or Favorites.
+
+### Likely New Persisted Account State
+
+The following is a **recommended logical shape**, not an implemented or approved final schema. Resolve D01/D02 before fixing the pin entry/membership contract.
+
+| State | Logical contents / ordering | Default / constraints |
+| --- | --- | --- |
+| Prestige queues by role | `prestigeQueues.survivor/killer`: ordered `{characterId,targetPrestige}` entries | Independent array rank; preserve target, completion and unavailable semantics. No five-entry limit on longer queues. |
+| Playing queues by role | `playingQueues.survivor/killer`: ordered character references | Independent manually editable lists; no inferred Favorites/recent intent and no invented Prestige target. |
+| Up Next by role | `upNext.survivor/killer`: ordered character references plus explicit intent representation | Unique character per lane, max five each, manual order independent of both longer queues. Intent representation gated by D01; membership validation gated by D02. |
+| Unresolved migrated planning records, if needed | Preserve unresolved old queue entries in a labeled read-only bucket when role cannot be resolved | Do not guess a role or discard unknown valid goals. Exact storage field is an engineering choice. |
+
+Do not retain the legacy global queue and new role queues as competing writable sources. Prefer a versioned migration, likely schema v3 because old v2 validation reconstructs known fields and would silently strip added queue/pin data. `validateSave`, fresh defaults, `TrackerStorage.load/save/replace`, migration backup copy, import summaries/reset warnings, Data schema display and export all require compatible updates. No version bump or code change is made now.
+
+### Migration / Old Export Compatibility
+
+- Accept existing v1 and v2 through an explicit migration chain; future unsupported versions remain rejected. Existing v1→v2 creates empty stock/Prestige queue, so preserve that path before adding new foundations.
+- Split each known old Prestige goal into its catalog role, preserving **relative within-role order**, target and completion/unavailable state. Cross-role interleaving no longer expresses a shared rank. Preserve unresolved goals without assigning a fictional role.
+- Default Playing and Up Next to empty; never auto-pin the first five old goals or derive play intent from Favorites. New clean save defaults are empty for every role list.
+- Back up the validated predecessor before persisting migration; writer capability and backup failure protections remain. Read-only startup must not write migration. Unsupported/invalid account data enters existing recovery behavior without destructive cleanup.
+- Export future canonical queue/pin state; import/re-export preserves order and targets. Derived `effectivePerks`/`perkInventorySummary` remain recomputed export conveniences, not personal-record input. Existing exports without these fields remain valid.
+- Old application builds cannot be promised to preserve new saves: current code rejects future versions and strips unknown extra fields in v2. Never label a v3 payload v2 for apparent backwards compatibility. Updated readers must accept supported older exports; downgrade compatibility is not lossless.
+- Import/restore/reset and local backup snapshots must carry the new fields. Confirmation copy must disclose replacement/defaults. Standalone Data & Backups keeps its existing screen architecture, but this schema compatibility work is in Core.
+
+### Validation / Malformed-State Recovery
+
+Use canonical safe IDs, supported roles, dense arrays, unique entries, valid targets/intent and max five unique pins per role. Known character IDs must agree with lane role. Keep completed/unowned saved goals visible as such rather than silently removing them or refilling pins; creation eligibility must preserve existing Prestige rules. Whether pin creation requires owned/queued membership must follow D01/D02, not an undocumented selector.
+
+New-state validation must distinguish missing fields in supported **older-version migration** (default empty) from malformed declared new-version fields (reject replacement, retain original). Do not silently truncate over-cap lanes, drop duplicates or manufacture ordering on corrupt portable input. Offer the existing raw export/import/backup recovery path. Valid unresolved records are preserved read-only and excluded from active resolved pin slots, with any retention container explicit; do not erase them to make the Dashboard look tidy. Final unresolved-pin policy must honor the unique/five limits without presenting a hidden sixth active entry.
+
+Reorders move one entry within its role lane and commit atomically. New pin in full lane presents its current five for explicit replace/unpin or Cancel; no silent eviction. Recommended replacement occupies the chosen rank and is one atomic edit. Queue edits cannot silently change pin rank. Completion, unowning, queue removal and dual intent must have explicit no-data-loss rules; the final membership/intent-dependent portions remain D01/D02 gates.
+
+### Continue State and Routing
+
+Recommended local-only logical value: `{characterId, section, visitedAt?}` with no standalone role duplication. Small preference is not an account-schema field, not exported and not tracked as progression `updatedAt`. Canonical parser/href validates stable sections. Write once per meaningful navigation, tolerate unavailable local preference storage, normalize temporary routes and ignore malformed state. Clear/invalidate on data replacement/reset as above. No behavioral telemetry or multi-entry activity history.
+
+### Queue Management Boundary
+
+Up Next exposes pin/edit/reorder and a subordinate **Manage queues** entry. The management surface distinguishes role and Prestige/Playing, retains valid target editing and independent add/remove/reorder, exposes unknown goals read-only, and does not duplicate a Current Focus primary panel. It can be an inline expansion or accessible dialog according to actual content fit; no new global route is required. There is enough scope for a roadmap, but D01/D02 must precede final schema/interaction acceptance.
+
+## Open Product Decisions
+
+Only **D01** (dual intent/one pin representation) and **D02** (direct pin versus queue membership) still require user input; options/rationale are retained centrally. D03 is resolved as explicit full-lane replacement/cancel; D04 stable browse-only resume; D05 browser-local preference. Exact fields, migration fixtures, control geometry and route-hook placement are engineering details after the product gates.
+
+## Dependencies / Verification Implications
+
+Schema/state foundations precede Dashboard rendering despite plan number 01. Later verification must cover old-save migration, independent role/queue/pin ordering, caps/duplicates/wrong role/unknown records, atomic failure, raw recovery/backups, derived-export recomputation, resume normalization/reset/import, keyboard Move Up/Down, focus and responsive lanes. Existing Dashboard browser assertions encode the old global queue/Current Focus and require intentional updates. This is a dependency record, not task-by-task implementation phases.
 
 ## Shared / Global Findings
 
-These are observations for the future `11-shared-global-design.md` review, not Dashboard-only solutions:
+These observations are reconciled by `06-shared-global-design.md`, not separate Dashboard-only shell solutions:
 
 - **Desktop content width:** `main` has a 1750px maximum, while pages use multiple grids and card types. Review the usable width across the fixed sidebar and wide displays, and whether cards should span more of that working area.
 - **Responsive breakpoints:** `.two-column` changes to one column at 760px while the fixed sidebar remains until then. Other pages may also become cramped in the intermediate width range.
@@ -162,14 +203,14 @@ These are observations for the future `11-shared-global-design.md` review, not D
 - **Spacing scale:** Review current 20–24px panel padding, 20px grid gaps, section spacing, and mobile reductions as a system across screens.
 - **Typography hierarchy:** The global 34px H1, 16px H2, 14px H3, small eyebrow labels, and 10–12px supporting copy should be checked for consistent emphasis and readability.
 - **Action-button hierarchy:** Shared button sizing and primary/secondary emphasis need review, including 44px touch targets for frequent actions such as reordering.
-- **Responsive shell:** The fixed sidebar, top bar, and action wrapping affect available page width on multiple screens; review them globally after screen reviews.
+- **Responsive shell:** The fixed sidebar, top bar, and action wrapping affect available page width on multiple screens; apply the global compact-shell contract in plan 06.
 
 ## Explicit Non-Goals
 
 - No implementation in this phase.
-- No full-site redesign yet.
+- No application redesign implementation in this pass; Core planning covers the shell and six principal role/Dashboard surfaces.
 - No speculative redesign of unreviewed screens.
 - No changes to research datasets.
-- No changes to inventory schemas unless a later approved design specifically requires them.
-- No complete queue-management UI design in this Dashboard document.
-- No final implementation roadmap until the major screen plans are complete.
+- No schema implementation now; required queue/pin migration and validation are documented above.
+- Queue management stays a subordinate Core surface; detailed control geometry is deferred without deferring the required functionality.
+- No final implementation roadmap in this consolidation task; the completed Core planning set is now ready for that next step.

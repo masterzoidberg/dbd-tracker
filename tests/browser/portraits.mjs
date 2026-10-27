@@ -10,13 +10,25 @@ export async function portraitsRegression(page, origin, manifest) {
   const save = freshSave(); save.characters['meg-thomas'].owned = true; save.characters['meg-thomas'].setupComplete = true;
   await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), save);
   await page.goto(origin + '/#survivors'); await page.reload();
-  assert.equal(await page.locator('.character-card img[data-collection-hero-art]').count(), 54, 'Survivor cards must render Lore collection portraits');
+  assert.equal(await page.locator('.survivor-collection-card').count(), 6, 'Survivors render the first six Lore collection cards');
   const initial = await page.evaluate(() => localStorage.getItem('dbdTrackerData'));
   for (const role of ['survivor', 'killer']) {
     await page.goto(origin + '/#' + role + 's');
-    const portraits = page.locator('.character-card img[data-collection-hero-art]');
-    assert.equal(await portraits.count(), characters.filter(c => c.role === role && manifest.collectionPortraits[c.id]).length);
-    assert.ok(await portraits.evaluateAll(nodes => nodes.every(n => n.alt === '' && n.loading === 'lazy' && n.closest('[aria-hidden="true"]'))));
+    const expectedIds = characters.filter(c => c.role === role).sort((a, b) => a.name.localeCompare(b.name)).map(c => c.id);
+    const renderedIds = [];
+    const totalPages = Math.ceil(expectedIds.length / 6);
+    for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
+      const cards = page.locator(`.${role}-collection-card`);
+      const pageIds = await cards.evaluateAll(nodes => nodes.map(node => node.dataset.characterId));
+      assert.deepEqual(pageIds, expectedIds.slice(pageIndex * 6, (pageIndex + 1) * 6), `${role} page ${pageIndex + 1} shows the expected six Lore cards`);
+      const mappedOnPage = pageIds.filter(id => manifest.collectionPortraits[id]);
+      const portraits = page.locator('.character-card img[data-collection-hero-art]');
+      assert.equal(await portraits.count(), mappedOnPage.length, `${role} page ${pageIndex + 1} uses only mapped Lore portraits`);
+      assert.ok(await portraits.evaluateAll(nodes => nodes.every(n => n.alt === '' && n.loading === 'lazy' && n.closest('[aria-hidden="true"]'))));
+      renderedIds.push(...pageIds);
+      if (pageIndex + 1 < totalPages) await page.getByRole('button', { name: 'Next Page', exact: true }).click();
+    }
+    assert.deepEqual(renderedIds, expectedIds, `${role} paging reaches each Lore character exactly once`);
   }
   // Explicitly decode all references instead of relying on the lazy viewport.
   const assets = Object.values(manifest.portraits).filter(Boolean);
@@ -36,14 +48,15 @@ export async function portraitsRegression(page, origin, manifest) {
     await page.goto(origin + '/#' + character.role + 's');
     await page.locator('#search').fill(character.name);
     const card = page.locator(`.character-card[data-character-id="${id}"]`);
-    const button = card.locator('.character-name');
+    const link = card.locator('[data-open-workspace]');
     assert.equal(await card.locator('[data-collection-hero-art]').getAttribute('src'), manifest.collectionPortraits[id].path);
-    await button.click();
-    assert.equal(await page.locator('.character-workspace-header img').getAttribute('src'), manifest.portraits[id].path);
+    await link.click();
+    const workspacePortrait = character.role === 'killer' ? manifest.collectionPortraits[id].path : manifest.portraits[id].path;
+    assert.equal(await page.locator('.character-workspace-header img').getAttribute('src'), workspacePortrait);
     assert.equal(await page.locator('.character-workspace-header .character-portrait').evaluate(n => n.getBoundingClientRect().width), 80);
     assert.equal(await page.locator('#detail').isVisible(), false);
     await page.goto(origin + '/#manage/' + id + '/legacy');
-    assert.equal(await page.locator('.character-workspace-header img').getAttribute('src'), manifest.portraits[id].path);
+    assert.equal(await page.locator('.character-workspace-header img').getAttribute('src'), workspacePortrait);
     assert.equal(await page.locator('.character-workspace-header img').evaluate(n => getComputedStyle(n).objectFit), 'contain');
   }
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), initial, 'Artwork navigation does not change progression');
@@ -54,24 +67,25 @@ export async function portraitsRegression(page, origin, manifest) {
     await page.goto(origin + '/#' + character.role + 's');
     await page.locator('#search').fill(character.name);
     const card = page.locator(`.character-card[data-character-id="${id}"]`);
-    const button = card.locator('.character-name');
-    await button.scrollIntoViewIfNeeded();
-    await button.click();
+    const link = card.locator('[data-open-workspace]');
+    await link.scrollIntoViewIfNeeded();
+    await link.click();
     const holder = page.locator('.character-workspace-header .character-portrait');
     const image = holder.locator('img[data-character-portrait]');
     await page.waitForFunction(id => document.querySelector(`img[data-character-portrait="${id}"]`)?.naturalWidth > 0, id);
     const before = await holder.boundingBox();
-    const broken = origin + '/' + manifest.portraits[id].path + '?portrait-broken=1';
+    const characterPortrait = character.role === 'killer' ? manifest.collectionPortraits[id] : manifest.portraits[id];
+    const broken = origin + '/' + characterPortrait.path + '?portrait-broken=1';
     let requests = 0;
-    await page.route(broken, async route => { requests++; await route.fulfill({ status: 200, contentType: 'image/' + manifest.portraits[id].format, body: 'bad image' }); });
+    await page.route(broken, async route => { requests++; await route.fulfill({ status: 200, contentType: 'image/' + characterPortrait.format, body: 'bad image' }); });
     await image.evaluate((n, url) => { n.src = url; }, broken);
     await page.waitForFunction(id => !document.querySelector(`.character-workspace-header img[data-character-portrait="${id}"]`), id);
     assert.equal(requests, 1);
     assert.deepEqual(await holder.boundingBox(), before);
     assert.equal(await holder.evaluate(n => n.classList.contains('has-art')), false);
-    await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
-    await page.locator('#edit-bloodweb').fill('26');
-    await page.getByRole('button', { name: 'Save Character', exact: true }).click();
+    await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
+    await page.locator('[data-character-task-field="bloodwebLevel"]').fill('26');
+    await page.getByRole('button', { name: 'Save progression', exact: true }).click();
     assert.equal(await page.locator('#save-status').textContent(), 'Saved locally');
     assert.equal(await page.locator('#detail').isVisible(), false);
     await page.unroute(broken);
@@ -97,10 +111,12 @@ export async function portraitsRegression(page, origin, manifest) {
         assert.equal(await card.locator('[data-collection-hero-art]').count(), 1, 'First collection character has an explicit Lore portrait');
         assert.equal(await card.locator('[data-collection-hero-art]').evaluate(n => getComputedStyle(n).objectFit), 'contain');
         assert.equal(await card.locator('[data-action="favorite"]').isVisible(), true);
-        assert.equal(await card.locator('[data-action="ownership"]').isVisible(), true);
-        await card.locator('.character-name').focus(); await page.keyboard.press('Enter');
-        const edit = await page.getByRole('link', { name: 'Edit Character', exact: true }).boundingBox();
-        assert.ok(edit.x >= 0 && edit.x + edit.width <= width);
+        assert.match(await card.locator('[data-ownership-status]').textContent(), /Owned|Locked/);
+        assert.equal(await card.locator('[data-action="ownership"]').count(), 0);
+        assert.equal(await card.locator('a[href^="#character/"]').count(), 1);
+        await card.locator('[data-open-workspace]').focus(); await page.keyboard.press('Enter');
+        const favorite = await page.locator('.character-workspace-favorite').boundingBox();
+        assert.ok(favorite.x >= 0 && favorite.x + favorite.width <= width);
         assert.equal(await page.locator('#detail').isVisible(), false);
       }
     }

@@ -28,6 +28,10 @@ try {
     await page.locator('[data-character-workspace]').waitFor();
     assert.equal(await page.evaluate(()=>document.activeElement.id),'main','Direct route entry focus');
     assert.equal(await page.locator('h1').textContent(), hash.includes('the-doctor') ? 'The Doctor' : 'Meg Thomas');
+    if (hash.endsWith('/edit')) {
+      await page.waitForFunction(() => location.hash === '#character/meg-thomas/overview');
+      assert.equal(await page.locator('[data-character-edit]').count(), 0, 'Old Edit bookmark resolves to contextual Overview');
+    }
   }
   for (const hash of ['character/unknown/overview', 'character/meg-thomas/power-addons', 'character/meg-thomas/perks/update/extra']) {
     await page.goto(url + '#' + hash);
@@ -35,25 +39,39 @@ try {
   }
   await page.goto(url + '#character/meg-thomas/overview');
   await page.getByRole('link', { name: 'Perks', exact: true }).click();
-  await page.goBack(); await page.getByRole('link', { name: 'Edit Character', exact: true }).waitFor();
+  await page.goBack(); await page.locator('[data-workspace-section="overview"][aria-current="page"]').waitFor();
   await page.goForward(); await page.locator('[data-workspace-section="perks"][aria-current]').waitFor();
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before);
   await page.goto(url + '#character/meg-thomas/edit');
+  await page.waitForFunction(() => location.hash === '#character/meg-thomas/overview');
+  await page.reload();
+  await page.locator('[data-workspace-section="overview"][aria-current="page"]').waitFor();
+  assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before, 'Legacy bookmark and refresh do not save anything');
+  await page.goto(url + '#character/meg-thomas/overview');
+  await page.evaluate(() => { location.hash = '#character/meg-thomas/edit'; });
+  await page.waitForFunction(() => location.hash === '#character/meg-thomas/overview');
+  await page.getByRole('link', { name: 'Perks', exact: true }).click();
+  await page.goBack(); await page.locator('[data-workspace-section="overview"][aria-current="page"]').waitFor();
+  await page.goForward(); await page.locator('[data-workspace-section="perks"][aria-current="page"]').waitFor();
+  assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before, 'Back/Forward across an old Edit bookmark remains safe');
+
+  await page.goto(url + '#character/meg-thomas/edit');
+  await page.waitForFunction(() => location.hash === '#character/meg-thomas/overview');
   const writer = (await page.locator('#save-status').textContent()) === 'Saved locally';
   if (writer) {
-    await page.locator('#edit-bloodweb').fill('37');
-    await page.getByRole('button', { name: 'Save Character', exact: true }).click();
-    await page.waitForFunction(() => !document.querySelector('[data-character-edit]'));
+    await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
+    await page.locator('[data-character-task-field="bloodwebLevel"]').fill('37');
+    await page.getByRole('button', { name: 'Save progression', exact: true }).click();
     await page.goto(url + '#character/meg-thomas/overview');
     await page.reload();
-    await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
-    assert.equal(await page.locator('#edit-bloodweb').inputValue(), '37');
-    await page.getByRole('button',{name:'Cancel',exact:true}).click();
+    assert.equal((await page.locator('[data-character-progress="bloodweb"] strong').textContent()).trim(), '37 / 50');
     await page.goto(url+'#dashboard');
     await page.locator('[data-dashboard-character-link][href="#character/meg-thomas/overview"]').first().click();
-    await page.getByRole('link',{name:'Edit Character',exact:true}).click();
-    await page.locator('#edit-owned').check();
-    await page.getByRole('button',{name:'Save Character',exact:true}).click();
+    await page.locator('.character-workspace-favorite').click();
+    assert.equal(await page.locator('.character-workspace-favorite').getAttribute('aria-pressed'), 'true');
+    await page.locator('[data-action="overview-ownership-toggle"]').click();
+    assert.equal(JSON.parse(await page.evaluate(() => localStorage.getItem('dbdTrackerData'))).characters['meg-thomas'].owned, true,
+      'Contextual ownership action preserves the former composite editor capability');
     await page.goto(url+'#dashboard');
     await page.getByRole('button',{name:'Add Meg Thomas to queue',exact:true}).click();
     await page.locator('#queue-target').fill('3');
@@ -62,7 +80,7 @@ try {
     assert.equal((JSON.parse(await page.evaluate(()=>localStorage.getItem('dbdTrackerData')))).prestigeQueue[0].targetPrestige,3);
     await page.locator('[data-current-focus] a').click();
     await page.locator('[data-character-workspace]').waitFor();
-  } else assert.equal(await page.locator('#edit-bloodweb').isDisabled(), true);
+  } else assert.equal(await page.locator('[data-action="character-task-start"][data-task="progression"]').isDisabled(), true);
   assert.equal(writer,true,'Direct-file quantity save verification requires real writer access');
   await page.goto(url+'#character/meg-thomas/items-addons');
   await page.locator('[data-stock-family]').waitFor();

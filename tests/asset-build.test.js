@@ -6,7 +6,6 @@ import { tmpdir } from 'node:os';
 import { build } from 'esbuild';
 import { buildProject } from '../scripts/build.mjs';
 import { generatePerkManifest } from '../scripts/generate-assets.mjs';
-import { writeKillerRuntimeCatalog } from '../scripts/generate-killer-runtime-catalog.mjs';
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'dbd-asset-build-'));
@@ -71,7 +70,7 @@ test('app bundle imports the compact Killer runtime catalog and excludes the res
   const root = resolve(import.meta.dirname, '..');
   let metafile;
   await buildProject(root, {
-    writeCatalog: writeKillerRuntimeCatalog,
+    writeCatalog: async () => {},
     writeManifest: async () => ({}),
     bundle: async options => {
       ({ metafile } = await build({ ...options, metafile: true, write: false }));

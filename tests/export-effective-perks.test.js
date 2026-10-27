@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import { characterById, perkById } from '../data/catalog.js';
 import { characterNormalInventory } from '../src/character-inventory.js';
-import { bloodwebEligible, exportSave, freshSave, parseSave } from '../src/model.js';
+import { bloodwebEligible, exportSave, freshSave, isAvailable, parseSave } from '../src/model.js';
 
 test('export includes the same effective perk inventory shown by the character UI without changing raw perks', () => {
   const save = freshSave();
@@ -23,7 +23,7 @@ test('export includes the same effective perk inventory shown by the character U
   save.characters[perkById['lethal-pursuer'].sourceCharacterId].prestige = 1;
   save.perkOverrides['grim-embrace'] = { shrineTier: 1 };
   save.perkOverrides['monitor-abuse'] = { shrineTier: 0, legacyTier: 2 };
-  save.perkOverrides.overcharge = { shrineTier: 0, manualTier: 3 };
+  save.perkOverrides.overcharge = { shrineTier: 2, legacyTier: 1, manualTier: 3 };
 
   const rawPerksBefore = structuredClone(progress.perks);
   const uiRows = characterNormalInventory(save, characterId);
@@ -47,7 +47,10 @@ test('export includes the same effective perk inventory shown by the character U
   assert.equal(exported.effectivePerks['lethal-pursuer'], 1, 'Prestige unlock is included');
   assert.equal(exported.effectivePerks['grim-embrace'], 1, 'Shrine unlock is included');
   assert.equal(exported.effectivePerks['monitor-abuse'], 2, 'Legacy unlock is included');
-  assert.equal(exported.effectivePerks.overcharge, 3, 'manual unlock is included');
+  assert.equal(exported.effectivePerks.overcharge, 3, 'highest account-wide source tier wins');
+  assert.equal(isAvailable(save, perkById.deerstalker), true, 'General access is available at global Tier zero');
+  assert.equal(exported.effectivePerks.deerstalker, undefined,
+    'General availability alone does not create an automatic Tier');
 
   const expectedSummary = {
     tracked: uiRows.length,
@@ -57,6 +60,19 @@ test('export includes the same effective perk inventory shown by the character U
   assert.deepEqual(exported.perkInventorySummary, expectedSummary,
     'export summary matches the effective inventory summary shown by the UI');
   assert.deepEqual(progress.perks, rawPerksBefore, 'export is non-mutating');
+});
+
+test('unowned native perks are present in exported effective inventory without raw Bloodweb records', () => {
+  const save = freshSave();
+  const characterId = 'meg-thomas';
+  assert.equal(save.characters[characterId].owned, false);
+  assert.deepEqual(save.characters[characterId].perks, {});
+
+  const exported = JSON.parse(exportSave(save)).characters[characterId];
+  for (const perkId of characterById[characterId].nativePerkIds) {
+    assert.equal(exported.effectivePerks[perkId], 1, `${perkId} is an effective Tier I`);
+    assert.equal(Object.hasOwn(exported.perks, perkId), false, `${perkId} is not converted into a raw Bloodweb record`);
+  }
 });
 
 test('effective export data is derived-only and does not become personal Bloodweb state on import', () => {
@@ -73,7 +89,19 @@ test('effective export data is derived-only and does not become personal Bloodwe
   assert.ok(exported.characters[characterId].effectivePerks['lethal-pursuer'] > 0);
   assert.ok(exported.characters[characterId].effectivePerks['grim-embrace'] > 0);
 
-  const imported = parseSave(exportedText).save;
+  const tampered = structuredClone(exported);
+  tampered.characters[characterId].effectivePerks = {
+    dominance: 0,
+    'lethal-pursuer': 3,
+    'grim-embrace': 3,
+    'future-perk': 3,
+  };
+  tampered.characters[characterId].perkInventorySummary = {
+    tracked: 999,
+    maxed: 999,
+    upgradeable: 999,
+  };
+  const imported = parseSave(JSON.stringify(tampered)).save;
   assert.deepEqual(imported.characters[characterId].perks, rawPerksBefore);
   assert.equal(Object.hasOwn(imported.characters[characterId], 'effectivePerks'), false);
   assert.equal(Object.hasOwn(imported.characters[characterId], 'perkInventorySummary'), false);
@@ -83,6 +111,8 @@ test('effective export data is derived-only and does not become personal Bloodwe
   const reexported = JSON.parse(exportSave(imported));
   assert.deepEqual(reexported.characters[characterId].effectivePerks, exported.characters[characterId].effectivePerks,
     'round trip recomputes the same effective inventory from canonical account state');
+  assert.deepEqual(reexported.characters[characterId].perkInventorySummary, exported.characters[characterId].perkInventorySummary,
+    'tampered summaries are recomputed from canonical account state');
 });
 
 test('existing schema v2 exports without derived perk fields still import', () => {
