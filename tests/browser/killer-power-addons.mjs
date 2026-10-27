@@ -233,10 +233,10 @@ export async function killerFilteredZeroFocusRegression(page, origin) {
 }
 
 async function killerLongPowerReferenceRegression(page, origin) {
-  const killer = killerRuntime.killers.find(entry => entry.characterId === 'the-slasher');
+  const killer = killerRuntime.killers.find(entry => entry.characterId === 'the-doctor');
   const viewport = page.viewportSize();
   await page.setViewportSize({ width:390, height:844 });
-  await page.goto(origin + '/#character/the-slasher/power-addons');
+  await page.goto(origin + '/#character/the-doctor/power-addons');
   const opener = page.locator('[data-action="killer-power-details"]');
   await opener.click();
   const dialog = page.getByRole('dialog', { name:killer.power.powerName, exact:true });
@@ -244,12 +244,23 @@ async function killerLongPowerReferenceRegression(page, origin) {
   const geometry = await dialog.evaluate(node => {
     const rect=node.getBoundingClientRect();
     const scroller=node.querySelector('.killer-power-reference');
+    const content=node.querySelector('#detail-content');
+    const contentStyle=getComputedStyle(content);
+    const contentRect=content.getBoundingClientRect();
+    const header=node.querySelector('.dialog-heading').getBoundingClientRect();
     const style=getComputedStyle(node);
     return {x:rect.x,y:rect.y,width:rect.width,height:rect.height,computedWidth:style.width,maxWidth:style.maxWidth,boxSizing:style.boxSizing,
-      scrollHeight:scroller.scrollHeight,clientHeight:scroller.clientHeight};
+      scrollHeight:scroller.scrollHeight,clientHeight:scroller.clientHeight,
+      headerLeft:header.left,headerRight:header.right,
+      contentLeft:contentRect.left+parseFloat(contentStyle.paddingLeft),
+      contentRight:contentRect.right-parseFloat(contentStyle.paddingRight),
+      contentScrollWidth:content.scrollWidth,contentClientWidth:content.clientWidth};
   });
   assert.deepEqual({x:geometry.x,y:geometry.y,width:geometry.width,height:geometry.height},{x:0,y:0,width:390,height:844},
     'Power reference fills a phone-height dialog');
+  assert.ok(geometry.headerLeft>=geometry.contentLeft-1&&geometry.headerRight<=geometry.contentRight+1
+    &&geometry.contentScrollWidth<=geometry.contentClientWidth,
+    'Power reference header and content fit without horizontal clipping on a phone');
   assert.ok(geometry.scrollHeight>geometry.clientHeight,'Long Power mechanics use one internal scroll region');
   const reference=dialog.locator('.killer-power-reference');
   await reference.focus();
