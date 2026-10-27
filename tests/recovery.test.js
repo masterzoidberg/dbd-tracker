@@ -145,8 +145,9 @@ test('original export reads exact bytes, including an empty original, and reject
 const source = readFileSync(new URL('../src/app.js', import.meta.url), 'utf8');
 function appHarness(store) {
   const context = vm.createContext({ save: freshSave(), initialized: true, storageBlocked: true, store, exportSave, parseSave, Date,
-    $: () => ({ textContent: '' }),
+    $: () => ({ textContent: '' }), localStorage: {},
     date: value => value, render: () => {}, confirmAction: async () => true,
+    clearContinue: () => { context.continueCleared = true; },
     message: text => { context.lastMessage = text; },
     download: (content, filename) => { context.downloaded = { content, filename }; },
   });
@@ -174,11 +175,13 @@ test('restore can recover blocked current state and only adopts after successful
   await assert.rejects(context.restore('good'), /denied/);
   assert.strictEqual(context.save, fallback);
   assert.equal(context.storageBlocked, true);
+  assert.equal(context.continueCleared, undefined, 'failed restore does not invalidate Continue');
   assert.equal(data.get(SAVE_KEY), raw);
   assert.equal(data.get(BACKUP_KEY), backups);
   store.storage = adapter;
   await context.restore('good');
   assert.deepEqual(context.save, store.load().save);
   assert.equal(context.storageBlocked, false);
+  assert.equal(context.continueCleared, true, 'successful restore invalidates Continue');
   assert.match(context.lastMessage, /restored/i);
 });

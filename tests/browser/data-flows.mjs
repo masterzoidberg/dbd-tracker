@@ -63,7 +63,10 @@ export async function dataFlowsRegression(page, origin) {
   before.characters['the-doctor'].inventory.addons['killer-addon-test-future'] = 7;
   await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), before);
   await page.goto(origin+'/#dashboard');await page.reload();
-  await page.getByRole('button',{name:'Add Meg Thomas to queue',exact:true}).click();
+  await page.locator('#queue-management > summary').click();
+  await page.locator('#queue-add-survivor').click();
+  await page.locator('#queue-character').selectOption('meg-thomas');
+  await page.locator('[data-action="queue-select"]').click();
   await page.locator('#queue-target').fill('6');
   await page.getByRole('button',{name:'Save target',exact:true}).click();
   before.planning.prestigeQueues.survivor.push({characterId:'meg-thomas',targetPrestige:6});

@@ -73,7 +73,10 @@ try {
     assert.equal(JSON.parse(await page.evaluate(() => localStorage.getItem('dbdTrackerData'))).characters['meg-thomas'].owned, true,
       'Contextual ownership action preserves the former composite editor capability');
     await page.goto(url+'#dashboard');
-    await page.getByRole('button',{name:'Add Meg Thomas to queue',exact:true}).click();
+    await page.locator('#queue-management > summary').click();
+    await page.locator('#queue-add-survivor').click();
+    await page.locator('#queue-character').selectOption('meg-thomas');
+    await page.locator('[data-action="queue-select"]').click();
     await page.locator('#queue-target').fill('3');
     await page.getByRole('button',{name:'Save target',exact:true}).click();
     await page.reload();

@@ -33,7 +33,7 @@ export async function smokeStage(stage, { channel = 'msedge', regression, manife
     page.on('response', response => { if (response.status() >= 400) errors.push(`HTTP ${response.status()}: ${response.url()}`); });
     page.on('request', request => requests.push(request.url()));
     await page.goto(origin + '/');
-    await page.getByRole('heading', { name: 'Account overview', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Dashboard', exact: true }).waitFor();
     const globalNavigation = page.getByRole('navigation', { name: 'Main navigation' });
     if (!await globalNavigation.isVisible()) await page.getByRole('button', { name: 'Menu', exact: true }).click();
     await globalNavigation.getByRole('link', { name: /^Survivors/ }).click();

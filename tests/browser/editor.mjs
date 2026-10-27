@@ -33,14 +33,21 @@ export async function editorRegression(a, origin) {
     const separate = await independent.newPage(); await separate.goto(origin + '/'); await ready(separate);
     assert.equal(await separate.locator('#save-status').textContent(), 'Saved locally', 'Separate profiles are independently usable');
     await independent.close();
-    const before = await bytes(a);
     await detail(b, 'Killers', 'The Trapper');
+    const accountStateBeforeEdit = await b.evaluate(() => ({
+      save: localStorage.getItem('dbdTrackerData'), backups: localStorage.getItem('dbdTrackerBackups'),
+    }));
     await b.getByRole('button', { name: 'Edit progression', exact: true }).dispatchEvent('click');
     assert.equal(await b.locator('[data-character-task-field="bloodwebLevel"]').isDisabled(), true);
     await forcedChange(b, '[data-character-task-field="bloodwebLevel"]', '42', 'input');
-    assert.deepEqual(await bytes(b), before, 'Programmatic progression edit must not write');
+    assert.deepEqual(await b.evaluate(() => ({
+      save: localStorage.getItem('dbdTrackerData'), backups: localStorage.getItem('dbdTrackerBackups'),
+    })), accountStateBeforeEdit, 'Programmatic progression edit must not write account data');
     await b.getByRole('button', { name: 'Cancel', exact: true }).click();
     await openGlobalDestination(b, 'Data & backups');
+    const accountStateBeforeDeniedActions = await b.evaluate(() => ({
+      save: localStorage.getItem('dbdTrackerData'), backups: localStorage.getItem('dbdTrackerBackups'),
+    }));
     for (const action of ['import', 'reset']) {
       assert.equal(await b.locator(`[data-action="${action}"]`).first().isDisabled(), true);
       await b.locator(`[data-action="${action}"]`).first().dispatchEvent('click');
@@ -48,7 +55,9 @@ export async function editorRegression(a, origin) {
     const incoming = freshSave(); incoming.characters['meg-thomas'].bloodwebLevel = 49;
     await b.locator('#import-file').setInputFiles({ name: 'denied.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(incoming)) });
     assert.equal(await b.locator('#confirmation').isVisible(), false);
-    assert.deepEqual(await bytes(b), before);
+    assert.deepEqual(await b.evaluate(() => ({
+      save: localStorage.getItem('dbdTrackerData'), backups: localStorage.getItem('dbdTrackerBackups'),
+    })), accountStateBeforeDeniedActions, 'Denied data actions leave account data untouched');
     assert.equal(await b.locator('[data-action="export"]').first().isEnabled(), true);
     for (const width of [500, 700, 900]) {
       await b.setViewportSize({ width, height: 900 });

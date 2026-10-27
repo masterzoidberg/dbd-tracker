@@ -37,7 +37,7 @@ try {
   page.on('response', response => { if (response.status() >= 400) errors.push(`HTTP ${response.status()}: ${response.url()}`); });
   page.on('request', request => requests.push(request.url()));
   await page.goto(`${origin}/?live-audit=${Date.now()}#dashboard`);
-  await page.getByRole('heading', { name: 'Account overview', exact: true }).waitFor();
+  await page.getByRole('heading', { name: 'Dashboard', exact: true }).waitFor();
 
   const globalNavigation = page.getByRole('navigation', { name: 'Main navigation' });
   const destinations = await globalNavigation.locator('a').evaluateAll(links => links.map(link => ({
@@ -48,7 +48,7 @@ try {
   for (const width of [1920, 1440, 1366, 1280, 1024, 768, 390, 320]) {
     await page.setViewportSize({ width, height: width < 500 ? 844 : 900 });
     await page.goto(`${origin}/#dashboard`);
-    await page.getByRole('heading', { name: 'Account overview', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'Dashboard', exact: true }).waitFor();
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true,
       `Dashboard has no horizontal overflow at ${width}px`);
     if ([1440, 390, 320].includes(width)) await page.screenshot({ path: resolve(screenshots, `dashboard-${width}.png`) });

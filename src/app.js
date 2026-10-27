@@ -11,7 +11,8 @@ import { setupView } from './setup.js';
 import { characterSetupView } from './character-setup.js';
 import { historicalPerkNote, historicalOwnershipControl } from './historical-perks.js';
 import {derivePrestigeQueue,applyPrestigeQueueAction} from './prestige-queue.js';
-import {suggestedP1Targets,recentCharacters,favoriteCharacters} from './dashboard-selectors.js';
+import { applyPlanningAction } from './planning-state.js';
+import { CONTINUE_KEY, clearContinue, invalidateContinueForSave, readContinue, writeContinue } from './workspace-resume.js';
 import { correctPersonalPerkTier } from './model.js';
 import { createRosterStateMemory, paginateRoster } from './roster-state.js';
 import { createWorkspaceContextMemory } from './workspace-context.js';
@@ -34,9 +35,10 @@ let storageBlocked = false;
 let initialized = false;
 let migrationPending = false;
 let modal = null;
-let queueView = {expanded:false,role:'all'};
 let queueTargetEditor = null;
 let queueOpener = null;
+let upNextEditor = null;
+let queueManagementOpen = false;
 let filters = { search: '', status: 'all', prestige: 'all', favorite: false, sort: 'name' };
 let collectionFiltersOpen = false;
 const collectionState = createRosterStateMemory();
@@ -99,7 +101,7 @@ function message(text, error = false) {
 
 const editingActions = new Set(['favorite', 'overview-ownership-toggle', 'ownership', 'cycle', 'character-inventory-set-tier', 'character-inventory-correction-open', 'character-inventory-correction-apply', 'account-unlock-tier', 'import', 'restore', 'reset', 'delete-backup', 'setup-open', 'setup-p1', 'setup-next', 'setup-back', 'character-task-start', 'character-task-save']);
 const editingControls = '#detail-content select, [data-character-task-field], [data-setup-owned], [data-setup-prestige], [data-setup-perk], [data-character-setup-perk], [data-character-setup-tier], [data-historical-ownership], [data-character-inventory-historical], [data-character-inventory-correction-tier], #character-setup-bloodweb, #halloween-names, #hellraiser-names, #import-file';
-function requiresEditor(action) { return editingActions.has(action) || ['queue-add','queue-target','queue-remove','queue-move','queue-move-down','queue-save','queue-shortcut','queue-select'].includes(action) || (action?.startsWith('character-setup-') && action !== 'character-setup-exit'); }
+function requiresEditor(action) { return editingActions.has(action) || ['queue-add','queue-target','queue-remove','queue-move','queue-move-down','queue-save','queue-shortcut','queue-select','playing-add','playing-remove','playing-move-up','playing-move-down','up-next-pin','up-next-save','up-next-unpin','up-next-move'].includes(action) || (action?.startsWith('character-setup-') && action !== 'character-setup-exit'); }
 function editorPresentation() {
   const editing = initialized && editor.state === 'editing';
   const text = !initialized ? 'Checking editing availability…' : editor.state === 'unavailable'
@@ -148,6 +150,7 @@ async function enableEditing() {
   initialized = true;
   $('#save-status').textContent = 'Saved locally';
   render();
+  writeContinue(localStorage, route());
   if(parseCharacterWorkspaceRoute(route())) $('#main').focus({ preventScroll: true });
 }
 
@@ -215,17 +218,11 @@ function filterPills(options, countFn, multiple = false) {
 
 function roleSummary(role) {
   const list = roleCharacters(role), owned = list.filter(c => save.characters[c.id].owned);
-  const totalPrestige = owned.reduce((n, c) => n + save.characters[c.id].prestige, 0);
-  return `<article class="summary-panel"><div class="summary-head"><span class="role-icon" aria-hidden="true">${role === 'survivor' ? '♙' : '♜'}</span><h2>${role === 'survivor' ? 'Survivors' : 'Killers'}</h2><a href="#${role}s">View collection ↗</a></div><div class="collection-total">${owned.length}<span>/ ${list.length}</span><small>CHARACTERS OWNED</small></div><div class="progress-track"><span style="width:${owned.length / list.length * 100}%"></span></div><div class="summary-grid"><div><strong>${list.length - owned.length}</strong><span>Locked</span></div><div><strong>${owned.filter(c => save.characters[c.id].prestige >= 1).length}</strong><span>Prestige 1+</span></div><div><strong>${owned.filter(c => save.characters[c.id].prestige >= 3).length}</strong><span>Prestige 3+</span></div></div><details><summary>More collection statistics</summary><div class="summary-grid"><div><strong>${totalPrestige}</strong><span>Total prestige</span></div><div><strong>${owned.length ? (totalPrestige / owned.length).toFixed(1) : '0.0'}</strong><span>Average prestige</span></div><div><strong>${owned.filter(c => save.characters[c.id].favorite).length}</strong><span>Favorites</span></div></div></details></article>`;
-}
-function perkSummary(role) {
-  const list = rolePerks(role), available = list.filter(p => isAvailable(save, p)).length, tier3 = list.filter(p => globalTier(save, p) === 3).length;
-  return `<article class="perk-summary"><div><span class="eyebrow">${role.toUpperCase()} · Account perk access</span><a href="#${role}-perks">Explore library ↗</a></div><div class="perk-summary-numbers"><strong>${available}<small>Account access</small></strong><span><b>${tier3}</b>Tier III</span><span><b>${list.length - available}</b>Locked</span><span><b>${list.length}</b>Total</span></div><div class="progress-track"><span style="width:${available / list.length * 100}%"></span></div><p class="panel-note">Account access is separate from personal character inventory.</p></article>`;
-}
-function prestigeChart(role) {
-  const owned = roleCharacters(role).filter(c => save.characters[c.id].owned);
-  const buckets = [0, 1, 2, 3].map(tier => owned.filter(c => Math.min(3, save.characters[c.id].prestige) === tier).length);
-  return `<div class="prestige-chart"><h3>${role === 'survivor' ? 'Survivors' : 'Killers'}<span>${owned.length} owned</span></h3>${buckets.map((n, i) => `<div class="bar-row"><span>P${i}${i === 3 ? '+' : ''}</span><div class="bar-track"><div class="bar bar-${i}" style="width:${owned.length ? n / owned.length * 100 : 0}%"></div></div><b>${n}</b></div>`).join('')}</div>`;
+  const perks=rolePerks(role), available=perks.filter(perk=>isAvailable(save,perk)).length;
+  const p1=owned.filter(c=>save.characters[c.id].prestige>=1).length;
+  const p3=owned.filter(c=>save.characters[c.id].prestige>=3).length;
+  const label=role==='survivor'?'Survivors':'Killers';
+  return `<article class="dashboard-role-summary" data-role-summary="${role}"><div class="dashboard-role-heading"><h3><span class="role-icon" aria-hidden="true">${role==='survivor'?'♙':'♜'}</span>${label}</h3><a href="#${role}s">View collection</a></div><p class="dashboard-owned-count"><strong>${owned.length}</strong> / ${list.length} owned</p><div class="dashboard-role-metrics"><span><strong>${p1}</strong> Prestige 1+</span><span><strong>${p3}</strong> Prestige 3+</span><span><strong>${available}</strong> / ${perks.length} account perk access</span></div></article>`;
 }
 function queueBenefit(row) {
   if(row.complete) return 'Target reached. Raise the target or remove the goal.';
@@ -235,20 +232,23 @@ function queueBenefit(row) {
   return (row.entry.targetPrestige>3?'Earlier milestone on the way: ':'')+count+' native perk tiers improve at P'+row.benefit.globalTierMilestone+'.';
 }
 function queueControl(action,id,label,disabled=false,extra='') {
-  return `<button id="${action}-${esc(id)}" data-action="${action}" data-id="${esc(id)}" ${action.startsWith('queue-move')?`aria-label="${label} ${esc(characterById[id]?.name||id)}"`:''} ${extra} ${disabled?'disabled':''}>${label}</button>`;
+  const role=characterById[id]?.role;
+  return `<button id="${action}-${esc(id)}" data-action="${action}" data-id="${esc(id)}"${role?` data-role="${role}"`:''} ${action.startsWith('queue-move')||action.startsWith('playing-move')?`aria-label="${label} ${esc(characterById[id]?.name||id)}"`:''} ${extra} ${disabled?'disabled':''}>${label}</button>`;
 }
-function openPrestigeTargetEditor(id,adding,opener) {
+function openPrestigeTargetEditor(id,adding,opener,role=characterById[id]?.role) {
   store.assertWriter();
   if(storageBlocked) return;
   queueOpener=opener;
   if(!id){
-    const candidates=characters.filter(c=>save.characters[c.id]?.owned&&!save.planning.prestigeQueues[c.role].some(e=>e.characterId===c.id)).sort((a,b)=>a.name.localeCompare(b.name));
-    $('#detail-content').innerHTML=dialogHeader('PRESTIGE QUEUE','Add character')+(candidates.length?`<label>Character<select id="queue-character">${candidates.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></label><button data-action="queue-select">Choose character</button>`:'<p>Mark a character owned to add a goal. All eligible characters may already be in your queue.</p>');
+    if(!['survivor','killer'].includes(role)) throw new Error('Choose a role for the Prestige Queue.');
+    queueTargetEditor={id:null,adding:true,role};
+    const candidates=characters.filter(c=>c.role===role&&save.characters[c.id]?.owned&&!save.planning.prestigeQueues[role].some(e=>e.characterId===c.id)).sort((a,b)=>a.name.localeCompare(b.name));
+    $('#detail-content').innerHTML=dialogHeader('PRESTIGE QUEUE',`Add ${role==='survivor'?'Survivor':'Killer'} goal`)+(candidates.length?`<label>Character<select id="queue-character">${candidates.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></label><button data-action="queue-select">Choose character</button>`:'<p>Owned characters in this role are already in the Prestige Queue.</p>');
     $('#detail').showModal();editorPresentation();return;
   }
   const c=characterById[id],p=save.characters[id];
   if(!c||!p) throw new Error('Character data unavailable.');
-  queueTargetEditor={id,adding};
+  queueTargetEditor={id,adding,role:c.role};
   const target=adding?Math.max(1,p.prestige+1):save.planning.prestigeQueues[c.role].find(e=>e.characterId===id)?.targetPrestige;
   $('#detail-content').innerHTML=dialogHeader('PRESTIGE QUEUE',(adding?'Add goal: ':'Edit target: ')+c.name)+`<p>Current P${p.prestige}. Target must exceed current Prestige.</p><label for="queue-target">Target Prestige</label><input id="queue-target" type="text" inputmode="numeric" value="${target}"><div class="queue-controls">${[1,3,6,9].map(n=>`<button data-action="queue-shortcut" data-target="${n}" ${n<=p.prestige?'disabled':''}>P${n}</button>`).join('')}</div><p id="queue-target-error" role="alert"></p><button data-action="queue-save">Save target</button><button data-action="close">Cancel</button>`;
   if(!$('#detail').open) $('#detail').showModal();
@@ -260,29 +260,69 @@ function commitPrestigeQueueAction(action) {
   if(!applyPrestigeQueueAction(candidate,action)) return false;
   return commit(next=>{applyPrestigeQueueAction(next,action);});
 }
+function commitPlanningAction(action) {
+  store.assertWriter();
+  const candidate=structuredClone(save);
+  if(!applyPlanningAction(candidate,action)) return false;
+  return commit(next=>{applyPlanningAction(next,action);});
+}
 function prestigeQueueRow(row,{management=false}={}) {
   const id=row.entry.characterId,p=row.progress;
   const name=row.character?.name||id;
   return `<li value="${row.index+1}" data-prestige-queue-row data-role="${row.role}" data-queue-position="${row.index+1}" data-character-id="${esc(id)}"><div>${row.character?`<a data-dashboard-character-link href="${characterWorkspaceHref(id,'overview')}">${esc(name)}</a>`:`<strong>${esc(name)}</strong>`}<p>${row.character?row.character.role:'Unknown character'} · ${p?'P'+p.prestige+' · Bloodweb '+p.bloodwebLevel:'Progress unavailable'} → Target P${row.entry.targetPrestige}</p><p>${row.unavailable?'Unavailable'+(row.character?' · Not owned':''): 'Available'}${row.complete?' · Complete':row.complete===false?' · Incomplete':''}</p>${management?`<p>${queueBenefit(row)}</p><div class="queue-controls">${row.character&&p?queueControl('queue-target',id,'Edit target'):''}${queueControl('queue-remove',id,'Remove')}${queueControl('queue-move',id,'Move Up',row.index===0,'data-direction="-1"')}${queueControl('queue-move-down',id,'Move Down',row.index===row.laneLength-1,'data-direction="1"')}</div>`:''}</div></li>`;
 }
-function prestigeQueuePanel() {
-  const {rows,focus}=derivePrestigeQueue(save);
-  const visible=queueView.expanded?rows.filter(r=>queueView.role==='all'||r.role===queueView.role):rows.filter(r=>r.index<3||r===focus);
-  const state=!rows.length?'Choose the characters you want to work on next.':focus?'':rows.some(r=>r.unavailable)?'No available unfinished goals. Unavailable goals remain preserved.':'All queue targets are complete.';
-  return `<section class="panel" data-prestige-queue>${sectionTitle('My Prestige Queue')}<p>${state}</p>${focus?`<div data-current-focus data-character-id="${focus.entry.characterId}"><h3>Current Focus · Position ${focus.index+1}</h3><a data-dashboard-character-link href="${characterWorkspaceHref(focus.entry.characterId,'overview')}">Continue with ${esc(focus.character.name)}</a><p>P${focus.progress.prestige} · Bloodweb ${focus.progress.bloodwebLevel} → Target P${focus.entry.targetPrestige}</p><p>${queueBenefit(focus)}</p></div>`:''}<button id="queue-add" data-action="queue-add">Add character</button><button data-action="queue-manage" aria-expanded="${queueView.expanded}">${queueView.expanded?'Close management':'Manage Queue'}</button>${queueView.expanded?`<div class="filter-pills" aria-label="Queue role">${[['all','All'],['survivor','Survivors'],['killer','Killers']].map(([role,label])=>`<button data-action="queue-filter" data-role="${role}" aria-pressed="${queueView.role===role}">${label}</button>`).join('')}</div>${queueView.role!=='all'?'<p>Each role has its own order.</p>':''}`:''}<ol class="prestige-queue-list">${visible.map(row=>prestigeQueueRow(row,{management:queueView.expanded})).join('')}</ol>${queueView.expanded&&!visible.length?'<p>No goals for this role.</p><button data-action="queue-filter" data-role="all">Show All</button>':''}${!characters.some(c=>save.characters[c.id]?.owned)?'<p>Mark a character owned to add a goal.</p>':''}</section>`;
+function planningButton(action,id,role,label,disabled=false,direction=null) {
+  const character=characterById[id];
+  const controlId=action==='move'?`up-next-move-${direction<0?'up':'down'}`:`up-next-${action}`;
+  return `<button id="${controlId}-${esc(id)}" data-action="up-next-${action}" data-id="${esc(id)}" data-role="${role}"${direction===null?'':` data-direction="${direction}"`} aria-label="${label} ${esc(character?.name||id)}"${disabled?' disabled':''}>${label}</button>`;
+}
+function upNextLane(role) {
+  const pins=save.planning.upNext[role], label=role==='survivor'?'Survivors':'Killers';
+  const rows=pins.map((pin,index)=>{
+    const character=characterById[pin.characterId], progress=save.characters[pin.characterId];
+    const prestige=save.planning.prestigeQueues[role].find(entry=>entry.characterId===pin.characterId);
+    const playing=save.planning.playingQueues[role].some(entry=>entry.characterId===pin.characterId);
+    const context=[prestige?`Prestige Queue · target P${prestige.targetPrestige}`:'',playing?'Playing Queue':''].filter(Boolean);
+    const intentOptions=[['prestige','Prestige'],['play','Play']].map(([value,text])=>`<option value="${value}"${pin.intent===value?' selected':''}>${text}</option>`).join('');
+    return `<li class="up-next-row" data-up-next-row data-character-id="${esc(character.id)}" data-role="${role}"><span class="up-next-rank" aria-label="Position ${index+1}">${index+1}</span>${workspaceCharacterArtwork(character,56)}<div class="up-next-identity"><a href="${characterWorkspaceHref(character.id,'overview')}">${esc(character.name)}</a><p>${progress?.owned?'Owned':'Not owned'} · P${progress?.prestige??0}</p>${context.length?`<p class="up-next-context">${context.map(esc).join(' · ')}</p>`:'<p class="up-next-context">No Prestige or Playing Queue membership</p>'}</div><label class="up-next-intent-label">Primary intent<select id="up-next-intent-${esc(character.id)}" data-up-next-intent data-character-id="${esc(character.id)}" data-role="${role}" aria-label="Primary intent for ${esc(character.name)}">${intentOptions}</select></label><div class="up-next-controls">${planningButton('move',character.id,role,'Move Up',index===0,-1)}${planningButton('move',character.id,role,'Move Down',index===pins.length-1,1)}${planningButton('unpin',character.id,role,'Unpin')}</div></li>`;
+  }).join('');
+  return `<section class="up-next-lane" data-up-next-lane="${role}"><div class="up-next-lane-heading"><h3>${label}</h3><span>${pins.length} / 5 pinned</span></div>${pins.length?`<ol class="up-next-list">${rows}</ol>`:`<p class="up-next-empty">No ${label.toLowerCase()} pinned yet.</p>`}<button class="secondary" data-action="up-next-pin" data-role="${role}">Pin a ${role==='survivor'?'Survivor':'Killer'}</button></section>`;
+}
+function queueManagement() {
+  const prestigeRows=derivePrestigeQueue(save).rows;
+  const roleSection=role=>{
+    const label=role==='survivor'?'Survivors':'Killers';
+    const prestige=prestigeRows.filter(row=>row.role===role);
+    const playing=save.planning.playingQueues[role];
+    const candidates=characters.filter(character=>character.role===role&&!playing.some(entry=>entry.characterId===character.id)).sort((a,b)=>a.name.localeCompare(b.name));
+    const unresolved=save.planning.unresolved.filter(entry=>entry.queue==='prestige'&&(entry.role===role||entry.role===null));
+    return `<section class="queue-role-management" data-queue-role="${role}"><h3>${label}</h3><div class="queue-lanes-management"><section class="queue-management-lane" data-management-queue="prestige" data-role="${role}"><h4>Prestige Queue</h4>${prestige.length?`<ol class="prestige-queue-list">${prestige.map(row=>prestigeQueueRow(row,{management:true})).join('')}</ol>`:'<p>No Prestige goals.</p>'}<button id="queue-add-${role}" data-action="queue-add" data-role="${role}"${!characters.some(character=>character.role===role&&save.characters[character.id]?.owned&&!save.planning.prestigeQueues[role].some(entry=>entry.characterId===character.id))?' disabled':''}>Add Prestige goal</button>${unresolved.length?`<details class="unresolved-goals"><summary>${unresolved.length} unresolved imported ${unresolved.length===1?'goal':'goals'}</summary><ul>${unresolved.map(entry=>`<li>Rank ${entry.rank+1} · ${entry.role||'Role unknown'} · <code>${esc(entry.record.characterId||'Unknown character')}</code> · preserved and read-only</li>`).join('')}</ul></details>`:''}</section><section class="queue-management-lane" data-management-queue="playing" data-role="${role}"><h4>Playing Queue</h4>${playing.length?`<ol class="playing-queue-list">${playing.map((entry,index)=>{const character=characterById[entry.characterId];return `<li data-playing-queue-row data-character-id="${esc(entry.characterId)}"><span>${index+1}. <a href="${characterWorkspaceHref(character.id,'overview')}">${esc(character.name)}</a></span><div class="queue-controls">${queueControl('playing-remove',character.id,'Remove')}${queueControl('playing-move-up',character.id,'Move Up',index===0,'data-direction="-1"')}${queueControl('playing-move-down',character.id,'Move Down',index===playing.length-1,'data-direction="1"')}</div></li>`;}).join('')}</ol>`:'<p>No Playing goals.</p>'}<div class="playing-queue-add"><label for="playing-character-${role}">Add a character to this queue</label><select id="playing-character-${role}" data-playing-character="${role}"><option value="">Choose a ${role==='survivor'?'Survivor':'Killer'}</option>${candidates.map(character=>`<option value="${character.id}">${esc(character.name)}</option>`).join('')}</select><button data-action="playing-add" data-role="${role}"${candidates.length?'':' disabled'}>Add to Playing Queue</button></div></section></div></section>`;
+  };
+  const unknown=save.planning.unresolved.filter(entry=>entry.queue==='unknown'||entry.queue==='upNext'||entry.queue==='playing');
+  return `<details id="queue-management" class="queue-management"${queueManagementOpen?' open':''}><summary>Manage queues</summary><p class="muted">Prestige goals and Playing interest are independent. Up Next pins keep their own intent and order.</p>${roleSection('survivor')}${roleSection('killer')}${unknown.length?`<section class="unresolved-goals"><h3>Other unresolved planning records</h3><ul>${unknown.map(entry=>`<li>${esc(entry.queue)} · ${entry.role||'Role unknown'} · rank ${entry.rank+1} · preserved and read-only</li>`).join('')}</ul></section>`:''}</details>`;
+}
+function continuePanel() {
+  const record=readContinue(localStorage,save), character=record&&characterById[record.characterId];
+  const names={overview:'Overview',perks:'Perks','items-addons':'Items & Add-ons','power-addons':'Power & Add-ons'};
+  return `<section class="dashboard-continue" data-dashboard-section="continue"><h2>Continue where you left off</h2>${record&&character?`<div class="continue-record">${workspaceCharacterArtwork(character,64)}<div><p class="eyebrow">${character.role==='survivor'?'Survivor':'Killer'} · ${names[record.section]}</p><a class="primary button-link" data-continue-link href="${record.route}">Continue with ${esc(character.name)}</a><p class="muted">Last workspace visit · <time datetime="${esc(record.visitedAt)}">${date(record.visitedAt)}</time></p></div></div>`:'<p class="muted" data-continue-empty>No workspace to continue yet. Open a character Overview, Perks, or inventory workspace to create a shortcut.</p>'}</section>`;
 }
 function dashboard() {
-  const targets=suggestedP1Targets(save),recent=recentCharacters(save),favorites=favoriteCharacters(save);
-  const link=c=>`<a data-dashboard-character-link href="${characterWorkspaceHref(c.id,'overview')}">${esc(c.name)}</a>`;
-  return pageHeading('YOUR PROGRESSION','Account overview','Choose your next goal or continue a recent edit.')+
-    `<details class="catalog-note"><summary>Perk catalog 10.1.2a</summary><p>${catalogInfo.detail}</p><a href="#data">About your data</a></details>`+
-    (!save.setupComplete?'<div class="setup-launch"><button data-action="setup-open">Account setup →</button></div>':'')+
-    `<div class="two-column dashboard-actions" data-dashboard-section="actions">${prestigeQueuePanel()}<section class="panel">${sectionTitle('Continue where you left off')}<p class="muted">Recently edited · last 5 changes</p>${recent.length?recent.map(c=>`<div class="recent-item">${link(c)}<span>P${save.characters[c.id].prestige} · Bloodweb ${save.characters[c.id].bloodwebLevel}${save.characters[c.id].owned?'':' · Not owned'}</span><time datetime="${esc(save.characters[c.id].updatedAt)}">${date(save.characters[c.id].updatedAt)}</time></div>`).join(''):empty('No recent edits. Open a character to record progress.')}</section></div>`+
-    `<section class="panel" data-dashboard-section="suggestions">${sectionTitle('Suggested P1 targets')}<p class="muted">Ranked by native perks still globally locked.</p>${targets.length?targets.map(({character:c,missing})=>`<div class="dashboard-suggestion">${link(c)}<span>${c.role} · Bloodweb ${save.characters[c.id].bloodwebLevel} · +${missing} unlocks</span>${save.planning.prestigeQueues[c.role].some(e=>e.characterId===c.id)?'<span class="tag">In queue</span>':`<button data-action="queue-add" data-id="${c.id}">Add ${esc(c.name)} to queue</button>`}</div>`).join(''):empty(characters.some(c=>save.characters[c.id].owned)?'No remaining P1 unlock suggestions.':'Mark characters owned to see P1 suggestions.')}</section>`+
-    `<div class="two-column" data-dashboard-section="collection">${roleSummary('survivor')}${roleSummary('killer')}</div>`+
-    `<div class="two-column perk-summary-row" data-dashboard-section="perks">${perkSummary('survivor')}${perkSummary('killer')}</div>`+
-    `<section class="panel" data-dashboard-section="distribution">${sectionTitle('Prestige distribution','<span class="muted">Owned characters</span>')}<div class="two-column charts">${prestigeChart('survivor')}${prestigeChart('killer')}</div><p class="panel-note">P1 → Tier I · P2 → Tier II · P3+ → Tier III global unlocks</p></section>`+
-    `<details class="panel" data-dashboard-section="favorites"><summary>Favorite characters (${favorites.length})</summary><div class="favorite-links">${favorites.map(c=>`${link(c)} · P${save.characters[c.id].prestige}${save.characters[c.id].owned?'':' · Not owned'}`).join('')||'No favorites yet.'}</div></details>`;
+  return pageHeading('YOUR PROGRESSION','Dashboard','A compact view of account progress, pinned priorities, and your last workspace.')+
+    `<section class="dashboard-snapshot" data-dashboard-section="snapshot"><h2>Progression Snapshot</h2><div class="dashboard-snapshot-grid">${roleSummary('survivor')}${roleSummary('killer')}</div></section>`+
+    `<section class="dashboard-up-next" data-dashboard-section="up-next"><h2>Up Next</h2><div class="dashboard-up-next-grid">${upNextLane('survivor')}${upNextLane('killer')}</div></section>`+
+    continuePanel()+queueManagement();
+}
+function openUpNextPinEditor(role,opener) {
+  store.assertWriter();
+  if(storageBlocked) return;
+  if(!['survivor','killer'].includes(role)) throw new Error('Choose a role for Up Next.');
+  const pins=save.planning.upNext[role];
+  const candidates=characters.filter(character=>character.role===role&&!pins.some(pin=>pin.characterId===character.id)).sort((a,b)=>a.name.localeCompare(b.name));
+  if(!candidates.length) { message(`All ${role==='survivor'?'Survivors':'Killers'} are already pinned.`); return; }
+  queueOpener=opener; upNextEditor={role};
+  const replacement=pins.length>=5?`<label for="up-next-replace">Replace a current pin<select id="up-next-replace" required><option value="">Choose a pin to replace</option>${pins.map(pin=>`<option value="${pin.characterId}">${esc(characterById[pin.characterId].name)}</option>`).join('')}</select></label><p>The new pin takes the selected pin’s position. Cancel leaves this lane unchanged.</p>`:'';
+  $('#detail-content').innerHTML=dialogHeader('UP NEXT',`Pin a ${role==='survivor'?'Survivor':'Killer'}`)+`<label for="up-next-character">Character</label><select id="up-next-character">${candidates.map(character=>`<option value="${character.id}">${esc(character.name)}</option>`).join('')}</select><label for="up-next-intent">Primary intent</label><select id="up-next-intent"><option value="prestige">Prestige</option><option value="play">Play</option></select>${replacement}<p id="up-next-error" role="alert"></p><button data-action="up-next-save">${pins.length>=5?'Swap pin':'Pin to Up Next'}</button><button data-action="close">Cancel</button>`;
+  $('#detail').showModal(); editorPresentation(); $('#up-next-character').focus();
 }
 
 function characterCollectionCard(c) {
@@ -1242,6 +1282,7 @@ function finishWorkspaceNavigation() {
   if ($('#message').className !== 'error') message('');
   committedWorkspaceHash = location.hash || '#dashboard';
   render({ workspaceContextCaptured: contextWasCaptured });
+  writeContinue(localStorage, currentRoute);
   const returnLink = rosterReturn && previousWorkspace?.status === 'valid'
     && rosterReturn.originCharacterId === previousWorkspace.characterId
     ? [...document.querySelectorAll('.character-collection-card [data-open-workspace]')]
@@ -1492,6 +1533,7 @@ async function restore(id) {
   const recovering = storageBlocked;
   if (!await confirmAction('Restore this backup?', `Restore progress from ${date(backup.createdAt)}? ${recovering ? 'The original stored data will be preserved verbatim before replacement.' : 'A snapshot of your current progress will be saved first.'}${replacementNotice(parsed)}`, 'Restore backup')) return;
   save = store.replace(save, incoming, 'Before backup restore', { recover: recovering });
+  clearContinue(localStorage);
   storageBlocked = false;
   $('#save-status').textContent = 'Saved locally';
   message(`Backup restored. ${recovering ? 'The original stored data was preserved separately in this browser.' : 'Your previous progress is in local backups.'}`); render();
@@ -1501,6 +1543,7 @@ async function reset() {
   if (storageBlocked) { message('Import a valid save to recover before resetting. The original stored data is preserved.', true); return; }
   if (!await confirmAction('Reset all progress?', 'All progression, ownership, notes, favorites, perk tiers, Shrine overrides, Prestige and Playing queues, Up Next pins, and inventory quantities will return to defaults. Your current save will be backed up. Catalog definitions are preserved.', 'Reset all progress')) return;
   save = store.replace(save, freshSave(), 'Before reset');
+  clearContinue(localStorage);
   setupOpen = false; setupStep = 0; setupSearch = ''; setupFilter = 'all';
   message('Progress reset. Your previous save is available in local backups.'); render();
 }
@@ -1735,8 +1778,6 @@ async function handleClick(event) {
   if(action==='stock-family-select'){selectStockFamily(family);return;}
   if(action==='stock-item-select'){selectStockItem(id,'card');return;}
   if(action==='stock-filter-reset'){resetStockFilters();return;}
-  if(action==='queue-manage'){queueView.expanded=!queueView.expanded;render();$('[data-action="queue-manage"]')?.focus();return;}
-  if(action==='queue-filter'){queueView.role=button.dataset.role;render();$('[data-action="queue-filter"][data-role="'+queueView.role+'"]')?.focus();return;}
   if(action==='stock-error-focus'){
     revealStockQuantity(id);return;
   }
@@ -1779,8 +1820,8 @@ async function handleClick(event) {
   }
   if (action === 'enable-editing') return enableEditing();
   if (requiresEditor(action) && action !== 'character-inventory-set-tier') store.assertWriter();
-  if(action==='queue-add'||action==='queue-target'){openPrestigeTargetEditor(id,action==='queue-add',button);return;}
-  if(action==='queue-select'){openPrestigeTargetEditor($('#queue-character').value,true,queueOpener);return;}
+  if(action==='queue-add'||action==='queue-target'){openPrestigeTargetEditor(id,action==='queue-add',button,button.dataset.role);return;}
+  if(action==='queue-select'){openPrestigeTargetEditor($('#queue-character').value,true,queueOpener,queueTargetEditor?.role);return;}
   if(action==='queue-shortcut'){
     if(Number(button.dataset.target)<=save.characters[queueTargetEditor.id].prestige)return;
     $('#queue-target').value=button.dataset.target;$('#queue-target').focus();return;
@@ -1790,7 +1831,7 @@ async function handleClick(event) {
     try {
       if(!/^\d+$/.test(raw))throw new Error('Enter a positive whole-number target.');
       const candidate=structuredClone(save);
-      const targetAction={type:queueTargetEditor.adding?'add':'target',characterId:queueTargetEditor.id,targetPrestige:Number(raw)};
+      const targetAction={type:queueTargetEditor.adding?'add':'target',role:queueTargetEditor.role,characterId:queueTargetEditor.id,targetPrestige:Number(raw)};
       if(!applyPrestigeQueueAction(candidate,targetAction)){$('#detail').close();queueTargetEditor=null;return;}
       if(commitPrestigeQueueAction(targetAction)){
         $('#detail').close();queueTargetEditor=null;
@@ -1799,17 +1840,64 @@ async function handleClick(event) {
     return;
   }
   if(action==='queue-remove'||action==='queue-move'||action==='queue-move-down'){
-    if(action!=='queue-remove'&&(!queueView.expanded||queueView.role!=='all'))return;
-    const visibleBefore=derivePrestigeQueue(save).rows.filter(r=>queueView.role==='all'||r.character?.role===queueView.role);
-    const index=visibleBefore.findIndex(r=>r.entry.characterId===id);
-    if(commitPrestigeQueueAction({type:action==='queue-remove'?'remove':'move',characterId:id,direction:Number(button.dataset.direction)})){
-      const remaining=derivePrestigeQueue(save).rows;
-      const visibleAfter=remaining.filter(r=>queueView.role==='all'||r.character?.role===queueView.role);
-      const focusId=action==='queue-remove'?(visibleAfter[Math.min(index,visibleAfter.length-1)]?.entry.characterId):id;
-      const target=action==='queue-remove'?$('#queue-remove-'+focusId):$('#'+action+'-'+id);
-      (target&&!target.disabled?target:$('#queue-remove-'+focusId)||$('#queue-add'))?.focus({preventScroll:true});
-      const name=characterById[id]?.name||id;
-      $('#filter-status').textContent=action==='queue-remove'?`${name} goal removed.`:`${name} moved to position ${remaining.findIndex(r=>r.entry.characterId===id)+1} of ${remaining.length}.`;
+    const role=button.dataset.role||characterById[id]?.role;
+    const before=save.planning.prestigeQueues[role],index=before.findIndex(entry=>entry.characterId===id);
+    if(commitPrestigeQueueAction({type:action==='queue-remove'?'remove':'move',role,characterId:id,direction:Number(button.dataset.direction)})){
+      const remaining=save.planning.prestigeQueues[role],focusId=action==='queue-remove'?remaining[Math.min(index,remaining.length-1)]?.characterId:id;
+      const focus=action==='queue-remove'?(focusId?$('#queue-remove-'+focusId):$('#queue-add-'+role)):$('#queue-remove-'+id);
+      (focus&&!focus.disabled?focus:$('#queue-add-'+role))?.focus({preventScroll:true});
+      const name=characterById[id]?.name||id,position=remaining.findIndex(entry=>entry.characterId===id)+1;
+      $('#filter-status').textContent=action==='queue-remove'?`${name} Prestige goal removed.`:`${name} moved to position ${position} of ${remaining.length}.`;
+    }
+    return;
+  }
+  if(action==='playing-add'){
+    const role=button.dataset.role,characterId=$(`[data-playing-character="${role}"]`).value;
+    if(!characterId){$(`[data-playing-character="${role}"]`).focus();return;}
+    if(commitPlanningAction({type:'addPlaying',role,characterId})){
+      $('#playing-remove-'+characterId)?.focus({preventScroll:true});
+      $('#filter-status').textContent=`${characterById[characterId].name} added to the ${role==='survivor'?'Survivor':'Killer'} Playing Queue.`;
+    }
+    return;
+  }
+  if(action==='playing-remove'||action==='playing-move-up'||action==='playing-move-down'){
+    const role=button.dataset.role,direction=Number(button.dataset.direction),before=save.planning.playingQueues[role],index=before.findIndex(entry=>entry.characterId===id);
+    const type=action==='playing-remove'?'removePlaying':'movePlaying';
+    if(commitPlanningAction({type,role,characterId:id,direction})){
+      const remaining=save.planning.playingQueues[role],focusId=action==='playing-remove'?remaining[Math.min(index,remaining.length-1)]?.characterId:id;
+      const focus=action==='playing-remove'?(focusId?$('#playing-remove-'+focusId):$(`[data-playing-character="${role}"]`)):$('#playing-remove-'+id);
+      focus?.focus({preventScroll:true});
+      const name=characterById[id]?.name||id,position=remaining.findIndex(entry=>entry.characterId===id)+1;
+      $('#filter-status').textContent=action==='playing-remove'?`${name} removed from the Playing Queue.`:`${name} moved to position ${position} of ${remaining.length}.`;
+    }
+    return;
+  }
+  if(action==='up-next-pin'){openUpNextPinEditor(button.dataset.role,button);return;}
+  if(action==='up-next-save'){
+    const role=upNextEditor?.role,characterId=$('#up-next-character')?.value,intent=$('#up-next-intent')?.value;
+    const replaceCharacterId=$('#up-next-replace')?.value;
+    try{
+      if(!role||!characterId)throw new Error('Choose a character to pin.');
+      if(save.planning.upNext[role].length>=5&&!replaceCharacterId)throw new Error('Choose an existing pin to swap or cancel.');
+      const action={type:'pin',role,characterId,intent,...(replaceCharacterId?{replaceCharacterId}:{})};
+      if(commitPlanningAction(action)){
+        const lane=save.planning.upNext[role],index=lane.findIndex(pin=>pin.characterId===characterId);
+        const name=characterById[characterId]?.name||characterId;
+        $('#detail').close();upNextEditor=null;
+        $('#filter-status').textContent=`${name} pinned with ${intent==='prestige'?'Prestige':'Play'} intent at position ${index+1} of ${lane.length}.`;
+      }
+    }catch(error){$('#up-next-error').textContent=error.message;}
+    return;
+  }
+  if(action==='up-next-unpin'||action==='up-next-move'){
+    const role=button.dataset.role,before=save.planning.upNext[role],index=before.findIndex(pin=>pin.characterId===id);
+    const type=action==='up-next-unpin'?'unpin':'movePin',direction=Number(button.dataset.direction);
+    if(commitPlanningAction({type,role,characterId:id,direction})){
+      const lane=save.planning.upNext[role],name=characterById[id]?.name||id,position=lane.findIndex(pin=>pin.characterId===id)+1;
+      if(action==='up-next-move')$(`#up-next-intent-${CSS.escape(id)}`)?.focus({preventScroll:true});
+      else if(lane[index])$(`#up-next-intent-${CSS.escape(lane[index].characterId)}`)?.focus({preventScroll:true});
+      else $(`[data-up-next-lane="${role}"] [data-action="up-next-pin"]`)?.focus({preventScroll:true});
+      $('#filter-status').textContent=action==='up-next-unpin'?`${name} unpinned from ${role==='survivor'?'Survivor':'Killer'} Up Next.`:`${name} moved to position ${position} of ${lane.length}.`;
     }
     return;
   }
@@ -2080,6 +2168,14 @@ document.addEventListener('input', event => {
 document.addEventListener('change', async event => {
   const target = event.target;
   try {
+    if(target.matches('[data-up-next-intent]')){
+      const {characterId,role}=target.dataset,intent=target.value;
+      if(commitPlanningAction({type:'pin',characterId,role,intent})){
+        target.focus({preventScroll:true});
+        $('#filter-status').textContent=`${characterById[characterId].name} primary intent changed to ${intent==='prestige'?'Prestige':'Play'}.`;
+      }
+      return;
+    }
     if(target.id==='killer-addon-rarity'){
       const validRarity=['',...new Set(Object.values(inventoryEntityById).filter(entity=>entity.role==='killer').map(entity=>entity.rarity))];
       if(validRarity.includes(target.value))setKillerAddonFilter('rarity',target.value);
@@ -2192,6 +2288,7 @@ document.addEventListener('change', async event => {
       const predecessor = recovering ? 'Current stored progress is unavailable. Its original bytes will be preserved separately before replacement.' : `Current: ${summary(save)}. A backup of your current data will be created.`;
       if (!await confirmAction('Import tracker data?', `${predecessor} Import: ${summary(incoming)}. This replaces your progression.${replacementNotice(pendingImport)}${warning}`, 'Import data')) { pendingImport = null; return; }
       save = store.replace(save, incoming, 'Before JSON import', { recover: recovering });
+      clearContinue(localStorage);
       storageBlocked = false;
       $('#save-status').textContent = 'Saved locally';
       message(`Import complete. ${recovering ? 'The original stored data was preserved separately in this browser.' : 'Your previous progress is in local backups.'}${pendingImport.warnings.length ? ' ' + pendingImport.warnings.join(' · ') : ''}`);
@@ -2272,10 +2369,13 @@ $('#detail').addEventListener('close', () => {
       (document.getElementById(opener.id)||$('#inventory-search')||$('#main'))?.focus({preventScroll:true});
     }
   }
-  if(queueOpener){const opener=queueOpener;queueOpener=null;queueTargetEditor=null;(document.getElementById(opener.id)||$('[data-action="queue-add"][data-id="'+(opener.dataset.id||'')+'"]')||$('#queue-add'))?.focus({preventScroll:true});}
+  if(queueOpener){const opener=queueOpener;queueOpener=null;queueTargetEditor=null;upNextEditor=null;const role=opener.dataset.role;const fallback=opener.dataset.action==='up-next-pin'?`[data-action="up-next-pin"][data-role="${role}"]`:`#queue-add-${role}`;(document.getElementById(opener.id)||$(fallback))?.focus({preventScroll:true});}
   modal = null;
   if (parseCharacterWorkspaceRoute(route())?.section !== 'setup') { characterSetup = null; setupQueue = null; }
 });
+document.addEventListener('toggle', event => {
+  if(event.target.id==='queue-management') queueManagementOpen=event.target.open;
+}, true);
 window.addEventListener('hashchange', async () => {
   if (restoringWorkspaceHistory) { const restored = restoringWorkspaceHistory; restoringWorkspaceHistory = null; restored(); return; }
   const target = location.hash || '#dashboard', targetIndex = history.state?.workspaceIndex;
@@ -2321,6 +2421,7 @@ window.addEventListener('storage', event => {
           correctionDraft: { ...characterInventorySession.correctionDraft, conflicted: true } };
       }
       save = loaded.save; migrationPending = loaded.migrationPending; storageBlocked = false;
+      invalidateContinueForSave(localStorage, loaded.save);
       if (characterSetup && JSON.stringify(loaded.save) !== characterSetup.baseFingerprint) {
         if (characterSetupIsDirty()) characterSetup = { ...characterSetup, conflicted: true };
         else {
@@ -2352,6 +2453,7 @@ window.addEventListener('storage', event => {
     }
     catch (error) { storageBlocked = true; message(`Another tab changed the save to invalid data: ${error.message}`, true); render(); }
   }
+  if (event.key === CONTINUE_KEY && route() === 'dashboard') render();
   if (event.key === 'dbdTrackerBackups' && route() === 'data') render();
 });
 $('#perk-filter-panel').addEventListener('toggle', () => $('#filters-trigger')?.setAttribute('aria-expanded', String($('#perk-filter-panel').matches(':popover-open'))));
