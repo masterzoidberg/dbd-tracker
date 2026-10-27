@@ -4,19 +4,20 @@ Open `index.html` directly in a current Chrome or Edge browser. Keep this README
 `index.html`, `styles.css`, `dist/app.js`, and the `images/` folder together. No Node.js, server, network,
 or installation is needed for direct-file use. The regular script embeds the
 catalogs and icon manifest; the browser does not fetch catalog/manifest JSON files.
-Perk PNGs load locally from the staged `images/` folder. All 321 perks currently have
-artwork, including authentic replacements for the three Cenobite placeholders.
-Missing or failed icons use a fixed neutral diamond. Artwork does not affect your save.
-All 98 characters have portraits in collection cards, character details and Manage
-perks. PNG/WebP files are local; a missing or failed portrait uses a silhouette.
-Images fit their fixed slots without cropping; source artwork is preserved.
-The bundled Killer Power & Add-ons workspace covers all 44 Killers and 880 Add-ons
-from patch 10.2.1. Each page shows the Power summary and all 20 Add-ons in five
-expanded rarity groups. Details opens the full gameplay explanation or effect.
+Perk, character and collection artwork load from explicit local manifests in the
+staged `images/` folder. The three former Cenobite placeholders use authentic
+replacement icons. Missing or failed perk icons use a fixed neutral diamond;
+missing or failed portraits use a silhouette or named neutral fallback. Images fit
+their fixed slots without cropping, and artwork does not affect your save. The
+generated release report and artwork check show the current asset totals and
+intentional fallbacks for each build.
+The bundled Killer Power & Add-ons workspace includes the catalog for patch 10.2.1.
+Each Killer page shows its Power summary and a flat Add-on list with rarity sorting
+and filters. Details opens the full gameplay explanation or effect.
 Quantities save on valid Enter/blur or +/−; zero removes the stored key, and invalid
 or failed edits retain their text. Reader windows retain Details access.
-All 880 Add-ons and 37 Powers use explicit local artwork; seven Powers have an
-accessible fallback. Everything remains available offline.
+All mapped Add-on and Power artwork is local. Unavailable Power artwork has a
+named accessible fallback. Everything remains available offline.
 
 The same directory can be served over localhost by any appropriate static HTTP
 server. This runtime is not a Node/npm development project and does not contain
@@ -60,7 +61,7 @@ progress is blocked. No automatic backup repair is provided.
 
 The automated release gate tests localhost. The separate disposable workspace-file
 suite also verifies direct-file browsing and writer-capable Save/reopen where
-supported. Those automated results do not replace the genuine200% zoom/manual
+supported. Those automated results do not replace genuine 200% zoom/manual
 release acceptance below.
 Use a disposable browser profile and synthetic progress for this check:
 
@@ -74,7 +75,7 @@ Use a disposable browser profile and synthetic progress for this check:
 5. Record the browser name/version, staged bundle SHA-256 (from the developer's
    `release/verification.json`), date, and PASS/FAIL. A failure blocks distribution.
 
-For Filtering acceptance, open Meg's Manage perks. Choose Bloodweb Available,
+For character Perks acceptance, open Meg's workspace and choose Perks. Choose Bloodweb Available,
 then use Filters to select Effective Tier I/II and Source Character Owned.
 Compare the results and option counts; reopen a summary and remove its whole
 group with ×. Clear advanced filters and confirm quick view, search and sort stay.
@@ -94,11 +95,13 @@ In a disposable copy only, temporarily rename a usable PNG and reload its perk:
 confirm a diamond replaces the failed image and editing still works; restore the
 filename afterward. Record the browser/version and PASS/FAIL for offline file use.
 
-For portrait acceptance, open the sibling `artwork-file-check.html` offline:
-expect 1428/1428 images (321 perks, 98 portraits, 92 Survivor inventory images,
-880 Killer Add-ons and 37 Powers), with seven intentional Power fallbacks. The
-release checks only explicit manifest references and verifies their dimensions
-and hashes; browser checks decode every mapped Killer image. Check Survivor/Killer cards,
+For artwork acceptance, open the generated `release/artwork-file-check.html` offline.
+Confirm it reports PASS and that its total and fallback count match the current
+`release/verification.json`; these generated values change with the catalogs. The
+check covers Perks, workspace portraits, collection portraits, Survivor inventory,
+Killer Add-ons and Powers. Release checks only explicit manifest references and
+verify their dimensions and hashes; browser checks decode every mapped image.
+Check Survivor/Killer cards,
 character details and manager headings, especially Bill, Aestri/Baermar, Yun-Jin,
 The Onryō, Ghost Face and Zarina. At 500/700/900 pixels and desktop, names and
 Favorite/Owned/edit controls must remain reachable in both Detailed and Compact.
@@ -123,7 +126,7 @@ without changing that collection. Inspect a `dbdTrackerRecovery-` storage entry
 to confirm exact predecessor preservation. Never inject these fixtures into a
 real account. Repeat offline/direct-file and record browser/version and PASS/FAIL.
 
-For Compact acceptance, open a character's Manage perks and choose Compact.
+For Compact acceptance, open a character workspace's Perks section and choose Compact.
 Detailed remains the default after reload; the choice is shared across character
 managers during the current session and does not change saved progress or filters.
 At 500/700/900 pixels and desktop, confirm names, icons/diamonds, tier buttons and
@@ -139,13 +142,40 @@ check missing-image fallbacks and a browser storage-write rejection independentl
 Record the browser/version and PASS/FAIL; deferred artwork acceptance still remains
 required before distribution.
 
-## Schema v2 portability
+## Schema v3 portability
 
-This build reads valid v1 and complete v2 saves and writes/exports complete v2 with Prestige Queue and per-character inventory quantity maps. Survivor inventory is a separately versioned 10.2.0 research catalog (38 Items/54 Add-ons/7 families), alongside the existing 10.1.2a Perk catalog. Killer Power/Add-on data comes from the canonical 10.2.1 master; the build generates a compact runtime catalog before the artwork manifest and bundle. The research master is excluded from the runtime. Unknown supported IDs are preserved and discoverable as read-only records.
+This build reads valid schema v1, v2 and v3 saves, and writes/exports schema v3.
+Planning state is portable JSON: role-separated Prestige and Playing Queues plus
+role-separated Up Next pins with one explicit Prestige or Play intent per pin.
+The older global Prestige Queue is split by canonical character role during v2 to
+v3 migration. Playing Queues and Up Next start empty; unresolved valid records are
+preserved without guessing a role. Unknown supported character, perk and inventory
+IDs remain in the save. The current schema is shown on Data & backups and in export.
 
-Writable v1 loading backs up the validated v1 predecessor before structural conversion. Read-only loading does not write or back up; structural conversion does not fabricate character edit times. Existing account-rule normalization retains its established behavior.
+Survivor inventory is a separately versioned 10.2.0 research catalog alongside the
+10.1.2a Perk catalog. Killer Power/Add-on data comes from the canonical 10.2.1
+master; the build generates a compact runtime catalog before the artwork manifest
+and bundle. The research master is excluded from the runtime.
 
-V1 import/restore is replacement: it produces an empty Prestige Queue and empty quantity maps, so the confirmation warns that current goals and stock will be replaced. Reset backs up first and clears both. V1-only old builds reject v2 rather than stripping these fields; there is no downgrade export.
+Writable schema migration backs up the validated predecessor before conversion.
+Read-only loading does not write or back up; structural conversion does not
+fabricate character edit times. Existing account-rule normalization retains its
+established behavior. Unsupported future versions and malformed declared-v3 data
+are rejected without replacing the stored save.
+
+V1 imports pass through the v1-to-v2-to-v3 migration; v2 imports migrate directly
+to v3. Import previews disclose replacement defaults. Backup restore follows the
+same supported migrations. Export/import, local backup, restore and reset preserve
+or deliberately replace the planning state. There is no lossless downgrade path;
+older app versions do not preserve schema-v3 planning data.
+
+Continue is a browser-local workspace shortcut. It is not saved in account JSON or
+backups. Successful import, restore and reset clear it; cancellation leaves it.
+
+V1 import/restore is replacement: the legacy Prestige Queue is empty by default,
+and stock maps are empty because schema v1 had no inventory. A v2 Prestige Queue
+migrates into the role lanes; new Playing Queues and Up Next pins remain empty.
+Reset backs up first and clears progression, inventory, queues and pins.
 
 ## Workspace and inventory acceptance
 
@@ -159,10 +189,15 @@ Lord's accessible artwork fallback. Edit a quantity with Enter, blur and +/−;
 reload and reopen the same file to confirm persistence. Open both Details dialogs
 with the keyboard and confirm focus returns. Record browser/version and PASS/FAIL.
 
-Automated disposable direct-file tests cover routes, browsing, writer gating and native writer-capable Save/reopen. For release acceptance, still record genuine browser200% zoom and manual keyboard/file checks in a disposable profile at320/500/760/1100/1440/1600 widths. CSS zoom/deviceScaleFactor is not browser zoom. Confirm labels, large quantities, focus after errors/regroup/filter removal and Save/Cancel visibility. Never use an active account for this verification.
+Automated disposable direct-file tests cover routes, browsing, writer gating and native writer-capable Save/reopen. For release acceptance, still record genuine browser 200% zoom and manual keyboard/file checks in a disposable profile at 320/500/760/1100/1440/1600 widths. CSS zoom/deviceScaleFactor is not browser zoom. Confirm labels, large quantities, focus after errors/regroup/filter removal and Save/Cancel visibility. Never use an active account for this verification.
 
-Dashboard uses one manually ordered Prestige Queue. Recommendations never reorder it.
-Queue goals, including complete or unavailable goals, remain until you edit/remove them.
-Dashboard links open Character Overview. Queue-only edits leave character activity unchanged.
-Plan 4 automated layout checks cover 320/500/760/1100/1440/1600px.
-Genuine browser 200% zoom acceptance remains OUTSTANDING; viewport emulation is not zoom acceptance.
+The Dashboard shows a high-level Progression Snapshot, separate Survivor and Killer
+Up Next lanes, and an optional Continue shortcut. Each Up Next lane holds up to five
+manually ordered pins; every pin has one explicit primary intent. A character can
+also belong to both longer-term queues, or be pinned without either membership.
+Queue edits do not add, remove, reorder or retarget pins. Prestige goals, including
+complete or unavailable goals, remain until you edit or remove them. Manage Queues
+is subordinate to the Dashboard's Up Next lanes. Continue resumes a stable character
+workspace and is not portable account state. The local responsive suite covers
+320/500/760/1100/1440/1600px. Genuine browser 200% zoom acceptance remains
+OUTSTANDING; viewport emulation is not zoom acceptance.

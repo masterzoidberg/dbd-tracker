@@ -65,8 +65,9 @@ try {
     await page.goto(url + '#character/meg-thomas/overview');
     await page.reload();
     assert.equal((await page.locator('[data-character-progress="bloodweb"] strong').textContent()).trim(), '37 / 50');
-    await page.goto(url+'#dashboard');
-    await page.locator('[data-dashboard-character-link][href="#character/meg-thomas/overview"]').first().click();
+    await page.goto(url+'#survivors');
+    await page.locator('#search').fill('Meg');
+    await page.getByRole('link', { name: 'View Meg Thomas workspace', exact: true }).click();
     await page.locator('.character-workspace-favorite').click();
     assert.equal(await page.locator('.character-workspace-favorite').getAttribute('aria-pressed'), 'true');
     await page.locator('[data-action="overview-ownership-toggle"]').click();
@@ -81,7 +82,8 @@ try {
     await page.getByRole('button',{name:'Save target',exact:true}).click();
     await page.reload();
     assert.equal((JSON.parse(await page.evaluate(()=>localStorage.getItem('dbdTrackerData')))).planning.prestigeQueues.survivor[0].targetPrestige,3);
-    await page.locator('[data-current-focus] a').click();
+    await page.locator('#queue-management > summary').click();
+    await page.locator('[data-management-queue="prestige"][data-role="survivor"] [data-dashboard-character-link][href="#character/meg-thomas/overview"]').click();
     await page.locator('[data-character-workspace]').waitFor();
   } else assert.equal(await page.locator('[data-action="character-task-start"][data-task="progression"]').isDisabled(), true);
   assert.equal(writer,true,'Direct-file quantity save verification requires real writer access');
