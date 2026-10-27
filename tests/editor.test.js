@@ -12,7 +12,7 @@ test('read-only complete v2 structural migration does not write backup or curren
     setItem: (key, value) => { writes.push(key); data.set(key, value); },
   }, () => { throw new Error('Read-only'); });
   const result = store.load({ persistMigration: false });
-  assert.equal(result.save.schemaVersion, 2);
+  assert.equal(result.save.schemaVersion, 3);
   assert.equal(result.migrationPending, true);
   assert.deepEqual(writes, []);
   assert.equal(data.get(SAVE_KEY), raw);

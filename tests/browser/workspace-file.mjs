@@ -77,7 +77,7 @@ try {
     await page.locator('#queue-target').fill('3');
     await page.getByRole('button',{name:'Save target',exact:true}).click();
     await page.reload();
-    assert.equal((JSON.parse(await page.evaluate(()=>localStorage.getItem('dbdTrackerData')))).prestigeQueue[0].targetPrestige,3);
+    assert.equal((JSON.parse(await page.evaluate(()=>localStorage.getItem('dbdTrackerData')))).planning.prestigeQueues.survivor[0].targetPrestige,3);
     await page.locator('[data-current-focus] a').click();
     await page.locator('[data-character-workspace]').waitFor();
   } else assert.equal(await page.locator('[data-action="character-task-start"][data-task="progression"]').isDisabled(), true);

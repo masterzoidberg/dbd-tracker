@@ -540,7 +540,7 @@ export async function killerQuantityRegression(page, origin) {
   await field(first.id).press('Enter');
   assert.equal(await quantity(first.id), 9, 'Retained failed input can be retried');
   const saved = JSON.parse(await bytes());
-  assert.equal(saved.schemaVersion, 2);
+  assert.equal(saved.schemaVersion, 3);
   assert.deepEqual(Object.fromEntries(Object.entries(saved.characters).filter(([id]) => id !== 'the-doctor')), originalOthers,
     'Saving Doctor Add-ons preserves every other character');
 

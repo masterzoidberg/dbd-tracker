@@ -92,8 +92,8 @@ export async function editorRegression(a, origin) {
   assert.equal(JSON.parse((await bytes(owner)).dbdTrackerBackups).length, 1);
   assert.equal(JSON.parse((await bytes(owner)).dbdTrackerBackups)[0].save.schemaVersion, 1);
   const migrated = JSON.parse((await bytes(owner)).dbdTrackerData);
-  assert.equal(migrated.schemaVersion, 2);
-  assert.deepEqual(migrated.prestigeQueue, []);
+  assert.equal(migrated.schemaVersion, 3);
+  assert.deepEqual(migrated.planning.prestigeQueues, { survivor: [], killer: [] });
   assert.deepEqual(migrated.characters['meg-thomas'].inventory, { items: {}, addons: {} });
   await openGlobalDestination(reader, 'Data & backups');
   const stable = await bytes(reader);

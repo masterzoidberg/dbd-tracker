@@ -9,7 +9,7 @@ export class TrackerStorage {
   }
   load({ persistMigration = true } = {}) {
     const raw = this.storage.getItem(SAVE_KEY);
-    const loaded = raw === null ? { save: freshSave(), warnings: [], sourceSchemaVersion: 2,
+    const loaded = raw === null ? { save: freshSave(), warnings: [], sourceSchemaVersion: 3,
       migrationRequired: false, predecessor: null } : parseSave(raw);
     let next = structuredClone(loaded.save);
     if (raw !== null) applyAccountRules(next);
@@ -19,7 +19,7 @@ export class TrackerStorage {
     if (migrationPending && persistMigration) {
       this.assertWriter();
       if (raw !== null) this.backup(loaded.predecessor ?? loaded.save,
-        loaded.migrationRequired ? 'Before schema v2 migration' : 'Before account unlock rules update');
+        loaded.migrationRequired ? `Before schema v${loaded.sourceSchemaVersion} to v3 migration` : 'Before account unlock rules update');
       if (normalizationPending) next.updatedAt = new Date().toISOString();
       next = this.save(next);
     }

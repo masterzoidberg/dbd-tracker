@@ -8,13 +8,15 @@ export async function dashboardRegression(page,origin) {
   save.characters['meg-thomas'].owned=true;
   save.characters['dwight-fairfield'].owned=true;
   save.characters['dwight-fairfield'].prestige=3;
-  save.prestigeQueue=[{characterId:'dwight-fairfield',targetPrestige:1},{characterId:'future-import-preserved-character-with-a-very-long-unresolved-source-identity',targetPrestige:Number.MAX_SAFE_INTEGER},{characterId:'the-trapper',targetPrestige:3},{characterId:'meg-thomas',targetPrestige:3}];
+  save.planning.prestigeQueues.survivor=[{characterId:'dwight-fairfield',targetPrestige:1},{characterId:'meg-thomas',targetPrestige:3}];
+  save.planning.prestigeQueues.killer=[{characterId:'the-trapper',targetPrestige:3}];
+  save.planning.unresolved=[{queue:'prestige',role:null,rank:1,record:{characterId:'future-import-preserved-character-with-a-very-long-unresolved-source-identity',targetPrestige:Number.MAX_SAFE_INTEGER}}];
   await page.evaluate(s=>localStorage.setItem('dbdTrackerData',JSON.stringify(s)),save);
   await page.goto(origin+'/#dashboard');await page.reload();
   await page.locator('[data-current-focus]').waitFor({timeout:3000});
   assert.equal(await page.locator('[data-current-focus]').getAttribute('data-character-id'),'meg-thomas');
-  assert.equal(await page.locator('[data-prestige-queue-row]').count(),4);
-  assert.equal(await page.locator('[data-prestige-queue-row][data-queue-position="1"]').count(),1);
+  assert.equal(await page.locator('[data-prestige-queue-row]').count(),3);
+  assert.equal(await page.locator('[data-prestige-queue-row][data-role="survivor"][data-queue-position="1"]').count(),1);
   assert.match(await page.locator('[data-prestige-queue]').textContent(),/Complete/);
   assert.equal(await page.locator('[data-prestige-queue-row][data-character-id="future-import-preserved-character-with-a-very-long-unresolved-source-identity"] a').count(),0);
   const before=await page.evaluate(()=>localStorage.getItem('dbdTrackerData'));
@@ -25,7 +27,7 @@ export async function dashboardRegression(page,origin) {
   assert.equal(await page.locator('[data-prestige-queue-row] [data-action="queue-move"]').isDisabled(),true);
   await page.locator('[data-prestige-queue-row] [data-action="queue-move"]').dispatchEvent('click');
   await page.getByRole('button',{name:'All',exact:true}).click();
-  assert.equal(await page.locator('[data-prestige-queue-row]').count(),4);
+  assert.equal(await page.locator('[data-prestige-queue-row]').count(),3);
   assert.equal(await page.evaluate(()=>localStorage.getItem('dbdTrackerData')),before);
   const sections=await page.locator('[data-dashboard-section]').evaluateAll(nodes=>nodes.map(n=>n.dataset.dashboardSection));
   assert.deepEqual(sections,['actions','suggestions','collection','perks','distribution','favorites']);
@@ -44,21 +46,21 @@ export async function dashboardRegression(page,origin) {
   await page.locator('#queue-target').fill('6');
   await page.getByRole('button',{name:'Save target',exact:true}).click();
   const after=JSON.parse(await page.evaluate(()=>localStorage.getItem('dbdTrackerData')));
-  assert.equal(after.prestigeQueue[3].targetPrestige,6);
+  assert.equal(after.planning.prestigeQueues.survivor[1].targetPrestige,6);
   assert.notEqual(after.updatedAt,save.updatedAt);
   assert.equal(after.characters['meg-thomas'].updatedAt,save.characters['meg-thomas'].updatedAt);
   assert.deepEqual(after.characters['meg-thomas'].inventory,save.characters['meg-thomas'].inventory);
   await meg().getByRole('button',{name:'Move Up Meg Thomas',exact:true}).click();
-  assert.equal(await meg().getAttribute('data-queue-position'),'3');
+  assert.equal(await meg().getAttribute('data-queue-position'),'1');
   assert.equal(await page.evaluate(()=>document.activeElement.dataset.id),'meg-thomas');
   await meg().getByRole('button',{name:'Remove',exact:true}).click();
   assert.equal(await meg().count(),0);
   await page.getByRole('button',{name:'Add Meg Thomas to queue',exact:true}).click();
   assert.equal(await page.locator('#queue-target').inputValue(),'1');
   await page.getByRole('button',{name:'Save target',exact:true}).click();
-  assert.equal(await meg().getAttribute('data-queue-position'),'4');
+  assert.equal(await meg().getAttribute('data-queue-position'),'2');
   await page.reload();
-  assert.equal((JSON.parse(await page.evaluate(()=>localStorage.getItem('dbdTrackerData')))).prestigeQueue[3].characterId,'meg-thomas');
+  assert.equal((JSON.parse(await page.evaluate(()=>localStorage.getItem('dbdTrackerData')))).planning.prestigeQueues.survivor[1].characterId,'meg-thomas');
   await page.getByRole('button',{name:'Manage Queue',exact:true}).click();
   const stable=await page.evaluate(()=>localStorage.getItem('dbdTrackerData'));
   await meg().getByRole('button',{name:'Edit target',exact:true}).click();
@@ -105,14 +107,16 @@ export async function dashboardRegression(page,origin) {
     const state=freshSave();state.setupComplete=true;
     state.characters['meg-thomas'].owned=fixture!=='unowned';
     state.characters['meg-thomas'].prestige=fixture==='complete'?3:0;
-    state.prestigeQueue=fixture==='empty'?[]:fixture==='blocked'?[{characterId:'unknown-import-preserved-character-with-a-long-id',targetPrestige:Number.MAX_SAFE_INTEGER}]:[{characterId:'meg-thomas',targetPrestige:3}];
+    state.planning.prestigeQueues.survivor=fixture==='empty'||fixture==='blocked'?[]:[{characterId:'meg-thomas',targetPrestige:3}];
+    if(fixture==='blocked')state.planning.unresolved=[{queue:'prestige',role:null,rank:0,record:{characterId:'unknown-import-preserved-character-with-a-long-id',targetPrestige:Number.MAX_SAFE_INTEGER}}];
     await page.evaluate(s=>localStorage.setItem('dbdTrackerData',JSON.stringify(s)),state);await page.reload();
     await page.locator('[data-prestige-queue]').waitFor();
     const copy=await page.locator('[data-prestige-queue]').textContent();
     assert.equal(await page.locator('[data-action="setup-open"]').count(),0);
     if(fixture==='empty')assert.match(copy,/Choose the characters/);
     if(fixture==='complete')assert.match(copy,/All queue targets are complete/);
-    if(['blocked','unowned'].includes(fixture)){assert.match(copy,/No available unfinished goals/);assert.ok(!copy.includes('All queue targets are complete'));}
+    if(fixture==='blocked')assert.match(copy,/Choose the characters/);
+    if(fixture==='unowned'){assert.match(copy,/No available unfinished goals/);assert.ok(!copy.includes('All queue targets are complete'));}
     if(fixture==='corrected')assert.equal(await page.locator('[data-current-focus]').getAttribute('data-character-id'),'meg-thomas');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
     await page.getByRole('button',{name:'Manage Queue',exact:true}).click();
@@ -122,19 +126,21 @@ export async function dashboardRegression(page,origin) {
   const focusFixture=freshSave();
   focusFixture.characters['dwight-fairfield'].inventory.items['survivor-item-key-broken-key']=17;
   focusFixture.characters['dwight-fairfield'].inventory.addons['survivor-addon-unknown-preserved-addon']=8;
-  for(const id of ['meg-thomas','dwight-fairfield','the-trapper'])focusFixture.characters[id].owned=true;
-  focusFixture.prestigeQueue=['meg-thomas','the-trapper','dwight-fairfield'].map(characterId=>({characterId,targetPrestige:9}));
+  for(const id of ['meg-thomas','dwight-fairfield','claudette-morel','the-trapper'])focusFixture.characters[id].owned=true;
+  focusFixture.characters['claudette-morel'].prestige=9;
+  focusFixture.planning.prestigeQueues.survivor=['meg-thomas','dwight-fairfield','claudette-morel'].map(characterId=>({characterId,targetPrestige:9}));
+  focusFixture.planning.prestigeQueues.killer=[{characterId:'the-trapper',targetPrestige:9}];
   await page.evaluate(s=>localStorage.setItem('dbdTrackerData',JSON.stringify(s)),focusFixture);await page.reload();
   await page.getByRole('button',{name:'Manage Queue',exact:true}).click();
   await page.getByRole('button',{name:'Survivors',exact:true}).click();
   await page.locator('#queue-remove-meg-thomas').click();
   assert.equal(await page.evaluate(()=>document.activeElement.id),'queue-remove-dwight-fairfield','Remove focuses next visible role row');
   await page.getByRole('button',{name:'All',exact:true}).click();
-  await page.locator('#queue-move-dwight-fairfield').click();
+  await page.locator('#queue-move-down-dwight-fairfield').click();
   assert.equal(await page.evaluate(()=>document.activeElement.closest('[data-prestige-queue-row]')?.dataset.characterId),'dwight-fairfield','Boundary move retains row focus');
   assert.equal(await page.locator('#queue-move-down-dwight-fairfield').getAttribute('aria-label'),'Move Down Dwight Fairfield');
-  assert.equal(await page.locator('#filter-status').textContent(),'Dwight Fairfield moved to position 1 of 2.');
-  const intent=JSON.parse(await page.evaluate(()=>localStorage.getItem('dbdTrackerData'))).prestigeQueue;
+  assert.equal(await page.locator('#filter-status').textContent(),'Dwight Fairfield moved to position 2 of 3.');
+  const intent=JSON.parse(await page.evaluate(()=>localStorage.getItem('dbdTrackerData'))).planning;
   await page.locator('[data-current-focus] a').click();
   await page.getByRole('button',{name:'Edit progression',exact:true}).click();
   await page.locator('[data-character-task-field="prestige"]').fill('9');
@@ -151,7 +157,7 @@ export async function dashboardRegression(page,origin) {
   await page.goto(origin+'/#dashboard');
   assert.equal(await page.locator('[data-current-focus]').getAttribute('data-character-id'),'dwight-fairfield');
   const corrected=JSON.parse(await page.evaluate(()=>localStorage.getItem('dbdTrackerData')));
-  assert.deepEqual(corrected.prestigeQueue,intent);
+  assert.deepEqual(corrected.planning,intent);
   assert.deepEqual(corrected.characters['dwight-fairfield'].inventory,focusFixture.characters['dwight-fairfield'].inventory);
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){

@@ -5,13 +5,13 @@ import vm from 'node:vm';
 import { freshSave, freshProgress, parseSave, syncGlobalInventories } from '../src/model.js';
 import { TrackerStorage, SAVE_KEY, BACKUP_KEY } from '../src/storage.js';
 import { schemaV1Fixture } from './fixtures/schema-v1.js';
+import { schemaV2Fixture } from './fixtures/schema-v2.js';
 
-test('complete v2 queue and quantities survive save export backup restore and replacement defaults', () => {
+test('schema-v3 planning and quantities survive save export backup restore and replacement defaults', () => {
   const memory = memoryStorage(), store = new TrackerStorage(memory, () => {}), input = freshSave();
-  input.prestigeQueue = [
-    { characterId: 'future-goal-only', targetPrestige: 9 },
-    { characterId: 'meg-thomas', targetPrestige: 1 },
-  ];
+  input.planning.unresolved = [{ queue: 'prestige', role: null, rank: 0,
+    record: { characterId: 'future-goal-only', targetPrestige: 9 } }];
+  input.planning.prestigeQueues.survivor = [{ characterId: 'meg-thomas', targetPrestige: 1 }];
   input.characters['meg-thomas'].inventory.items['survivor-item-test-future'] = 8;
   input.characters['meg-thomas'].inventory.addons['survivor-addon-test-future'] = 5;
   input.characters['the-doctor'].inventory.addons['killer-addon-test-future'] = 7;
@@ -21,16 +21,16 @@ test('complete v2 queue and quantities survive save export backup restore and re
   store.backup(saved, 'Fixture');
   assert.deepEqual(store.backups()[0].save, saved);
   const emptied = store.replace(saved, schemaV1Fixture(), 'Before v1 import');
-  assert.deepEqual(emptied.prestigeQueue, []);
+  assert.deepEqual(emptied.planning, freshSave().planning);
   for (const progress of Object.values(emptied.characters)) assert.deepEqual(progress.inventory, { items: {}, addons: {} });
   assert.deepEqual(store.backups()[0].save, saved);
   const restored = store.replace(emptied, store.backups()[0].save, 'Before restore');
-  assert.deepEqual(restored.prestigeQueue, input.prestigeQueue);
+  assert.deepEqual(restored.planning, input.planning);
   assert.deepEqual(restored.characters['meg-thomas'].inventory, input.characters['meg-thomas'].inventory);
   assert.equal(restored.characters['the-doctor'].inventory.addons['killer-addon-test-future'], 7);
   assert.equal(restored.characters['meg-thomas'].perks.camaraderie, 0);
   const reset = store.replace(restored, freshSave(), 'Before reset');
-  assert.deepEqual(reset.prestigeQueue, []);
+  assert.deepEqual(reset.planning, freshSave().planning);
   assert.deepEqual(reset.characters['meg-thomas'].inventory, { items: {}, addons: {} });
 });
 
@@ -45,13 +45,13 @@ test('raw v1 signals read-only migration and writable backup retains the v1 pred
   const readOnly = store.load({ persistMigration: false });
   assert.equal(readOnly.migrationPending, true);
   assert.equal(readOnly.sourceSchemaVersion, 1);
-  assert.equal(readOnly.save.schemaVersion, 2);
+  assert.equal(readOnly.save.schemaVersion, 3);
   assert.equal(memory.getItem(SAVE_KEY), bytes);
   assert.equal(memory.getItem(BACKUP_KEY), null);
   assert.deepEqual(writes, []);
   const writable = store.load();
   assert.equal(writable.migrationPending, false);
-  assert.equal(writable.save.schemaVersion, 2);
+  assert.equal(writable.save.schemaVersion, 3);
   assert.equal(writable.save.updatedAt, input.updatedAt);
   assert.equal(writable.save.characters['meg-thomas'].updatedAt, input.characters['meg-thomas'].updatedAt);
   assert.deepEqual(store.backups()[0].save, input);
@@ -61,6 +61,36 @@ test('raw v1 signals read-only migration and writable backup retains the v1 pred
   store.load();
   assert.equal(writes.length, writesAfterMigration);
   assert.equal(store.backups().length, 1);
+});
+
+test('raw v2 planning migration is read-only until writer backup then persists exactly once', () => {
+  const memory = memoryStorage(), writes = [], store = new TrackerStorage({
+    getItem: key => memory.getItem(key),
+    setItem: (key, value) => { writes.push([key, value]); memory.setItem(key, value); },
+  }, () => {});
+  const input = schemaV2Fixture();
+  input.prestigeQueue = [{ characterId: 'meg-thomas', targetPrestige: 6 },
+    { characterId: 'future-goal-only', targetPrestige: 9, note: 'preserve' }];
+  input.characters['meg-thomas'].owned = true;
+  const original = JSON.stringify(input);
+  memory.setItem(SAVE_KEY, original);
+
+  const preview = store.load({ persistMigration: false });
+  assert.equal(preview.sourceSchemaVersion, 2);
+  assert.equal(preview.save.schemaVersion, 3);
+  assert.equal(preview.migrationPending, true);
+  assert.equal(memory.getItem(SAVE_KEY), original);
+  assert.deepEqual(writes, []);
+
+  const migrated = store.load();
+  assert.deepEqual(migrated.save.planning.prestigeQueues.survivor, [{ characterId: 'meg-thomas', targetPrestige: 6 }]);
+  assert.deepEqual(migrated.save.planning.unresolved, [{ queue: 'prestige', role: null, rank: 1,
+    record: input.prestigeQueue[1] }]);
+  assert.deepEqual(store.backups()[0].save, input);
+  assert.match(store.backups()[0].reason, /schema v2 to v3/i);
+  assert.deepEqual(writes.map(([key]) => key), [BACKUP_KEY, SAVE_KEY]);
+  store.load();
+  assert.equal(writes.length, 2);
 });
 
 test('structural migration backup and save failures leave valid original bytes intact', () => {
@@ -91,7 +121,7 @@ test('real Killer Add-on quantities survive storage backup and restore while wro
   store.backup(saved,'Real Killer stock');
   const reset=store.save(freshSave());
   const restored=store.replace(reset,store.backups()[0].save,'Before real stock restore');
-  assert.equal(restored.schemaVersion,2);
+  assert.equal(restored.schemaVersion,3);
   assert.equal(restored.characters['the-trapper'].inventory.addons[id],6);
   const invalid=structuredClone(restored);
   invalid.characters['the-doctor'].inventory.addons[id]=6;
@@ -100,7 +130,7 @@ test('real Killer Add-on quantities survive storage backup and restore while wro
 });
 
 const invalidCandidates = [
-  ['sparse Prestige Queue', s => { s.prestigeQueue = new Array(1); }, /Queue/],
+  ['sparse Prestige Queue', s => { s.planning.prestigeQueues.survivor = new Array(1); }, /planning|queue/i],
   ['Bloodweb 0', s => { s.characters['meg-thomas'].bloodwebLevel = 0; }, /Bloodweb/],
   ['Bloodweb 51', s => { s.characters['meg-thomas'].bloodwebLevel = 51; }, /Bloodweb/],
   ['negative Prestige', s => { s.characters['meg-thomas'].prestige = -1; }, /Prestige/],

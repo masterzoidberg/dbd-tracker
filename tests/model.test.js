@@ -14,14 +14,111 @@ test('character setup workspace host exposes task exit instead of modal close', 
   assert.equal(html.includes('data-action="close"'), false);
 });
 import { schemaV1Fixture, oldV1VersionBoundary } from './fixtures/schema-v1.js';
+import { schemaV2Fixture } from './fixtures/schema-v2.js';
 
 function completeV2Fixture() {
-  const save = freshSave();
-  save.schemaVersion = 2;
-  save.prestigeQueue = [];
-  for (const progress of Object.values(save.characters)) progress.inventory = { items: {}, addons: {} };
-  return save;
+  return schemaV2Fixture();
 }
+
+test('fresh saves use one empty schema-v3 planning state and no legacy queue projection', () => {
+  const save = freshSave();
+  assert.equal(save.schemaVersion, 3);
+  assert.deepEqual(save.planning, {
+    prestigeQueues: { survivor: [], killer: [] },
+    playingQueues: { survivor: [], killer: [] },
+    upNext: { survivor: [], killer: [] },
+    unresolved: [],
+  });
+  assert.equal(Object.hasOwn(save, 'prestigeQueue'), false);
+  assert.equal(validateSave(save).migrationRequired, false);
+});
+
+test('v2 migration splits known goals by role and preserves the unknown source record and rank', () => {
+  const input = schemaV2Fixture();
+  input.prestigeQueue = [
+    { characterId: 'meg-thomas', targetPrestige: 9 },
+    { characterId: 'the-trapper', targetPrestige: 3 },
+    { characterId: 'dwight-fairfield', targetPrestige: 6 },
+    { characterId: 'future-goal-only', targetPrestige: Number.MAX_SAFE_INTEGER, note: 'future metadata' },
+    { characterId: 'bill-overbeck', targetPrestige: 12 },
+  ];
+  input.characters['meg-thomas'].owned = true;
+  input.characters['meg-thomas'].prestige = 9;
+  input.characters['the-trapper'].owned = false;
+  const original = structuredClone(input);
+
+  const result = validateSave(input);
+
+  assert.equal(result.sourceSchemaVersion, 2);
+  assert.equal(result.migrationRequired, true);
+  assert.equal(result.save.schemaVersion, 3);
+  assert.deepEqual(result.save.planning.prestigeQueues.survivor, [
+    { characterId: 'meg-thomas', targetPrestige: 9 },
+    { characterId: 'dwight-fairfield', targetPrestige: 6 },
+    { characterId: 'bill-overbeck', targetPrestige: 12 },
+  ]);
+  assert.deepEqual(result.save.planning.prestigeQueues.killer, [
+    { characterId: 'the-trapper', targetPrestige: 3 },
+  ]);
+  assert.deepEqual(result.save.planning.unresolved, [{
+    queue: 'prestige', role: null, rank: 3,
+    record: { characterId: 'future-goal-only', targetPrestige: Number.MAX_SAFE_INTEGER, note: 'future metadata' },
+  }]);
+  assert.deepEqual(result.save.planning.playingQueues, { survivor: [], killer: [] });
+  assert.deepEqual(result.save.planning.upNext, { survivor: [], killer: [] });
+  assert.equal(result.save.planning.prestigeQueues.survivor[0].targetPrestige, 9,
+    'completed goals remain stored instead of being removed');
+  assert.equal(result.save.planning.prestigeQueues.killer[0].targetPrestige, 3,
+    'unowned goals remain stored instead of being removed');
+  assert.equal(Object.hasOwn(result.save, 'prestigeQueue'), false);
+  assert.deepEqual(input, original);
+});
+
+test('v3 accepts direct explicit pins and rejects malformed declared planning state', () => {
+  const input = schemaV2Fixture();
+  delete input.prestigeQueue;
+  input.schemaVersion = 3;
+  input.planning = {
+    prestigeQueues: { survivor: [], killer: [] },
+    playingQueues: { survivor: [], killer: [] },
+    upNext: { survivor: [{ characterId: 'meg-thomas', intent: 'play' }], killer: [] },
+    unresolved: [],
+  };
+  const parsed = validateSave(input);
+  assert.deepEqual(parsed.save.planning.upNext.survivor, input.planning.upNext.survivor);
+  assert.deepEqual(parsed.save.planning.playingQueues.survivor, []);
+  assert.equal(parsed.migrationRequired, false);
+  assert.throws(() => validateSave({ ...input, prestigeQueue: [] }), /legacy|prestigeQueue|planning/i);
+
+  for (const mutate of [
+    value => { delete value.planning; },
+    value => { value.planning.upNext.survivor[0].intent = 'favorite'; },
+    value => { value.planning.prestigeQueues.survivor.push({ characterId: 'the-trapper', targetPrestige: 4 }); },
+    value => { value.planning.playingQueues.survivor.push({ characterId: 'meg-thomas' }, { characterId: 'meg-thomas' }); },
+    value => { value.planning.upNext.survivor = Array.from({ length: 6 }, (_, index) => ({ characterId: ['meg-thomas', 'dwight-fairfield', 'jake-park', 'claudette-morel', 'nea-karlsson', 'bill-overbeck'][index], intent: 'play' })); },
+  ]) {
+    const invalid = structuredClone(input);
+    mutate(invalid);
+    assert.throws(() => validateSave(invalid), /planning|queue|pin|intent|role/i);
+  }
+});
+
+test('schema v3 preserves unknown planning records with source role/rank through export and re-import', () => {
+  const save = freshSave();
+  save.planning.playingQueues.survivor = [{ characterId: 'future-survivor', futureField: { keep: true } }];
+  save.planning.upNext.killer = [{ characterId: 'future-killer', intent: 'play', note: 'kept' }];
+  save.planning.unresolved.push({ queue: 'unknown', role: null, rank: 7, record: { futureQueue: [1, 2] } });
+  const canonical = validateSave(save).save;
+  const imported = parseSave(exportSave(canonical));
+  assert.deepEqual(imported.save, canonical);
+  assert.deepEqual(imported.save.planning.playingQueues.survivor, []);
+  assert.deepEqual(imported.save.planning.upNext.killer, []);
+  assert.deepEqual(imported.save.planning.unresolved.slice(-2), [
+    { queue: 'playing', role: 'survivor', rank: 0, record: save.planning.playingQueues.survivor[0] },
+    { queue: 'upNext', role: 'killer', rank: 0, record: save.planning.upNext.killer[0] },
+  ]);
+  assert.equal(imported.migrationRequired, false);
+});
 
 test('complete v2 validation preserves quantities historical zero and queue without mutating input', () => {
   const input = completeV2Fixture();
@@ -89,8 +186,8 @@ test('real Killer Add-on saves preserve schema v2 quantity and reject a known wr
   assert.throws(()=>model.validateCompleteV2(input),/owner/);
 });
 
-test('complete v2 validator rejects other versions while runtime version remains explicit', () => {
-  assert.equal(model.SCHEMA_VERSION, 2);
+test('complete v2 validator rejects other versions while runtime version is schema v3', () => {
+  assert.equal(model.SCHEMA_VERSION, 3);
   assert.throws(() => model.validateCompleteV2(schemaV1Fixture()), /schema/i);
   const input = completeV2Fixture();
   input.schemaVersion = 3;
@@ -109,8 +206,13 @@ test('v1 migrates structurally with explicit metadata and unchanged supported st
   assert.equal(result.sourceSchemaVersion, 1);
   assert.equal(result.migrationRequired, true);
   assert.deepEqual(result.predecessor, before);
-  assert.equal(result.save.schemaVersion, 2);
-  assert.deepEqual(result.save.prestigeQueue, []);
+  assert.equal(result.save.schemaVersion, 3);
+  assert.deepEqual(result.save.planning, {
+    prestigeQueues: { survivor: [], killer: [] },
+    playingQueues: { survivor: [], killer: [] },
+    upNext: { survivor: [], killer: [] },
+    unresolved: [],
+  });
   for (const [id, progress] of Object.entries(result.save.characters)) {
     const { inventory, ...existing } = progress;
     assert.deepEqual(inventory, { items: {}, addons: {} });
@@ -131,12 +233,12 @@ test('parse and normal save remain separate from account normalization after mig
   assert.equal(parsed.save.accountRulesVersion, undefined);
   assert.equal(parsed.save.settings.halloweenNames, 'generic');
   assert.deepEqual(parsed.save.perkOverrides.kindred, { shrineTier: 2 });
-  const v2 = validateSave(parsed.save);
-  assert.equal(v2.sourceSchemaVersion, 2);
-  assert.equal(v2.migrationRequired, false);
-  assert.equal(v2.predecessor, null);
-  assert.deepEqual(v2.save, parsed.save);
-  assert.equal(Object.hasOwn(v2.save, 'migrationRequired'), false);
+  const current = validateSave(parsed.save);
+  assert.equal(current.sourceSchemaVersion, 3);
+  assert.equal(current.migrationRequired, false);
+  assert.equal(current.predecessor, null);
+  assert.deepEqual(current.save, parsed.save);
+  assert.equal(Object.hasOwn(current.save, 'migrationRequired'), false);
 });
 
 test('personal corrections lower or remove records while preserving automatic tiers and other characters', () => {
