@@ -147,16 +147,16 @@ Global shell actions such as save status, Export JSON, and Run character setups 
 
 ### Likely New Persisted Account State
 
-The following logical shape describes the approved behavior; Phase 1B finalizes its versioned persisted fields and validation contract.
+Schema v3 uses one `planning` object as the sole writable planning state. Array position is manual rank; completion and availability are derived from current progression/catalog facts rather than persisted as stale flags.
 
 | State | Logical contents / ordering | Default / constraints |
 | --- | --- | --- |
-| Prestige queues by role | `prestigeQueues.survivor/killer`: ordered `{characterId,targetPrestige}` entries | Independent array rank; preserve target, completion and unavailable semantics. No five-entry limit on longer queues. |
-| Playing queues by role | `playingQueues.survivor/killer`: ordered character references | Independent manually editable lists; no inferred Favorites/recent intent and no invented Prestige target. |
-| Up Next by role | `upNext.survivor/killer`: ordered character references plus one explicit primary intent (`Prestige` or `Play`) per pin | Unique character per lane, max five each, manual order independent of both longer queues. A direct pin needs no queue membership; other-queue membership may appear as secondary context. |
-| Unresolved migrated planning records, if needed | Preserve unresolved old queue entries in a labeled read-only bucket when role cannot be resolved | Do not guess a role or discard unknown valid goals. Exact storage field is an engineering choice. |
+| Prestige queues by role | `planning.prestigeQueues.survivor/killer`: ordered `{characterId,targetPrestige}` entries | Independent array rank; preserve target; completion/unavailable is derived. No five-entry limit on longer queues. |
+| Playing queues by role | `planning.playingQueues.survivor/killer`: ordered `{characterId}` entries | Independent manually editable lists; no inferred Favorites/recent intent and no invented Prestige target. |
+| Up Next by role | `planning.upNext.survivor/killer`: ordered `{characterId,intent}` pins; intent is `prestige` or `play` | Unique character per lane, max five active pins each, manual order independent of both longer queues. Direct pin needs no queue membership; other-queue membership may appear as secondary context. |
+| Unresolved planning records | `planning.unresolved`: ordered `{queue,role,rank,record}` wrappers, where `role` may be `null` if unknown | Preserve the source queue, role when supplied, original rank and full record. Keep unresolved records read-only and outside active lanes; never guess a role or discard a valid unknown goal/pin. |
 
-Do not retain the legacy global queue and new role queues as competing writable sources. Prefer a versioned migration, likely schema v3 because old v2 validation reconstructs known fields and would silently strip added queue/pin data. `validateSave`, fresh defaults, `TrackerStorage.load/save/replace`, migration backup copy, import summaries/reset warnings, Data schema display and export all require compatible updates. No version bump or code change is made now.
+The `planning` object is the sole writable planning state; schema v3 does not retain the legacy global `prestigeQueue`. Split known old goals by canonical role while preserving within-role order, target and derived completion/unavailable behavior. Move unknown IDs to `planning.unresolved` with the original cross-role rank and record rather than guessing a role. `validateSave`, fresh defaults, `TrackerStorage.load/save/replace`, migration backup copy, import summaries/reset warnings, Data schema display and export all require compatible updates.
 
 ### Migration / Old Export Compatibility
 
@@ -170,7 +170,7 @@ Do not retain the legacy global queue and new role queues as competing writable 
 
 ### Validation / Malformed-State Recovery
 
-Use canonical safe IDs, supported roles, dense arrays, unique entries, valid targets/intent and max five unique pins per role. Known character IDs must agree with lane role. Keep completed/unowned saved goals visible as such rather than silently removing them or refilling pins; creation eligibility must preserve existing Prestige rules. Direct pins are allowed and do not create membership; queue membership changes do not remove, reorder or retarget pins.
+Use canonical safe IDs, supported roles, dense arrays, unique entries, valid targets/intent and max five active unique pins per role. Known character IDs must agree with lane role. Preserve completed/unowned saved goals and pins rather than silently removing them or refilling lanes; creation eligibility must preserve existing Prestige rules. Direct pins are allowed and do not create membership; queue membership changes do not remove, reorder or retarget pins. Unknown or unresolved pins remain visible as read-only recovery information and never count as a hidden sixth active pin.
 
 New-state validation must distinguish missing fields in supported **older-version migration** (default empty) from malformed declared new-version fields (reject replacement, retain original). Do not silently truncate over-cap lanes, drop duplicates or manufacture ordering on corrupt portable input. Offer the existing raw export/import/backup recovery path. Valid unresolved records are preserved read-only and excluded from active resolved pin slots, with any retention container explicit; do not erase them to make the Dashboard look tidy. Final unresolved-pin policy must honor the unique/five limits without presenting a hidden sixth active entry.
 
