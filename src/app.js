@@ -20,7 +20,7 @@ import assetManifest from '../data/asset-manifest.json' with { type: 'json' };
 import { perkIconPath, characterPortraitPath, collectionPortraitPath } from './assets.js';
 
 import { getFilterContext, perkFilterDefinitions, matchesPerkFilterState, selectQuickView, toggleAdvancedOption, clearAdvancedFilters, activeAdvancedGroupCount, perkFacetCounts, createFilterRouteMemory } from './perk-filters.js';
-import { CHARACTER_INVENTORY_CATEGORIES, CHARACTER_CARD_SIZES, DEFAULT_CHARACTER_CARD_SIZE, normalizeCharacterCardSize, characterInventoryCandidatePool, filterCharacterInventoryCandidates, characterNormalInventory, setCharacterPersonalTier, createCharacterInventorySession, syncCharacterInventorySession, markCharacterInventoryChanged, parseCharacterInventoryRoute } from './character-inventory.js';
+import { CHARACTER_INVENTORY_CATEGORIES, CHARACTER_CARD_SIZES, DEFAULT_CHARACTER_CARD_SIZE, normalizeCharacterCardSize, characterInventoryCandidatePool, filterCharacterInventoryCandidates, characterNormalInventory, setCharacterPersonalTier, createCharacterInventorySession, syncCharacterInventorySession, parseCharacterInventoryRoute } from './character-inventory.js';
 
 const $ = selector => document.querySelector(selector);
 const artworkUrl = path => path.split('/').map(encodeURIComponent).join('/');
@@ -42,7 +42,6 @@ let collectionFiltersOpen = false;
 const collectionState = createRosterStateMemory();
 const workspaceContext = createWorkspaceContextMemory();
 let lastRoute = '';
-let workspacePerkSelectionIntent = null;
 let managerView = 'detailed';
 const filterMemory = createFilterRouteMemory();
 let panelContext = '';
@@ -397,10 +396,9 @@ function characterInventoryGridClass() {
 
 function characterPerkCard(row, characterId, selected = false) {
   const tier = row.effectiveTier;
-  const changed = characterInventorySession.changedPerkIds.has(row.perk.id);
   const name = perkName(save, row.perk);
   const tierClass = tier ? `perk-tier-${tier}` : 'perk-tier-none';
-  return `<button class="perk-card ${tierClass}${tier === 0 ? ' perk-card-unrecorded' : ''}${selected ? ' is-selected' : ''}${changed ? ' changed-this-update' : ''}" data-action="character-inventory-select" data-character="${characterId}" data-perk="${row.perk.id}" aria-pressed="${selected}" aria-label="${esc(name)}: effective Tier ${esc(roman[tier])}; recorded ${esc(characterInventoryRecordedLabel(characterId, row.perk))}"><span class="perk-card-art">${perkArtwork(row.perk, 78)}</span><span class="perk-card-content"><span class="perk-card-tier-line"><span class="perk-card-tier">${roman[tier]}</span>${tier === 0 ? '<span class="perk-card-unrecorded-label">NO EFFECTIVE TIER</span>' : ''}${changed ? '<span class="perk-card-changed">Changed this update</span>' : ''}</span><strong>${esc(name)}</strong><span class="perk-card-badges">${characterInventoryBadges(row)}</span></span></button>`;
+  return `<button class="perk-card ${tierClass}${tier === 0 ? ' perk-card-unrecorded' : ''}${selected ? ' is-selected' : ''}" data-action="character-inventory-select" data-character="${characterId}" data-perk="${row.perk.id}" aria-pressed="${selected}" aria-label="${esc(name)}: effective Tier ${esc(roman[tier])}; recorded ${esc(characterInventoryRecordedLabel(characterId, row.perk))}"><span class="perk-card-art">${perkArtwork(row.perk, 78)}</span><span class="perk-card-content"><span class="perk-card-tier-line"><span class="perk-card-tier">${roman[tier]}</span>${tier === 0 ? '<span class="perk-card-unrecorded-label">NO EFFECTIVE TIER</span>' : ''}</span><strong>${esc(name)}</strong><span class="perk-card-badges">${characterInventoryBadges(row)}</span></span></button>`;
 }
 
 function historicalCharacterInventoryControl(characterId, perk) {
@@ -417,7 +415,7 @@ function characterInventoryTierButtons(row, characterId) {
   return `<div class="character-inventory-tier-controls" role="group" aria-label="Set current tier for ${esc(name)}">${[['none', 'Not recorded', 0], ['1', 'I', 1], ['2', 'II', 2], ['3', 'III', 3]].map(([value, label, tier]) => `<button data-action="character-inventory-set-tier" data-character="${characterId}" data-perk="${row.perk.id}" data-tier="${value}" aria-label="Set ${esc(name)} to ${tier ? `Tier ${label}` : label}" aria-pressed="${row.recordedTier === tier}" ${characterInventorySession.failedSelection || (tier && tier < row.automaticMinimum) ? 'disabled title="Resolve the failed selection first"' : ''}>${label}</button>`).join('')}</div>`;
 }
 
-function characterInventoryQuickCard(row, characterId, selected) {
+function characterInventoryQuickCard(row, characterId) {
   const open = characterInventorySession.quickPerkId === row.perk.id;
   const correcting = characterInventorySession.correctionDraft?.characterId === characterId
     && characterInventorySession.correctionDraft.perkId === row.perk.id;
@@ -426,7 +424,12 @@ function characterInventoryQuickCard(row, characterId, selected) {
     ? correction
     : `${row.isHistorical ? historicalCharacterInventoryControl(characterId, row.perk) : characterInventoryTierButtons(row, characterId)}${correction}`;
   const pickerLabel = `${correcting ? 'Correct personal record for' : row.isHistorical ? 'Set historical ownership for' : 'Set current tier for'} ${perkName(save, row.perk)}`;
-  return `<div class="character-inventory-card-anchor">${characterPerkCard(row, characterId, selected)}${open ? `<div class="character-inventory-quick-picker" role="group" aria-label="${esc(pickerLabel)}"><strong>${esc(perkName(save, row.perk))}</strong>${editor}</div>` : ''}</div>`;
+  const record = save.characters[characterId].perks;
+  const recorded = row.isHistorical
+    ? Object.hasOwn(record, row.perk.id) ? record[row.perk.id] ? `Tier ${roman[record[row.perk.id]]}` : 'Not Owned' : 'Not Confirmed'
+    : characterInventoryRecordedLabel(characterId, row.perk);
+  const state = `<dl class="character-inventory-quick-state"><div><dt>Recorded</dt><dd>${esc(recorded)}</dd></div><div><dt>Automatic minimum</dt><dd>${row.automaticMinimum ? `Tier ${roman[row.automaticMinimum]}` : 'None'}</dd></div><div><dt>Effective</dt><dd>${row.effectiveTier ? `Tier ${roman[row.effectiveTier]}` : 'No effective tier'}</dd></div></dl>`;
+  return `<div class="character-inventory-card-anchor">${characterPerkCard(row, characterId, open)}${open ? `<div class="character-inventory-quick-picker" role="group" aria-label="${esc(pickerLabel)}"><strong>${esc(perkName(save, row.perk))}</strong>${state}${editor}<div class="character-inventory-quick-actions"><button type="button" data-action="character-inventory-details" data-perk="${row.perk.id}">Details</button></div></div>` : ''}</div>`;
 }
 
 function closeCharacterInventoryQuickPicker(restoreFocus = false) {
@@ -473,9 +476,8 @@ function captureWorkspaceContext(path) {
 function restoreWorkspaceContext(descriptor) {
   const role = characterById[descriptor.characterId].role;
   const context = workspaceContext.update(role, { section: descriptor.section, mode: descriptor.mode });
-  const updateRoute = descriptor.section === 'perks' && descriptor.mode === 'update' ? descriptor.canonicalRoute : '';
   characterInventorySession = {
-    ...createCharacterInventorySession(updateRoute),
+    ...createCharacterInventorySession(descriptor.canonicalRoute),
     search: context.perks.search,
     category: context.perks.category,
     onlyUnrecorded: context.perks.onlyUnrecorded,
@@ -525,44 +527,22 @@ function characterInventoryCorrectionMarkup(row, characterId) {
   return `<section class="character-inventory-correction">${trigger}<div class="character-inventory-correction-editor" id="${correctionId}" data-character-inventory-correction><h3>Correct personal record</h3><p class="character-inventory-correction-note">This changes the recorded tier for ${esc(perkName(save, perk))}. Automatic minimums remain derived.</p><dl class="character-inventory-correction-facts"><div><dt>Current recorded tier</dt><dd>${esc(characterInventoryRecordedLabel(characterId, perk))}</dd></div><div><dt>Automatic minimum</dt><dd>${row.automaticMinimum ? `Tier ${roman[row.automaticMinimum]}` : 'None'}</dd></div><div><dt>Effective tier after correction</dt><dd data-character-inventory-correction-preview>${effectiveLabel}</dd></div></dl><label for="character-inventory-correction-tier">Corrected personal tier</label><select id="character-inventory-correction-tier" data-character-inventory-correction-tier="${perk.id}" data-character="${characterId}" ${draft.conflicted ? 'disabled' : ''}><option value="none" ${draft.tier === null ? 'selected' : ''}>Not recorded</option>${[1, 2, 3].map(tier => `<option value="${tier}" ${draft.tier === tier ? 'selected' : ''}>Tier ${roman[tier]}</option>`).join('')}</select>${error ? `<p class="error" data-character-inventory-correction-error role="alert">${esc(error)}</p>` : ''}<div class="character-inventory-correction-actions"><button type="button" class="primary" data-action="character-inventory-correction-apply" ${!draft.dirty || draft.conflicted ? 'disabled' : ''}>Apply correction</button><button type="button" data-action="character-inventory-correction-cancel">Cancel</button></div></div></section>`;
 }
 
-function characterInventoryReference(row, characterId) {
-  if (!row) return '<aside class="character-inventory-editor"><p class="empty">No perks match these filters.</p></aside>';
-  const perk = row.perk;
-  const accountAccess = isAvailable(save, perk)
-    ? row.unlockReasons.length ? row.unlockReasons.join(' · ') : perk.general ? 'General · available in the Bloodweb' : 'Available'
-    : 'Not currently available';
-  return `<aside class="character-inventory-editor" data-character-inventory-reference><div class="character-inventory-editor-art">${perkArtwork(perk, 100)}</div><div class="eyebrow">PERK REFERENCE</div><h2>${esc(perkName(save, perk))}</h2><div class="character-inventory-editor-badges">${characterInventoryBadges(row)}</div><div class="character-inventory-effective"><span>EFFECTIVE TIER</span>${badge(row.effectiveTier)}<small>What this character can use</small></div><dl class="character-inventory-editor-facts"><div><dt>Recorded tier</dt><dd>${esc(characterInventoryRecordedLabel(characterId, perk))}</dd></div><div><dt>Automatic minimum</dt><dd>${row.automaticMinimum ? roman[row.automaticMinimum] : 'None'}</dd></div><div><dt>Account access</dt><dd>${esc(accountAccess)}</dd></div><div><dt>Source</dt><dd>${esc(perk.sourceCharacterName || 'General')}</dd></div></dl>${characterInventoryCorrectionMarkup(row, characterId)}<a class="primary button-link" data-open-perk-update="${perk.id}" href="${characterWorkspaceHref(characterId, 'perks', 'update')}">Update Inventory</a></aside>`;
-}
-
-function characterInventoryToolbar(candidates, visible, mode) {
-  const update = mode === 'update';
-  const failed = update && characterInventorySession.failedSelection;
+function characterInventoryToolbar(candidates, visible) {
+  const failed = characterInventorySession.failedSelection;
   const failedPerk = failed && perkById[failed.perkId];
   const failedTier = failed && (failed.type === 'historical' ? failed.tier === 0 ? 'Not Owned' : `Tier ${roman[failed.tier]}` : failed.tier === null ? 'Not recorded' : `Tier ${roman[failed.tier]}`);
   const failure = failed ? `<div class="error character-inventory-failed-selection" data-character-inventory-failed-selection role="alert"><p><strong>Not saved:</strong> ${esc(failedPerk ? perkName(save, failedPerk) : 'Perk')} · ${esc(failedTier)}. ${failed.conflicted ? 'Stored data changed; retry is unavailable.' : 'Retry this selection or discard it before continuing.'}</p><div><button type="button" data-action="character-inventory-retry" ${failed.conflicted ? 'disabled' : ''}>Retry failed selection</button><button type="button" data-action="character-inventory-discard-failed">Discard failed selection</button></div></div>` : '';
-  return `<section class="panel character-inventory-controls" data-character-inventory-toolbar="${mode}"><div class="character-inventory-control-top"><label class="search character-inventory-search"><span aria-hidden="true">⌕</span><input id="character-inventory-search" type="search" placeholder="Search perks…" aria-label="Search perks" value="${esc(characterInventorySession.search)}"></label>${selectControl('character-inventory-sort', 'Sort', [['name', 'Perk name'], ['source', 'Source character'], ['tier', 'Effective tier ↓']], characterInventorySession.sort)}${characterInventoryCardSizeControl()}</div><button data-action="character-inventory-all-role" aria-pressed="${Boolean(characterInventorySession.allRole)}">Show all same-role perks / special acquisitions</button><div class="character-inventory-scopes" role="group" aria-label="Perk categories">${CHARACTER_INVENTORY_CATEGORIES.map(category => `<button data-action="character-inventory-category" data-category="${category}" aria-pressed="${characterInventorySession.category === category}" class="${characterInventorySession.category === category ? 'selected' : ''}">${category === 'all' ? 'All' : characterInventoryCategoryLabels[category]}</button>`).join('')}<label class="character-inventory-only-unrecorded"><input id="character-inventory-only-unrecorded" type="checkbox" ${characterInventorySession.onlyUnrecorded ? 'checked' : ''}>No effective tier</label></div><div class="character-inventory-results-label"><strong>${visible.length}</strong> shown · ${candidates.length} candidates · ${candidates.filter(row => row.effectiveTier === 0).length} with no effective tier</div>${failure}${update ? '<p class="muted">Each selection saves immediately. Done leaves Update Inventory without saving anything else.</p>' : '<p class="muted">Browse is read-only. Select a perk to review its record, automatic minimum, effective tier, and account access.</p>'}</section>`;
+  return `<section class="panel character-inventory-controls" data-character-inventory-toolbar="perks"><div class="character-inventory-control-top"><label class="search character-inventory-search"><span aria-hidden="true">⌕</span><input id="character-inventory-search" type="search" placeholder="Search perks…" aria-label="Search perks" value="${esc(characterInventorySession.search)}"></label>${selectControl('character-inventory-sort', 'Sort', [['name', 'Perk name'], ['source', 'Source character'], ['tier', 'Effective tier ↓']], characterInventorySession.sort)}${characterInventoryCardSizeControl()}</div><button data-action="character-inventory-all-role" aria-pressed="${Boolean(characterInventorySession.allRole)}">Show all same-role perks / special acquisitions</button><div class="character-inventory-scopes" role="group" aria-label="Perk categories">${CHARACTER_INVENTORY_CATEGORIES.map(category => `<button data-action="character-inventory-category" data-category="${category}" aria-pressed="${characterInventorySession.category === category}" class="${characterInventorySession.category === category ? 'selected' : ''}">${category === 'all' ? 'All' : characterInventoryCategoryLabels[category]}</button>`).join('')}<label class="character-inventory-only-unrecorded"><input id="character-inventory-only-unrecorded" type="checkbox" ${characterInventorySession.onlyUnrecorded ? 'checked' : ''}>No effective tier</label></div><div class="character-inventory-results-label"><strong>${visible.length}</strong> shown · ${candidates.length} candidates · ${candidates.filter(row => row.effectiveTier === 0).length} with no effective tier</div>${failure}<p class="muted">Select a perk to view its recorded, automatic, and effective tiers. Changes save immediately; Details opens the full reference.</p></section>`;
 }
 
 function characterInventory(id) {
   const character = characterById[id];
   const candidates = characterInventoryCandidatePool(save, id, { allRole: characterInventorySession.allRole });
   const visible = filterCharacterInventoryCandidates(save, id, candidates, characterInventorySession);
-  const correction = characterInventorySession.correctionDraft;
-  const selected = correction?.characterId === id
-    ? characterInventoryCandidatePool(save, id, { allRole: true }).find(row => row.perk.id === correction.perkId) || null
-    : visible.find(row => row.perk.id === characterInventorySession.selectedPerkId) || visible[0] || null;
-  if (!correction && selected && selected.perk.id !== characterInventorySession.selectedPerkId) characterInventorySession = { ...characterInventorySession, selectedPerkId: selected.perk.id };
-  return `<div class="section-title"><h2>Perks</h2><a class="primary button-link character-inventory-update-action" href="${characterWorkspaceHref(id, 'perks', 'update')}">Update Inventory</a></div>${characterInventoryToolbar(candidates, visible, 'browse')}<div class="character-inventory-layout"><section class="character-inventory-card-grid ${characterInventoryGridClass()}" aria-label="${esc(character.name)} perk browser">${visible.length ? visible.map(row => characterPerkCard(row, id, row.perk.id === selected?.perk.id)).join('') : empty('No perks match this search and scope.')}</section>${characterInventoryReference(selected, id)}</div>`;
-}
-
-function characterInventoryUpdate(id) {
-  const character = characterById[id];
-  const candidates = characterInventoryCandidatePool(save, id, { allRole: characterInventorySession.allRole });
-  const visible = filterCharacterInventoryCandidates(save, id, candidates, characterInventorySession);
-  const changed = characterInventorySession.changedPerkIds.size;
-  const openPerkId = characterInventorySession.quickPerkId;
-  if (openPerkId && !visible.some(row => row.perk.id === openPerkId)) characterInventorySession = { ...characterInventorySession, quickPerkId: null };
-  return `<div class="character-inventory-update-heading"><a class="back-link" href="${characterWorkspaceHref(id, 'perks')}">← ${esc(character.name)} Perks</a><a class="button-link" data-action="character-inventory-done" href="${characterWorkspaceHref(id, 'perks')}">Done</a></div>${pageHeading('UPDATE INVENTORY', `${esc(character.name)} · Reconcile perks`, 'Compare and sync this character with your in-game perk inventory.', `<div class="character-inventory-session-status"><strong>${changed} changes saved this session</strong><span>Saved automatically</span></div>`)}${characterInventoryToolbar(candidates, visible, 'update')}<section class="character-inventory-card-grid ${characterInventoryGridClass()}" aria-label="${esc(character.name)} Update Inventory candidates">${visible.length ? visible.map(row => characterInventoryQuickCard(row, id, row.perk.id === characterInventorySession.quickPerkId)).join('') : empty('No candidate perks match this search and scope.')}</section>`;
+  if (characterInventorySession.quickPerkId && !visible.some(row => row.perk.id === characterInventorySession.quickPerkId)) {
+    characterInventorySession = { ...characterInventorySession, quickPerkId: null };
+  }
+  return `<div class="section-title"><h2>Perks</h2></div>${characterInventoryToolbar(candidates, visible)}<section class="character-inventory-card-grid ${characterInventoryGridClass()}" aria-label="${esc(character.name)} perk collection">${visible.length ? visible.map(row => characterInventoryQuickCard(row, id)).join('') : empty('No perks match this search and scope.')}</section>`;
 }
 
 function perkControls(role, characterId) {
@@ -656,6 +636,10 @@ function route() {
     history.replaceState(history.state, '', workspace.canonicalRoute);
     return workspace.canonicalRoute.slice(1);
   }
+  if (workspace?.normalizeUpdate) {
+    history.replaceState(history.state, '', workspace.canonicalRoute);
+    return workspace.canonicalRoute.slice(1);
+  }
   return current;
 }
 function setGlobalMenuOpen(open, returnFocus = false) {
@@ -730,7 +714,7 @@ function characterOverview(id) {
       + '<small>Recorded: ' + esc(characterInventoryRecordedLabel(id, perk)) + '</small>'
       + '<small>Automatic minimum: ' + (minimum ? 'Tier ' + roman[minimum] : 'None') + '</small>'
       + '<small>Account: ' + esc(accountDescription) + '</small>'
-      + '<a data-open-perk-update="' + perkId + '" href="' + characterWorkspaceHref(id, 'perks', 'update') + '">Update record</a></div></article>';
+      + '<a data-open-character-perk="' + perkId + '" href="' + characterWorkspaceHref(id, 'perks') + '">Open in Perks</a></div></article>';
   }).join('');
   const task = characterTaskSession?.characterId === id ? characterTaskSession : null;
   const progressionEditor = task?.task === 'progression' ? characterOverviewTaskEditor(id, task) : '';
@@ -804,8 +788,7 @@ function characterWorkspaceView(descriptor) {
       content = characterSetupView(save, characterSetup, { workspace: true });
     }
   }
-  else if (descriptor.section === 'perks') content = descriptor.mode === 'legacy' ? legacyManager(id)
-    : descriptor.mode === 'update' ? characterInventoryUpdate(id) : characterInventory(id);
+  else if (descriptor.section === 'perks') content = descriptor.mode === 'legacy' ? legacyManager(id) : characterInventory(id);
   else content = '<section class="panel"><h2>' + esc(descriptor.section === 'setup' ? 'Initial setup' : 'Reference and inventory')
     + '</h2><p>This workspace content is currently unavailable.</p></section>';
   content = content.replace(/<h1(\s[^>]*)?>/g, '<h2$1>').replace(/<\/h1>/g, '</h2>');
@@ -1314,15 +1297,7 @@ function render({ workspaceContextCaptured = false } = {}) {
     lastRoute = current;
     if (workspaceRoute?.status === 'valid') {
       restoreWorkspaceContext(workspaceRoute);
-      const selectionIntent = workspacePerkSelectionIntent;
-      workspacePerkSelectionIntent = null;
-      if (selectionIntent?.characterId === workspaceRoute.characterId
-        && selectionIntent.route === current
-        && workspaceRoute.section === 'perks' && workspaceRoute.mode === 'update') {
-        characterInventorySession = { ...characterInventorySession, selectedPerkId: selectionIntent.perkId };
-      }
     } else {
-      workspacePerkSelectionIntent = null;
       characterInventorySession = syncCharacterInventorySession(characterInventorySession, current);
     }
   } else characterInventorySession = syncCharacterInventorySession(characterInventorySession, current);
@@ -1626,25 +1601,20 @@ function applyCharacterInventoryCorrection() {
     render();
     return false;
   }
-  const before = characterInventoryRecordKey(save, draft.characterId, draft.perkId);
   if (!commit(next => correctPersonalPerkTier(next, draft.characterId, draft.perkId, draft.tier), draft.characterId)) {
     characterInventorySession = { ...characterInventorySession, correctionDraft: { ...draft, error: 'Not saved. Retry Apply correction or Cancel this draft.' } };
     render();
     $('[data-action="character-inventory-correction-apply"]')?.focus({ preventScroll: true });
     return false;
   }
-  if (parseCharacterInventoryRoute(route())?.mode === 'update'
-    && before !== characterInventoryRecordKey(save, draft.characterId, draft.perkId)) {
-    characterInventorySession = markCharacterInventoryChanged(characterInventorySession, draft.perkId);
-  }
-  characterInventorySession = { ...characterInventorySession, correctionDraft: null, selectedPerkId: draft.perkId };
+  characterInventorySession = { ...characterInventorySession, correctionDraft: null };
   render();
   $(`[data-action="character-inventory-correction-open"][data-perk="${draft.perkId}"]`)?.focus({ preventScroll: true });
   return true;
 }
 function saveCharacterInventorySelection(intent) {
   const descriptor = parseCharacterInventoryRoute(route());
-  if (descriptor?.mode !== 'update' || descriptor.characterId !== intent.characterId) return false;
+  if (descriptor?.mode !== 'inventory' || descriptor.characterId !== intent.characterId) return false;
   if (intent.baseFingerprint !== JSON.stringify(save)) {
     characterInventorySession = { ...characterInventorySession, failedSelection: { ...intent, conflicted: true } };
     message('Stored data changed after this selection failed. Discard the failed selection before continuing.', true);
@@ -1660,7 +1630,7 @@ function saveCharacterInventorySelection(intent) {
   try { applySelection(structuredClone(save)); }
   catch (error) { message(error.message, true); return false; }
   if (before === expected) {
-    characterInventorySession = { ...characterInventorySession, selectedPerkId: intent.perkId, quickPerkId: null, failedSelection: null };
+    characterInventorySession = { ...characterInventorySession, quickPerkId: null, failedSelection: null };
     render();
     if (wasQuick) $(`.perk-card[data-perk="${intent.perkId}"]`)?.focus({ preventScroll: true });
     return true;
@@ -1668,15 +1638,12 @@ function saveCharacterInventorySelection(intent) {
   characterInventorySession = { ...characterInventorySession, quickPerkId: null, failedSelection: null };
   const saved = commit(applySelection, intent.characterId);
   if (!saved) {
-    characterInventorySession = { ...characterInventorySession, selectedPerkId: intent.perkId, quickPerkId: null, failedSelection: intent };
+    characterInventorySession = { ...characterInventorySession, quickPerkId: null, failedSelection: intent };
     render();
     $('[data-action="character-inventory-retry"]')?.focus({ preventScroll: true });
     return false;
   }
-  if (before !== characterInventoryRecordKey(save, intent.characterId, intent.perkId)) {
-    characterInventorySession = markCharacterInventoryChanged(characterInventorySession, intent.perkId);
-  }
-  characterInventorySession = { ...characterInventorySession, selectedPerkId: intent.perkId, quickPerkId: null, failedSelection: null };
+  characterInventorySession = { ...characterInventorySession, quickPerkId: null, failedSelection: null };
   render();
   if (wasQuick) $(`.perk-card[data-perk="${intent.perkId}"]`)?.focus({ preventScroll: true });
   return true;
@@ -1684,7 +1651,7 @@ function saveCharacterInventorySelection(intent) {
 function discardCharacterInventoryFailedSelection() {
   const intent = characterInventorySession.failedSelection;
   if (!intent) return;
-  characterInventorySession = { ...characterInventorySession, failedSelection: null, selectedPerkId: intent.perkId, quickPerkId: null };
+  characterInventorySession = { ...characterInventorySession, failedSelection: null, quickPerkId: null };
   message('');
   render();
   $(`.perk-card[data-perk="${intent.perkId}"]`)?.focus({ preventScroll: true });
@@ -1713,7 +1680,7 @@ async function resolveFailedInventoryTransition() {
   configureWorkspaceTransitionDialog({
     title: 'Perk selection not saved',
     text: conflict ? 'Stored data changed after the failed selection. Retry is unavailable; discard it or stay to review.'
-      : 'This perk selection was not saved. Retry it, discard only this failed selection, or stay in Update Inventory.',
+      : 'This perk selection was not saved. Retry it, discard only this failed selection, or stay in Perks.',
     failedSelection: true,
     retryDisabled: conflict,
   });
@@ -1740,14 +1707,6 @@ async function handleClick(event) {
   const link = event.target.closest('a[href]');
   if (link?.getAttribute('href').startsWith('#') && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey
     && link.target !== '_blank' && event.button === 0) {
-    if (link.dataset.openPerkUpdate) {
-      const descriptor = parseCharacterWorkspaceRoute(route());
-      if (descriptor?.status === 'valid') {
-        characterInventorySession = { ...characterInventorySession, selectedPerkId: link.dataset.openPerkUpdate, quickPerkId: null };
-        workspacePerkSelectionIntent = { characterId: descriptor.characterId, perkId: link.dataset.openPerkUpdate,
-          route: characterWorkspaceHref(descriptor.characterId, 'perks', 'update').slice(1) };
-      }
-    }
     const rosterRole = route() === 'survivors' ? 'survivor' : route() === 'killers' ? 'killer' : null;
     if (rosterRole && link.hasAttribute('data-open-workspace')) {
       collectionState.update(rosterRole, {
@@ -1899,10 +1858,6 @@ async function handleClick(event) {
     finishCharacterSetup();
     return;
   }
-  if (action === 'character-inventory-open-update') {
-    location.hash = characterWorkspaceHref(id, 'perks', 'update');
-    return;
-  }
   if (action === 'character-inventory-card-size') {
     characterCardSize = normalizeCharacterCardSize(button.dataset.size);
     saveCharacterCardSize(characterCardSize);
@@ -1910,23 +1865,19 @@ async function handleClick(event) {
     return;
   }
   if (action === 'character-inventory-select') {
-    characterInventorySession = { ...characterInventorySession, selectedPerkId: perk, quickPerkId: perk };
-    const characterRoute = parseCharacterInventoryRoute(route());
-    if (characterRoute?.mode === 'inventory') {
-      characterInventorySession = { ...characterInventorySession, selectedPerkId: perk, quickPerkId: null };
-      render();
-      $(`.character-inventory-card-grid .perk-card[data-perk="${perk}"]`)?.focus({ preventScroll: true });
-    } else {
-      render();
-      $('.character-inventory-quick-picker button:not(:disabled), .character-inventory-quick-picker select')?.focus({ preventScroll: true });
-    }
+    characterInventorySession = { ...characterInventorySession, quickPerkId: perk };
+    render();
+    $('.character-inventory-quick-picker button:not(:disabled), .character-inventory-quick-picker select')?.focus({ preventScroll: true });
     return;
+  }
+  if (action === 'character-inventory-details') {
+    return openDetail('perk', perk);
   }
   if (action === 'character-inventory-correction-open') {
     const characterId = button.dataset.character, perkId = button.dataset.perk;
     const row = characterInventoryCandidatePool(save, characterId, { allRole: true }).find(candidate => candidate.perk.id === perkId);
     if (!row?.hasRecordedRecord || row.recordedTier < 1) return;
-    characterInventorySession = { ...characterInventorySession, selectedPerkId: perkId, correctionDraft: {
+    characterInventorySession = { ...characterInventorySession, correctionDraft: {
       characterId, perkId, originalTier: row.recordedTier, tier: row.recordedTier,
       dirty: false, conflicted: false, error: null, baseFingerprint: JSON.stringify(save),
     } };
@@ -2074,7 +2025,7 @@ async function handleClick(event) {
   if (action === 'delete-backup' && await confirmAction('Delete local backup?', 'This snapshot will be removed from this browser. Your current progression will stay intact.', 'Delete backup')) { store.deleteBackup(id); render(); }
 }
 document.addEventListener('pointerdown', event => {
-  if (characterInventorySession.quickPerkId && !event.target.closest('.character-inventory-quick-picker, .perk-card[data-action="character-inventory-select"]')) closeCharacterInventoryQuickPicker();
+  if (characterInventorySession.quickPerkId && !event.target.closest('.character-inventory-quick-picker, .perk-card[data-action="character-inventory-select"], #detail')) closeCharacterInventoryQuickPicker();
 });
 document.addEventListener('click', event => {
   const trigger = event.target.closest('#menu-toggle');

@@ -18,7 +18,6 @@ import {
   setCharacterPersonalTier,
   createCharacterInventorySession,
   syncCharacterInventorySession,
-  markCharacterInventoryChanged,
   parseCharacterInventoryRoute,
 } from '../src/character-inventory.js';
 
@@ -260,30 +259,26 @@ test('existing historical downgrade protection remains in force', () => {
   assert.equal(inventoryTier(save, 'meg-thomas', 'camaraderie'), 3);
 });
 
-test('character inventory change markers persist only within the active Update route', () => {
-  let session = createCharacterInventorySession('#experiment/the-doctor/update');
-  session = markCharacterInventoryChanged(session, 'overcharge');
+test('character inventory popup state is scoped to the ordinary character Perks route', () => {
+  const session = createCharacterInventorySession('#character/the-doctor/perks');
+  session.search = 'kindred';
   session.quickPerkId = 'overcharge';
-  assert.deepEqual([...session.changedPerkIds], ['overcharge']);
-
-  const sameRoute = syncCharacterInventorySession(session, '#experiment/the-doctor/update');
-  assert.equal(sameRoute, session);
-  assert.deepEqual([...sameRoute.changedPerkIds], ['overcharge']);
-
-  const normal = syncCharacterInventorySession(session, '#experiment/the-doctor');
-  assert.notEqual(normal, session);
-  assert.equal(normal.quickPerkId, null);
-  assert.deepEqual([...normal.changedPerkIds], []);
-  const nextCharacter = syncCharacterInventorySession(session, '#experiment/the-cenobite/update');
+  assert.equal(syncCharacterInventorySession(session, '#character/the-doctor/perks/update'), session,
+    'Old Update routes resolve to the same Perks route state');
+  const nextCharacter = syncCharacterInventorySession(session, '#character/the-cenobite/perks');
+  assert.notEqual(nextCharacter, session);
   assert.equal(nextCharacter.quickPerkId, null);
-  assert.deepEqual([...nextCharacter.changedPerkIds], []);
+  assert.equal(nextCharacter.search, '');
+  assert.equal(Object.hasOwn(nextCharacter, 'selectedPerkId'), false);
+  assert.equal(Object.hasOwn(nextCharacter, 'changedPerkIds'), false);
 });
 
-test('character inventory route parser distinguishes normal inventory and Update routes', () => {
+test('character inventory route parser normalizes old Update routes to ordinary Perks', () => {
   assert.deepEqual(parseCharacterInventoryRoute('#experiment/the-doctor'), { characterId: 'the-doctor', mode: 'inventory', source: 'experiment', canonicalRoute: '#character/the-doctor/perks' });
-  assert.deepEqual(parseCharacterInventoryRoute('#experiment/the-doctor/update'), { characterId: 'the-doctor', mode: 'update', source: 'experiment', canonicalRoute: '#character/the-doctor/perks/update' });
-  assert.deepEqual(parseCharacterInventoryRoute('experiment/the-doctor/update'), { characterId: 'the-doctor', mode: 'update', source: 'experiment', canonicalRoute: '#character/the-doctor/perks/update' });
+  assert.deepEqual(parseCharacterInventoryRoute('#experiment/the-doctor/update'), { characterId: 'the-doctor', mode: 'inventory', source: 'experiment', canonicalRoute: '#character/the-doctor/perks' });
+  assert.deepEqual(parseCharacterInventoryRoute('experiment/the-doctor/update'), { characterId: 'the-doctor', mode: 'inventory', source: 'experiment', canonicalRoute: '#character/the-doctor/perks' });
   assert.deepEqual(parseCharacterInventoryRoute('#manage/the-doctor'), { characterId: 'the-doctor', mode: 'inventory', source: 'canonical', canonicalRoute: '#character/the-doctor/perks' });
+  assert.deepEqual(parseCharacterInventoryRoute('manage/the-doctor/update'), { characterId: 'the-doctor', mode: 'inventory', source: 'canonical', canonicalRoute: '#character/the-doctor/perks' });
   assert.equal(parseCharacterInventoryRoute('#experiment/unknown'), null);
   assert.equal(parseCharacterInventoryRoute('#experiment/the-doctor/update/extra'), null);
 });
@@ -293,10 +288,10 @@ test('production route parser reserves canonical update and legacy subroutes bef
   assert.equal(typeof inventoryModule.parseCharacterInventoryRoute, 'function');
   const parse = inventoryModule.parseCharacterInventoryRoute;
   assert.deepEqual(parse('#manage/kate-denson'), { characterId: 'kate-denson', mode: 'inventory', source: 'canonical', canonicalRoute: '#character/kate-denson/perks' });
-  assert.deepEqual(parse('manage/kate-denson/update'), { characterId: 'kate-denson', mode: 'update', source: 'canonical', canonicalRoute: '#character/kate-denson/perks/update' });
+  assert.deepEqual(parse('manage/kate-denson/update'), { characterId: 'kate-denson', mode: 'inventory', source: 'canonical', canonicalRoute: '#character/kate-denson/perks' });
   assert.deepEqual(parse('#manage/the-doctor/legacy'), { characterId: 'the-doctor', mode: 'legacy', source: 'canonical', canonicalRoute: '#character/the-doctor/perks/legacy' });
   assert.deepEqual(parse('#experiment/the-doctor'), { characterId: 'the-doctor', mode: 'inventory', source: 'experiment', canonicalRoute: '#character/the-doctor/perks' });
-  assert.deepEqual(parse('#experiment/the-doctor/update'), { characterId: 'the-doctor', mode: 'update', source: 'experiment', canonicalRoute: '#character/the-doctor/perks/update' });
+  assert.deepEqual(parse('#experiment/the-doctor/update'), { characterId: 'the-doctor', mode: 'inventory', source: 'experiment', canonicalRoute: '#character/the-doctor/perks' });
   for (const route of ['#manage/the-doctor/update/extra', '#manage/the-doctor/legacy/extra', '#experiment/the-doctor/extra', '#experiment/the-doctor/update/extra', '#manage/constructor', '#manage/unknown', '#', null, undefined]) {
     assert.equal(parse(route), null, route);
   }
@@ -319,18 +314,16 @@ test('character card design exposes explicit tier tokens and state classes', () 
   assert.match(styles, /--perk-tier-3/);
   assert.match(styles, /\.perk-card/);
   assert.match(styles, /\.perk-card-unrecorded/);
-  assert.match(styles, /\.changed-this-update/);
   assert.match(styles, /--character-inventory-field-1:linear-gradient\(180deg,#3e8630/);
   assert.match(styles, /--character-inventory-field-2:linear-gradient\(180deg,#335682/);
   assert.match(styles, /--character-inventory-field-3:linear-gradient\(180deg,#6b337d/);
   assert.match(styles, /--character-inventory-field-none:linear-gradient\(180deg,#3b3f43/);
 });
 
-test('Update uses saved session wording and shares validated tier controls without pending actions', () => {
+test('ordinary Perks uses the compact picker and removes featured Update Inventory UI', () => {
   const source = readFileSync(new URL('../src/app.js', import.meta.url), 'utf8');
-  assert.match(source, /changes saved this session/);
-  assert.match(source, /Saved automatically/);
-  assert.doesNotMatch(source, /changes this update|Confirm Changes/);
+  assert.doesNotMatch(source, /characterInventoryUpdate|character-inventory-done|Update Inventory/);
+  assert.doesNotMatch(source, /function characterInventoryReference\(/);
   assert.match(source, /setCharacterPersonalTier\(next, intent\.characterId, intent\.perkId, intent\.tier\)/);
   assert.match(source, /commit\(applySelection, intent\.characterId\)/);
   const controls = source.slice(source.indexOf('function characterInventoryTierButtons'), source.indexOf('function characterInventoryQuickCard'));
@@ -340,8 +333,8 @@ test('Update uses saved session wording and shares validated tier controls witho
   assert.match(picker, /historicalCharacterInventoryControl\(characterId, row\.perk\)/);
   assert.match(picker, /role="group" aria-label="\$\{esc\(pickerLabel\)\}"/);
   assert.match(picker, /Set current tier for/);
-  assert.doesNotMatch(source, /function characterInventoryEditor\(/);
-  assert.match(source, /function characterInventoryUpdate[\s\S]*?<section class="character-inventory-card-grid/);
+  assert.match(picker, /data-action="character-inventory-details"/);
+  assert.match(source, /visible\.map\(row => characterInventoryQuickCard/);
 });
 
 test('production renderer uses one neutral character-inventory implementation and scoped card preference', () => {
@@ -353,6 +346,6 @@ test('production renderer uses one neutral character-inventory implementation an
   assert.doesNotMatch(source, /character-inventory-experiment\.js/);
   assert.doesNotMatch(source, /experimentalCandidatePool|experimentalNormalInventory/);
   assert.match(source, /function characterInventory\(/);
-  assert.match(source, /function characterInventoryUpdate\(/);
+  assert.doesNotMatch(source, /function characterInventoryUpdate\(/);
   assert.match(source, /function legacyManager\(/);
 });

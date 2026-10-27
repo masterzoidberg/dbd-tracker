@@ -77,7 +77,7 @@ export function createWorkspaceContextMemory() {
         ? ['overview', 'perks', 'items-addons', 'edit', 'setup']
         : ['overview', 'perks', 'power-addons', 'edit', 'setup'];
       if (sections.includes(patch.section)) context.section = patch.section;
-      if (context.section === 'perks' && ['update', 'legacy'].includes(patch.mode)) context.mode = patch.mode;
+      if (context.section === 'perks' && patch.mode === 'legacy') context.mode = patch.mode;
       else context.mode = null;
       setPerkContext(context, patch.perks);
       if (role === 'survivor') setSurvivorInventoryContext(context, patch.survivorInventory);

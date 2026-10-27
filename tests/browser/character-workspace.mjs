@@ -192,7 +192,10 @@ async function killerOverviewRegression(page, origin) {
 
   const native = workspace.locator(`[data-overview-native-perk="${nativeId}"]`);
   assert.match(await native.textContent(), /On this Killer · Effective Tier/);
-  assert.equal(await native.locator(`a[data-open-perk-update="${nativeId}"]`).count(), 1);
+  assert.equal(await native.locator(`a[data-open-perk-update="${nativeId}"]`).count(), 0,
+    'Killer Overview no longer links to a separate Update Inventory mode');
+  assert.equal(await native.locator(`a[data-open-character-perk="${nativeId}"]`).getAttribute('href'),
+    `#character/${killer.id}/perks`, 'Killer native perks link to the ordinary Perks workspace');
 
   const powerIdentity = workspace.locator('[data-overview-section="power"]');
   assert.equal(await powerIdentity.count(), 1, 'Killer Power identity is a first-class Overview section');
@@ -239,8 +242,10 @@ async function survivorOverviewRegression(page, origin) {
   assert.match(nativeText, /Recorded: Tier III/);
   assert.match(nativeText, /Automatic minimum: Tier II/);
   assert.match(nativeText, /Account: Tier II · Prestige/);
-  assert.equal(await native.locator(`[data-open-perk-update="${nativeId}"]`).count(), 1,
-    'A native perk has a direct route to update its personal record');
+  assert.equal(await native.locator(`[data-open-perk-update="${nativeId}"]`).count(), 0,
+    'Overview no longer links to a separate Update Inventory mode');
+  assert.equal(await native.locator(`[data-open-character-perk="${nativeId}"]`).getAttribute('href'),
+    `#character/${survivor.id}/perks`, 'Native perks link to the ordinary Perks workspace');
 
   const setup = page.locator('[data-overview-section="progress"]');
   assert.match(await setup.textContent(), /Initial setup incomplete/);
@@ -266,12 +271,15 @@ async function survivorOverviewRegression(page, origin) {
   assert.equal(updated.characters[survivor.id].perks[nativeId], 3);
   assert.equal(updated.characters[survivor.id].inventory.items[items[0].id], 8,
     'Ownership changes preserve personal perk and stock records');
-  await native.locator(`[data-open-perk-update="${nativeId}"]`).click();
-  await page.waitForURL(`**/#character/${survivor.id}/perks/update`);
-  assert.equal(await page.locator('[data-character-inventory-detail]').count(), 0,
-    'Opening Update from a native-perk reference does not recreate a featured editor');
-  assert.equal(await page.locator(`.character-inventory-card-grid .perk-card[data-perk="${nativeId}"]`).count(), 1,
-    'The referenced native perk remains in its normal grid position');
+  await native.locator(`[data-open-character-perk="${nativeId}"]`).click();
+  await page.waitForFunction(() => location.hash === '#character/meg-thomas/perks');
+  assert.equal(await page.locator('.character-inventory-quick-picker').count(), 0,
+    'Opening Perks from Overview does not preselect a perk');
+  const perkCard = page.locator(`.character-inventory-card-grid .perk-card[data-perk="${nativeId}"]`);
+  assert.equal(await perkCard.count(), 1, 'The referenced native perk appears in its normal grid position');
+  await perkCard.click();
+  assert.equal(await page.locator('.character-inventory-quick-picker strong').textContent(), 'Adrenaline',
+    'The native perk opens its compact selector only after deliberate activation');
 }
 async function setupDraftNavigationRegression(page, origin) {
   const save = freshSave();
@@ -409,34 +417,31 @@ export async function workspaceContextRegression(page, origin) {
   await page.goto(origin + '/#character/' + survivors[megIndex + 1].id + '/items-addons');
   assert.equal(await page.locator('#addon-rarity-order').inputValue(), 'lowest-to-highest', 'Killer inventory context does not overwrite Survivor preferences');
 
-  await page.goto(origin + '/#character/meg-thomas/perks/update');
+  await page.goto(origin + '/#character/meg-thomas/perks');
   await page.locator('#character-inventory-search').fill('Kindred');
   await page.locator('[data-action="character-inventory-category"][data-category="personal"]').click();
   await page.locator('[data-roster-neighbor="next"]').click();
-  await page.waitForURL('**/#character/' + survivors[megIndex + 1].id + '/perks/update');
+  await page.waitForURL('**/#character/' + survivors[megIndex + 1].id + '/perks');
   assert.equal(await page.locator('#character-inventory-search').inputValue(), 'Kindred', 'Safe Perks query carries across same-role neighbors');
   assert.equal(await page.locator('[data-action="character-inventory-category"][data-category="personal"]').getAttribute('aria-pressed'), 'true');
-  assert.match(await page.locator('.character-inventory-session-status').textContent(), /0 changes saved this session/, 'character-specific change count resets');
+  assert.equal(await page.locator('.character-inventory-session-status').count(), 0, 'Perks has no Update Inventory session status');
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before, 'Browsing context changes do not write account data');
 
-  await page.goto(origin + '/#character/meg-thomas/perks/update');
+  await page.goto(origin + '/#character/meg-thomas/perks');
   await page.locator('#character-inventory-search').fill('');
   await page.locator('[data-action="character-inventory-category"][data-category="all"]').click();
-  await page.goto(origin + '/#character/meg-thomas/perks');
   const selectedCard = page.locator('.character-inventory-card-grid .perk-card').last();
   const selectedPerkId = await selectedCard.getAttribute('data-perk');
   const selectedPerkName = (await selectedCard.locator('strong').textContent()).trim();
   await selectedCard.click();
-  await page.locator(`[data-open-perk-update="${selectedPerkId}"]`).click();
-  await page.waitForURL('**/#character/meg-thomas/perks/update');
-  assert.equal(await page.locator('[data-character-inventory-detail]').count(), 0,
-    'Opening Update from a reference does not recreate a featured perk editor');
+  assert.equal(await page.locator('.character-inventory-quick-picker strong').textContent(), selectedPerkName,
+    'Activating a perk opens its compact selector directly');
   assert.equal((await page.locator(`.character-inventory-card-grid .perk-card[data-perk="${selectedPerkId}"] strong`).textContent()).trim(), selectedPerkName,
     'The source perk remains in its normal grid position');
   await page.locator('[data-roster-neighbor="next"]').click();
-  await page.waitForURL('**/#character/' + survivors[megIndex + 1].id + '/perks/update');
-  assert.equal(await page.locator('.character-inventory-card-grid .perk-card.is-selected').count(), 0,
-    'No selected-perk treatment carries to another character');
+  await page.waitForURL('**/#character/' + survivors[megIndex + 1].id + '/perks');
+  assert.equal(await page.locator('.character-inventory-quick-picker').count(), 0,
+    'The compact selector closes when navigating to another character');
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before, 'Perk and neighbor navigation remain read-only');
 }
 export async function characterRosterNavigationRegression(page,origin) {
@@ -471,8 +476,9 @@ export async function characterRosterNavigationRegression(page,origin) {
   await page.goForward();
   await expectPage(killers[shapeIndex+1].id,'power-addons');
   await page.goto(origin+'/#character/the-shape/perks/update');
+  await page.waitForFunction(() => location.hash === '#character/the-shape/perks');
   await neighbor('previous').click();
-  await expectPage(killers[shapeIndex-1].id,'perks','update');
+  await expectPage(killers[shapeIndex-1].id,'perks');
   await page.goto(origin+'/#character/'+killers[0].id+'/overview');
   assert.equal(await neighbor('previous').isDisabled(),true,'First Killer has no usable Previous link');
   assert.equal(await neighbor('previous').getAttribute('href'),null);

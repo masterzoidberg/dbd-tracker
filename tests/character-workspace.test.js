@@ -15,18 +15,24 @@ test('canonical routes and bare alias use one explicit descriptor', () => {
     assert.equal(parseCharacterWorkspaceRoute(href.slice(1)).status, 'valid');
   }
   assert.equal(parseCharacterWorkspaceRoute('#character/meg-thomas').canonicalRoute, '#character/meg-thomas/overview');
-  for (const mode of ['update', 'legacy']) {
-    assert.equal(characterWorkspaceHref('meg-thomas', 'perks', mode), '#character/meg-thomas/perks/' + mode);
-  }
+  assert.equal(characterWorkspaceHref('meg-thomas', 'perks', 'legacy'), '#character/meg-thomas/perks/legacy');
+  assert.throws(() => characterWorkspaceHref('meg-thomas', 'perks', 'update'));
 });
 
 test('five old aliases keep Perks meaning without inventing legacy experiment', () => {
   for (const [old, target] of [
-    ['manage/meg-thomas', 'perks'], ['manage/meg-thomas/update', 'perks/update'],
+    ['manage/meg-thomas', 'perks'], ['manage/meg-thomas/update', 'perks'],
     ['manage/meg-thomas/legacy', 'perks/legacy'], ['experiment/meg-thomas', 'perks'],
-    ['experiment/meg-thomas/update', 'perks/update'],
+    ['experiment/meg-thomas/update', 'perks'],
   ]) assert.equal(parseCharacterWorkspaceRoute('#' + old).canonicalRoute, '#character/meg-thomas/' + target);
   assert.equal(parseCharacterWorkspaceRoute('#experiment/meg-thomas/legacy').status, 'unavailable');
+  for (const old of ['#character/meg-thomas/perks/update', '#manage/meg-thomas/update', '#experiment/meg-thomas/update']) {
+    const route = parseCharacterWorkspaceRoute(old);
+    assert.equal(route.section, 'perks');
+    assert.equal(route.mode, null);
+    assert.equal(route.canonicalRoute, '#character/meg-thomas/perks');
+    assert.equal(route.normalizeUpdate, true);
+  }
 });
 
 test('retired Edit bookmarks resolve to Overview while manage and experiment aliases keep Perks meaning', () => {
@@ -63,7 +69,9 @@ test('character neighbors follow canonical role order and preserve supported tab
   const killerPower=characterWorkspaceNeighbors('the-shape','power-addons');
   assert.deepEqual(killerPower.previous,{id:killers[shape-1].id,name:killers[shape-1].name,href:'#character/'+killers[shape-1].id+'/power-addons'});
   assert.deepEqual(killerPower.next,{id:killers[shape+1].id,name:killers[shape+1].name,href:'#character/'+killers[shape+1].id+'/power-addons'});
-  assert.equal(characterWorkspaceNeighbors('the-shape','perks','update').next.href,'#character/'+killers[shape+1].id+'/perks/update');
+  assert.equal(characterWorkspaceNeighbors('the-shape','perks').next.href,'#character/'+killers[shape+1].id+'/perks');
+  assert.equal(characterWorkspaceNeighbors('the-shape', 'perks', 'update').next.href,
+    '#character/' + killers[shape + 1].id + '/perks', 'Old Update context normalizes to the ordinary Perks route');
   const survivorInventory=characterWorkspaceNeighbors('meg-thomas','items-addons');
   assert.deepEqual(survivorInventory.previous,{id:survivors[meg-1].id,name:survivors[meg-1].name,href:'#character/'+survivors[meg-1].id+'/items-addons'});
   assert.deepEqual(survivorInventory.next,{id:survivors[meg+1].id,name:survivors[meg+1].name,href:'#character/'+survivors[meg+1].id+'/items-addons'});
@@ -75,12 +83,12 @@ test('character neighbors follow canonical role order and preserve supported tab
   assert.equal(characterWorkspaceNeighbors('the-shape','items-addons').next.href,'#character/'+killers[shape+1].id+'/overview');
 });
 
-test('equivalent update aliases retain canonical session identity and draft selection', () => {
-  const session = createCharacterInventorySession('#manage/meg-thomas/update');
+test('old Update Inventory aliases normalize to one ordinary Perks session', () => {
+  const session = createCharacterInventorySession('#character/meg-thomas/perks');
   session.search = 'kindred';
-  session.selectedPerkId = 'kindred';
-  for (const href of ['#experiment/meg-thomas/update', '#character/meg-thomas/perks/update']) {
+  session.quickPerkId = 'kindred';
+  for (const href of ['#manage/meg-thomas/update', '#experiment/meg-thomas/update', '#character/meg-thomas/perks/update']) {
     assert.equal(syncCharacterInventorySession(session, href), session);
   }
-  assert.notEqual(syncCharacterInventorySession(session, '#character/the-doctor/perks/update'), session);
+  assert.notEqual(syncCharacterInventorySession(session, '#character/the-doctor/perks'), session);
 });
