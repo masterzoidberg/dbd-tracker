@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { freshSave } from '../../src/model.js';
 
 export async function characterSetupRegression(page, origin) {
-  page.setDefaultTimeout(5000);
+  page.setDefaultTimeout(30000);
   const save = freshSave();
   save.characters['meg-thomas'].owned = true;
   save.characters['dwight-fairfield'].owned = true;

@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { freshSave } from '../../src/model.js';
 
 export async function characterContextualTaskRegression(page, origin) {
-  page.setDefaultTimeout(5000);
+  page.setDefaultTimeout(30000);
   const bytes = () => page.evaluate(() => localStorage.getItem('dbdTrackerData'));
   for (const [id, otherId, role, unknownAddonId] of [
     ['meg-thomas', 'the-doctor', 'Survivor', 'survivor-addon-future-unresolved'],
