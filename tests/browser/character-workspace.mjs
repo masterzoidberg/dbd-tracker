@@ -268,7 +268,10 @@ async function survivorOverviewRegression(page, origin) {
     'Ownership changes preserve personal perk and stock records');
   await native.locator(`[data-open-perk-update="${nativeId}"]`).click();
   await page.waitForURL(`**/#character/${survivor.id}/perks/update`);
-  assert.equal(await page.locator('[data-character-inventory-detail] h2').textContent(), perkName(save, perkById[nativeId]));
+  assert.equal(await page.locator('[data-character-inventory-detail]').count(), 0,
+    'Opening Update from a native-perk reference does not recreate a featured editor');
+  assert.equal(await page.locator(`.character-inventory-card-grid .perk-card[data-perk="${nativeId}"]`).count(), 1,
+    'The referenced native perk remains in its normal grid position');
 }
 async function setupDraftNavigationRegression(page, origin) {
   const save = freshSave();
@@ -426,12 +429,14 @@ export async function workspaceContextRegression(page, origin) {
   await selectedCard.click();
   await page.locator(`[data-open-perk-update="${selectedPerkId}"]`).click();
   await page.waitForURL('**/#character/meg-thomas/perks/update');
-  assert.equal(await page.locator('[data-character-inventory-detail] h2').textContent(), selectedPerkName,
-    'Opening a perk carries that selection into the same character Update route');
+  assert.equal(await page.locator('[data-character-inventory-detail]').count(), 0,
+    'Opening Update from a reference does not recreate a featured perk editor');
+  assert.equal((await page.locator(`.character-inventory-card-grid .perk-card[data-perk="${selectedPerkId}"] strong`).textContent()).trim(), selectedPerkName,
+    'The source perk remains in its normal grid position');
   await page.locator('[data-roster-neighbor="next"]').click();
   await page.waitForURL('**/#character/' + survivors[megIndex + 1].id + '/perks/update');
-  assert.notEqual(await page.locator('.character-inventory-card-grid .perk-card.is-selected').getAttribute('data-perk'), selectedPerkId,
-    'A selected perk correction does not carry to another character');
+  assert.equal(await page.locator('.character-inventory-card-grid .perk-card.is-selected').count(), 0,
+    'No selected-perk treatment carries to another character');
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before, 'Perk and neighbor navigation remain read-only');
 }
 export async function characterRosterNavigationRegression(page,origin) {

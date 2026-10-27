@@ -70,7 +70,8 @@ export async function characterInventoryRegression(page, origin) {
   await page.locator('[data-open-perk-update="overcharge"]').click();
   await page.locator('#character-inventory-search').waitFor();
   assert.equal(new URL(page.url()).hash, '#character/the-doctor/perks/update');
-  assert.equal(await page.locator('[data-character-inventory-detail] h2').textContent(), 'Overcharge');
+  assert.equal(await page.locator('[data-character-inventory-detail]').count(), 0, 'Update Inventory does not restore a featured perk editor');
+  assert.equal(await card(page, 'overcharge').count(), 1, 'The source perk stays in its normal grid position');
 
   const allCount = await cards(page).count();
   assert.ok(allCount >= 20, 'Update starts from a relevant candidate pool');
@@ -99,20 +100,22 @@ export async function characterInventoryRegression(page, origin) {
 
   // Direct selection writes an ordinary personal record and leaves a session marker.
   await card(page, 'bitter-murmur').click();
-  await page.locator('[data-character-inventory-detail] [data-action="character-inventory-set-tier"][data-perk="bitter-murmur"][data-tier="3"]').click();
+  await page.locator('.character-inventory-quick-picker [data-action="character-inventory-set-tier"][data-perk="bitter-murmur"][data-tier="3"]').click();
   assert.equal((await stored(page)).characters[character].perks['bitter-murmur'], 3);
   assert.equal(await page.locator('.changed-this-update').count(), 1);
   assert.match(await page.locator('.character-inventory-session-status').textContent(), /1 changes saved this session/);
-  await page.locator('[data-character-inventory-detail] [data-action="character-inventory-set-tier"][data-perk="bitter-murmur"][data-tier="none"]').click();
+  await card(page, 'bitter-murmur').click();
+  await page.locator('.character-inventory-quick-picker [data-action="character-inventory-set-tier"][data-perk="bitter-murmur"][data-tier="none"]').click();
   assert.equal(Object.hasOwn((await stored(page)).characters[character].perks, 'bitter-murmur'), false);
   assert.equal(await card(page, 'bitter-murmur').evaluate(node => node.classList.contains('perk-tier-none')), true, await card(page, 'bitter-murmur').getAttribute('class'));
 
   // Automatic floors protect direct correction without inventing a personal record.
   await page.getByRole('button', { name: 'All', exact: true }).click();
   await card(page, 'shadowborn').click();
-  assert.equal(await page.locator('[data-character-inventory-detail] [data-action="character-inventory-set-tier"][data-perk="shadowborn"][data-tier="1"]').isDisabled(), true);
-  await page.locator('[data-character-inventory-detail] [data-action="character-inventory-set-tier"][data-perk="shadowborn"][data-tier="3"]').click();
-  await page.locator('[data-character-inventory-detail] [data-action="character-inventory-set-tier"][data-perk="shadowborn"][data-tier="none"]').click();
+  assert.equal(await page.locator('.character-inventory-quick-picker [data-action="character-inventory-set-tier"][data-perk="shadowborn"][data-tier="1"]').isDisabled(), true);
+  await page.locator('.character-inventory-quick-picker [data-action="character-inventory-set-tier"][data-perk="shadowborn"][data-tier="3"]').click();
+  await card(page, 'shadowborn').click();
+  await page.locator('.character-inventory-quick-picker [data-action="character-inventory-set-tier"][data-perk="shadowborn"][data-tier="none"]').click();
   const afterFloorClear = await stored(page);
   assert.equal(afterFloorClear.characters[character].perks.shadowborn, undefined);
   assert.equal(await card(page, 'shadowborn').evaluate(node => node.classList.contains('perk-tier-2')), true);
@@ -129,7 +132,7 @@ export async function characterInventoryRegression(page, origin) {
     };
   });
   await card(page, 'monitor-abuse').click();
-  await page.locator('[data-character-inventory-detail] [data-action="character-inventory-set-tier"][data-perk="monitor-abuse"][data-tier="3"]').click();
+  await page.locator('.character-inventory-quick-picker [data-action="character-inventory-set-tier"][data-perk="monitor-abuse"][data-tier="3"]').click();
   assert.deepEqual(await stored(page), beforeFailedWrite, 'A failed selection leaves canonical data unchanged');
   assert.equal(await page.locator('[data-character-inventory-failed-selection]').count(), 1);
   assert.match(await page.locator('[data-character-inventory-failed-selection]').textContent(), /Not saved/);
@@ -139,7 +142,8 @@ export async function characterInventoryRegression(page, origin) {
   assert.match(await page.locator('.character-inventory-session-status').textContent(), /3 changes saved this session/,
     'A retry preserves earlier successful selection count and records the new success');
   const unchangedTimestamp = (await stored(page)).characters[character].updatedAt;
-  await page.locator('[data-character-inventory-detail] [data-action="character-inventory-set-tier"][data-perk="monitor-abuse"][data-tier="3"]').click();
+  await card(page, 'monitor-abuse').click();
+  await page.locator('.character-inventory-quick-picker [data-action="character-inventory-set-tier"][data-perk="monitor-abuse"][data-tier="3"]').click();
   assert.equal((await stored(page)).characters[character].updatedAt, unchangedTimestamp, 'Repeating a saved tier is a no-op');
   assert.match(await page.locator('.character-inventory-session-status').textContent(), /3 changes saved this session/);
   const beforeDone = await stored(page);
@@ -160,7 +164,7 @@ export async function characterInventoryRegression(page, origin) {
     };
   });
   await card(page, 'bitter-murmur').click();
-  await page.locator('[data-character-inventory-detail] [data-action="character-inventory-set-tier"][data-perk="bitter-murmur"][data-tier="2"]').click();
+  await page.locator('.character-inventory-quick-picker [data-action="character-inventory-set-tier"][data-perk="bitter-murmur"][data-tier="2"]').click();
   await page.locator('[data-action="character-inventory-done"]').click();
   assert.equal(await page.locator('#dirty-navigation').isVisible(), true);
   assert.equal(await page.locator('#dirty-navigation [value="retry"]').textContent(), 'Retry');
@@ -201,7 +205,7 @@ export async function characterInventoryRegression(page, origin) {
     };
   });
   await card(page, 'bitter-murmur').click();
-  await page.locator('[data-character-inventory-detail] [data-action="character-inventory-set-tier"][data-perk="bitter-murmur"][data-tier="2"]').click();
+  await page.locator('.character-inventory-quick-picker [data-action="character-inventory-set-tier"][data-perk="bitter-murmur"][data-tier="2"]').click();
   const nextCharacterHref = await page.locator('[data-roster-neighbor="next"]').getAttribute('href');
   assert.ok(nextCharacterHref);
   await page.locator('[data-roster-neighbor="next"]').click();
@@ -256,7 +260,7 @@ export async function characterInventoryRegression(page, origin) {
     await sizeControl(size).click();
     assert.equal(await grid.getAttribute('class').then(value => value.includes(`card-size-${size}`)), true);
     assert.equal(await grid.evaluate(node => getComputedStyle(node).getPropertyValue('--character-inventory-card-min').trim()), minimum);
-    assert.equal(await page.locator('.character-inventory-editor').count(), 1, 'Selected editor remains present at every card size');
+    assert.equal(await page.locator('.character-inventory-editor').count(), 0, 'Update has no persistent selected-perk editor at any card size');
   }
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerUi.characterCardSize')), 'large');
   await page.reload();
@@ -290,7 +294,7 @@ export async function characterInventoryRegression(page, origin) {
   assert.equal(new URL(page.url()).hash, '#character/kate-denson/perks/update');
   assert.ok(await cards(page).count() > 0);
 
-  // Mobile keeps the approved two-column/shared-editor geometry and hides only the desktop preference control.
+  // Mobile keeps the approved two-column grid and hides only the desktop preference control.
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.locator('.character-inventory-card-size-control').count(), 1);
   assert.equal(await page.locator('.character-inventory-card-size-control').isVisible(), false);
@@ -305,8 +309,8 @@ export async function characterInventoryRegression(page, origin) {
   }));
   assert.ok(new Set(mobileCards.map(card => card.left)).size >= 2, 'Mobile Update remains two columns');
   assert.ok(mobileCards.every(card => card.left >= 0 && card.right <= 390));
-  assert.equal(await page.locator('.character-inventory-layout').evaluate(node => getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).length), 1, 'Mobile editor stacks full-width');
-  assert.equal(await page.locator('.character-inventory-editor').evaluate(node => getComputedStyle(node).order), '-1');
+  assert.equal(await page.locator('.character-inventory-layout').count(), 0, 'Update does not render a separate editor layout');
+  assert.equal(await page.locator('.character-inventory-editor').count(), 0, 'Mobile keeps the perk grid as the dominant surface');
   await page.goto(origin + '/#manage/the-doctor');
   await page.locator('[data-character-inventory-toolbar="browse"]').waitFor();
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
@@ -353,11 +357,10 @@ async function quickPickerRegression(page, origin) {
     ]) {
       await card(page, perk).click();
       assert.equal(await picker.count(), 1);
-      assert.deepEqual(await picker.locator('button').allTextContents(), ['Not recorded', 'I', 'II', 'III']);
-      const anchor = await card(page, perk).boundingBox();
+      assert.deepEqual(await picker.locator('[data-action="character-inventory-set-tier"]').allTextContents(), ['Not recorded', 'I', 'II', 'III']);
       const popover = await picker.boundingBox();
-      assert.equal(popover.x, anchor.x);
-      assert.equal(popover.width, anchor.width);
+      assert.ok(popover.width <= 280, 'The editor stays a compact popover rather than an expanded card');
+      assert.ok(popover.x >= 0 && popover.x + popover.width <= 1440);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
       if (tier === '1') await page.screenshot({ path: `${process.env.TEMP}/dbd-${id}-desktop-picker.png` });
       await choice(tier).click();
@@ -374,7 +377,7 @@ async function quickPickerRegression(page, origin) {
       assert.ok(actual.token.includes(gradient));
       assert.match(actual.field, /gradient/);
       assert.equal(actual.numeral, tier === 'none' ? '—' : ['','I','II','III'][Number(tier)]);
-      assert.match(await page.locator('[data-character-inventory-detail]').textContent(), tier === 'none' ? /Not recorded/ : new RegExp(`Tier ${['','I','II','III'][Number(tier)]}`));
+      assert.match(await card(page, perk).getAttribute('aria-label'), tier === 'none' ? /recorded Not recorded/ : new RegExp(`recorded Tier ${['','I','II','III'][Number(tier)]}`));
       await page.screenshot({ path: `${process.env.TEMP}/dbd-${id}-${tier}.png`, fullPage: false });
     }
     await card(page, perk).click();
@@ -386,12 +389,13 @@ async function quickPickerRegression(page, origin) {
     await page.keyboard.press('Escape');
     assert.equal(await picker.count(), 0);
     assert.equal(await card(page, perk).evaluate(node => node === document.activeElement), true);
+    assert.equal(await card(page, perk).getAttribute('aria-pressed'), 'false', 'Closed popup clears persistent selected state');
     await card(page, perk).click();
     await page.locator('h1').click();
     assert.equal(await picker.count(), 0);
     await card(page, perk).click();
     await card(page, floorPerk).click();
-    assert.match(await picker.getAttribute('aria-label'), /Quick tier picker/);
+    assert.match(await picker.getAttribute('aria-label'), /Set current tier for/);
     assert.equal(await choice('1').isDisabled(), true);
     // Exercise domain validation even if UI disabling is bypassed.
     const beforeRejected = (await stored(page)).characters[id].perks[floorPerk];
@@ -408,10 +412,11 @@ async function quickPickerRegression(page, origin) {
     assert.equal((await stored(page)).characters[id].perks[floorPerk], undefined);
     assert.equal(await card(page, floorPerk).evaluate(node => node.classList.contains('perk-tier-2')), true);
     await card(page, historical).click();
-    assert.equal(await picker.count(), 0);
+    assert.equal(await picker.count(), 1, 'Historical ownership remains editable in its distinct compact control');
+    assert.deepEqual(await page.locator('[data-character-inventory-historical] option').allTextContents(), ['Not Confirmed', 'Not Owned', 'Tier I', 'Tier II', 'Tier III']);
     await page.locator('[data-character-inventory-historical]').selectOption('2');
     assert.equal((await stored(page)).characters[id].perks[historical], 2);
-    await page.waitForFunction(() => document.querySelector('[data-character-inventory-historical]')?.value === '2');
+    await card(page, historical).click();
     assert.equal(await page.locator('[data-character-inventory-historical] option[value="1"]').evaluate(node => node.disabled), true);
     await card(page, perk).click();
     await choice('3').click();
@@ -434,7 +439,7 @@ async function quickPickerRegression(page, origin) {
       const geometry = await picker.boundingBox();
       assert.ok(geometry.x >= 0 && geometry.x + geometry.width <= width);
       assert.equal(await page.locator('.character-inventory-card-grid').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length), 2);
-      assert.equal(await page.locator('.character-inventory-layout').evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length), 1);
+      assert.equal(await page.locator('.character-inventory-layout').count(), 0, 'Update grid does not retain a second editor column');
       assert.equal(await page.locator('dialog[open]').count(), 0);
       await page.screenshot({ path: `${process.env.TEMP}/dbd-${id}-${width}-picker.png` });
       await choice('2').click();

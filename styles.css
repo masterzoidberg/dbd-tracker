@@ -2286,12 +2286,17 @@ footer span {
 .character-inventory-tier-controls button[data-tier="3"][aria-pressed="true"] { background:#2c2236; border-color:#614773; color:#cdb0e9; }
 .character-inventory-tier-controls button[data-tier="none"][aria-pressed="true"] { background:#25282c; border-color:#48474b; color:#b4b0ad; }
 .character-inventory-card-anchor { position:relative; display:grid; min-width:0; }
-.character-inventory-quick-picker { position:absolute; z-index:5; top:100%; left:0; width:100%; padding:10px; box-sizing:border-box; background:#191b1e; border:1px solid #777; border-radius:6px; box-shadow:0 6px 16px #0008; }
-.character-inventory-quick-picker strong { display:block; font-size:12px; margin-bottom:8px; overflow-wrap:anywhere; }
-.character-inventory-quick-picker.opens-above { top:auto; bottom:100%; }
-.character-inventory-quick-picker .character-inventory-tier-controls { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.character-inventory-quick-picker { position:absolute; z-index:5; top:calc(100% + 6px); left:0; width:min(248px,calc(100vw - 24px)); padding:10px; box-sizing:border-box; background:#191b1e; border:1px solid #777; border-radius:6px; box-shadow:0 6px 16px #0008; }
+.character-inventory-quick-picker strong { display:block; margin-bottom:8px; font-size:12px; line-height:1.35; overflow-wrap:anywhere; }
+.character-inventory-quick-picker.opens-above { top:auto; bottom:calc(100% + 6px); }
+.character-inventory-quick-picker .character-inventory-tier-controls { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.character-inventory-quick-picker .character-inventory-tier-controls button { min-height:44px; padding:5px 2px; font-size:10px; line-height:1.2; overflow-wrap:anywhere; }
+.character-inventory-quick-picker .character-inventory-history-control { align-items:flex-start; flex-direction:column; gap:6px; }
+.character-inventory-quick-picker .character-inventory-history-control select { width:100%; min-height:44px; }
 .character-inventory-quick-picker button { min-height:44px; }
 .character-inventory-quick-picker button:focus-visible { outline:2px solid white; outline-offset:2px; }
+.character-inventory-quick-picker .character-inventory-correction { margin-top:6px; padding-top:6px; }
+.character-inventory-quick-picker .character-inventory-correction>button { min-height:44px; }
 .character-inventory-session-status { display:flex; flex-direction:column; gap:4px; }
 .character-inventory-editor-note { margin-top:11px; color:var(--muted); font-size:11px; line-height:1.6; }
 .character-inventory-history-control { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:11px; }

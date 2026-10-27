@@ -387,13 +387,6 @@ function characterInventoryRecordedLabel(characterId, perk) {
   return tier ? `Tier ${roman[tier]}` : 'Explicitly not owned';
 }
 
-function characterInventoryExplanation(row, character) {
-  if (row.primaryCategory === 'personal') return `Personal to ${character.name}; it remains in this character's inventory regardless of global unlock state.`;
-  if (row.primaryCategory === 'general') return 'Role-appropriate General perk that can naturally appear in this Bloodweb.';
-  if (row.primaryCategory === 'unlocked') return `Available through account progression${row.unlockReasons.length ? ` (${row.unlockReasons.join(' · ')})` : ''}.`;
-  return 'Retained on this character from a recorded personal or historical copy, even though current account rules do not explain it.';
-}
-
 function characterInventoryCardSizeControl() {
   return `<div class="character-inventory-card-size-control" role="group" aria-label="Card size"><span>Card size</span>${CHARACTER_CARD_SIZES.map(size => `<button type="button" data-action="character-inventory-card-size" data-size="${size}" aria-pressed="${characterCardSize === size}" class="${characterCardSize === size ? 'selected' : ''}">${characterCardSizeLabels[size]}</button>`).join('')}</div>`;
 }
@@ -425,15 +418,25 @@ function characterInventoryTierButtons(row, characterId) {
 }
 
 function characterInventoryQuickCard(row, characterId, selected) {
-  const open = characterInventorySession.quickPerkId === row.perk.id && !row.isHistorical;
-  return `<div class="character-inventory-card-anchor">${characterPerkCard(row, characterId, selected)}${open ? `<div class="character-inventory-quick-picker" role="group" aria-label="Quick tier picker for ${esc(perkName(save, row.perk))}"><strong>${esc(perkName(save, row.perk))}</strong>${characterInventoryTierButtons(row, characterId)}</div>` : ''}</div>`;
+  const open = characterInventorySession.quickPerkId === row.perk.id;
+  const correcting = characterInventorySession.correctionDraft?.characterId === characterId
+    && characterInventorySession.correctionDraft.perkId === row.perk.id;
+  const correction = characterInventoryCorrectionMarkup(row, characterId);
+  const editor = correcting
+    ? correction
+    : `${row.isHistorical ? historicalCharacterInventoryControl(characterId, row.perk) : characterInventoryTierButtons(row, characterId)}${correction}`;
+  const pickerLabel = `${correcting ? 'Correct personal record for' : row.isHistorical ? 'Set historical ownership for' : 'Set current tier for'} ${perkName(save, row.perk)}`;
+  return `<div class="character-inventory-card-anchor">${characterPerkCard(row, characterId, selected)}${open ? `<div class="character-inventory-quick-picker" role="group" aria-label="${esc(pickerLabel)}"><strong>${esc(perkName(save, row.perk))}</strong>${editor}</div>` : ''}</div>`;
 }
 
 function closeCharacterInventoryQuickPicker(restoreFocus = false) {
   const perkId = characterInventorySession.quickPerkId;
   characterInventorySession = { ...characterInventorySession, quickPerkId: null };
   $('.character-inventory-quick-picker')?.remove();
-  if (restoreFocus && perkId) $(`.perk-card[data-perk="${perkId}"]`)?.focus();
+  const card = perkId ? $(`.perk-card[data-perk="${perkId}"]`) : null;
+  card?.classList.remove('is-selected');
+  card?.setAttribute('aria-pressed', 'false');
+  if (restoreFocus) card?.focus({ preventScroll: true });
 }
 
 function captureWorkspaceContext(path) {
@@ -495,22 +498,15 @@ function positionCharacterInventoryQuickPicker() {
   const picker = $('.character-inventory-quick-picker');
   if (!picker) return;
   const card = picker.parentElement.querySelector('.perk-card').getBoundingClientRect();
+  const gutter = 12;
   const below = window.innerHeight - card.bottom;
   const above = card.top;
+  const anchor = picker.parentElement.getBoundingClientRect();
+  const maxLeft = Math.max(gutter, window.innerWidth - gutter - picker.offsetWidth);
+  const left = Math.min(Math.max(card.left, gutter), maxLeft);
+  picker.style.left = `${left - anchor.left}px`;
+  picker.style.right = 'auto';
   picker.classList.toggle('opens-above', below < picker.offsetHeight + 8 && above > below);
-}
-
-function characterInventoryTierEditor(row, characterId) {
-  const perk = row.perk;
-  if (row.isHistorical) return `${historicalCharacterInventoryControl(characterId, perk)}<p class="character-inventory-editor-note">Historical ownership keeps the existing Not Confirmed / explicit zero distinction and cannot be downgraded through this workflow.</p>`;
-  return `${characterInventoryTierButtons(row, characterId)}${row.automaticMinimum ? `<p class="character-inventory-editor-note">Automatic minimum: Tier ${roman[row.automaticMinimum]}. Clearing the recorded copy keeps that effective minimum.</p>` : '<p class="character-inventory-editor-note">No automatic minimum. Not recorded means this perk is absent from this character\'s tracked inventory.</p>'}`;
-}
-
-function characterInventoryEditor(row, characterId) {
-  if (!row) return '<aside class="character-inventory-editor"><p class="empty">Select a perk to inspect its provenance and set its current tier.</p></aside>';
-  const character = characterById[characterId];
-  const perk = row.perk;
-  return `<aside class="character-inventory-editor" data-character-inventory-detail><div class="character-inventory-editor-art">${perkArtwork(perk, 100)}</div><div class="eyebrow">SELECTED PERK</div><h2>${esc(perkName(save, perk))}</h2><div class="character-inventory-editor-badges">${characterInventoryBadges(row)}</div><div class="character-inventory-effective"><span>EFFECTIVE TIER</span>${badge(row.effectiveTier)}<small>What you compare against DBD</small></div><dl class="character-inventory-editor-facts"><div><dt>Recorded tier</dt><dd>${esc(characterInventoryRecordedLabel(characterId, perk))}</dd></div><div><dt>Automatic minimum</dt><dd>${row.automaticMinimum ? roman[row.automaticMinimum] : 'None'}</dd></div><div><dt>Why it appears</dt><dd>${esc(characterInventoryExplanation(row, character))}</dd></div><div><dt>Source</dt><dd>${esc(perk.sourceCharacterName)}</dd></div></dl><h3>Set current tier</h3>${characterInventoryTierEditor(row, characterId)}${characterInventoryCorrectionMarkup(row, characterId)}</aside>`;
 }
 
 function characterInventoryCorrectionMarkup(row, characterId) {
@@ -563,14 +559,10 @@ function characterInventoryUpdate(id) {
   const character = characterById[id];
   const candidates = characterInventoryCandidatePool(save, id, { allRole: characterInventorySession.allRole });
   const visible = filterCharacterInventoryCandidates(save, id, candidates, characterInventorySession);
-  const correction = characterInventorySession.correctionDraft;
-  const selected = correction?.characterId === id
-    ? characterInventoryCandidatePool(save, id, { allRole: true }).find(row => row.perk.id === correction.perkId) || null
-    : visible.find(row => row.perk.id === characterInventorySession.selectedPerkId) || visible[0] || null;
-  if (!correction && selected && characterInventorySession.selectedPerkId !== selected.perk.id) characterInventorySession = { ...characterInventorySession, selectedPerkId: selected.perk.id };
-  const unrecorded = candidates.filter(row => row.effectiveTier === 0).length;
   const changed = characterInventorySession.changedPerkIds.size;
-  return `<div class="character-inventory-update-heading"><a class="back-link" href="${characterWorkspaceHref(id, 'perks')}">← ${esc(character.name)} Perks</a><a class="button-link" data-action="character-inventory-done" href="${characterWorkspaceHref(id, 'perks')}">Done</a></div>${pageHeading('UPDATE INVENTORY', `${esc(character.name)} · Reconcile perks`, 'Compare and sync this character with your in-game perk inventory.', `<div class="character-inventory-session-status"><strong>${changed} changes saved this session</strong><span>Saved automatically</span></div>`)}${characterInventoryToolbar(candidates, visible, 'update')}<div class="character-inventory-layout"><section class="character-inventory-card-grid ${characterInventoryGridClass()}" aria-label="${esc(character.name)} Update Inventory candidates">${visible.length ? visible.map(row => characterInventoryQuickCard(row, id, row.perk.id === selected?.perk.id)).join('') : empty('No candidate perks match this search and scope.')}</section>${characterInventoryEditor(selected, id)}</div>`;
+  const openPerkId = characterInventorySession.quickPerkId;
+  if (openPerkId && !visible.some(row => row.perk.id === openPerkId)) characterInventorySession = { ...characterInventorySession, quickPerkId: null };
+  return `<div class="character-inventory-update-heading"><a class="back-link" href="${characterWorkspaceHref(id, 'perks')}">← ${esc(character.name)} Perks</a><a class="button-link" data-action="character-inventory-done" href="${characterWorkspaceHref(id, 'perks')}">Done</a></div>${pageHeading('UPDATE INVENTORY', `${esc(character.name)} · Reconcile perks`, 'Compare and sync this character with your in-game perk inventory.', `<div class="character-inventory-session-status"><strong>${changed} changes saved this session</strong><span>Saved automatically</span></div>`)}${characterInventoryToolbar(candidates, visible, 'update')}<section class="character-inventory-card-grid ${characterInventoryGridClass()}" aria-label="${esc(character.name)} Update Inventory candidates">${visible.length ? visible.map(row => characterInventoryQuickCard(row, id, row.perk.id === characterInventorySession.quickPerkId)).join('') : empty('No candidate perks match this search and scope.')}</section>`;
 }
 
 function perkControls(role, characterId) {
@@ -1918,7 +1910,7 @@ async function handleClick(event) {
     return;
   }
   if (action === 'character-inventory-select') {
-    characterInventorySession = { ...characterInventorySession, selectedPerkId: perk, quickPerkId: perkById[perk]?.historicalAvailability?.manualOwnership ? null : perk };
+    characterInventorySession = { ...characterInventorySession, selectedPerkId: perk, quickPerkId: perk };
     const characterRoute = parseCharacterInventoryRoute(route());
     if (characterRoute?.mode === 'inventory') {
       characterInventorySession = { ...characterInventorySession, selectedPerkId: perk, quickPerkId: null };
@@ -1926,7 +1918,7 @@ async function handleClick(event) {
       $(`.character-inventory-card-grid .perk-card[data-perk="${perk}"]`)?.focus({ preventScroll: true });
     } else {
       render();
-      $('.character-inventory-quick-picker button:not(:disabled)')?.focus({ preventScroll: true });
+      $('.character-inventory-quick-picker button:not(:disabled), .character-inventory-quick-picker select')?.focus({ preventScroll: true });
     }
     return;
   }

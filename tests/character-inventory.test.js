@@ -333,10 +333,15 @@ test('Update uses saved session wording and shares validated tier controls witho
   assert.doesNotMatch(source, /changes this update|Confirm Changes/);
   assert.match(source, /setCharacterPersonalTier\(next, intent\.characterId, intent\.perkId, intent\.tier\)/);
   assert.match(source, /commit\(applySelection, intent\.characterId\)/);
-  const controls = source.slice(source.indexOf('function characterInventoryTierButtons'), source.indexOf('function characterInventoryEditor'));
+  const controls = source.slice(source.indexOf('function characterInventoryTierButtons'), source.indexOf('function characterInventoryQuickCard'));
   assert.doesNotMatch(controls, />Save<|>Confirm</);
-  assert.match(controls, /!row\.isHistorical/);
   assert.match(controls, /characterInventoryTierButtons\(row, characterId\)/);
+  const picker = source.slice(source.indexOf('function characterInventoryQuickCard'), source.indexOf('function closeCharacterInventoryQuickPicker'));
+  assert.match(picker, /historicalCharacterInventoryControl\(characterId, row\.perk\)/);
+  assert.match(picker, /role="group" aria-label="\$\{esc\(pickerLabel\)\}"/);
+  assert.match(picker, /Set current tier for/);
+  assert.doesNotMatch(source, /function characterInventoryEditor\(/);
+  assert.match(source, /function characterInventoryUpdate[\s\S]*?<section class="character-inventory-card-grid/);
 });
 
 test('production renderer uses one neutral character-inventory implementation and scoped card preference', () => {
