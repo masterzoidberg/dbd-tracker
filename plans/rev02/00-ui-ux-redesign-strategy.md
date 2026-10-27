@@ -341,4 +341,4 @@ Skill conflicts are resolved by product needs: Taste's one-color preference yiel
 - Full Core planning is covered in plans 01–06; no task-by-task implementation roadmap or production layouts are created in this pass.
 - No final global token/font/palette decision or DESIGN.md before review.
 
-Next: create a dependency-aware implementation roadmap from this consolidated Core set, carrying D01/D02 as explicit pre-schema product gates. Do not implement yet. Standalone perk libraries and Data & Backups keep existing information architecture initially, with functional shell/schema compatibility.
+The dependency-aware implementation roadmap is in [07-implementation-roadmap.md](07-implementation-roadmap.md). D01/D02 were explicit pre-schema gates at planning time and were approved on 2026-10-27. Standalone perk libraries and Data & Backups keep existing information architecture initially, with functional shell/schema compatibility.

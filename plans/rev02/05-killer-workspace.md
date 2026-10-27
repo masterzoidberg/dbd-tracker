@@ -246,7 +246,7 @@ Immediate navigation, search/filter/sort, tiers and quantity steps; no stagger, 
 
 ## Open Questions
 
-No Killer-workspace-specific product blocker remains. Queue intent/membership questions D01/D02 in the central register affect shared Dashboard state, not Power/Add-on geometry. Exact fit, longest-reference rendering, optional icon qualification, focus and numeric keyboard behavior are engineering/visual verification details. Recommendations here do not reopen explicit user decisions.
+No Killer-workspace-specific product blocker remains. The approved D01/D02 queue semantics in the central register affect shared Dashboard state, not Power/Add-on geometry. Exact fit, longest-reference rendering, optional icon qualification, focus and numeric keyboard behavior are engineering/visual verification details. Recommendations here do not reopen explicit user decisions.
 
 ## Explicit Non-Goals
 

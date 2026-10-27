@@ -1,6 +1,6 @@
 # Rev02 UX/UI Planning
 
-**Implementation roadmap created · 2026-10-25 · Implementation not started.**
+**Roadmap created · 2026-10-25 · Phases 0–10 complete. D01/D02 approved 2026-10-27. Phases 1B, 11 and 12 authorized; Phases 13–14 and deployment remain out of scope.**
 
 This set defines Rev02 Core across the actual vanilla JS/HTML/CSS tracker. Archive when browsing. Tool when editing. Explicit user decisions outrank older recommendations, confirmed functional behavior and skill preferences. Detailed recommendations remain labeled; this consolidation is not blanket approval of exact visual geometry.
 
@@ -16,14 +16,14 @@ All checked-out Markdown plans were reviewed as one set against current source. 
 | --- | --- |
 | [00-ui-ux-redesign-strategy.md](00-ui-ux-redesign-strategy.md) | Audit, historical identity alternatives, consolidated product principles; reconciled. |
 | [00a-ux-audit-matrix.md](00a-ux-audit-matrix.md) | Historical evidence plus complete Core planning/source-dependency coverage; reconciled. |
-| [00b-open-design-questions.md](00b-open-design-questions.md) | Decision/rationale history; answered questions closed; only D01/D02 need product input. |
+| [00b-open-design-questions.md](00b-open-design-questions.md) | Decision/rationale history; D01/D02 approvals recorded; no remaining product input blocks this batch. |
 | [01-dashboard.md](01-dashboard.md) | Approved three-job hierarchy; role pins/queue state, migration/import/export and local Continue dependencies documented. |
 | [02-survivor-roster.md](02-survivor-roster.md) | Six-per-page 3/2/1 roster; ownership status, Favorite, account-scope terminology and shell reconciled. |
 | [03-survivor-workspace.md](03-survivor-workspace.md) | Full Overview/Perks/Items & Add-ons; contextual capability audit, explicit Update/Done and safe working context reconciled. |
 | [04-killer-roster.md](04-killer-roster.md) | Six-per-page/Power identity, artwork audit; Lore and neutral named fallback policy reconciled. |
 | [05-killer-workspace.md](05-killer-workspace.md) | New full Overview/Perks/Power & Add-ons plan, editor audit, quantities and structured reference. |
 | [06-shared-global-design.md](06-shared-global-design.md) | New bounded shared shell/layout/interaction/state/accessibility contract; Core boundary and dependency shape. |
-| [07-implementation-roadmap.md](07-implementation-roadmap.md) | Primary execution plan: dependency graph, phase tasks/files/tests, D01/D02 gates, migration safety, visual/release/manual acceptance and recovery. No phases executed. |
+| [07-implementation-roadmap.md](07-implementation-roadmap.md) | Primary execution plan: dependency graph, phase tasks/files/tests, approved D01/D02 semantics, migration safety, visual/release/manual acceptance and recovery. |
 
 No separate competing plans are needed for character Perks or inventory tabs; they belong in the full role workspaces. Standalone account perk libraries are distinct from those character tabs.
 
@@ -39,9 +39,9 @@ No separate competing plans are needed for character Perks or inventory tabs; th
 - Survivor family→Item→compatible Add-ons versus Killer→Power→flat Add-ons. Shared additive −1/value/+1/+5/+10, direct entry, pending/error/focus safety; no rarity accordions.
 - Dashboard requires new persisted role queue/pin state and backward-reading migration support; Continue is recommended as one browser-local stable workspace preference, without telemetry.
 
-## Remaining Product Decisions
+## Approved Queue / Pin Decisions
 
-**D01:** dual Prestige/Playing membership and how a single pinned character represents intent. **D02:** direct pin versus required queue membership. Recommendations and previous alternatives are retained in the question register. Resolve before finalizing schema/membership/removal rules and related UI acceptance. They are explicit gates in the completed roadmap and do not block unrelated UI work. No other answered question remains a product blocker.
+**D01 approved:** dual Prestige/Playing membership; one Up Next pin per character with one explicit primary intent. **D02 approved:** direct pins need no queue membership; queue changes do not remove, reorder or retarget a pin. Full decisions and rejected alternatives are retained in the question register. These semantics govern schema, migration and Dashboard acceptance.
 
 ## Rev02 Core Implementation Boundary
 
@@ -53,11 +53,11 @@ Standalone **Survivor Perks library**, **Killer Perks library**, and **Data & Ba
 
 Recommended roadmap order: **0 baseline → 1A v2 schema/migration safety → 2 shared shell → 3 roster behavior → 4 Survivor roster → 5 Killer roster → 6 workspace/context → 7 shared editing/Perks/quantities → 8 Survivor workspace → 9 Killer workspace → 10 editor parity/retirement → 1B approved queue/pin schema → 11 Continue/Dashboard → 12 standalone compatibility → 13 accessibility/stress/polish → 14 final release/manual acceptance.**
 
-Plan 01's Dashboard cannot be implemented first merely because it has the lowest screen number. Phase 1B requires explicit D01/D02 answers; phases 0, 1A and 2–10 may proceed independently after execution authorization. Local Continue task 11.1 is also independent of those answers once workspace routing is ready. The roadmap explains consumer compatibility and permits earlier 1B only when the current Dashboard is adapted atomically. No optional duplicate dependency matrix was needed.
+Plan 01's Dashboard cannot be implemented first merely because it has the lowest screen number. The approved D01/D02 decisions unblock Phase 1B after Phase 10; the current Dashboard consumers must migrate atomically with the schema. Local Continue task 11.1 remains independently testable once workspace routing is ready. No optional duplicate dependency matrix was needed.
 
 ## Next Step / Readiness
 
-**Roadmap ready to execute one phase at a time; implementation not started.** Review [07-implementation-roadmap.md](07-implementation-roadmap.md) as the execution reference. D01/D02 remain gates before the final queue/pin schema and dependent Dashboard acceptance, not blockers for unrelated UI work. Phase 0 belongs to a later authorized implementation session. No schema, source, CSS, assets, generated bundle or deployment changed during roadmap creation.
+**Phases 0–10 complete; Phases 1B, 11 and 12 authorized.** Use [07-implementation-roadmap.md](07-implementation-roadmap.md) as the execution reference. D01/D02 are recorded; Phase 1B governs queue/pin schema and dependent Dashboard state. Stop before Phase 13 and do not deploy under this authorization.
 
 ## Consolidation Checks
 
