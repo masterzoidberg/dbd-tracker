@@ -997,9 +997,16 @@ function acceptKillerQuantity(id,trigger,nextTargetId=null) {
       if(previous.errors[other])killerSession.errors[other]=previous.errors[other];
     }
     const order=sortQuantityEntriesByRarity(killerSession.entities,killerRarityOrder,addonRarityDirection).map(entity=>entity.id);
+    const search=killerFilters.search.trim().toLocaleLowerCase();
+    const visibleIds=order.filter(addonId=>{
+      const addon=inventoryEntityById[addonId];
+      return (!search||(addon.name+' '+addon.effect).toLocaleLowerCase().includes(search))
+        &&(!killerFilters.rarity||addon.rarity===killerFilters.rarity)
+        &&(!killerFilters.inStock||(killerSession.baseline[addonId]||0)>0);
+    });
     const destination=quantityFocusAfterCommit(order,{entityId:id,nextTargetId,trigger,
-      visibleIds:[...order,...(nextTargetId&&document.getElementById(nextTargetId)?[nextTargetId]:[])]});
-    render();($('#killer-quantity-'+destination)||document.getElementById(destination))?.focus({preventScroll:true});
+      visibleIds:[...visibleIds,...(nextTargetId&&document.getElementById(nextTargetId)?[nextTargetId]:[])]});
+    render();($('#killer-quantity-'+destination)||document.getElementById(destination)||$('#killer-addon-search'))?.focus({preventScroll:true});
     message('Quantity saved: '+inventoryEntityById[id].name+' '+result.quantity+'.');
     return true;
   }catch(error){
@@ -1216,9 +1223,12 @@ async function resolveWorkspaceDraftTransition(intent) {
     message('The source draft changed while the confirmation was open. Review it before leaving.', true);
     return 'stay';
   }
+  const destinationWorkspace = intent.destination ? parseCharacterWorkspaceRoute(intent.destination) : null;
+  const continuingSetupBatch = Boolean(setupQueue && characterSetup?.batch
+    && destinationWorkspace?.status === 'valid' && destinationWorkspace.section === 'setup');
   if (choice === 'discard') {
     if (taskDraft) characterTaskSession = null;
-    if (setupDraft) { characterSetup = null; setupQueue = null; }
+    if (setupDraft) { characterSetup = null; if (!continuingSetupBatch) setupQueue = null; }
     if (correctionDraft) characterInventorySession = { ...characterInventorySession, correctionDraft: null };
     render();
     return 'proceed';
@@ -1544,22 +1554,27 @@ async function openCharacterSetup(id, { batch = null, returnRoute = null } = {})
   $('#character-setup-bloodweb')?.focus();
   return true;
 }
-function advanceCharacterSetup() {
-  while (setupQueue.index < setupQueue.ids.length) {
-    const id = setupQueue.ids[setupQueue.index];
+async function advanceCharacterSetup(startIndex = setupQueue?.index ?? 0) {
+  const queue = setupQueue;
+  if (!queue) return false;
+  let index = startIndex;
+  while (index < queue.ids.length) {
+    const id = queue.ids[index];
     if (save.characters[id].owned && !save.characters[id].setupComplete) {
-      void openCharacterSetup(id, { batch: { position: setupQueue.index + 1, total: setupQueue.ids.length },
-        returnRoute: setupQueue.returnRoute }).catch(error => message(error.message, true));
-      return;
+      const opened = await openCharacterSetup(id, { batch: { position: index + 1, total: queue.ids.length },
+        returnRoute: queue.returnRoute });
+      if (opened && setupQueue === queue) queue.index = index;
+      return opened;
     }
-    setupQueue.index++;
+    index++;
   }
-  const completed = setupQueue.completed;
-  const returnRoute = setupQueue.returnRoute || '#dashboard';
-  setupQueue = null;
+  const completed = queue.completed;
+  const returnRoute = queue.returnRoute || '#dashboard';
+  if (!await requestWorkspaceNavigation(returnRoute)) return false;
+  if (setupQueue === queue) setupQueue = null;
   characterSetup = null;
-  location.hash = returnRoute; render();
   message(`Setup pass finished. ${completed} character${completed === 1 ? '' : 's'} completed. Run character setups again to continue any skipped characters.`);
+  return true;
 }
 function finishCharacterSetup({ navigate = true, expectedDraft = characterSetup } = {}) {
   store.assertWriter();
@@ -1573,19 +1588,23 @@ function finishCharacterSetup({ navigate = true, expectedDraft = characterSetup 
     return false;
   }
   try {
-    completeCharacterSetup(structuredClone(save), draft.id, draft.bloodwebLevel, draft.step === 'bloodweb' ? {} : draft.perks);
+    completeCharacterSetup(structuredClone(save), draft.id, draft.bloodwebLevel, draft.perks);
   } catch (error) { message(error.message, true); return false; }
   store.backup(save, `Before character setup: ${characterById[draft.id].name}`);
-  if (commit(next => completeCharacterSetup(next, draft.id, draft.bloodwebLevel, draft.step === 'bloodweb' ? {} : draft.perks), draft.id)) {
+  if (commit(next => completeCharacterSetup(next, draft.id, draft.bloodwebLevel, draft.perks), draft.id)) {
     if (setupQueue && navigate) {
       setupQueue.completed++;
-      setupQueue.index++;
-      advanceCharacterSetup();
+      const nextIndex = setupQueue.index + 1;
+      characterSetup = null;
+      void advanceCharacterSetup(nextIndex).catch(error => message(error.message, true));
       return true;
     }
     const returnRoute = draft.returnRoute || characterWorkspaceHref(draft.id);
     characterSetup = null;
-    if (!navigate) { setupQueue = null; return true; }
+    if (!navigate) {
+      if (setupQueue) setupQueue.completed++;
+      return true;
+    }
     location.hash = returnRoute; render(); message('Character setup completed. Personal records preserved; automatic minimums remain in effect.');
     return true;
   }
@@ -1847,10 +1866,13 @@ async function handleClick(event) {
       return;
     }
     setupQueue = { ids: pending.map(c => c.id), index: 0, completed: 0, returnRoute: '#' + route() };
-    advanceCharacterSetup();
+    void advanceCharacterSetup().catch(error => message(error.message, true));
     return;
   }
-  if (action === 'character-setup-next-character' && setupQueue) { setupQueue.index++; advanceCharacterSetup(); return; }
+  if (action === 'character-setup-next-character' && setupQueue) {
+    await advanceCharacterSetup(setupQueue.index + 1);
+    return;
+  }
   if (action === 'character-setup-exit') {
     const target = characterSetup?.returnRoute || '#dashboard';
     await requestWorkspaceNavigation(target); return;
@@ -2154,8 +2176,16 @@ document.addEventListener('change', async event => {
       render(); $('#character-inventory-sort')?.focus({ preventScroll: true }); return;
     }
     if (target.dataset.personalTier) {
+      const characterId = target.dataset.character;
+      const perkId = target.dataset.personalTier;
       const tier = Number(target.value);
-      commit(next => correctPersonalPerkTier(next, target.dataset.character, target.dataset.personalTier, tier === 0 ? null : tier), target.dataset.character);
+      if (hasDirtyWorkspaceDraft()
+        && await resolveWorkspaceDraftTransition({ action: 'detail-personal-tier', characterId, perkId, tier }) !== 'proceed') {
+        refreshDetail();
+        $('#personal-tier-' + CSS.escape(characterId) + '-' + CSS.escape(perkId))?.focus({ preventScroll: true });
+        return;
+      }
+      commit(next => correctPersonalPerkTier(next, characterId, perkId, tier === 0 ? null : tier), characterId);
       refreshDetail();
       return;
     }
@@ -2170,7 +2200,17 @@ document.addEventListener('change', async event => {
         setHistoricalPerkTier(preview, characterId, perkId, tier);
         characterSetup.perks[perkId] = tier;
         refreshDetail();
-      } else if (commit(next => setHistoricalPerkTier(next, characterId, perkId, tier), characterId)) refreshDetail();
+      } else {
+        if (hasDirtyWorkspaceDraft()
+          && await resolveWorkspaceDraftTransition({ action: 'detail-historical-tier', characterId, perkId, tier }) !== 'proceed') {
+          refreshDetail();
+          [...document.querySelectorAll('[data-historical-ownership]')]
+            .find(control => control.dataset.character === characterId && control.dataset.historicalOwnership === perkId)
+            ?.focus({ preventScroll: true });
+          return;
+        }
+        if (commit(next => setHistoricalPerkTier(next, characterId, perkId, tier), characterId)) refreshDetail();
+      }
       return;
     }
     if (target.dataset.characterSetupPerk) {

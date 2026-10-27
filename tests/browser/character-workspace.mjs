@@ -15,6 +15,7 @@ export async function characterWorkspaceRegression(page, origin) {
   await characterRosterNavigationRegression(page,origin);
   await workspaceContextRegression(page, origin);
   await setupDraftNavigationRegression(page, origin);
+  await taskDraftPerkMutationRegression(page, origin);
   await characterWorkspaceResponsive(page,origin);
   const { workspaceLayouts } = await import('./workspace-layouts.mjs');
   await workspaceLayouts(page, origin);
@@ -120,6 +121,58 @@ export async function characterWorkspaceRegression(page, origin) {
   await page.waitForURL('**/#character/meg-thomas/overview');
   assert.equal(await page.locator('#detail').isVisible(), false);
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before);
+}
+
+export async function taskDraftPerkMutationRegression(page, origin) {
+  const missedGuards = [];
+  for (const scenario of [
+    { id: 'meg-thomas', perkId: 'sprint-burst', selector: '[data-personal-tier][data-character="meg-thomas"]' },
+    { id: 'the-demogorgon', perkId: 'surge', selector: '[data-historical-ownership][data-character="the-demogorgon"]' },
+  ]) {
+    const save = freshSave();
+    await page.evaluate(value => localStorage.setItem('dbdTrackerData', JSON.stringify(value)), save);
+    await page.reload();
+    await page.goto(origin + '/#character/' + scenario.id + '/overview');
+    await page.locator('[data-character-workspace]').waitFor();
+    await page.locator('[data-overview-section="notes"] [data-action="character-task-start"][data-task="notes"]').click();
+    const note = 'Uncommitted note for ' + scenario.id;
+    await page.locator('[data-character-task-field="notes"]').fill(note);
+    await page.locator('[data-overview-section="native-perks"] [data-action="perk"][data-id="' + scenario.perkId + '"]').click();
+    const before = await page.evaluate(() => localStorage.getItem('dbdTrackerData'));
+    await page.locator('#detail-content ' + scenario.selector).selectOption('1');
+    const guarded = await page.locator('#dirty-navigation').evaluate(dialog => dialog.open);
+    if (!guarded) {
+      missedGuards.push(scenario.id + '/' + scenario.perkId);
+      continue;
+    }
+    assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before,
+      'Perk-dialog selection waits for the active task draft decision');
+    if (scenario.id === 'meg-thomas') {
+      await page.locator('#dirty-navigation [value="stay"]').click();
+      assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before,
+        'Stay leaves the selected personal record unchanged');
+      assert.equal(await page.locator('[data-character-task-field="notes"]').inputValue(), note,
+        'Stay retains the task draft');
+      const personal = page.locator('#detail-content ' + scenario.selector);
+      assert.equal(await personal.inputValue(), '0', 'Stay restores the uncommitted perk selector');
+      await personal.selectOption('2');
+      await page.locator('#dirty-navigation[open]').waitFor();
+      await page.locator('#dirty-navigation [value="save"]').click();
+      await page.waitForFunction(() => document.querySelector('#dirty-navigation')?.open === false);
+      await page.waitForFunction(() => {
+        const save = JSON.parse(localStorage.getItem('dbdTrackerData'));
+        return save.characters['meg-thomas'].notes === 'Uncommitted note for meg-thomas'
+          && save.characters['meg-thomas'].perks['sprint-burst'] === 2;
+      });
+    } else {
+      await page.locator('#dirty-navigation [value="discard"]').click();
+      await page.waitForFunction(() => {
+        const save = JSON.parse(localStorage.getItem('dbdTrackerData'));
+        return save.characters['the-demogorgon'].notes === '' && save.characters['the-demogorgon'].perks.surge === 1;
+      });
+    }
+  }
+  assert.deepEqual(missedGuards, [], 'Personal and historical perk-dialog changes resolve active Overview task drafts');
 }
 async function killerOverviewRegression(page, origin) {
   const killer = characters.find(character => character.id === 'the-doctor');

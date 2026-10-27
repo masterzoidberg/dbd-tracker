@@ -198,6 +198,38 @@ export async function killerPowerAddonsRegression(page, origin, manifest) {
   await killerQuantityRegression(page, origin);
   await killerPendingNavigationRegression(page, origin);
   await killerRarityNavigationRegression(page, origin);
+  await killerFilteredZeroFocusRegression(page, origin);
+}
+
+export async function killerFilteredZeroFocusRegression(page, origin) {
+  const addons = Object.values(inventoryEntityById)
+    .filter(entity => entity.role === 'killer' && entity.characterId === 'the-doctor')
+    .sort((a, b) => a.order - b.order);
+  const save = freshSave();
+  save.characters['the-doctor'].inventory.addons[addons[0].id] = 1;
+  save.characters['the-doctor'].inventory.addons[addons[1].id] = 1;
+  await page.evaluate(value => localStorage.setItem('dbdTrackerData', JSON.stringify(value)), save);
+  await page.reload();
+  await page.goto(origin + '/#character/the-doctor/power-addons');
+  await page.locator('#killer-addon-in-stock').waitFor();
+  await page.locator('#killer-addon-in-stock').check();
+
+  const first = page.locator('[data-killer-quantity]').first();
+  const firstId = await first.getAttribute('data-killer-quantity');
+  await first.fill('0');
+  await first.press('Enter');
+  const remaining = page.locator('[data-killer-quantity]').first();
+  const remainingId = await remaining.getAttribute('data-killer-quantity');
+  const enterKeptFocus = await remaining.evaluate(node => document.activeElement === node);
+
+  await page.locator('[data-killer-stock-step][data-id="' + remainingId + '"][data-delta="-1"]').click();
+  const lastRowFocusedSearch = await page.locator('#killer-addon-search').evaluate(node => document.activeElement === node);
+  assert.equal(enterKeptFocus, true,
+    'Enter-zeroing under In Stock focuses the next remaining Add-on quantity');
+  assert.equal(lastRowFocusedSearch, true,
+    'Decrementing the last visible Add-on to zero focuses the Killer Add-on search');
+  assert.equal((await page.evaluate(() => JSON.parse(localStorage.getItem('dbdTrackerData')))
+    ).characters['the-doctor'].inventory.addons[firstId], undefined);
 }
 
 async function killerLongPowerReferenceRegression(page, origin) {
