@@ -174,6 +174,7 @@ try {
     page.on('pageerror', error => errors.push(error.message));
     page.on('response', response => { if (response.status() >= 400) errors.push(`HTTP ${response.status()}: ${response.url()}`); });
     page.on('request', request => requests.push(request.url()));
+    await page.goto(`${origin}/#dashboard`);
   }
 
   for (const [role, characterId, perkId] of [
