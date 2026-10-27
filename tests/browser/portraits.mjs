@@ -83,9 +83,9 @@ export async function portraitsRegression(page, origin, manifest) {
     assert.equal(requests, 1);
     assert.deepEqual(await holder.boundingBox(), before);
     assert.equal(await holder.evaluate(n => n.classList.contains('has-art')), false);
-    await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
-    await page.locator('#edit-bloodweb').fill('26');
-    await page.getByRole('button', { name: 'Save Character', exact: true }).click();
+    await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
+    await page.locator('[data-character-task-field="bloodwebLevel"]').fill('26');
+    await page.getByRole('button', { name: 'Save progression', exact: true }).click();
     assert.equal(await page.locator('#save-status').textContent(), 'Saved locally');
     assert.equal(await page.locator('#detail').isVisible(), false);
     await page.unroute(broken);
@@ -115,8 +115,8 @@ export async function portraitsRegression(page, origin, manifest) {
         assert.equal(await card.locator('[data-action="ownership"]').count(), 0);
         assert.equal(await card.locator('a[href^="#character/"]').count(), 1);
         await card.locator('[data-open-workspace]').focus(); await page.keyboard.press('Enter');
-        const edit = await page.getByRole('link', { name: 'Edit Character', exact: true }).boundingBox();
-        assert.ok(edit.x >= 0 && edit.x + edit.width <= width);
+        const favorite = await page.locator('.character-workspace-favorite').boundingBox();
+        assert.ok(favorite.x >= 0 && favorite.x + favorite.width <= width);
         assert.equal(await page.locator('#detail').isVisible(), false);
       }
     }

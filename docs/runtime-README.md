@@ -149,7 +149,7 @@ V1 import/restore is replacement: it produces an empty Prestige Queue and empty 
 
 ## Workspace and inventory acceptance
 
-Character identity links open Overview. Old manage/experiment bookmarks retain Perks meaning. Initial Setup is separate from comprehensive Edit Character. Edit is a memory-only draft with explicit Save Character and Save/Discard/Stay exits. Detailed Survivor quantities save on valid Enter/blur; zero entries remain visible by default and are removed from sparse storage. Invalid/failed edits retain text. Unknown stock is preserved.
+Character identity links open Overview. Old manage/experiment bookmarks retain Perks meaning, and older `/edit` bookmarks open Overview. Initial Setup is separate from focused Overview edits: progression and Notes each use their own in-memory draft with explicit Save/Cancel, and dirty navigation offers Save/Discard/Stay. Detailed Survivor quantities save on valid Enter/blur; zero entries remain visible by default and are removed from sparse storage. Invalid/failed edits retain text. Unknown stock is preserved.
 
 For Killer acceptance, open Power & Add-ons at 320/500/760/1100/1440/1600px.
 Confirm the Power panel stacks at narrow widths, artwork keeps its slot, all five

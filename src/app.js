@@ -1,12 +1,11 @@
-import { characters, characterById, perks, perkById, catalogInfo, perkName, perkSearchText } from '../data/catalog.js';
+import { characters, characterById, perkById, catalogInfo, perkName } from '../data/catalog.js';
 import { freshSave, globalTier, isAvailable, unlockSource, inventoryTier, roleCharacters, rolePerks, characterStats, perkStats, parseSave, exportSave, setGlobalPerkUnlocked, syncGlobalInventories, completeCharacterSetup, automaticTier, recordedTier, ownedUnlockSource, bloodwebNextTier, bloodwebEligible, setHistoricalPerkTier } from './model.js';
 import { TrackerStorage } from './storage.js';
 import { parseCharacterWorkspaceRoute, characterWorkspaceHref, characterWorkspaceNeighbors } from './character-workspace.js';
 import {inventoryEntities,inventoryEntityById,inventoryCatalogStatus,survivorInventorySource,killerPowerByCharacterId} from '../data/inventory-catalog.js';
 import {inventoryIconPath,killerPowerIconPath} from './assets.js';
 import {createQuantityInteraction,updateQuantityInput,acceptQuantityInput,visibleQuantityEntries,regroupQuantityEntries,quantityFocusAfterCommit,groupQuantityEntries,groupQuantityEntriesByItem,sortQuantityEntriesByRarity,stepQuantityInput} from './inventory-interaction.js';
-import { createCharacterEditSession, updateCharacterEditSession, buildCharacterEditCandidate, characterEditPreview,
-  createCharacterTaskSession, updateCharacterTaskSession, buildCharacterTaskCandidate } from './character-edit.js';
+import { createCharacterTaskSession, updateCharacterTaskSession, buildCharacterTaskCandidate } from './character-edit.js';
 import { EditorGuard } from './editor.js';
 import { setupView } from './setup.js';
 import { characterSetupView } from './character-setup.js';
@@ -53,10 +52,7 @@ let setupStep = 0;
 let setupSearch = '';
 let setupFilter = 'all';
 let characterSetup = null;
-let characterEditSession = null;
 let characterTaskSession = null;
-let characterEditViewState = { search: '', allRole: false };
-let characterEditReturnRoute = null;
 let stockSession = null;
 let stockSessionKey = '';
 let stockRendering = false;
@@ -126,16 +122,10 @@ function editorPresentation() {
     }
   });
   document.querySelectorAll('[data-action="export"]').forEach(button => { button.disabled = !initialized || storageBlocked; });
-  document.querySelectorAll('[data-edit-field], [data-edit-perk], [data-edit-correction], [data-inventory-quantity], [data-action="character-edit-save"]').forEach(control => {
-    control.disabled = !editing || storageBlocked || Boolean(characterEditSession?.conflicted);
-  });
   document.querySelectorAll('[data-character-task-field], [data-action="character-task-save"], [data-action="character-task-start"], [data-action="overview-ownership-toggle"], [data-action="favorite"]').forEach(control => {
     control.disabled = !editing || storageBlocked || Boolean(characterTaskSession?.conflicted);
   });
   updateStockStepControls();
-  if (characterEditSession) {
-    $('#detail-content').querySelectorAll('select, [data-action="account-unlock-tier"], [data-action="cycle"]').forEach(control => { control.disabled = true; });
-  }
   if (!initialized) $('#save-status').textContent = 'Checking editing availability';
   else if (!editing) $('#save-status').textContent = editor.state === 'unavailable' ? 'Editing unavailable' : 'Read-only';
   else if (storageBlocked) $('#save-status').textContent = 'Stored save needs recovery';
@@ -145,9 +135,8 @@ async function enableEditing() {
   const acquisition = editor.acquire();
   editorPresentation();
   await acquisition;
-  // A retry never commits a draft or keeps a form based on the previous view.
+  // A retry reloads the canonical save before rendering the current route.
   $('#detail').close(); modal = null; characterSetup = null; setupQueue = null;
-  characterEditSession = null;
   setupOpen = false; pendingImport = null;
   try {
     const loaded = store.load({ persistMigration: editor.state === 'editing' });
@@ -668,7 +657,15 @@ function preserveRender(element, html) {
   }
   [...element.querySelectorAll('.table-scroll')].forEach((n, i) => { if (scrolls[i]) [n.scrollLeft, n.scrollTop] = scrolls[i]; });
 }
-function route() { return location.hash.slice(1) || 'dashboard'; }
+function route() {
+  const current = location.hash.slice(1) || 'dashboard';
+  const workspace = parseCharacterWorkspaceRoute(current);
+  if (workspace?.source === 'legacy-edit') {
+    history.replaceState(history.state, '', workspace.canonicalRoute);
+    return workspace.canonicalRoute.slice(1);
+  }
+  return current;
+}
 function setGlobalMenuOpen(open, returnFocus = false) {
   const sidebar = $('.sidebar');
   const trigger = $('#menu-toggle');
@@ -712,7 +709,7 @@ function characterWorkspaceHeader(character, descriptor) {
     + '<div class="character-workspace-progress" aria-label="Character progression"><div data-character-progress="prestige"><span>PRESTIGE</span><strong>P' + progress.prestige + '</strong></div>'
     + '<div data-character-progress="bloodweb"><span>BLOODWEB</span><strong>' + progress.bloodwebLevel + ' / 50</strong></div></div></div>'
     + '<button type="button" class="character-workspace-favorite" data-action="favorite" data-id="' + character.id + '" aria-pressed="' + progress.favorite + '" aria-label="Favorite ' + esc(character.name) + '">' + (progress.favorite ? '★ Favorite' : '☆ Favorite') + '</button>'
-    + '<a class="primary button-link character-workspace-edit" href="' + characterWorkspaceHref(character.id, 'edit') + '">Edit Character</a></div>'
+    + '</div>'
     + '<nav class="character-workspace-nav" aria-label="Character workspace">' + sections.map(([section, label]) =>
       '<a data-workspace-section="' + section + '" href="' + characterWorkspaceHref(character.id, section) + '"'
       + (descriptor.section === section ? ' aria-current="page"' : '') + '>' + label + '</a>').join('') + '</nav></header>';
@@ -744,7 +741,8 @@ function characterOverview(id) {
       + '<a data-open-perk-update="' + perkId + '" href="' + characterWorkspaceHref(id, 'perks', 'update') + '">Update record</a></div></article>';
   }).join('');
   const task = characterTaskSession?.characterId === id ? characterTaskSession : null;
-  const taskEditor = task ? characterOverviewTaskEditor(id, task) : '';
+  const progressionEditor = task?.task === 'progression' ? characterOverviewTaskEditor(id, task) : '';
+  const notesEditor = task?.task === 'notes' ? characterOverviewTaskEditor(id, task) : '';
   const setup = progress.owned
     ? '<div class="overview-context ' + (progress.setupComplete ? 'is-complete' : 'needs-attention') + '"><strong>' + (progress.setupComplete ? 'Initial setup complete' : 'Initial setup incomplete') + '</strong>'
       + '<p>' + (progress.setupComplete ? 'Review the saved Bloodweb setup when you need to reconcile older progress.' : 'Record the starting Bloodweb context before relying on setup-specific progression details.') + '</p>'
@@ -775,8 +773,8 @@ function characterOverview(id) {
     + '<section class="character-overview-section overview-native" data-overview-section="native-perks"><div class="section-title"><h2>Native Perks</h2></div><div class="overview-native-grid">' + nativeCards + '</div></section>'
     + '<section class="character-overview-section overview-progress" data-overview-section="progress"><div class="section-title"><h2>Progress / setup</h2></div>'
       + '<div class="overview-character-state"><span>' + (progress.owned ? 'Owned' : 'Locked') + '</span><button type="button" data-action="overview-ownership-toggle" data-id="' + id + '">' + (progress.owned ? 'Mark Locked' : 'Mark Owned') + '</button></div>'
-      + '<div class="overview-contextual-actions"><button type="button" data-action="character-task-start" data-task="progression"' + (task ? ' disabled' : '') + '>Edit progression</button><button type="button" data-action="character-task-start" data-task="notes"' + (task ? ' disabled' : '') + '>Edit notes</button></div>'
-      + taskEditor + setup
+      + '<div class="overview-contextual-actions"><button type="button" data-action="character-task-start" data-task="progression"' + (task ? ' disabled' : '') + '>Edit progression</button></div>'
+      + progressionEditor + setup
       + '<p class="muted overview-helper">Personal records remain separate from Native, Prestige, Shrine and Legacy minimums.</p></section>'
     + '<section class="character-overview-summary" data-overview-section="perks"><div><div class="eyebrow">PERKS</div><h2>Perk inventory</h2></div>'
       + '<div class="overview-summary-number"><strong>' + stats.owned + '</strong><span>effective owned</span></div><div class="overview-summary-number"><strong>' + stats.tier3 + '</strong><span>Tier III</span></div>'
@@ -784,7 +782,7 @@ function characterOverview(id) {
     + '<section class="character-overview-summary" data-overview-section="inventory"><div><div class="eyebrow">COLLECTION</div><h2>' + (character.role === 'survivor' ? 'Items & Add-ons' : 'Power & Add-ons') + '</h2></div>' + inventorySummary + '</section>'
     + '</div>'
     + '<section class="character-overview-notes" data-overview-section="notes"><div class="section-title"><h2>Notes</h2></div><p class="character-notes">' + esc(progress.notes || 'No notes recorded.') + '</p>'
-      + (task ? '' : '<button type="button" data-action="character-task-start" data-task="notes">Edit notes</button>') + '</section>'
+      + (task?.task === 'notes' ? notesEditor : task ? '' : '<button type="button" data-action="character-task-start" data-task="notes">Edit notes</button>') + '</section>'
     + '</div>';
 }
 function characterOverviewTaskEditor(id, session) {
@@ -805,15 +803,8 @@ function characterWorkspaceView(descriptor) {
   const id = descriptor.characterId;
   let content;
   if (descriptor.section === 'overview') content = characterOverview(id);
-  else if (descriptor.section === 'items-addons' && inventoryCatalogStatus.survivor==='ready') content = stockView(id,'detail');
+  else if (descriptor.section === 'items-addons' && inventoryCatalogStatus.survivor==='ready') content = stockView(id);
   else if (descriptor.section === 'power-addons' && inventoryCatalogStatus.killerPowers==='ready' && inventoryCatalogStatus.killerAddons==='ready') content = killerPowerAddonsView(id);
-  else if (descriptor.section === 'edit') {
-    if (characterEditSession?.characterId !== id) {
-      characterEditSession = createCharacterEditSession(save, id, characterEditReturnRoute);
-      characterEditViewState = { search: '', allRole: false };
-    }
-    content = characterEditView(id, characterEditSession);
-  }
   else if (descriptor.section === 'setup') {
     if (!save.characters[id].owned) content = '<section class="panel"><h2>Initial Setup</h2><p>Initial setup requires an owned character.</p></section>';
     else {
@@ -823,46 +814,10 @@ function characterWorkspaceView(descriptor) {
   }
   else if (descriptor.section === 'perks') content = descriptor.mode === 'legacy' ? legacyManager(id)
     : descriptor.mode === 'update' ? characterInventoryUpdate(id) : characterInventory(id);
-  else content = '<section class="panel"><h2>' + esc(descriptor.section === 'edit' ? 'Edit Character' : descriptor.section === 'setup' ? 'Initial setup' : 'Reference and inventory')
+  else content = '<section class="panel"><h2>' + esc(descriptor.section === 'setup' ? 'Initial setup' : 'Reference and inventory')
     + '</h2><p>This workspace content is currently unavailable.</p></section>';
   content = content.replace(/<h1(\s[^>]*)?>/g, '<h2$1>').replace(/<\/h1>/g, '</h2>');
   return '<section data-character-workspace>' + characterWorkspaceHeader(characterById[id], descriptor) + content + '</section>';
-}
-function characterEditView(id, session) {
-  const preview = characterEditPreview(save, session);
-  const rows = characterInventoryCandidatePool(preview, id, { allRole: characterEditViewState.allRole })
-    .filter(row => perkSearchText(row.perk).toLowerCase().includes(characterEditViewState.search.toLowerCase()));
-  const input = (field, label, type = 'number') => '<label>' + label + '<input id="edit-' + (field === 'bloodwebLevel' ? 'bloodweb' : field)
-    + '" data-edit-field="' + field + '" type="' + type + '"' + (type === 'checkbox'
-      ? (session.draft[field] ? ' checked' : '') : ' value="' + esc(session.rawInputs[field] ?? session.draft[field]) + '" step="1"')
-    + '></label>';
-  const errors = session.errors.length ? '<div class="error" role="alert" data-edit-errors tabindex="-1"><strong>Not saved</strong><ul>'
-    + session.errors.map(error => '<li>' + esc(error.message) + '</li>').join('') + '</ul></div>' : '<div data-edit-errors hidden></div>';
-  return '<form data-character-edit novalidate><h2>Edit Character</h2><p>Changes are not saved until Save Character. This draft is kept in memory only.</p>'
-    + errors + '<fieldset><legend>Progression</legend><div class="two-column edit-numbers">' + input('prestige', 'Prestige')
-    + input('bloodwebLevel', 'Bloodweb level (1–50)') + '</div></fieldset>'
-    + '<fieldset><legend>Character state</legend>' + input('owned', 'Owned', 'checkbox') + input('favorite', 'Favorite', 'checkbox')
-    + '<label>Notes<textarea id="edit-notes" data-edit-field="notes" rows="3">' + esc(session.draft.notes) + '</textarea></label></fieldset>'
-    + '<fieldset><legend>Personal Perks</legend><label>Search perks<input id="character-edit-search" type="search" value="' + esc(characterEditViewState.search) + '"></label>'
-    + '<button type="button" data-action="character-edit-all" aria-pressed="' + characterEditViewState.allRole + '">Show all same-role perks / special acquisitions</button>'
-    + '<div class="character-edit-perks">' + rows.map(row => {
-      const perk = row.perk, historical = row.isHistorical, personal = session.draft.perks[perk.id];
-      const options = historical ? [['', 'Not Confirmed'], ['0', 'Not Owned'], ['1', 'I'], ['2', 'II'], ['3', 'III']]
-        : [['none', 'Not recorded'], ['1', 'I'], ['2', 'II'], ['3', 'III']];
-      const selected = personal === undefined ? (historical ? '' : 'none') : String(personal);
-      return '<article><h3><button type="button" data-action="perk" data-id="' + perk.id + '">' + esc(perkName(preview, perk)) + '</button></h3>'
-        + '<p>Effective ' + roman[row.effectiveTier] + ' · Automatic minimum ' + roman[row.automaticMinimum]
-        + ' · ' + esc(ownedUnlockSource(preview, id, perk)) + '</p><label>Personal record'
-        + '<select data-edit-perk="' + perk.id + '" data-mode="' + (historical ? 'historical' : 'personal') + '" aria-label="Personal tier of ' + esc(perkName(preview, perk)) + '">'
-        + options.map(([value, label]) => '<option value="' + value + '"' + (selected === value ? ' selected' : '')
-          + (historical ? ((value === '' && Object.hasOwn(session.baseline.perks, perk.id)) || (value !== '' && Number(value) < (session.baseline.perks[perk.id] || 0)) ? ' disabled' : '')
-            : (value !== 'none' && Number(value) < row.automaticMinimum ? ' disabled' : '')) + '>' + label + '</option>').join('')
-        + '</select></label><details><summary>Correct personal record</summary><p>Deliberate correction; automatic minimums still apply.</p>'
-        + '<select data-edit-correction="' + perk.id + '" aria-label="Correct personal record of ' + esc(perkName(preview, perk)) + '">'
-        + [['', 'Choose correction'], ['none', 'Clear record'], ['1', 'I'], ['2', 'II'], ['3', 'III']].map(([value,label]) =>
-          '<option value="' + value + '">' + label + '</option>').join('') + '</select></details></article>';
-    }).join('') + '</div></fieldset>' + (characterById[id].role==='survivor'&&inventoryCatalogStatus.survivor==='ready' ? stockView(id,'draft') : '<section><h3>Inventory</h3><p>Verified inventory data is not yet available. Existing unresolved quantities are preserved.</p></section>')
-    + '<div class="dialog-actions"><button type="button" data-action="character-edit-cancel">Cancel</button><button type="button" class="primary" data-action="character-edit-save">Save Character</button></div></form>';
 }
 function inventoryProvenanceView(){
   const unknown=Object.entries(save.characters).flatMap(([characterId,progress])=>Object.entries({...progress.inventory.items,...progress.inventory.addons})
@@ -872,23 +827,17 @@ function inventoryProvenanceView(){
     +esc(survivorInventorySource.provenance.sourcePolicy)+'</p><p>Three optional Banquet underlying rarity assignments remain flagged; Event presentation is preserved.</p>'
     +(unknown.length?'<details><summary>'+unknown.length+' unresolved inventory records (preserved/read-only)</summary><ul>'+unknown.map(e=>'<li>'+esc(e.characterId)+' / '+esc(e.id)+': '+e.quantity+'</li>').join('')+'</ul></details>':'')+'</section>';
 }
-function stockView(id,mode) {
-  const inventory=(mode==='draft'?characterEditSession.draft:save.characters[id]).inventory;
-  const key=id+'/'+(mode==='draft'?'edit':'items-addons');
+function stockView(id) {
+  const inventory=save.characters[id].inventory;
+  const key=id+'/items-addons';
   if(stockSessionKey!==key || !stockSession){
-    stockSession=createQuantityInteraction(inventoryEntities,{...inventory.items,...inventory.addons},{mode});
+    stockSession=createQuantityInteraction(inventoryEntities,{...inventory.items,...inventory.addons},{mode:'detail'});
     stockSessionKey=key;
-    if(mode==='draft'){
-      stockFilters={map:'',rarity:'',search:'',inStock:false};
-      selectedFamilyId=survivorInventorySource.itemFamilies[0].id;
-      selectedItemId='';
-    } else {
-      const context=workspaceContext.read('survivor').survivorInventory;
-      stockFilters={map:context.map,rarity:context.rarity,search:context.search,inStock:context.inStock};
-      selectedFamilyId=context.familyId;
-      selectedItemId=context.selectedItemId;
-      addonRarityDirection=context.rarityDirection;
-    }
+    const context=workspaceContext.read('survivor').survivorInventory;
+    stockFilters={map:context.map,rarity:context.rarity,search:context.search,inStock:context.inStock};
+    selectedFamilyId=context.familyId;
+    selectedItemId=context.selectedItemId;
+    addonRarityDirection=context.rarityDirection;
   }
   const select=(id,label,options,value)=>'<label>'+label+'<select id="'+id+'">'+options.map(([v,n])=>'<option value="'+esc(v)+'"'+(value===v?' selected':'')+'>'+esc(n)+'</option>').join('')+'</select></label>';
   const unresolved=Object.entries({...inventory.items,...inventory.addons}).filter(([entityId])=>!Object.hasOwn(inventoryEntityById,entityId));
@@ -911,7 +860,7 @@ function stockView(id,mode) {
       +'<button type="button" id="stock-increment-'+entity.id+'" data-action="stock-step" data-stock-step data-id="'+entity.id+'" data-delta="1" aria-label="Increase quantity of '+esc(entity.name)+'">+1</button>'
       +'<button type="button" id="stock-increment-5-'+entity.id+'" data-action="stock-step" data-stock-step data-id="'+entity.id+'" data-delta="5" aria-label="Increase quantity of '+esc(entity.name)+' by 5">+5</button>'
       +'<button type="button" id="stock-increment-10-'+entity.id+'" data-action="stock-step" data-stock-step data-id="'+entity.id+'" data-delta="10" aria-label="Increase quantity of '+esc(entity.name)+' by 10">+10</button></div>'
-      +'<p id="stock-error-'+entity.id+'" data-stock-error role="status">'+esc(error|| (stockSession.pending[entity.id]?(mode==='draft'?'Unsaved draft':'Pending change'):''))+'</p>'
+      +'<p id="stock-error-'+entity.id+'" data-stock-error role="status">'+esc(error|| (stockSession.pending[entity.id]?'Pending change':''))+'</p>'
       +'<button type="button" id="stock-details-'+entity.id+'" class="stock-details-action" data-action="stock-details" data-id="'+entity.id+'">Details</button></article>';
   };
   const familyMarkup=visibleGroups.map(group=>{
@@ -940,7 +889,7 @@ function stockView(id,mode) {
       +'</div></section>';
   }).join('');
   const hasStockFilters=Boolean(stockFilters.map||stockFilters.rarity||stockFilters.search||stockFilters.inStock);
-  return '<section data-stock-workspace><div class="stock-page-heading"><div><h2>Survivor Items &amp; Add-ons</h2><p>'+(mode==='detail'?'Track the quantities currently recorded for this Survivor. Quantities save on Enter or leaving the field.':'Stock changes stay in this draft until Save Character.')+'</p></div><p class="muted">Survivor inventory '+esc(survivorInventorySource.patch)+' · research '+esc(survivorInventorySource.verifiedAt)+'.</p></div>'
+  return '<section data-stock-workspace><div class="stock-page-heading"><div><h2>Survivor Items &amp; Add-ons</h2><p>Track the quantities currently recorded for this Survivor. Quantities save on Enter or leaving the field.</p></div><p class="muted">Survivor inventory '+esc(survivorInventorySource.patch)+' · research '+esc(survivorInventorySource.verifiedAt)+'.</p></div>'
     +'<div class="stock-toolbar"><div class="stock-primary-controls"><label class="stock-search">Search '+esc(visibleGroups[0].family.displayName)+'<input id="inventory-search" type="search" value="'+esc(stockFilters.search)+'"></label><label class="stock-in-stock"><input id="inventory-in-stock" type="checkbox"'+(stockFilters.inStock?' checked':'')+'> In Stock</label>'
     +'<details id="inventory-filters"><summary id="inventory-filters-toggle">Filters'+(secondaryCount?' ('+secondaryCount+')':'')+'</summary><div class="stock-secondary-filters">'+select('inventory-map','Type',[['','All'],['items','Items'],['addons','Add-ons']],stockFilters.map)+select('inventory-rarity','Rarity',[['','All rarities'],...[...new Set(inventoryEntities.map(e=>e.rarity))].map(r=>[r,r])],stockFilters.rarity)+'</div></details>'+(stockFilters.map==='items'?'':renderAddonRarityOrderControl())+(hasStockFilters?'<button type="button" data-action="stock-filter-reset">Reset filters</button>':'')+'</div>'
     +'</div><nav class="stock-family-nav" aria-label="Item families">'+survivorInventorySource.itemFamilies.map(family=>'<button type="button" id="stock-family-nav-'+esc(family.id)+'" data-action="stock-family-select" data-family="'+esc(family.id)+'" aria-pressed="'+(family.id===selectedFamilyId)+'">'+esc(family.displayName)+'</button>').join('')+'</nav>'
@@ -1000,7 +949,7 @@ function killerAddonCard(addon) {
     +'<button type="button" id="killer-addon-details-'+esc(addon.id)+'" class="stock-details-action" data-action="killer-addon-details" data-id="'+esc(addon.id)+'">Details</button></article>';
 }
 function updateStockStepControls(id=null) {
-  const blocked=!initialized||editor.state!=='editing'||storageBlocked||Boolean(characterEditSession?.conflicted);
+  const blocked=!initialized||editor.state!=='editing'||storageBlocked;
   for(const input of document.querySelectorAll('[data-inventory-quantity]')){
     const entityId=input.dataset.inventoryQuantity;
     if(id && entityId!==id)continue;
@@ -1061,9 +1010,6 @@ function stockInput(target) {
   store.assertWriter();
   const id=target.dataset.inventoryQuantity;
   stockSession=updateQuantityInput(stockSession,id,target.value);
-  if(characterEditSession) {
-    characterEditSession=updateCharacterEditSession(characterEditSession,{field:'quantity',map:inventoryEntityById[id].map,id,text:target.value},save);
-  }
   updateStockStepControls(id);
 }
 function normalizeKillerQuantityOnBlur(input,id) {
@@ -1086,20 +1032,15 @@ function normalizeStockQuantityOnBlur(input,id) {
   if(input.value!==''||!stockSession)return;
   input.value='0';
   stockSession=updateQuantityInput(stockSession,id,'0');
-  if(characterEditSession)characterEditSession=updateCharacterEditSession(characterEditSession,
-    {field:'quantity',map:inventoryEntityById[id].map,id,text:'0'},save);
 }
 function stepStock(button) {
   store.assertWriter();
-  if(storageBlocked||characterEditSession?.conflicted)return false;
+  if(storageBlocked)return false;
   const id=button.dataset.id;
   if(stockBlurPending?.id===id)stockBlurPending=null;
   const result=stepQuantityInput(stockSession,id,Number(button.dataset.delta));
   stockSession=result.state;
   if(result.error){render();$('#quantity-'+id)?.focus({preventScroll:true});return false;}
-  if(characterEditSession){
-    characterEditSession=updateCharacterEditSession(characterEditSession,{field:'quantity',map:inventoryEntityById[id].map,id,text:String(result.quantity)},save);
-  }
   return acceptStock(id,'step');
 }
 function stockFocusOrder() {
@@ -1117,8 +1058,7 @@ function selectStockFamily(family) {
     && (stockSession.pending[entity.id]||stockSession.errors[entity.id]));
   stockBlurPending=null;
   for(const entity of pending){
-    if(stockSession.mode==='draft')stockSession=acceptQuantityInput(stockSession,entity.id).state;
-    else if(!acceptStock(entity.id,'enter'))return;
+    if(!acceptStock(entity.id,'enter'))return;
   }
   selectedFamilyId=family;
   selectedItemId=stockSession.order.map(entityId=>inventoryEntityById[entityId])
@@ -1133,8 +1073,7 @@ function selectStockItem(itemId, source='selector') {
     &&(stockSession.pending[entity.id]||stockSession.errors[entity.id]));
   stockBlurPending=null;
   for(const entity of pending){
-    if(stockSession.mode==='draft')stockSession=acceptQuantityInput(stockSession,entity.id).state;
-    else if(!acceptStock(entity.id,'enter'))return;
+    if(!acceptStock(entity.id,'enter'))return;
   }
   selectedItemId=itemId;render();
   (source==='card'?$('#stock-select-item-'+itemId):$('#inventory-item'))?.focus({preventScroll:true});
@@ -1167,7 +1106,6 @@ function acceptStock(id,trigger,nextTargetId=null) {
   if(stockBlurPending?.id===id&&stockBlurPending.key===stockSessionKey)stockBlurPending=null;
   const result=acceptQuantityInput(stockSession,id);stockSession=result.state;
   if(result.error){render();if(trigger==='enter')$('#quantity-'+id)?.focus({preventScroll:true});return false;}
-  if(stockSession.mode==='draft'){render();if(trigger==='step')$('#quantity-'+id)?.focus({preventScroll:true});return true;}
   const characterId=stockSessionKey.split('/')[0], entity=inventoryEntityById[id];
   const before=stockFocusOrder();
   try {
@@ -1194,30 +1132,6 @@ function acceptStock(id,trigger,nextTargetId=null) {
     message('Quantity saved: '+entity.name+' '+result.quantity+'.');
     return true;
   }catch(error){stockSession.errors[id]='Not saved. '+error.message;render();if(trigger==='enter'||trigger==='step')$('#quantity-'+id)?.focus({preventScroll:true});return false;}
-}
-function saveCharacterEdit({ navigate = true } = {}) {
-  if (!characterEditSession) return false;
-  characterEditSession = { ...characterEditSession, errors: characterEditSession.errors.filter(error => !error.saveFailure) };
-  const result = buildCharacterEditCandidate(save, characterEditSession);
-  if (result.errors.length) {
-    characterEditSession = { ...characterEditSession, errors: result.errors, conflicted: result.conflict };
-    render();
-    const first = result.errors[0];
-    if(first.field==='quantity'){revealStockQuantity(first.id);}
-    const control = first.field === 'quantity' ? $('#quantity-'+first.id) : first.field === 'perk' ? $('[data-edit-perk="' + first.id + '"]')
-      : $('[data-edit-field="' + first.field + '"]');
-    (control || $('[data-edit-errors]'))?.focus();
-    return false;
-  }
-  const id = characterEditSession.characterId, target = characterEditSession.returnRoute || characterWorkspaceHref(id);
-  if (result.changed && !commit(next => { next.characters[id] = structuredClone(result.candidate.characters[id]); }, id)) {
-    characterEditSession = { ...characterEditSession, errors: [{ field: 'session', saveFailure: true, message: 'Not saved. Your draft is retained for retry.' }] };
-    render(); return false;
-  }
-  characterEditSession = null;
-  if (navigate) { void requestWorkspaceNavigation(target); message(result.changed ? 'Character saved.' : 'No changes to save.'); }
-  else {stockSession=null;stockSessionKey='';stockBlurPending=null;render();}
-  return true;
 }
 function saveCharacterTask({ navigate = false } = {}) {
   if (!characterTaskSession) return false;
@@ -1266,16 +1180,15 @@ function characterSetupIsDirty(draft = characterSetup) {
     || JSON.stringify(normalizePerks(draft.perks)) !== JSON.stringify(normalizePerks(baseline.perks));
 }
 function hasDirtyWorkspaceDraft() {
-  return Boolean(characterEditSession?.dirty || characterTaskSession?.dirty || characterSetupIsDirty() || characterInventoryCorrectionIsDirty());
+  return Boolean(characterTaskSession?.dirty || characterSetupIsDirty() || characterInventoryCorrectionIsDirty());
 }
 async function resolveWorkspaceDraftTransition(intent) {
   if ($('#dirty-navigation').open) return 'stay';
   if (characterInventorySession.failedSelection) return resolveFailedInventoryTransition();
-  const editDraft = characterEditSession?.dirty ? characterEditSession : null;
   const taskDraft = characterTaskSession?.dirty ? characterTaskSession : null;
   const setupDraft = characterSetupIsDirty() ? characterSetup : null;
   const correctionDraft = characterInventoryCorrectionIsDirty() ? characterInventorySession.correctionDraft : null;
-  if (!editDraft && !taskDraft && !setupDraft && !correctionDraft) return 'proceed';
+  if (!taskDraft && !setupDraft && !correctionDraft) return 'proceed';
   const focused = document.activeElement;
   const dialog = $('#dirty-navigation');
   const sourceRoute = route();
@@ -1284,9 +1197,10 @@ async function resolveWorkspaceDraftTransition(intent) {
   const transitionToken = ++workspaceTransitionToken;
   dialog.returnValue = 'stay';
   configureWorkspaceTransitionDialog({
-    title: correctionDraft ? 'Unsaved perk correction changes' : setupDraft ? 'Unsaved setup changes' : taskDraft ? 'Unsaved ' + (taskDraft.task === 'progression' ? 'progression' : 'notes') + ' changes' : 'Unsaved character changes',
+    title: correctionDraft ? 'Unsaved perk correction changes' : setupDraft ? 'Unsaved setup changes' : 'Unsaved ' + (taskDraft.task === 'progression' ? 'progression' : 'notes') + ' changes',
     text: correctionDraft ? 'Apply this personal record correction, discard it, or stay and continue editing.'
-      : 'Save this character, discard the draft, or stay and continue editing.',
+      : setupDraft ? 'Save this setup, discard the draft, or stay and continue editing.'
+        : 'Save this task, discard the draft, or stay and continue editing.',
     applyLabel: correctionDraft ? 'Apply correction' : undefined,
   });
   dialog.showModal();
@@ -1295,9 +1209,7 @@ async function resolveWorkspaceDraftTransition(intent) {
     message('The pending transition changed. Review the current draft before leaving.', true);
     return 'stay';
   }
-  if ((editDraft && (characterEditSession?.characterId !== editDraft.characterId
-      || characterEditSession?.baseFingerprint !== editDraft.baseFingerprint))
-    || (taskDraft && (characterTaskSession?.characterId !== taskDraft.characterId
+  if ((taskDraft && (characterTaskSession?.characterId !== taskDraft.characterId
       || characterTaskSession?.task !== taskDraft.task || characterTaskSession?.baseFingerprint !== taskDraft.baseFingerprint))
     || (setupDraft && (characterSetup?.id !== setupDraft.id || characterSetup?.baseFingerprint !== setupDraft.baseFingerprint))
     || (correctionDraft && characterInventorySession.correctionDraft !== correctionDraft)) {
@@ -1305,7 +1217,6 @@ async function resolveWorkspaceDraftTransition(intent) {
     return 'stay';
   }
   if (choice === 'discard') {
-    if (editDraft) { characterEditSession = null; stockSession = null; stockSessionKey = ''; stockBlurPending = null; }
     if (taskDraft) characterTaskSession = null;
     if (setupDraft) { characterSetup = null; setupQueue = null; }
     if (correctionDraft) characterInventorySession = { ...characterInventorySession, correctionDraft: null };
@@ -1316,7 +1227,6 @@ async function resolveWorkspaceDraftTransition(intent) {
     try {
       store.assertWriter();
       if (sourceSave !== JSON.stringify(save)) { message('The saved data changed while this confirmation was open. Reload or discard the draft.', true); return 'stay'; }
-      if (editDraft) return saveCharacterEdit({ navigate: false }) ? 'proceed' : 'stay';
       if (taskDraft) return saveCharacterTask({ navigate: false }) ? 'proceed' : 'stay';
       if (setupDraft) return finishCharacterSetup({ navigate: false, expectedDraft: setupDraft }) ? 'proceed' : 'stay';
       if (correctionDraft) return applyCharacterInventoryCorrection() ? 'proceed' : 'stay';
@@ -1338,14 +1248,8 @@ function finishWorkspaceNavigation() {
     && characterById[previousWorkspace.characterId].role === rosterRole
     ? collectionState.read(rosterRole) : null;
   const descriptor = parseCharacterWorkspaceRoute(route());
-  if (descriptor?.section === 'edit' && !characterEditSession) {
-    const previous = parseCharacterWorkspaceRoute(lastRoute);
-    characterEditReturnRoute = previous?.status === 'valid' && previous.characterId === descriptor.characterId
-      && !['edit', 'setup'].includes(previous.section) ? previous.canonicalRoute : null;
-  }
-  if (descriptor?.section !== 'edit') characterEditSession = null;
   if (descriptor?.status !== 'valid' || descriptor.section !== 'overview' || characterTaskSession?.characterId !== descriptor.characterId) characterTaskSession = null;
-  if (!['edit','items-addons'].includes(descriptor?.section) || stockSessionKey !== descriptor.characterId+'/'+descriptor.section) {stockSession=null;stockSessionKey='';}
+  if (descriptor?.section !== 'items-addons' || stockSessionKey !== descriptor.characterId+'/items-addons') {stockSession=null;stockSessionKey='';}
   if(descriptor?.section!=='power-addons'||killerSessionKey!==descriptor.characterId){killerSession=null;killerSessionKey='';killerBlurPending=null;}
   if (descriptor?.section !== 'setup') { characterSetup = null; setupQueue = null; }
   closeFilters(); setupOpen = false; setGlobalMenuOpen(false);
@@ -1377,7 +1281,7 @@ function acceptPendingKillerQuantities() {
   return true;
 }
 function acceptPendingStockQuantities() {
-  if(stockSession?.mode==='detail'){
+  if(stockSession){
     const pending=stockSession.entities.filter(entity=>stockSession.pending[entity.id]||stockSession.errors[entity.id]);
     for(const entity of pending){
       if(!acceptStock(entity.id,'enter'))return false;
@@ -1862,10 +1766,6 @@ async function handleClick(event) {
   if(action==='stock-error-focus'){
     revealStockQuantity(id);return;
   }
-  if (characterEditSession?.dirty && action !== 'character-edit-save' && action !== 'character-edit-cancel'
-    && (requiresEditor(action) || action === 'character' || action === 'enable-editing')) {
-    if (await resolveWorkspaceDraftTransition({ action }) !== 'proceed') return;
-  }
   if (characterTaskSession?.dirty && action !== 'character-task-save' && action !== 'character-task-cancel'
     && (requiresEditor(action) || action === 'character' || action === 'enable-editing')) {
     if (await resolveWorkspaceDraftTransition({ action }) !== 'proceed') return;
@@ -1878,13 +1778,6 @@ async function handleClick(event) {
     && !['character-inventory-correction-apply', 'character-inventory-correction-cancel'].includes(action)
     && (requiresEditor(action) || action === 'character' || action === 'enable-editing' || action === 'character-inventory-select')) {
     if (await resolveWorkspaceDraftTransition({ action }) !== 'proceed') return;
-  }
-  if (characterEditSession && $('#detail').contains(button) && requiresEditor(action)) { message('Reference only during Edit Character.', true); return; }
-  if (action === 'character-edit-save') { store.assertWriter(); saveCharacterEdit(); return; }
-  if (action === 'character-edit-cancel') {
-    const target = characterEditSession?.returnRoute || characterWorkspaceHref(characterEditSession.characterId);
-    if (await resolveWorkspaceDraftTransition({ action, destination: target }) !== 'proceed') return;
-    characterEditSession = null; await requestWorkspaceNavigation(target); return;
   }
   if (action === 'character-task-start') {
     const descriptor = parseCharacterWorkspaceRoute(route());
@@ -1910,7 +1803,6 @@ async function handleClick(event) {
     }
     return;
   }
-  if (action === 'character-edit-all') { characterEditViewState.allRole = !characterEditViewState.allRole; render(); return; }
   if (action === 'enable-editing') return enableEditing();
   if (requiresEditor(action) && action !== 'character-inventory-set-tier') store.assertWriter();
   if(action==='queue-add'||action==='queue-target'){openPrestigeTargetEditor(id,action==='queue-add',button);return;}
@@ -2190,15 +2082,6 @@ document.addEventListener('input', event => {
   if(event.target.dataset.inventoryQuantity){try{stockInput(event.target);}catch(error){message(error.message,true);}return;}
   if(event.target.id==='killer-addon-search'){setKillerAddonFilter('search',event.target.value);return;}
   if(event.target.id==='inventory-search'){stockFilters={...stockFilters,search:event.target.value};render();return;}
-  if (event.target.dataset.editField) {
-    try {
-      store.assertWriter();
-      const field = event.target.dataset.editField;
-      characterEditSession = updateCharacterEditSession(characterEditSession, { field,
-        value: event.target.type === 'checkbox' ? event.target.checked : event.target.value }, save);
-    } catch (error) { message(error.message, true); }
-    return;
-  }
   if (event.target.dataset.characterTaskField) {
     try {
       store.assertWriter();
@@ -2209,7 +2092,6 @@ document.addEventListener('input', event => {
     } catch (error) { message(error.message, true); }
     return;
   }
-  if (event.target.id === 'character-edit-search') { characterEditViewState.search = event.target.value; render(); return; }
   if (event.target.id === 'character-setup-search') { characterSetup.search = event.target.value; refreshDetail(); }
   if (event.target.id === 'character-inventory-search') { characterInventorySession = { ...characterInventorySession, search: event.target.value }; render(); }
   if (event.target.id === 'setup-search') { setupSearch = event.target.value; render(); }
@@ -2246,17 +2128,6 @@ document.addEventListener('change', async event => {
       stockFilters={...stockFilters,[key]:target.type==='checkbox'?target.checked:target.value};render();return;
     }
     if(target.dataset.inventoryQuantity)return;
-    if (target.dataset.editField) return;
-    if (target.dataset.editPerk || target.dataset.editCorrection) {
-      store.assertWriter();
-      if (target.dataset.editCorrection && target.value === '') return;
-      const perkId = target.dataset.editPerk || target.dataset.editCorrection;
-      characterEditSession = updateCharacterEditSession(characterEditSession, { field: 'perk', id: perkId,
-        value: target.value === 'none' || target.value === '' ? null : Number(target.value),
-        mode: target.dataset.editCorrection ? 'correction' : target.dataset.mode }, save);
-      render(); return;
-    }
-    if (characterEditSession && $('#detail').contains(target)) { message('Reference only during Edit Character.', true); return; }
     if (target.matches(editingControls) && !target.matches('[data-character-inventory-historical]')) store.assertWriter();
     if (target.dataset.characterInventoryHistorical) {
       if (target.value === '') return;
@@ -2340,9 +2211,6 @@ document.addEventListener('change', async event => {
       pendingImport = null; render();
     }
   } catch (error) { pendingImport = null; message(error.message || 'Could not complete this change.', true); }
-});
-document.addEventListener('submit', event => {
-  if (event.target.matches('[data-character-edit]')) { event.preventDefault(); return; }
 });
 document.addEventListener('keydown', event => {
   if (event.target.matches('.killer-power-reference') && (event.key === 'PageDown' || event.key === 'PageUp')) {
@@ -2451,10 +2319,6 @@ window.addEventListener('storage', event => {
     closeFilters();
     try {
       const loaded = store.load({ persistMigration: editor.state === 'editing' });
-      if (characterEditSession?.dirty && JSON.stringify(loaded.save) !== characterEditSession.baseFingerprint) {
-        characterEditSession = { ...characterEditSession, conflicted: true,
-          errors: [{ field: 'session', message: 'Underlying save changed; conflict. Discard/reload before saving.' }] };
-      }
       if (characterTaskSession?.dirty && JSON.stringify(loaded.save) !== characterTaskSession.baseFingerprint) {
         characterTaskSession = { ...characterTaskSession, conflicted: true,
           errors: [{ field: 'session', message: 'Underlying save changed; conflict. Discard/reload before saving.' }] };

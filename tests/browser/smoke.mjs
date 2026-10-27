@@ -39,20 +39,19 @@ export async function smokeStage(stage, { channel = 'msedge', regression, manife
     await globalNavigation.getByRole('link', { name: /^Survivors/ }).click();
     await page.getByPlaceholder('Search characters…').fill('Meg');
     await page.getByRole('link', { name: 'View Meg Thomas workspace', exact: true }).click();
-    await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
-    await page.locator('#edit-bloodweb').fill('25');
-    await page.locator('#edit-favorite').check();
-    await page.getByRole('button', { name: 'Save Character', exact: true }).click();
+    await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
+    await page.locator('[data-character-task-field="bloodwebLevel"]').fill('25');
+    await page.getByRole('button', { name: 'Save progression', exact: true }).click();
+    await page.locator('.character-workspace-favorite').click();
     assert.equal(await page.locator('#save-status').textContent(), 'Saved locally');
     const saved = await page.evaluate(() => localStorage.getItem('dbdTrackerData'));
     assert.equal(JSON.parse(saved).characters['meg-thomas'].bloodwebLevel, 25);
     assert.equal(JSON.parse(saved).characters['meg-thomas'].favorite, true);
     await page.reload();
-    await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
-    assert.equal(await page.locator('#edit-bloodweb').inputValue(), '25');
-    assert.equal(await page.locator('#edit-favorite').isChecked(), true);
+    await page.locator('[data-character-progress="bloodweb"] strong').waitFor();
+    assert.equal((await page.locator('[data-character-progress="bloodweb"] strong').textContent()).trim(), '25 / 50');
+    assert.equal(await page.locator('.character-workspace-favorite').getAttribute('aria-pressed'), 'true');
     assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), saved);
-    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
     if (regression) await regression(page, origin, manifest);
     else {
       const {dashboardRegression}=await import('./dashboard.mjs');
@@ -75,8 +74,7 @@ export async function smokeStage(stage, { channel = 'msedge', regression, manife
       await shellNavigationRegression(page, origin);
       const { artworkRegression } = await import('./artwork.mjs');
       await artworkRegression(page, origin, manifest);
-      const { dataFlowsRegression, characterEditingRegression, personalCorrectionRegression } = await import('./data-flows.mjs');
-      await characterEditingRegression(page, origin);
+      const { dataFlowsRegression, personalCorrectionRegression } = await import('./data-flows.mjs');
       await personalCorrectionRegression(page, origin);
       await dataFlowsRegression(page, origin);
       const { compactRegression } = await import('./compact.mjs');
@@ -97,7 +95,7 @@ export async function smokeStage(stage, { channel = 'msedge', regression, manife
     assert.ok(requests.some(url => url === origin + '/dist/app.js'));
     assert.ok(requests.every(url => new URL(url).origin === origin && !new URL(url).pathname.endsWith('.json')), 'Runtime must not request external services or catalog JSON.');
     assert.deepEqual(errors, []);
-    return { localhost: 'AUTOMATED PASS', browser: `${channel} ${browser.version()}`, checks: ['startup', 'Bloodweb/favorite edit', 'reload persistence', 'six labeled global destinations at wide and compact widths; Menu keyboard/Escape/focus, current route, skip-link contrast and navigation save safety', 'Filtering predicates/facets/route memory', 'native popover/focus/caret/skip/history', 'tier success/failure focus', '500/700/900/1440 shell and panel', 'all 321 perks, 880 Killer Add-ons and 37 Powers decode against manifest dimensions', 'Killer Power/Add-ons details, quantity persistence/writer/focus and 320/500/760/1100/1440/1600 layouts', 'artwork aliases/nulls/error fallback/editing', 'export/import/backup/restore/reset and cancellations', 'Compact/Detailed ordered results, transient mode and route lifecycle', 'Compact next-tier floor/history/keyboard/focus/storage failure', 'Compact 500/700/900/1440 shell, actions and image fallback', 'all 98 portraits decode; PNG/WebP MIME and canonical mappings', 'portrait card/detail/manager layouts, fallback and editing', 'corrupt-current raw export/import/restore, corrupt backups and recovery failures', 'recovery Data controls at 500/700/900/1440', 'canonical character inventory/update routes, aliases, direct tiers, account unlock propagation, card presets and responsive cards', 'Survivor/Killer Lore cards, Power identity, account access, controls, routes and responsive layouts', 'no external/catalog/manifest JSON requests'] };
+    return { localhost: 'AUTOMATED PASS', browser: `${channel} ${browser.version()}`, checks: ['startup', 'contextual Bloodweb/Favorite save', 'reload persistence', 'six labeled global destinations at wide and compact widths; Menu keyboard/Escape/focus, current route, skip-link contrast and navigation save safety', 'Filtering predicates/facets/route memory', 'native popover/focus/caret/skip/history', 'tier success/failure focus', '500/700/900/1440 shell and panel', 'all 321 perks, 880 Killer Add-ons and 37 Powers decode against manifest dimensions', 'Killer Power/Add-ons details, quantity persistence/writer/focus and 320/500/760/1100/1440/1600 layouts', 'artwork aliases/nulls/error fallback/editing', 'export/import/backup/restore/reset and cancellations', 'Compact/Detailed ordered results, transient mode and route lifecycle', 'Compact next-tier floor/history/keyboard/focus/storage failure', 'Compact 500/700/900/1440 shell, actions and image fallback', 'all 98 portraits decode; PNG/WebP MIME and canonical mappings', 'portrait card/detail/manager layouts, fallback and editing', 'corrupt-current raw export/import/restore, corrupt backups and recovery failures', 'recovery Data controls at 500/700/900/1440', 'canonical character inventory/update routes, aliases, direct tiers, account unlock propagation, card presets and responsive cards', 'Survivor/Killer Lore cards, Power identity, account access, controls, routes and responsive layouts', 'no external/catalog/manifest JSON requests'] };
   } finally {
     try { await browser?.close(); } finally { await new Promise(accept => server.close(accept)); }
   }

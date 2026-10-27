@@ -43,6 +43,40 @@ export async function characterSetupRegression(page, origin) {
   await page.getByRole('button', { name: /Skip this character/ }).click();
   saved = JSON.parse(await page.evaluate(() => localStorage.getItem('dbdTrackerData')));
   assert.equal(saved.characters['the-doctor'].setupComplete, false);
+
+  save.characters['the-doctor'].perks['bitter-murmur'] = 1;
+  save.characters['the-doctor'].notes = 'Preserve Killer setup notes';
+  save.characters['the-doctor'].inventory.addons['killer-addon-test-future'] = 8;
+  await page.evaluate(value => localStorage.setItem('dbdTrackerData', JSON.stringify(value)), save);
+  await page.reload();
+  await page.goto(origin + '/#character/the-doctor/setup');
+  await page.getByRole('button', { name: 'Set Prestige 1', exact: true }).click();
+  saved = JSON.parse(await page.evaluate(() => localStorage.getItem('dbdTrackerData')));
+  assert.equal(saved.characters['the-doctor'].prestige, 1, 'Killer Prestige 1 saves immediately');
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await page.waitForURL('**/#character/the-doctor/overview');
+  saved = JSON.parse(await page.evaluate(() => localStorage.getItem('dbdTrackerData')));
+  assert.equal(saved.characters['the-doctor'].setupComplete, false, 'Cancel does not finish Killer setup');
+  assert.equal(saved.characters['the-doctor'].perks['bitter-murmur'], 1, 'Cancel preserves the prior Killer record');
+
+  await page.goto(origin + '/#character/the-doctor/setup');
+  await page.locator('#character-setup-bloodweb').fill('14');
+  await page.getByRole('button', { name: /Continue/ }).click();
+  await page.getByRole('button', { name: /Add special unlocks/ }).click();
+  await page.locator('#character-setup-search').fill('Bitter Murmur');
+  await page.locator('[data-character-setup-perk="bitter-murmur"]').check();
+  await page.locator('[data-character-setup-tier="bitter-murmur"]').selectOption('2');
+  const backupCountBeforeKillerFinish = JSON.parse(await page.evaluate(() => localStorage.getItem('dbdTrackerBackups') || '[]')).length;
+  await page.getByRole('button', { name: 'Finish setup', exact: true }).click();
+  await page.waitForURL('**/#character/the-doctor/overview');
+  saved = JSON.parse(await page.evaluate(() => localStorage.getItem('dbdTrackerData')));
+  assert.equal(saved.characters['the-doctor'].setupComplete, true, 'Killer Finish completes setup');
+  assert.equal(saved.characters['the-doctor'].bloodwebLevel, 14, 'Killer Finish saves Bloodweb progress');
+  assert.equal(saved.characters['the-doctor'].perks['bitter-murmur'], 2, 'Killer setup adds the selected perk upgrade');
+  assert.equal(saved.characters['the-doctor'].notes, 'Preserve Killer setup notes', 'Killer setup preserves notes');
+  assert.equal(saved.characters['the-doctor'].inventory.addons['killer-addon-test-future'], 8, 'Killer setup preserves unresolved Add-ons');
+  const killerBackups = JSON.parse(await page.evaluate(() => localStorage.getItem('dbdTrackerBackups')));
+  assert.ok(killerBackups.length > backupCountBeforeKillerFinish, 'Killer Finish backs up before applying setup');
   await page.goto(origin + '/#character/claudette-morel/setup');
   assert.match(await page.locator('#main').textContent(), /requires an owned/i);
 }

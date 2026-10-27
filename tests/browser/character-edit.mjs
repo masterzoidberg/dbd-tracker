@@ -2,281 +2,223 @@ import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { freshSave } from '../../src/model.js';
-import { inventoryEntities } from '../../data/inventory-catalog.js';
 
-export async function characterEditStepperRegression(page,origin){
- const item=inventoryEntities.find(e=>e.map==='items');
- const save=freshSave();save.characters['meg-thomas'].inventory.items['survivor-item-future-unresolved']=7;
- await page.evaluate(s=>localStorage.setItem('dbdTrackerData',JSON.stringify(s)),save);
- await page.goto(origin+'/#character/meg-thomas/edit');await page.reload();
- const field=page.locator('[data-inventory-quantity="'+item.id+'"]');
- const plus=page.getByRole('button',{name:'Increase quantity of '+item.name,exact:true});
- const minus=page.getByRole('button',{name:'Decrease quantity of '+item.name,exact:true});
- const bytes=()=>page.evaluate(()=>localStorage.dbdTrackerData);
- const before=await bytes();
- await field.fill('3');await plus.click();
- assert.equal(await field.inputValue(),'4');assert.equal(await bytes(),before,'Draft steps never autosave');
- assert.match(await page.locator('#stock-error-'+item.id).textContent(),/Unsaved draft/);
- assert.equal(await field.evaluate(n=>document.activeElement===n),true);
- await minus.click();assert.equal(await field.inputValue(),'3');assert.equal(await bytes(),before);
- await field.fill('abc');assert.equal(await plus.isDisabled(),true);assert.equal(await minus.isDisabled(),true);
- await field.press('Enter');assert.equal(await field.inputValue(),'abc');assert.equal(await bytes(),before);
- await field.fill('0');await field.press('Enter');await plus.click();
- assert.equal(await field.inputValue(),'1');assert.equal(await bytes(),before);
- await page.getByRole('button',{name:'Save Character',exact:true}).click();
- await page.waitForURL('**/#character/meg-thomas/overview');
- const inventory=JSON.parse(await bytes()).characters['meg-thomas'].inventory;
- assert.equal(inventory.items[item.id],1);assert.equal(inventory.items['survivor-item-future-unresolved'],7);
-}
-
-export async function characterEditRegression(page, origin) {
-  await characterContextualTaskRegression(page, origin);
-  await characterEditFamilyRegression(page,origin);
-  await characterEditStepperRegression(page,origin);
-  page.setDefaultTimeout(5000);
-  const save = freshSave();
-  save.prestigeQueue = [{ characterId: 'meg-thomas', targetPrestige: 9 }];
-  save.characters['meg-thomas'].inventory.items['survivor-item-test-unknown'] = 7;
-  await page.evaluate(s => localStorage.setItem('dbdTrackerData', JSON.stringify(s)), save);
-  await page.goto(origin + '/#character/meg-thomas/edit'); await page.reload();
-  await page.locator('[data-character-edit]').waitFor();
-  const bytes = () => page.evaluate(() => localStorage.getItem('dbdTrackerData'));
-  const before = await bytes();
-  await page.locator('#edit-prestige').fill('2');
-  await page.locator('#edit-bloodweb').fill('43');
-  await page.locator('#edit-owned').check();
-  await page.locator('#edit-favorite').check();
-  await page.locator('#edit-notes').fill('Updated together');
-  await page.locator('#edit-bloodweb').press('Enter');
-  assert.equal(await bytes(), before);
-  await page.locator('#character-edit-search').fill('Kindred');
-  await page.locator('[data-edit-perk="kindred"]').selectOption('2');
-  assert.equal(await bytes(), before);
-  assert.ok(await page.locator('[data-inventory-quantity]').count() > 0, 'Verified Survivor stock editors must execute');
-  await page.getByRole('button', { name: 'Save Character', exact: true }).click();
-  await page.waitForURL('**/#character/meg-thomas/overview');
-  const saved = JSON.parse(await bytes());
-  assert.equal(saved.characters['meg-thomas'].bloodwebLevel, 43);
-  assert.equal(saved.characters['meg-thomas'].prestige, 2);
-  assert.equal(saved.characters['meg-thomas'].perks.kindred, 2);
-  assert.equal(saved.characters['meg-thomas'].notes, 'Updated together');
-  assert.equal(saved.characters['meg-thomas'].updatedAt, saved.updatedAt);
-  assert.deepEqual(saved.prestigeQueue, save.prestigeQueue);
-  assert.deepEqual(saved.characters['meg-thomas'].inventory, save.characters['meg-thomas'].inventory);
-  assert.equal(saved.characters['meg-thomas'].setupComplete, false);
-  assert.deepEqual(saved.characters['the-doctor'], save.characters['the-doctor']);
-  await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
-  const noOp = await bytes();
-  await page.getByRole('button', { name: 'Save Character', exact: true }).click();
-  await page.waitForURL('**/#character/meg-thomas/overview');
-  assert.equal(await bytes(), noOp);
-  await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
-  await page.locator('#edit-bloodweb').fill('51');
-  await page.getByRole('button', { name: 'Save Character', exact: true }).click();
-  assert.match(await page.locator('[data-edit-errors]').textContent(), /Bloodweb/);
-  assert.equal(await bytes(), noOp);
-  await page.locator('#edit-bloodweb').fill('44');
-  await page.evaluate(() => {
-    window.originalEditSetItem = Storage.prototype.setItem;
-    Storage.prototype.setItem = function(k,v) { if (k === 'dbdTrackerData') throw Error('Synthetic write failure'); return window.originalEditSetItem.call(this,k,v); };
-  });
-  await page.getByRole('button', { name: 'Save Character', exact: true }).click();
-  assert.ok(page.url().endsWith('/edit'));
-  assert.equal(await page.locator('#edit-bloodweb').inputValue(), '44');
-  assert.equal(await bytes(), noOp);
-  await page.evaluate(() => { Storage.prototype.setItem = window.originalEditSetItem; });
-  await page.getByRole('button', { name: 'Save Character', exact: true }).click();
-  await page.waitForURL('**/#character/meg-thomas/overview');
-  // Guard each exit choice and stale underlying state using only synthetic storage.
-  await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
-  await page.locator('#edit-notes').fill('Unsaved navigation draft');
-  const guardBefore = await bytes();
-  await page.getByRole('link', { name: 'Perks', exact: true }).click();
-  await page.getByRole('button', { name: 'Stay', exact: true }).click();
-  assert.ok(page.url().endsWith('/edit'));
-  assert.equal(await page.locator('#edit-notes').inputValue(), 'Unsaved navigation draft');
-  assert.equal(await bytes(), guardBefore);
-  await page.getByRole('link', { name: 'Overview', exact: true }).click();
-  await page.getByRole('button', { name: 'Discard', exact: true }).click();
-  await page.waitForURL('**/#character/meg-thomas/overview');
-  assert.equal(await bytes(), guardBefore);
-  await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
-  await page.locator('#edit-notes').fill('Saved on navigation');
-  await page.getByRole('link', { name: 'Perks', exact: true }).click();
-  await page.getByRole('button', { name: 'Save', exact: true }).click();
-  await page.waitForURL('**/#character/meg-thomas/perks');
-  assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].notes, 'Saved on navigation');
-  await page.goto(origin + '/#character/meg-thomas/overview');
-  await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
-  await page.locator('#edit-notes').fill('History draft');
-  await page.goBack();
-  await page.getByRole('button', { name: 'Stay', exact: true }).click();
-  assert.ok(page.url().endsWith('/edit'));
-  assert.equal(await page.locator('#edit-notes').inputValue(), 'History draft');
-  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
-  await page.getByRole('button', { name: 'Discard', exact: true }).click();
-  await page.waitForURL('**/#character/meg-thomas/overview');
-  await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
-  await page.locator('#edit-notes').fill('Conflict draft');
-  await page.evaluate(() => {
-    const oldValue = localStorage.getItem('dbdTrackerData'), incoming = JSON.parse(oldValue);
-    incoming.characters['the-doctor'].favorite = !incoming.characters['the-doctor'].favorite;
-    const newValue = JSON.stringify(incoming);
-    localStorage.setItem('dbdTrackerData', newValue);
-    window.dispatchEvent(new StorageEvent('storage', { key: 'dbdTrackerData', oldValue, newValue }));
-  });
-  assert.equal(await page.locator('#edit-notes').inputValue(), 'Conflict draft');
-  assert.match(await page.locator('[data-edit-errors]').textContent(), /changed|conflict/i);
-  assert.equal(await page.getByRole('button', { name: 'Save Character', exact: true }).isDisabled(), true);
-  assert.equal(await page.locator('[data-stock-step]:not([disabled])').count(),0,'Conflicted draft disables steppers');
-  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
-  await page.getByRole('button', { name: 'Discard', exact: true }).click();
-  await page.waitForURL('**/#character/meg-thomas/overview');
-  // A forward traversal must guard an existing history destination as well.
-  await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
-  await page.getByRole('link', { name: 'Perks', exact: true }).click();
-  await page.goBack();
-  await page.locator('[data-character-edit]').waitFor();
-  await page.locator('#edit-notes').fill('Forward draft');
-  const forwardBefore = await bytes();
-  await page.goForward();
-  await page.getByRole('button', { name: 'Stay', exact: true }).click();
-  assert.ok(page.url().endsWith('/edit'));
-  await page.goForward();
-  await page.getByRole('button', { name: 'Discard', exact: true }).click();
-  await page.waitForURL('**/#character/meg-thomas/perks');
-  assert.equal(await bytes(), forwardBefore);
-  await page.getByRole('link', { name: 'Overview', exact: true }).click();
-  await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
-  await page.locator('#edit-notes').fill('Global mutation draft');
-  const mutationBefore = await bytes();
-  await page.locator('[data-action="enable-editing"]').dispatchEvent('click');
-  await page.getByRole('button', { name: 'Stay', exact: true }).click();
-  assert.equal(await page.locator('#edit-notes').inputValue(), 'Global mutation draft');
-  assert.equal(await bytes(), mutationBefore);
-  await page.locator('#import-file').setInputFiles({ name: 'synthetic.json', mimeType: 'application/json',
-    buffer: Buffer.from(mutationBefore) });
-  await page.getByRole('button', { name: 'Stay', exact: true }).click();
-  assert.equal(await bytes(), mutationBefore);
-  await page.evaluate(() => {
-    const button = document.createElement('button'); button.id = 'test-reset'; button.dataset.action = 'reset';
-    button.textContent = 'Synthetic reset request'; document.querySelector('main').append(button);
-  });
-  await page.locator('#test-reset').click();
-  await page.getByRole('button', { name: 'Stay', exact: true }).click();
-  assert.equal(await bytes(), mutationBefore);
-  await page.locator('#test-reset').evaluate(button => button.remove());
-  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
-  await page.getByRole('button', { name: 'Discard', exact: true }).click();
-  await page.waitForURL('**/#character/meg-thomas/overview');
-}
 export async function characterContextualTaskRegression(page, origin) {
   page.setDefaultTimeout(5000);
-  const save = freshSave();
-  save.characters['meg-thomas'].notes = 'Existing note';
-  await page.evaluate(value => localStorage.setItem('dbdTrackerData', JSON.stringify(value)), save);
-  await page.goto(origin + '/#character/meg-thomas/overview');
-  await page.reload();
   const bytes = () => page.evaluate(() => localStorage.getItem('dbdTrackerData'));
-  const before = await bytes();
-  assert.equal(JSON.parse(before).characters['meg-thomas'].notes, 'Existing note', 'Synthetic starting note was seeded');
+  for (const [id, otherId, role, unknownAddonId] of [
+    ['meg-thomas', 'the-doctor', 'Survivor', 'survivor-addon-future-unresolved'],
+    ['the-doctor', 'meg-thomas', 'Killer', 'killer-addon-future-unresolved'],
+  ]) {
+    const save = freshSave();
+    save.characters[id].notes = 'Existing note';
+    save.characters[id].inventory.addons[unknownAddonId] = 7;
+    await page.evaluate(value => localStorage.setItem('dbdTrackerData', JSON.stringify(value)), save);
+    await page.goto(origin + '/#character/' + id + '/overview');
+    await page.reload();
+    const before = await bytes();
+    assert.equal(JSON.parse(before).characters[id].notes, 'Existing note', role + ' synthetic starting note was seeded');
+    assert.match(await page.locator('[data-character-header]').textContent(), new RegExp(role));
 
-  await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
-  await page.locator('[data-character-task-field="prestige"]').fill('1.5');
-  await page.locator('[data-character-task-field="bloodwebLevel"]').fill('43');
-  await page.getByRole('button', { name: 'Save progression', exact: true }).click();
-  assert.equal(await page.locator('[data-character-task-field="prestige"]').inputValue(), '1.5', 'Invalid numeric draft remains visible');
-  assert.equal(await bytes(), before, 'Invalid progression does not write');
-  await page.locator('[data-character-task-field="prestige"]').fill('2');
-  await page.getByRole('button', { name: 'Save progression', exact: true }).click();
-  let stored = JSON.parse(await bytes());
-  assert.equal(stored.characters['meg-thomas'].prestige, 2);
-  assert.equal(stored.characters['meg-thomas'].bloodwebLevel, 43);
-  assert.equal(stored.characters['meg-thomas'].notes, 'Existing note', 'Progression task leaves Notes untouched');
-  assert.equal(stored.characters['the-doctor'].prestige, save.characters['the-doctor'].prestige);
+    await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
+    await page.locator('[data-character-task-field="prestige"]').fill('1.5');
+    await page.locator('[data-character-task-field="bloodwebLevel"]').fill('43');
+    await page.getByRole('button', { name: 'Save progression', exact: true }).click();
+    assert.equal(await page.locator('[data-character-task-field="prestige"]').inputValue(), '1.5', role + ' invalid raw Prestige remains visible');
+    assert.equal(await bytes(), before, role + ' invalid progression does not write');
+    for (const invalid of ['', '-1', '-0', '1.5', '9007199254740992']) {
+      await page.locator('[data-character-task-field="prestige"]').fill(invalid);
+      await page.getByRole('button', { name: 'Save progression', exact: true }).click();
+      assert.equal(await page.locator('[data-character-task-field="prestige"]').inputValue(), invalid,
+        role + ' invalid raw Prestige is retained: ' + JSON.stringify(invalid));
+      assert.equal(await bytes(), before, role + ' invalid Prestige never writes: ' + JSON.stringify(invalid));
+    }
+    await page.locator('[data-character-task-field="prestige"]').fill('3');
+    await page.getByRole('button', { name: 'Save progression', exact: true }).click();
+    let stored = JSON.parse(await bytes());
+    assert.equal(stored.characters[id].prestige, 3, role + ' accepts Prestige above P100');
+    assert.equal(stored.characters[id].bloodwebLevel, 43, role + ' saves Bloodweb with Prestige atomically');
+    assert.equal(stored.characters[id].notes, 'Existing note', role + ' progression leaves Notes untouched');
+    assert.deepEqual(stored.characters[id].inventory.addons, save.characters[id].inventory.addons, role + ' progression preserves unknown inventory');
+    assert.deepEqual(stored.characters[otherId], save.characters[otherId], role + ' progression cannot update another character');
+    const native = page.locator('[data-overview-native-perk]').first();
+    assert.match(await native.textContent(), /Effective Tier III/, role + ' Prestige updates this character\'s effective native tier');
+    assert.match(await native.textContent(), /Account: Tier III/, role + ' Prestige updates account access');
 
-  const afterProgression = await bytes();
-  await page.getByRole('button', { name: 'Edit notes', exact: true }).first().click();
-  const note = '<script>full note</script>'.repeat(30);
-  await page.locator('[data-character-task-field="notes"]').fill(note);
-  await page.getByRole('button', { name: 'Save note', exact: true }).click();
-  stored = JSON.parse(await bytes());
-  assert.equal(stored.characters['meg-thomas'].notes, note, 'Notes preserve complete escaped plain text');
-  assert.equal(await page.locator('[data-overview-section="notes"] script').count(), 0, 'Notes are rendered as text');
-  assert.notEqual(await bytes(), afterProgression);
+    for (const allowed of ['100', String(Number.MAX_SAFE_INTEGER), '0']) {
+      await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
+      await page.locator('[data-character-task-field="prestige"]').fill(allowed);
+      await page.getByRole('button', { name: 'Save progression', exact: true }).click();
+      assert.equal(JSON.parse(await bytes()).characters[id].prestige, Number(allowed),
+        role + ' supported Prestige value saves without an artificial cap: ' + allowed);
+    }
 
-  await page.locator('[data-action="overview-ownership-toggle"]').click();
-  assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].owned, true);
-  const favorite = page.locator('.character-workspace-favorite');
-  await favorite.click();
-  assert.equal(await favorite.getAttribute('aria-pressed'), 'true');
-  assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].favorite, true, 'Favorite remains independent and immediate');
+    const afterProgression = await bytes();
+    await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
+    await page.getByRole('button', { name: 'Save progression', exact: true }).click();
+    assert.equal(await bytes(), afterProgression, role + ' no-op save preserves timestamps and bytes');
+    await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
+    await page.locator('[data-character-task-field="bloodwebLevel"]').fill('44');
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+    assert.equal(await bytes(), afterProgression, role + ' Cancel does not write a progression draft');
 
-  await page.getByRole('button', { name: 'Edit notes', exact: true }).first().click();
-  await page.locator('[data-character-task-field="notes"]').fill('Retain on failure');
-  const beforeFailure = await bytes();
-  await page.evaluate(() => {
-    window.originalTaskSetItem = Storage.prototype.setItem;
-    Storage.prototype.setItem = function(key, value) {
-      if (key === 'dbdTrackerData') throw Error('Synthetic write failure');
-      return window.originalTaskSetItem.call(this, key, value);
-    };
-  });
-  await page.getByRole('button', { name: 'Save note', exact: true }).click();
-  assert.equal(await page.locator('[data-character-task-field="notes"]').inputValue(), 'Retain on failure');
-  assert.equal(await bytes(), beforeFailure, 'Failed save retains canonical bytes and raw draft');
-  await page.evaluate(() => { Storage.prototype.setItem = window.originalTaskSetItem; });
-  await page.getByRole('button', { name: 'Save note', exact: true }).click();
-  assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].notes, 'Retain on failure', 'Restored storage allows retry of the same note draft');
+    await page.getByRole('button', { name: 'Edit notes', exact: true }).first().click();
+    const note = '<script>full note</script>'.repeat(30);
+    await page.locator('[data-character-task-field="notes"]').fill(note);
+    await page.getByRole('button', { name: 'Save note', exact: true }).click();
+    stored = JSON.parse(await bytes());
+    assert.equal(stored.characters[id].notes, note, role + ' Notes preserve complete escaped plain text');
+    assert.equal(await page.locator('[data-overview-section="notes"] script').count(), 0, role + ' Notes render as text');
+    assert.deepEqual(stored.characters[id].inventory.addons, save.characters[id].inventory.addons, role + ' Notes preserve inventory');
+    const afterNote = await bytes();
 
-  await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
-  await page.locator('[data-character-task-field="prestige"]').fill('3');
-  await page.getByRole('link', { name: 'Perks', exact: true }).click();
-  await page.getByRole('button', { name: 'Stay', exact: true }).click();
-  assert.ok(page.url().endsWith('/overview'), 'Stay keeps the source task open');
-  assert.equal(await page.locator('[data-character-task-field="prestige"]').inputValue(), '3');
-  await page.getByRole('link', { name: 'Perks', exact: true }).click();
-  await page.getByRole('button', { name: 'Discard', exact: true }).click();
-  await page.waitForURL('**/#character/meg-thomas/perks');
-  assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].prestige, 2, 'Discard does not write the draft');
+    await page.getByRole('button', { name: 'Edit notes', exact: true }).first().click();
+    await page.locator('[data-character-task-field="notes"]').fill('Canceled note');
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+    assert.equal(await bytes(), afterNote, role + ' Cancel does not write a Notes draft');
+
+    await page.getByRole('button', { name: 'Edit notes', exact: true }).first().click();
+    await page.locator('[data-character-task-field="notes"]').fill('Retain on failure');
+    const beforeFailure = await bytes();
+    await page.evaluate(() => {
+      window.originalTaskSetItem = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(key, value) {
+        if (key === 'dbdTrackerData') throw Error('Synthetic write failure');
+        return window.originalTaskSetItem.call(this, key, value);
+      };
+    });
+    await page.getByRole('button', { name: 'Save note', exact: true }).click();
+    assert.equal(await page.locator('[data-character-task-field="notes"]').inputValue(), 'Retain on failure', role + ' failed save retains raw Notes');
+    assert.equal(await bytes(), beforeFailure, role + ' failed save leaves stored bytes unchanged');
+    await page.evaluate(() => { Storage.prototype.setItem = window.originalTaskSetItem; });
+    await page.getByRole('button', { name: 'Save note', exact: true }).click();
+    assert.equal(JSON.parse(await bytes()).characters[id].notes, 'Retain on failure', role + ' can retry the same failed Notes save');
+
+    await page.getByRole('button', { name: 'Edit notes', exact: true }).first().click();
+    await page.locator('[data-character-task-field="notes"]').fill('Conflict draft');
+    await page.evaluate(({ otherId }) => {
+      const oldValue = localStorage.getItem('dbdTrackerData');
+      const incoming = JSON.parse(oldValue);
+      incoming.characters[otherId].favorite = !incoming.characters[otherId].favorite;
+      const newValue = JSON.stringify(incoming);
+      localStorage.setItem('dbdTrackerData', newValue);
+      window.dispatchEvent(new StorageEvent('storage', { key: 'dbdTrackerData', oldValue, newValue }));
+    }, { otherId });
+    assert.equal(await page.locator('#save-status').textContent(), 'Saved locally', role + ' valid external replacement remains writable');
+    assert.equal(await page.locator('[data-character-task-field="notes"]').inputValue(), 'Conflict draft', role + ' storage replacement retains the draft');
+    assert.equal(await page.getByRole('button', { name: 'Save note', exact: true }).isDisabled(), true, role + ' stale task cannot overwrite replacement save');
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+
+    await page.locator('[data-action="overview-ownership-toggle"]').click();
+    stored = JSON.parse(await bytes());
+    assert.equal(stored.characters[id].owned, true, role + ' ownership action saves immediately');
+    const favorite = page.locator('.character-workspace-favorite');
+    await favorite.click();
+    stored = JSON.parse(await bytes());
+    assert.equal(await favorite.getAttribute('aria-pressed'), 'true');
+    assert.equal(stored.characters[id].favorite, true, role + ' Favorite saves independently and immediately');
+    assert.deepEqual(stored.characters[id].inventory.addons, save.characters[id].inventory.addons, role + ' state actions preserve inventory');
+
+    await page.getByRole('button', { name: 'Edit notes', exact: true }).first().click();
+    await page.locator('[data-character-task-field="notes"]').fill('Guarded data replacement draft');
+    const beforeGuardedReplacement = await bytes();
+    await page.locator('[data-action="enable-editing"]').dispatchEvent('click');
+    await page.locator('#dirty-navigation[open]').waitFor();
+    await page.locator('#dirty-navigation [value="stay"]').click();
+    assert.equal(await page.locator('[data-character-task-field="notes"]').inputValue(), 'Guarded data replacement draft', role + ' writer retry cannot discard a task draft');
+    assert.equal(await bytes(), beforeGuardedReplacement, role + ' writer retry leaves the current save intact');
+    await page.locator('#import-file').setInputFiles({ name: 'synthetic.json', mimeType: 'application/json', buffer: Buffer.from(beforeGuardedReplacement) });
+    await page.locator('#dirty-navigation[open]').waitFor();
+    await page.locator('#dirty-navigation [value="stay"]').click();
+    assert.equal(await page.locator('[data-character-task-field="notes"]').inputValue(), 'Guarded data replacement draft', role + ' import cancellation retains the task draft');
+    assert.equal(await bytes(), beforeGuardedReplacement, role + ' import cancellation preserves the current save');
+    await page.evaluate(() => {
+      const button = document.createElement('button');
+      button.id = 'test-phase10-reset'; button.dataset.action = 'reset'; button.textContent = 'Synthetic reset request';
+      document.querySelector('main').append(button);
+    });
+    await page.locator('#test-phase10-reset').click();
+    await page.locator('#dirty-navigation[open]').waitFor();
+    await page.locator('#dirty-navigation [value="stay"]').click();
+    assert.equal(await page.locator('[data-character-task-field="notes"]').inputValue(), 'Guarded data replacement draft', role + ' reset cancellation retains the task draft');
+    assert.equal(await bytes(), beforeGuardedReplacement, role + ' reset cancellation preserves the current save');
+    await page.locator('#test-phase10-reset').evaluate(button => button.remove());
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+
+    const beforeDiscard = await bytes();
+    await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
+    await page.locator('[data-character-task-field="prestige"]').fill('4');
+    await page.getByRole('link', { name: 'Perks', exact: true }).click();
+    await page.getByRole('button', { name: 'Stay', exact: true }).click();
+    assert.ok(page.url().endsWith('/overview'), role + ' Stay keeps the source task open');
+    assert.equal(await page.locator('[data-character-task-field="prestige"]').inputValue(), '4', role + ' Stay retains raw progression');
+    assert.equal(await page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; }), true,
+      role + ' unload remains guarded while a task draft is dirty');
+    await page.getByRole('link', { name: 'Perks', exact: true }).click();
+    await page.getByRole('button', { name: 'Discard', exact: true }).click();
+    await page.waitForFunction(hash => location.hash === hash, '#character/' + id + '/perks');
+    assert.equal(await bytes(), beforeDiscard, role + ' Discard leaves the task unapplied');
+
+    await page.goto(origin + '/?phase10-history-' + id + '#character/' + id + '/overview');
+    await page.reload();
+    await page.getByRole('link', { name: 'Perks', exact: true }).click();
+    await page.getByRole('link', { name: 'Overview', exact: true }).click();
+    const beforeHistoryDraft = await bytes();
+    await page.getByRole('button', { name: 'Edit notes', exact: true }).first().click();
+    await page.locator('[data-character-task-field="notes"]').fill('Back navigation draft');
+    await page.goBack();
+    await page.locator('#dirty-navigation[open]').waitFor();
+    await page.locator('#dirty-navigation [value="stay"]').click();
+    assert.ok(page.url().endsWith('/overview'), role + ' Back Stay restores the source route');
+    assert.equal(await page.locator('[data-character-task-field="notes"]').inputValue(), 'Back navigation draft', role + ' Back Stay retains the task draft');
+    await page.goBack();
+    await page.locator('#dirty-navigation[open]').waitFor();
+    await page.locator('#dirty-navigation [value="discard"]').click();
+    await page.waitForFunction(hash => location.hash === hash, '#character/' + id + '/perks');
+    assert.equal(await bytes(), beforeHistoryDraft, role + ' Back Discard does not save the draft');
+
+    await page.goForward();
+    await page.waitForFunction(hash => location.hash === hash, '#character/' + id + '/overview');
+    await page.getByRole('link', { name: 'Perks', exact: true }).click();
+    await page.goBack();
+    await page.waitForFunction(hash => location.hash === hash, '#character/' + id + '/overview');
+    await page.getByRole('button', { name: 'Edit notes', exact: true }).first().click();
+    await page.locator('[data-character-task-field="notes"]').fill('Forward navigation draft');
+    await page.goForward();
+    await page.locator('#dirty-navigation[open]').waitFor();
+    await page.locator('#dirty-navigation [value="stay"]').click();
+    assert.ok(page.url().endsWith('/overview'), role + ' Forward Stay restores the source route');
+    assert.equal(await page.locator('[data-character-task-field="notes"]').inputValue(), 'Forward navigation draft', role + ' Forward Stay retains the task draft');
+    await page.goForward();
+    await page.locator('#dirty-navigation[open]').waitFor();
+    await page.locator('#dirty-navigation [value="discard"]').click();
+    await page.waitForFunction(hash => location.hash === hash, '#character/' + id + '/perks');
+    assert.equal(await bytes(), beforeHistoryDraft, role + ' Forward Discard does not save the draft');
+
+    await page.goto(origin + '/?phase10-legacy-' + id + '#character/' + id + '/edit');
+    await page.waitForFunction(hash => location.hash === hash, '#character/' + id + '/overview');
+    assert.equal(await page.locator('[data-character-edit]').count(), 0, role + ' direct Edit bookmark resolves to Overview');
+    const beforeLegacyRoute = await bytes();
+    await page.reload();
+    await page.waitForFunction(hash => location.hash === hash, '#character/' + id + '/overview');
+    assert.equal(await bytes(), beforeLegacyRoute, role + ' refreshing a legacy bookmark does not save');
+    await page.getByRole('button', { name: 'Edit notes', exact: true }).first().click();
+    await page.locator('[data-character-task-field="notes"]').fill('Legacy route draft');
+    await page.evaluate(id => { location.hash = '#character/' + id + '/edit'; }, id);
+    await page.locator('#dirty-navigation[open]').waitFor();
+    await page.locator('#dirty-navigation [value="stay"]').click();
+    await page.waitForFunction(hash => location.hash === hash, '#character/' + id + '/overview');
+    assert.equal(await page.locator('[data-character-task-field="notes"]').inputValue(), 'Legacy route draft', role + ' Stay retains the task draft on a legacy route attempt');
+    assert.equal(await bytes(), beforeLegacyRoute, role + ' Stay on legacy route does not write');
+    await page.evaluate(id => { location.hash = '#character/' + id + '/edit'; }, id);
+    await page.locator('#dirty-navigation[open]').waitFor();
+    await page.locator('#dirty-navigation [value="discard"]').click();
+    await page.waitForFunction(hash => location.hash === hash, '#character/' + id + '/overview');
+    assert.equal(await bytes(), beforeLegacyRoute, role + ' Discard then legacy-route resolution does not save');
+  }
 }
-export async function characterEditFamilyRegression(page,origin){
- page.setDefaultTimeout(6000);
- const first=inventoryEntities.find(e=>e.map==='items');
- const second=inventoryEntities.find(e=>e.map==='items'&&e.familyId!==first.familyId);
- await page.evaluate(s=>localStorage.setItem('dbdTrackerData',JSON.stringify(s)),freshSave());
- await page.goto(origin+'/#character/meg-thomas/edit');await page.reload();
- const field=id=>page.locator('[data-inventory-quantity="'+id+'"]');
- const family=id=>page.locator('#stock-family-nav-'+id);
- const bytes=()=>page.evaluate(()=>localStorage.dbdTrackerData);
- const before=await bytes();
- await field(first.id).fill('04');await family(second.familyId).click();await family(first.familyId).click();
- assert.equal(await field(first.id).inputValue(),'04');assert.equal(await bytes(),before,'Family visits preserve raw drafts without autosave');
- await field(first.id).fill('key-invalid');await family(second.familyId).click();
- await field(second.id).fill('second-invalid');await field(second.id).press('Enter');
- assert.equal(await page.locator('[data-stock-error-summary] button').count(),2,'Errors remain discoverable across hidden families');
- await page.locator('#inventory-filters').evaluate(n=>n.open=true);await page.locator('#inventory-map').selectOption('items');
- await page.locator('#inventory-in-stock').check();await page.locator('#inventory-search').fill('no-match');
- const error=id=>page.locator('[data-action="stock-error-focus"][data-id="'+id+'"]');
- await error(first.id).click();
- assert.equal(await page.locator('[data-stock-family]').getAttribute('data-stock-family'),first.familyId);
- assert.equal(await field(first.id).inputValue(),'key-invalid');assert.equal(await field(first.id).evaluate(n=>n===document.activeElement),true);
- assert.equal(await page.locator('#inventory-map').inputValue(),'items','Error reveal retains an already compatible Type');
- assert.equal(await page.locator('#inventory-in-stock').isChecked(),true,'Invalid row exception makes In Stock compatible');
- assert.equal(await page.locator('#inventory-search').inputValue(),'');
- await field(first.id).fill('key-invalid-edited');
- await error(second.id).click();assert.equal(await field(second.id).inputValue(),'second-invalid');
- assert.equal(await page.locator('[data-stock-error-summary] button').count(),2);
- await error(first.id).click();assert.equal(await field(first.id).inputValue(),'key-invalid-edited','Error navigation retains edits made since the last validation');
- assert.equal(await bytes(),before);
- await page.getByRole('button',{name:'Save Character',exact:true}).click();
- const errorTarget=await page.evaluate(()=>document.activeElement.dataset.inventoryQuantity);
- assert.ok([first.id,second.id].includes(errorTarget),'Save validation selects and focuses a retained bad quantity');
- await error(first.id).click();
- await field(first.id).fill('2');await family(second.familyId).click();await field(second.id).fill('3');
- await page.getByRole('button',{name:'Save Character',exact:true}).click();await page.waitForURL('**/#character/meg-thomas/overview');
- const saved=JSON.parse(await bytes()).characters['meg-thomas'].inventory.items;
- assert.equal(saved[first.id],2);assert.equal(saved[second.id],3);
+export async function characterEditRegression(page, origin) {
+  await characterContextualTaskRegression(page, origin);
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const { smokeStage } = await import('./smoke.mjs');

@@ -30,14 +30,14 @@ export async function characterWorkspaceRegression(page, origin) {
   const text = await page.locator('[data-character-workspace]').textContent();
   for (const label of ['Survivor', 'Locked', 'Favorite', 'P2', '43', 'Keep these notes', 'Native Perks']) assert.ok(text.includes(label), label);
   assert.match(text,/38 Items.*54 Add-ons/);
-  assert.equal(await page.getByRole('link', { name: 'Edit Character', exact: true }).getAttribute('href'), '#character/meg-thomas/edit');
+  assert.equal(await page.locator('[data-character-workspace] .character-workspace-edit').count(), 0, 'Overview no longer exposes the retired composite editor');
   assert.equal(await page.locator('[data-inventory-quantity]').count(), 0);
   assert.equal(await page.locator('[data-character-workspace] .character-inventory-grid').count(), 0);
   // Shared header is the only normal workspace identity block.
   const workspace = page.locator('[data-character-workspace]');
   assert.equal(await workspace.locator('[data-character-header]').count(), 1);
   assert.equal(await workspace.locator('h1').count(), 1);
-  assert.equal(await workspace.locator('.character-workspace-edit').count(), 1);
+  assert.equal(await workspace.locator('.character-workspace-edit').count(), 0);
   assert.equal(await workspace.locator('[data-character-progress="prestige"]').getByText('PRESTIGE',{exact:true}).count(), 1);
   assert.equal(await workspace.locator('[data-character-progress="bloodweb"]').getByText('BLOODWEB',{exact:true}).count(), 1);
   assert.equal(await workspace.locator('.character-workspace-nav').count(), 1);
@@ -66,7 +66,7 @@ export async function characterWorkspaceRegression(page, origin) {
 
   await page.setViewportSize({width:320,height:900});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Workspace header/Overview overflow at 320');
-  assert.ok((await page.locator('.character-workspace-edit').boundingBox()).height>=44,'Edit Character remains a practical target');
+  assert.ok((await page.locator('.character-workspace-favorite').boundingBox()).height>=44,'Favorite remains a practical target');
   await page.setViewportSize({width:1440,height:900});
   for (const hash of ['#character/the-doctor/power-addons']) {
     await page.goto(origin + '/' + hash);
@@ -98,16 +98,22 @@ export async function characterWorkspaceRegression(page, origin) {
   assert.equal(await card.locator('a[href^="#character/"]').count(), 1, 'The card exposes one broad workspace link');
   await card.locator('.prestige').click();
   assert.equal(await page.locator('#detail').isVisible(), false);
-  await page.getByRole('link', { name: 'Edit Character', exact: true }).click();
-  for (const field of ['owned', 'favorite', 'prestige', 'bloodweb', 'notes'])
-    assert.equal(await page.locator('#edit-' + field).count(), 1);
-  assert.ok(await page.locator('[data-edit-perk]').count() > 0);
-  assert.ok(await page.locator('[data-edit-correction]').count() > 0);
+  await page.locator('[data-character-workspace]').waitFor();
+  assert.equal(await page.locator('[data-character-edit]').count(), 0);
+  for (const task of ['progression', 'notes'])
+    assert.equal(await page.locator('[data-action="character-task-start"][data-task="' + task + '"]').count(), 1,
+      task + ' remains available through its focused Overview task');
+  assert.equal(await page.locator('[data-action="overview-ownership-toggle"]').count(), 1);
+  const notesSection = page.locator('[data-overview-section="notes"]');
+  await notesSection.getByRole('button', { name: 'Edit notes', exact: true }).click();
+  assert.equal(await notesSection.locator('[data-character-task="notes"]').count(), 1,
+    'Notes draft is edited in its Notes section');
+  await notesSection.getByRole('button', { name: 'Cancel', exact: true }).click();
   await page.locator('[data-action="perk"]').first().click();
   assert.equal(await page.locator('#detail').isVisible(), true, 'Bounded perk dialog remains');
-  assert.equal(await page.locator('#detail [data-personal-tier]').first().isDisabled(), true);
+  assert.equal(await page.locator('#detail [data-personal-tier]').first().isDisabled(), false,
+    'Writer can use personal-tier controls in the perk dialog');
   await page.getByRole('button', { name: 'Close details', exact: true }).click();
-  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await page.goto(origin + '/#dashboard');
   await page.locator('[data-dashboard-section="favorites"] summary').click();
   await page.locator('[data-dashboard-character-link][href="#character/meg-thomas/overview"]').first().click();
@@ -470,11 +476,11 @@ export async function characterWorkspaceResponsive(page,origin){
       assert.equal(await page.locator('[data-character-workspace] .character-portrait').count(),1);
       assert.equal(await header.locator('[data-character-progress]').count(),2);
       assert.ok(await header.locator('.character-portrait').isVisible());
-      assert.ok((await header.locator('.character-workspace-edit').boundingBox()).height>=44);
+      assert.ok((await header.locator('.character-workspace-favorite').boundingBox()).height>=44);
       assert.equal(await header.evaluate(n=>{
-        const progress=n.querySelector('.character-workspace-progress'), edit=n.querySelector('.character-workspace-edit');
-        return Boolean(progress.compareDocumentPosition(edit)&Node.DOCUMENT_POSITION_FOLLOWING);
-      }),true,'Progress precedes Edit Character in logical DOM order');
+        const progress=n.querySelector('.character-workspace-progress'), nav=n.querySelector('.character-workspace-nav');
+        return Boolean(progress.compareDocumentPosition(nav)&Node.DOCUMENT_POSITION_FOLLOWING);
+      }),true,'Progress precedes workspace navigation in logical DOM order');
       const bounds=await header.boundingBox();edges.push([bounds.x,bounds.width]);
       const levels=await page.locator('[data-character-workspace] :is(h1,h2,h3,h4,h5,h6)').evaluateAll(nodes=>nodes.map(n=>Number(n.tagName.slice(1))));
       for(let i=1;i<levels.length;i++)assert.ok(levels[i]<=levels[i-1]+1,'No skipped heading levels '+section);

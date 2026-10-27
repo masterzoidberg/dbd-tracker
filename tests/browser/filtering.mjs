@@ -360,10 +360,10 @@ export async function shellNavigationRegression(page, origin) {
 
   await page.setViewportSize({ width: 1280, height: 768 });
   await seed(page, origin, freshSave(), 'survivors');
-  await page.evaluate(() => { location.hash = '#character/meg-thomas/edit'; });
-  await page.locator('#edit-notes').waitFor();
-  await page.locator('#edit-notes').fill('Compact navigation draft');
-  const editBytes = await page.evaluate(() => localStorage.getItem('dbdTrackerData'));
+  await page.evaluate(() => { location.hash = '#character/meg-thomas/overview'; });
+  await page.getByRole('button', { name: 'Edit notes', exact: true }).first().click();
+  await page.locator('[data-character-task-field="notes"]').fill('Compact navigation draft');
+  const taskBytes = await page.evaluate(() => localStorage.getItem('dbdTrackerData'));
   await menu.focus();
   await page.keyboard.press('Enter');
   await page.keyboard.press('Tab');
@@ -376,19 +376,19 @@ export async function shellNavigationRegression(page, origin) {
   await page.waitForFunction(() => document.activeElement.matches('#global-nav a'));
   assert.equal(await navigation.getByRole('link').first().evaluate(node => node === document.activeElement), true,
     'Dialog Escape restores focus to the navigation link that opened it');
-  assert.equal(await page.locator('#edit-notes').inputValue(), 'Compact navigation draft');
-  assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), editBytes);
+  assert.equal(await page.locator('[data-character-task-field="notes"]').inputValue(), 'Compact navigation draft');
+  assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), taskBytes);
   await page.keyboard.press('Enter');
   await page.getByRole('button', { name: 'Stay', exact: true }).waitFor();
   await page.keyboard.press('Enter');
   assert.equal(await menu.getAttribute('aria-expanded'), 'false', 'Stay dismisses compact Menu');
   await page.waitForFunction(() => document.activeElement.id === 'menu-toggle');
-  assert.ok(page.url().endsWith('/edit'), 'Blocked compact-menu navigation leaves the current route in place');
-  assert.equal(await page.locator('#edit-notes').inputValue(), 'Compact navigation draft');
-  assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), editBytes, 'Staying in the editor preserves the existing save');
+  assert.ok(page.url().endsWith('/overview'), 'Blocked compact-menu navigation leaves the current route in place');
+  assert.equal(await page.locator('[data-character-task-field="notes"]').inputValue(), 'Compact navigation draft');
+  assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), taskBytes, 'Staying in the task editor preserves the existing save');
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
-  await page.getByRole('button', { name: 'Discard', exact: true }).click();
-  await page.waitForURL('**/#character/meg-thomas/overview');
+  await page.locator('[data-character-task-field="notes"]').waitFor({ state: 'detached' });
+  assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), taskBytes, 'Cancel discards only the unsaved task draft');
 
   const skip = page.locator('.skip-link');
   await skip.focus();
