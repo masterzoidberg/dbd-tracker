@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { characterById, perkById } from '../data/catalog.js';
 import {
-  freshSave, inventoryTier, automaticTier, recordedTier, globalTier, parseSave,
+  freshSave, inventoryTier, automaticTier, recordedTier, globalTier, isAvailable, parseSave,
   setHistoricalPerkTier,
 } from '../src/model.js';
 import {
@@ -147,6 +147,52 @@ test('P2/P3, Shrine II/III, Legacy, and manual account unlocks expose provenance
   assert.ok(entry(save, 'the-doctor', 'hex-ruin').unlockReasons.includes('Shrine'));
   assert.ok(entry(save, 'the-doctor', 'deadlock').unlockReasons.includes('Legacy'));
   assert.ok(entry(save, 'the-doctor', 'unrelenting').unlockReasons.includes('Other account unlock'));
+});
+
+test('Unlocked includes every same-role candidate with positive Effective Tier', () => {
+  const killerSave = freshSave();
+  killerSave.characters['the-wraith'].prestige = 2;
+  killerSave.characters['the-doctor'].perks['a-nurses-calling'] = 1;
+  killerSave.characters['the-doctor'].perks['hex-ruin'] = 1;
+  killerSave.perkOverrides['hex-ruin'] = { shrineTier: 2 };
+  killerSave.perkOverrides.deadlock = { legacyTier: 2 };
+  killerSave.perkOverrides.unrelenting = { manualTier: 1 };
+
+  const killerCandidates = characterInventoryCandidatePool(killerSave, 'the-doctor', { allRole: true });
+  const killerUnlocked = filterCharacterInventoryCandidates(killerSave, 'the-doctor', killerCandidates, { category: 'unlocked' });
+  const killerUnlockedIds = ids(killerUnlocked);
+  const killerPersonalBefore = structuredClone(killerSave.characters['the-doctor'].perks);
+
+  assert.deepEqual(killerUnlockedIds, ids(killerCandidates.filter(row => row.effectiveTier > 0)));
+  assert.ok(killerUnlockedIds.includes('shadowborn'), 'another Killer\'s Prestige gives this record-free candidate a positive automatic tier');
+  assert.equal(entry(killerSave, 'the-doctor', 'shadowborn').recordedTier, 0);
+  assert.ok(killerUnlockedIds.includes('overcharge'), 'native automatic Tier I is unlocked');
+  assert.ok(killerUnlockedIds.includes('a-nurses-calling'), 'a recorded Tier I is unlocked');
+  assert.ok(killerUnlockedIds.includes('hex-ruin'), 'Shrine tier above its personal record is unlocked');
+  assert.equal(entry(killerSave, 'the-doctor', 'hex-ruin').effectiveTier, 2);
+  assert.equal(entry(killerSave, 'the-doctor', 'hex-ruin').recordedTier, 1);
+  assert.ok(killerUnlockedIds.includes('deadlock'), 'Legacy account tiers are unlocked');
+  assert.ok(killerUnlockedIds.includes('unrelenting'), 'manual account tiers are unlocked');
+  assert.equal(isAvailable(killerSave, perk('bitter-murmur')), true);
+  assert.equal(entry(killerSave, 'the-doctor', 'bitter-murmur').effectiveTier, 0);
+  assert.equal(killerUnlockedIds.includes('bitter-murmur'), false, 'General availability at tier zero is not an unlock');
+  assert.equal(killerUnlockedIds.includes('self-care'), false, 'the character candidate pool excludes wrong-role perks');
+  assert.equal(killerUnlockedIds.includes('rancor'), false, 'an all-role candidate with Effective Tier zero stays excluded');
+  assert.deepEqual(killerSave.characters['the-doctor'].perks, killerPersonalBefore, 'filtering does not materialize automatic tiers');
+
+  const survivorSave = freshSave();
+  survivorSave.characters['claudette-morel'].prestige = 2;
+  setHistoricalPerkTier(survivorSave, 'kate-denson', 'camaraderie', 2);
+  const survivorCandidates = characterInventoryCandidatePool(survivorSave, 'kate-denson', { allRole: true });
+  const survivorUnlocked = filterCharacterInventoryCandidates(survivorSave, 'kate-denson', survivorCandidates, { category: 'unlocked' });
+  const survivorUnlockedIds = ids(survivorUnlocked);
+
+  assert.deepEqual(survivorUnlockedIds, ids(survivorCandidates.filter(row => row.effectiveTier > 0)));
+  assert.ok(survivorUnlockedIds.includes('self-care'), 'another Survivor\'s Prestige gives a record-free candidate a positive automatic tier');
+  assert.equal(entry(survivorSave, 'kate-denson', 'self-care').recordedTier, 0);
+  assert.ok(survivorUnlockedIds.includes('boil-over'), 'Survivor native automatic Tier I is unlocked');
+  assert.ok(survivorUnlockedIds.includes('camaraderie'), 'a positive historical record remains unlocked');
+  assert.equal(survivorUnlocked.every(row => row.perk.role === 'survivor'), true);
 });
 
 test('tracked historical/manual copies remain in All as retained exceptions', () => {
