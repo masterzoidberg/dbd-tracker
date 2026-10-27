@@ -575,6 +575,29 @@ async function correctionRegression(page, origin) {
     'A correction is locked after its source save changes externally');
   assert.match(await conflictedCorrection.locator('[data-character-inventory-correction-error]').textContent(), /Stored data changed/);
   await conflictedCorrection.locator('[data-action="character-inventory-correction-cancel"]').click();
+
+  const unlockedFixture = freshSave();
+  unlockedFixture.characters['the-wraith'].prestige = 2;
+  unlockedFixture.characters['the-doctor'].perks['a-nurses-calling'] = 1;
+  unlockedFixture.characters['the-doctor'].perks['hex-ruin'] = 1;
+  unlockedFixture.perkOverrides['hex-ruin'] = { shrineTier: 2 };
+  await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), unlockedFixture);
+  await page.goto(origin + '/#character/the-doctor/perks');
+  await page.reload();
+  await page.locator('[data-character-inventory-toolbar="perks"]').waitFor();
+  const bytesBeforeUnlocked = await page.evaluate(() => localStorage.getItem('dbdTrackerData'));
+  await page.getByRole('button', { name: 'Unlocked', exact: true }).click();
+  assert.equal(await card(page, 'shadowborn').count(), 1, 'Prestige-derived Effective Tier appears without a personal record');
+  assert.equal(await card(page, 'shadowborn').locator('.perk-card-tier').textContent(), 'II');
+  assert.match(await card(page, 'shadowborn').textContent(), /Prestige/, 'Prestige provenance remains visible');
+  assert.equal((await stored(page)).characters['the-doctor'].perks.shadowborn, undefined);
+  assert.equal(await card(page, 'monitor-abuse').count(), 1, 'native automatic Tier I is included by Unlocked');
+  assert.equal(await card(page, 'monitor-abuse').locator('.perk-card-tier').textContent(), 'I');
+  assert.equal(await card(page, 'a-nurses-calling').count(), 1, 'recorded Tier I is included by Unlocked');
+  assert.equal(await card(page, 'hex-ruin').count(), 1, 'higher Shrine Effective Tier is included by Unlocked');
+  assert.equal(await card(page, 'bitter-murmur').count(), 0, 'General availability at Effective Tier zero is excluded');
+  assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), bytesBeforeUnlocked,
+    'applying Unlocked does not write automatic tiers into the portable save');
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

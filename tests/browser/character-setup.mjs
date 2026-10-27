@@ -66,7 +66,8 @@ export async function characterSetupRegression(page, origin) {
   await page.locator('#character-setup-search').fill('Bitter Murmur');
   await page.locator('[data-character-setup-perk="bitter-murmur"]').check();
   await page.locator('[data-character-setup-tier="bitter-murmur"]').selectOption('2');
-  const backupCountBeforeKillerFinish = JSON.parse(await page.evaluate(() => localStorage.getItem('dbdTrackerBackups') || '[]')).length;
+  const saveBeforeKillerFinish = JSON.parse(await page.evaluate(() => localStorage.getItem('dbdTrackerData')));
+  const latestBackupBeforeKillerFinish = JSON.parse(await page.evaluate(() => localStorage.getItem('dbdTrackerBackups') || '[]'))[0]?.id;
   await page.getByRole('button', { name: 'Finish setup', exact: true }).click();
   await page.waitForURL('**/#character/the-doctor/overview');
   saved = JSON.parse(await page.evaluate(() => localStorage.getItem('dbdTrackerData')));
@@ -76,7 +77,10 @@ export async function characterSetupRegression(page, origin) {
   assert.equal(saved.characters['the-doctor'].notes, 'Preserve Killer setup notes', 'Killer setup preserves notes');
   assert.equal(saved.characters['the-doctor'].inventory.addons['killer-addon-test-future'], 8, 'Killer setup preserves unresolved Add-ons');
   const killerBackups = JSON.parse(await page.evaluate(() => localStorage.getItem('dbdTrackerBackups')));
-  assert.ok(killerBackups.length > backupCountBeforeKillerFinish, 'Killer Finish backs up before applying setup');
+  assert.ok(killerBackups.length <= 5, 'Killer Finish respects the five-snapshot limit');
+  assert.notEqual(killerBackups[0].id, latestBackupBeforeKillerFinish, 'Killer Finish creates a fresh snapshot even when the collection is full');
+  assert.match(killerBackups[0].reason, /Before character setup: The Doctor/);
+  assert.deepEqual(killerBackups[0].save, saveBeforeKillerFinish, 'Killer Finish snapshots the persisted save before applying setup');
   await page.goto(origin + '/#character/claudette-morel/setup');
   assert.match(await page.locator('#main').textContent(), /requires an owned/i);
   await setupBackSaveRegression(page, origin);

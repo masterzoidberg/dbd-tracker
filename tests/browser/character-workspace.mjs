@@ -115,9 +115,9 @@ export async function characterWorkspaceRegression(page, origin) {
   assert.equal(await page.locator('#detail [data-personal-tier]').first().isDisabled(), false,
     'Writer can use personal-tier controls in the perk dialog');
   await page.getByRole('button', { name: 'Close details', exact: true }).click();
-  await page.goto(origin + '/#dashboard');
-  await page.locator('[data-dashboard-section="favorites"] summary').click();
-  await page.locator('[data-dashboard-character-link][href="#character/meg-thomas/overview"]').first().click();
+  await page.goto(origin + '/#survivors');
+  await page.locator('#search').fill('Meg');
+  await page.getByRole('link', { name: 'View Meg Thomas workspace', exact: true }).click();
   await page.waitForURL('**/#character/meg-thomas/overview');
   assert.equal(await page.locator('#detail').isVisible(), false);
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before);
@@ -359,7 +359,7 @@ async function setupDraftNavigationRegression(page, origin) {
   await page.locator('[data-roster-neighbor="next"]').click();
   const peer = await page.context().newPage();
   await peer.goto(origin + '/');
-  await peer.getByRole('heading', { name: 'Account overview', exact: true }).waitFor();
+  await peer.getByRole('heading', { name: 'Dashboard', exact: true }).waitFor();
   const external = freshSave();
   external.characters['meg-thomas'].owned = true;
   external.characters['the-shape'].favorite = true;

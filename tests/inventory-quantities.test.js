@@ -48,10 +48,10 @@ test('reviewed Survivor and Killer registries activate while v2 defaults stay em
   assert.deepEqual(inventoryCatalogStatus, {
     survivor: 'ready', killerAddons: 'ready', killerPowers: 'ready',
   });
-  assert.equal(SCHEMA_VERSION, 2);
+  assert.equal(SCHEMA_VERSION, 3);
   const save = freshSave();
-  assert.equal(save.schemaVersion, 2);
-  assert.deepEqual(save.prestigeQueue, []);
+  assert.equal(save.schemaVersion, 3);
+  assert.deepEqual(save.planning.prestigeQueues, { survivor: [], killer: [] });
   assert.deepEqual(save.characters['meg-thomas'].inventory, { items: {}, addons: {} });
 });
 

@@ -10,7 +10,7 @@ test('P1 ranking unchanged and independent of queue',()=>{
   for(const c of characters.slice(0,12)) {save.characters[c.id].owned=true;save.characters[c.id].bloodwebLevel=20;}
   const expected=characters.filter(c=>save.characters[c.id].owned).map(character=>({character,missing:character.nativePerkIds.filter(id=>!isAvailable(save,perkById[id])).length})).filter(r=>r.missing).sort((a,b)=>b.missing-a.missing||save.characters[b.character.id].bloodwebLevel-save.characters[a.character.id].bloodwebLevel||a.character.name.localeCompare(b.character.name)).slice(0,5);
   assert.deepEqual(suggestedP1Targets(save),expected);
-  save.prestigeQueue=[{characterId:expected[0].character.id,targetPrestige:9}];
+  save.planning.prestigeQueues[expected[0].character.role]=[{characterId:expected[0].character.id,targetPrestige:9}];
   assert.deepEqual(suggestedP1Targets(save),expected);
   for(const c of characters.slice(0,12)) save.characters[c.id].prestige=3;
   assert.deepEqual(suggestedP1Targets(save),[]);
@@ -36,7 +36,7 @@ test('favorite unowned remains independent and sorted by name',()=>{
   const original=JSON.stringify(save);
   assert.deepEqual(favoriteCharacters(save).map(c=>c.id),['dwight-fairfield','meg-thomas']);
   assert.equal(JSON.stringify(save),original);
-  assert.deepEqual(save.prestigeQueue,[]);
+  assert.deepEqual(save.planning.prestigeQueues,{survivor:[],killer:[]});
 });
 
 test('P1 native General and account override access lower missing counts',()=>{

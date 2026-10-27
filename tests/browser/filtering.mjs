@@ -407,7 +407,7 @@ export async function shellNavigationRegression(page, origin) {
 
   await page.setViewportSize({ width: 1280, height: 768 });
   await page.goto(origin + '/');
-  await page.getByRole('heading', { name: 'Account overview', exact: true }).waitFor();
+  await page.getByRole('heading', { name: 'Dashboard', exact: true }).waitFor();
   await menu.focus();
   await page.keyboard.press('Enter');
   await page.keyboard.press('Tab');

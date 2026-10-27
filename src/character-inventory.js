@@ -76,7 +76,7 @@ export function filterCharacterInventoryCandidates(save, characterId, candidates
   const category = CHARACTER_INVENTORY_CATEGORIES.includes(state.category) ? state.category : 'all';
   const search = typeof state.search === 'string' ? state.search.toLowerCase().replace(/[’']/g, '') : '';
   return candidates
-    .filter(row => category === 'all' || row.primaryCategory === category)
+    .filter(row => category === 'all' || (category === 'unlocked' ? row.effectiveTier > 0 : row.primaryCategory === category))
     .filter(row => !state.onlyUnrecorded || row.effectiveTier === 0)
     .filter(row => !search || perkSearchText(row.perk).toLowerCase().includes(search))
     .sort((a, b) => {

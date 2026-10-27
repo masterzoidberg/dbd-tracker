@@ -22,7 +22,8 @@ function incoming() {
   save.characters['meg-thomas'].perks = { camaraderie: 0, renewal: 2, 'future-perk': 3 };
   save.characters['future-character'] = { ...freshProgress(), perks: { 'future-perk': 0 } };
   save.perkOverrides['future-perk'] = { shrineTier: 2, manualTier: 3 };
-  save.prestigeQueue = [{ characterId: 'future-goal-only', targetPrestige: 9 }];
+  save.planning.unresolved = [{ queue: 'prestige', role: null, rank: 0,
+    record: { characterId: 'future-goal-only', targetPrestige: 9 } }];
   save.characters['meg-thomas'].inventory.items['survivor-item-test-future'] = 7;
   save.characters['the-doctor'].inventory.addons['killer-addon-test-future'] = 3;
   delete save.characters['meg-thomas'].setupComplete;
@@ -144,8 +145,9 @@ test('original export reads exact bytes, including an empty original, and reject
 const source = readFileSync(new URL('../src/app.js', import.meta.url), 'utf8');
 function appHarness(store) {
   const context = vm.createContext({ save: freshSave(), initialized: true, storageBlocked: true, store, exportSave, parseSave, Date,
-    $: () => ({ textContent: '' }),
+    $: () => ({ textContent: '' }), localStorage: {},
     date: value => value, render: () => {}, confirmAction: async () => true,
+    clearContinue: () => { context.continueCleared = true; },
     message: text => { context.lastMessage = text; },
     download: (content, filename) => { context.downloaded = { content, filename }; },
   });
@@ -173,11 +175,13 @@ test('restore can recover blocked current state and only adopts after successful
   await assert.rejects(context.restore('good'), /denied/);
   assert.strictEqual(context.save, fallback);
   assert.equal(context.storageBlocked, true);
+  assert.equal(context.continueCleared, undefined, 'failed restore does not invalidate Continue');
   assert.equal(data.get(SAVE_KEY), raw);
   assert.equal(data.get(BACKUP_KEY), backups);
   store.storage = adapter;
   await context.restore('good');
   assert.deepEqual(context.save, store.load().save);
   assert.equal(context.storageBlocked, false);
+  assert.equal(context.continueCleared, true, 'successful restore invalidates Continue');
   assert.match(context.lastMessage, /restored/i);
 });

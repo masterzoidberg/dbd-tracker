@@ -12,7 +12,7 @@
 
 ## Status
 
-**Implementation roadmap created · 2026-10-25 · Implementation not started.** Planning is complete enough for phase-by-phase execution. D01/D02 remain explicit gates, not assumptions. This document does not authorize source, CSS, schema, asset, build, release, branch or deployment work during roadmap creation.
+**Implementation roadmap created · 2026-10-25 · Phases 0–10 complete. D01/D02 were explicitly approved and recorded on 2026-10-27. Phases 1B, 11 and 12 are authorized for this batch; Phases 13–14 and deployment are out of scope.**
 
 ## Baseline
 
@@ -55,19 +55,19 @@ Global application shell/shared interactions; Dashboard; Survivor and Killer ros
 - Preserve unknown valid records, aliases, historical zero versus absence, writer protection, backups/raw recovery, strict validation and offline runtime. No broad schema/CSS rewrite, rename campaign, framework/Tailwind/shadcn migration, new service or speculative abstraction.
 - No production deployment is part of this roadmap's execution acceptance. Distribution/publishing remains a separate action after manual acceptance.
 
-## Remaining Product Gates
+## Resolved Product Decisions
 
-### D01 — Dual intent and pin representation
+### D01 — Dual membership and one pin representation
 
-**Unapproved recommendation:** permit membership in both longer queues; one Up Next row per character, one primary intent, optional secondary indication. User must decide before final intent fields/validation, dual-membership transitions, primary-intent changes, queue-removal consequences and corresponding acceptance tests are fixed. Max five characters per role and independent manual pin rank are settled.
+**Approved 2026-10-27:** a character may belong to both longer queues. Up Next has at most one pin per character, with exactly one explicit primary intent (`Prestige` or `Play`); membership in the other queue may be secondary context but never creates a second row. Keep manual pin rank independent. Do not infer or silently change primary intent.
 
-### D02 — Direct pin or queue prerequisite
+### D02 — Direct pin independent of queue membership
 
-**Unapproved recommendation:** allow explicit-intent direct pins without implicitly creating queue membership. User must decide before final membership references, eligibility, deleting a backing goal, orphan handling and membership/removal tests are fixed. Do not infer intent from Favorites, edits or recommendations.
+**Approved 2026-10-27:** a character may be pinned without either longer-queue membership. Pinning creates no membership; queue membership changes do not remove, reorder or retarget a pin. Keep Up Next explicit and independent. Do not infer intent from Favorites, edits or recommendations.
 
-**Gate procedure:** At Phase 1B start, record explicit answers and their consequences in the decision register and affected Dashboard/shared records, with minimal edits. No response means the gate remains closed. Then finalize the field contract and tests together. Do not add schema fields or freeze tests for the recommended answers beforehand.
+**Gate procedure:** Decisions are recorded in [the decision register](00b-open-design-questions.md) and affected Dashboard planning language. Finalize the persisted contract and tests against these approved semantics.
 
-**May proceed without these answers:** 0, 1A, 2–10, and the independent local Continue task 11.1. **Blocked:** 1B final contract/version activation; 11.2–11.3 queue management/Up Next and Dashboard completion; final new-schema compatibility and Core acceptance (12–14). Other UI checkpoints remain valid on v2.
+**Status:** D01/D02 no longer block Phase 1B, the dependent Dashboard work in Phase 11, or Phase 12 schema compatibility. Phase 13/14 acceptance and deployment remain outside this batch.
 
 ## Repository Architecture / File Map
 
@@ -476,7 +476,7 @@ High-risk removal; source-string tests and older browser probes explicitly depen
 
 ### Goal / Why Here
 
-After **explicit D01/D02**, implement the final portable queue/pin contract and safe migration. Recommended landing is after Phase 10, immediately before Dashboard UI, while design-independent UI proceeds on v2. This is the highest data-risk checkpoint.
+D01/D02 are explicitly approved and recorded. Implement the final portable queue/pin contract and safe migration. Recommended landing is after Phase 10, immediately before Dashboard UI, while design-independent UI proceeds on v2. This is the highest data-risk checkpoint.
 
 ### Likely Files / Modules
 
@@ -488,7 +488,7 @@ Accept valid old exports (v1/v2) and preserve raw personal state, unknowns and a
 
 ### Tasks / Test-First Requirements
 
-- [ ] 1B.1 Record D01/D02 answers, then define one canonical field/entry contract for role-separated Prestige and Playing queues plus independent ordered pins, target/intent/eligibility/removal semantics, unresolved retention and fresh defaults. No final field names/intent representation are prescribed by this roadmap. Ensure cap is five unique active characters per role; completed/unowned entries never silently vanish or refill.
+- [ ] 1B.1 Use the recorded D01/D02 decisions and the canonical schema v3 `planning` contract in [plan 01](01-dashboard.md): role-separated Prestige/Playing queues, independent ordered `{characterId,intent}` pins, target/eligibility/removal semantics, unresolved retention and fresh defaults. Ensure cap is five unique active characters per role; completed/unowned entries never silently vanish or refill.
 - [ ] 1B.2 Add failing pure action/validation tests for independent roles/ranks, duplicate/hole/unsafe ID/wrong-role/invalid target/intent/over-cap payload, explicit full-lane swap/cancel, no automatic pinning, approved membership/removal/dual-intent behavior and unknown record recovery. Current Prestige creation requires owned/resolved character and target above current; preserve it.
 - [ ] 1B.3 Add v1→v2→new and v2→new migration fixtures. Preserve original predecessor/source metadata; split known old goals by role preserving within-role relative rank/targets/completion/unavailable state. Preserve unknown valid goals in explicit unresolved storage without guessing role. New Playing/pins default empty; no auto-fill, truncation or silent corruption repair. Missing older fields can default only in versioned migration; malformed declared-new payload rejects replacement and retains original bytes.
 - [ ] 1B.4 Implement validator/fresh defaults/version dispatch, writer-only persisted migration, predecessor backup and read-only pending migration. Audit `TrackerStorage.load`'s current hardcoded empty-save source version and migration reason along with model dispatch; keep historical v2 validation available for the migration chain. Test backup/write failures, raw recovery, idempotence, stale storage event and import/restore/reset/cancel paths. Include queue state in backups/export/round trips; derive effective perk fields afresh and ignore them on import. Update Data schema label, replacement/default warnings and version-specific migration reason text.
@@ -682,8 +682,8 @@ Run against the exact staged bundle/hash in a disposable profile; record human r
 
 ## Roadmap Quality / Cross-Check
 
-Phase 1A can be taken independently: exact source/fixtures, preserved v2 behavior, missing test cases, commands, acceptance and downstream gates are stated. Phase 1B deliberately cannot be implemented until product answers determine its fields/acceptance. Shared shell precedes fitted screens; operational primitives precede both inventories; retirement follows both capability proofs; final schema consumers/import compatibility activate atomically. Every Core requirement is assigned to a phase/test/visual gate above.
+Phase 1A can be taken independently: exact source/fixtures, preserved v2 behavior, missing test cases, commands, acceptance and downstream gates are stated. D01/D02 are now approved; Phase 1B must encode those semantics and activate all schema consumers atomically. Shared shell precedes fitted screens; operational primitives precede both inventories; retirement follows both capability proofs; final schema consumers/import compatibility activate atomically. Every Core requirement is assigned to a phase/test/visual gate above.
 
 No source evidence requires changing settled designs or plans 00–06. Runtime documentation/harness updates are necessary implementation tasks, not product-direction corrections. No optional dependency matrix is added because the graph, phase table and test map already cover those relationships without a duplicate checklist.
 
-**Ready to execute one phase at a time after execution authorization**, starting at Phase 0; D01/D02 may remain pending while independent work proceeds, but block 1B, dependent Dashboard acceptance and final Core completion. No phase was executed by creating this roadmap.
+**Phase 0–10 are complete; Phases 1B, 11 and 12 are authorized for the current batch.** D01/D02 are recorded in the decision register. Stop after Phase 12; Phases 13–14, final acceptance and deployment require separate authorization.

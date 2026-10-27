@@ -691,7 +691,7 @@ export async function survivorAddonRarityNavigationRegression(page,origin){
  await page.locator('#stock-family-nav-'+family).click();
  await page.locator('#inventory-item').selectOption(selectedItem.id);
  assert.equal(await bytes(),savedWithQuantity,'Changing Item sections does not alter inventory JSON');
- assert.equal(JSON.parse(await bytes()).schemaVersion,2,'Inventory remains valid schema-v2 JSON');
+ assert.equal(JSON.parse(await bytes()).schemaVersion,3,'Inventory remains valid schema-v3 JSON');
  assert.equal(await bytes(),savedWithQuantity,'Rarity sorting and Item navigation do not change inventory JSON');
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){

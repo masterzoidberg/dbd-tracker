@@ -54,7 +54,8 @@ export async function dataFlowsRegression(page, origin) {
   before.characters['meg-thomas'].bloodwebLevel = 25;
   before.characters['meg-thomas'].favorite = true;
   before.characters['meg-thomas'].owned = true;
-  before.prestigeQueue = [{ characterId: 'future-goal-only', targetPrestige: 9 }];
+  before.planning.unresolved = [{ queue: 'prestige', role: null, rank: 0,
+    record: { characterId: 'future-goal-only', targetPrestige: 9 } }];
   before.characters['meg-thomas'].inventory.items['survivor-item-test-future'] = 8;
   before.characters['meg-thomas'].inventory.items['survivor-item-key-broken-key'] = 17;
   before.characters['meg-thomas'].inventory.addons['survivor-addon-test-future'] = 5;
@@ -62,23 +63,26 @@ export async function dataFlowsRegression(page, origin) {
   before.characters['the-doctor'].inventory.addons['killer-addon-test-future'] = 7;
   await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), before);
   await page.goto(origin+'/#dashboard');await page.reload();
-  await page.getByRole('button',{name:'Add Meg Thomas to queue',exact:true}).click();
+  await page.locator('#queue-management > summary').click();
+  await page.locator('#queue-add-survivor').click();
+  await page.locator('#queue-character').selectOption('meg-thomas');
+  await page.locator('[data-action="queue-select"]').click();
   await page.locator('#queue-target').fill('6');
   await page.getByRole('button',{name:'Save target',exact:true}).click();
-  before.prestigeQueue.push({characterId:'meg-thomas',targetPrestige:6});
-  assert.deepEqual(JSON.parse(await page.evaluate(()=>localStorage.getItem('dbdTrackerData'))).prestigeQueue,before.prestigeQueue);
+  before.planning.prestigeQueues.survivor.push({characterId:'meg-thomas',targetPrestige:6});
+  assert.deepEqual(JSON.parse(await page.evaluate(()=>localStorage.getItem('dbdTrackerData'))).planning,before.planning);
   await page.goto(origin + '/#data'); await page.reload();
   const bytes = () => page.evaluate(() => localStorage.getItem('dbdTrackerData'));
   const predecessor = await bytes();
-  assert.ok((await page.locator('#main').textContent()).includes('SCHEMA v2'));
+  assert.ok((await page.locator('#main').textContent()).includes('SCHEMA v3'));
   const downloadEvent = page.waitForEvent('download');
   await page.locator('#main [data-action="export"]').click();
   const download = await downloadEvent;
   const exported = JSON.parse(await readFile(await download.path(), 'utf8'));
   assert.equal(exported.characters['meg-thomas'].bloodwebLevel, 25);
   assert.equal(exported.characters['meg-thomas'].favorite, true);
-  assert.equal(exported.schemaVersion, 2);
-  assert.deepEqual(exported.prestigeQueue, before.prestigeQueue);
+  assert.equal(exported.schemaVersion, 3);
+  assert.deepEqual(exported.planning, before.planning);
   assert.deepEqual(exported.characters['meg-thomas'].inventory, before.characters['meg-thomas'].inventory);
   assert.deepEqual(exported.characters['the-doctor'].inventory, before.characters['the-doctor'].inventory);
   assert.ok(!JSON.stringify(exported).includes('images/'));
@@ -96,7 +100,7 @@ export async function dataFlowsRegression(page, origin) {
   assert.equal(imported.characters['meg-thomas'].bloodwebLevel, 31);
   assert.equal(imported.characters['meg-thomas'].perks['borrowed-time'], 0);
   assert.equal(imported.characters['meg-thomas'].perks['unknown-safe-perk'], 2);
-  assert.deepEqual(imported.prestigeQueue, before.prestigeQueue);
+  assert.deepEqual(imported.planning, before.planning);
   assert.deepEqual(imported.characters['meg-thomas'].inventory, before.characters['meg-thomas'].inventory);
   assert.ok(await page.locator('[data-action="restore"]').count() >= 1);
   const importedBytes = await bytes();
@@ -106,7 +110,7 @@ export async function dataFlowsRegression(page, origin) {
   await page.locator('[data-action="restore"]').first().click(); await page.locator('#confirm-accept').click();
   await page.waitForFunction(() => document.querySelector('#message').textContent.startsWith('Backup restored.'));
   assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].bloodwebLevel, 25);
-  assert.deepEqual(JSON.parse(await bytes()).prestigeQueue, before.prestigeQueue);
+  assert.deepEqual(JSON.parse(await bytes()).planning, before.planning);
   assert.deepEqual(JSON.parse(await bytes()).characters['the-doctor'].inventory, before.characters['the-doctor'].inventory);
   const restoredBytes = await bytes();
   await importFile('invalid JSON');
@@ -121,13 +125,13 @@ export async function dataFlowsRegression(page, origin) {
   assert.equal(reset.characters['meg-thomas'].bloodwebLevel, 1);
   assert.equal(reset.characters['meg-thomas'].favorite, false);
   assert.ok(await page.locator('[data-action="restore"]').count() >= 3);
-  assert.deepEqual(reset.prestigeQueue, []);
+  assert.deepEqual(reset.planning, freshSave().planning);
   assert.deepEqual(reset.characters['meg-thomas'].inventory, { items: {}, addons: {} });
 
-  // A v1 replacement has no stock/queue; its confirmation must disclose that loss.
+  // A v1 replacement has no stock/planning state; its confirmation must disclose the empty defaults.
   const legacy = structuredClone(before);
   legacy.schemaVersion = 1;
-  delete legacy.prestigeQueue;
+  delete legacy.planning;
   for (const progress of Object.values(legacy.characters)) delete progress.inventory;
   await importFile(JSON.stringify(legacy));
   assert.match(await page.locator('#confirm-text').textContent(), /empty.*queue.*inventory|queue.*inventory.*empty/i);
@@ -136,8 +140,8 @@ export async function dataFlowsRegression(page, origin) {
   await importFile(JSON.stringify(legacy)); await page.locator('#confirm-accept').click();
   await page.waitForFunction(() => document.querySelector('#message').textContent.startsWith('Import complete.'));
   const migrated = JSON.parse(await bytes());
-  assert.equal(migrated.schemaVersion, 2);
-  assert.deepEqual(migrated.prestigeQueue, []);
+  assert.equal(migrated.schemaVersion, 3);
+  assert.deepEqual(migrated.planning, freshSave().planning);
   assert.deepEqual(migrated.characters['meg-thomas'].inventory, { items: {}, addons: {} });
   const oldBackup = { id: 'v1-fixture', reason: 'Synthetic v1 backup', createdAt: before.updatedAt, save: legacy };
   await page.evaluate(b => localStorage.setItem('dbdTrackerBackups', JSON.stringify([b])), oldBackup);

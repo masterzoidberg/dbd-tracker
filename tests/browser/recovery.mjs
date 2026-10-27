@@ -9,7 +9,8 @@ const candidate = freshSave();
 candidate.characters['meg-thomas'].bloodwebLevel = 31;
 candidate.characters['meg-thomas'].favorite = true;
 candidate.characters['meg-thomas'].perks = { camaraderie: 0, renewal: 2, 'future-perk': 1 };
-candidate.prestigeQueue = [{ characterId: 'future-goal-only', targetPrestige: 9 }];
+candidate.planning.unresolved = [{ queue: 'prestige', role: null, rank: 0,
+  record: { characterId: 'future-goal-only', targetPrestige: 9 } }];
 candidate.characters['meg-thomas'].inventory.items['survivor-item-test-future'] = 7;
 candidate.characters['meg-thomas'].inventory.items['survivor-item-key-broken-key'] = 4;
 candidate.characters['meg-thomas'].inventory.addons['survivor-addon-flashlight-battery'] = 6;
@@ -36,7 +37,7 @@ async function expectRecovered(page) {
   assert.equal(saved.characters['meg-thomas'].bloodwebLevel, 31);
   assert.equal(saved.characters['meg-thomas'].favorite, true);
   assert.deepEqual(saved.characters['meg-thomas'].perks, { camaraderie: 0, 'second-wind': 2, 'future-perk': 1 });
-  assert.deepEqual(saved.prestigeQueue, candidate.prestigeQueue);
+  assert.deepEqual(saved.planning, candidate.planning);
   assert.deepEqual(saved.characters['meg-thomas'].inventory, candidate.characters['meg-thomas'].inventory);
   assert.deepEqual(saved.characters['the-doctor'].inventory, candidate.characters['the-doctor'].inventory);
   assert.deepEqual(await recoveryCopies(page), [original]);

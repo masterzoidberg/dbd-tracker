@@ -2,11 +2,12 @@ import { characters, characterById, perks, perkById, perkAliases } from '../data
 import { inventoryEntityById } from '../data/inventory-catalog.js';
 import { freshInventory, canonicalizeQuantityMaps } from './inventory-quantities.js';
 import { validatePrestigeQueue } from './prestige-queue.js';
+import { freshPlanning, validatePlanningState } from './planning-state.js';
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 const freshLegacyProgress = () => ({ owned: false, prestige: 0, bloodwebLevel: 1, setupComplete: false, favorite: false, notes: '', perks: {}, updatedAt: null });
 export const freshProgress = () => ({ ...freshLegacyProgress(), inventory: freshInventory() });
-export const freshSave = () => ({ schemaVersion: SCHEMA_VERSION, prestigeQueue: [], accountRulesVersion: 1, inventoryPolicy: 'bloodweb', setupComplete: false, accountCorrectionApplied: true, settings: { halloweenNames: 'original', hellraiserNames: 'original' }, updatedAt: new Date().toISOString(), characters: Object.fromEntries(characters.map(c => [c.id, freshProgress()])), perkOverrides: {} });
+export const freshSave = () => ({ schemaVersion: SCHEMA_VERSION, planning: freshPlanning(), accountRulesVersion: 1, inventoryPolicy: 'bloodweb', setupComplete: false, accountCorrectionApplied: true, settings: { halloweenNames: 'original', hellraiserNames: 'original' }, updatedAt: new Date().toISOString(), characters: Object.fromEntries(characters.map(c => [c.id, freshProgress()])), perkOverrides: {} });
 export const prestigeTier = prestige => Math.min(3, Math.max(0, prestige));
 export const globalTier = (save, perk) => Math.max(prestigeTier(save.characters[perk.sourceCharacterId]?.prestige || 0), save.perkOverrides[perk.id]?.shrineTier || 0, save.perkOverrides[perk.id]?.legacyTier || 0, save.perkOverrides[perk.id]?.manualTier || 0);
 export const isAvailable = (save, perk) => perk.general || globalTier(save, perk) > 0;
@@ -146,20 +147,42 @@ export function migrateData(data) {
 }
 export function validateSave(input, options = {}) {
   check(isObject(input) && 'schemaVersion' in input, 'This does not appear to be a DBD Tracker export.');
-  check(input.schemaVersion === 1 || input.schemaVersion === SCHEMA_VERSION,
-    `Unsupported schema version: ${input.schemaVersion}. This tracker supports schema versions 1 and ${SCHEMA_VERSION}.`);
+  check(input.schemaVersion === 1 || input.schemaVersion === 2 || input.schemaVersion === SCHEMA_VERSION,
+    `Unsupported schema version: ${input.schemaVersion}. This tracker supports schema versions 1, 2 and ${SCHEMA_VERSION}.`);
   const sourceSchemaVersion = input.schemaVersion;
-  if (sourceSchemaVersion === 2) {
-    return { ...validateCompleteV2(input, options), sourceSchemaVersion, migrationRequired: false, predecessor: null };
+  if (sourceSchemaVersion === 3) {
+    return { ...validateCompleteV3(input, options), sourceSchemaVersion, migrationRequired: false, predecessor: null };
   }
-  const legacy = validateBaseSave(input);
-  const next = structuredClone(legacy.save);
-  next.schemaVersion = 2;
-  next.prestigeQueue = [];
-  for (const progress of Object.values(next.characters)) progress.inventory = freshInventory();
-  const result = validateCompleteV2(next, options);
-  return { ...result, warnings: [...new Set([...legacy.warnings, ...result.warnings])],
-    sourceSchemaVersion, migrationRequired: true, predecessor: legacy.save };
+  let v2;
+  let warnings = [];
+  if (sourceSchemaVersion === 1) {
+    const legacy = validateBaseSave(input);
+    const next = structuredClone(legacy.save);
+    next.schemaVersion = 2;
+    next.prestigeQueue = [];
+    for (const progress of Object.values(next.characters)) progress.inventory = freshInventory();
+    v2 = validateCompleteV2(next, options);
+    warnings = legacy.warnings;
+  } else v2 = validateCompleteV2(input, options);
+  const result = migrateV2ToV3(v2.save, sourceSchemaVersion === 2 ? input : v2.save);
+  return { ...result, warnings: [...new Set([...warnings, ...v2.warnings, ...result.warnings])],
+    sourceSchemaVersion, migrationRequired: true, predecessor: sourceSchemaVersion === 1 ? validateBaseSave(input).save : input };
+}
+
+function migrateV2ToV3(v2, original) {
+  const planning = freshPlanning();
+  for (const [rank, entry] of v2.prestigeQueue.entries()) {
+    const character = characterById[entry.characterId];
+    const source = original.prestigeQueue[rank] ?? entry;
+    if (!character) {
+      planning.unresolved.push({ queue: 'prestige', role: null, rank, record: structuredClone(source) });
+      continue;
+    }
+    planning.prestigeQueues[character.role].push({ ...structuredClone(source), characterId: entry.characterId, targetPrestige: entry.targetPrestige });
+  }
+  const next = { ...v2, schemaVersion: SCHEMA_VERSION, planning };
+  delete next.prestigeQueue;
+  return validateCompleteV3(next);
 }
 function validateBaseSave(data) {
   check(isObject(data.characters) && isObject(data.perkOverrides), 'The export must contain characters and perkOverrides objects.');
@@ -221,6 +244,23 @@ export function validateCompleteV2(input, { inventoryCatalog = inventoryEntityBy
   }
   for (const entry of save.prestigeQueue) {
     if (!Object.hasOwn(characterById, entry.characterId)) warnings.push('Unknown queue character preserved: ' + entry.characterId);
+  }
+  return { save, warnings };
+}
+export function validateCompleteV3(input, { inventoryCatalog = inventoryEntityById } = {}) {
+  check(isObject(input) && input.schemaVersion === 3, 'Complete schema v3 is required.');
+  check(!Object.hasOwn(input, 'prestigeQueue'), 'Schema v3 cannot contain the legacy prestigeQueue field.');
+  const { save, warnings } = validateBaseSave(input);
+  save.schemaVersion = 3;
+  const validatedPlanning = validatePlanningState(input.planning);
+  save.planning = validatedPlanning.planning;
+  warnings.push(...validatedPlanning.warnings);
+  for (const [id, progress] of Object.entries(save.characters)) {
+    if (Object.hasOwn(input.characters, id)) {
+      const result = canonicalizeQuantityMaps(input.characters[id].inventory, id, inventoryCatalog);
+      progress.inventory = result.inventory;
+      warnings.push(...result.warnings);
+    } else progress.inventory = freshInventory();
   }
   return { save, warnings };
 }

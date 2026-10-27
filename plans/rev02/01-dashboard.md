@@ -67,13 +67,13 @@ Show only pinned Killers, in the user's independent Killer ranking. Each can car
 
 The Prestige Queue answers **“Who do I intend to level or prestige?”** It may contain more characters than the Dashboard shortlist. A queued character may be pinned to Up Next, but pin ranking is curated separately from Prestige Queue rank. Queue membership or a recommendation must not automatically promote a character to Up Next.
 
-The current application has a persisted Prestige Queue, but it is one globally ordered list of character IDs and target Prestige values. It does not currently have a role-specific queue, an Up Next pin, or an independent Up Next rank. The current Dashboard's “My Prestige Queue” panel previews and manages this longer list, and derives one Current Focus from the first available, unfinished goal. Rev02 should surface only pinned entries in Up Next; it should not repeat the entire queue or add a separate Current Focus block that duplicates the curated list. Rev02 Core must include a subordinate Manage queues surface reached from Up Next, with role and Prestige/Playing separation. It need not add a seventh global navigation destination. Preserve existing Prestige add/target/remove/reorder capabilities; queue/pin contract gates D01/D02 remain explicit below.
+The current application has a persisted Prestige Queue, but it is one globally ordered list of character IDs and target Prestige values. It does not currently have a role-specific queue, an Up Next pin, or an independent Up Next rank. The current Dashboard's “My Prestige Queue” panel previews and manages this longer list, and derives one Current Focus from the first available, unfinished goal. Rev02 should surface only pinned entries in Up Next; it should not repeat the entire queue or add a separate Current Focus block that duplicates the curated list. Rev02 Core must include a subordinate Manage queues surface reached from Up Next, with role and Prestige/Playing separation. It need not add a seventh global navigation destination. Preserve existing Prestige add/target/remove/reorder capabilities and the approved D01/D02 semantics recorded in [the decision register](00b-open-design-questions.md).
 
 #### Relationship to Playing Queue
 
 The Playing Queue answers **“Who do I actually want to play soon?”** It is separate from Prestige intent because a progression goal and a play-interest priority can differ. It is also role-separated: Playing Survivors and Playing Killers have their own lists.
 
-The current application has no Playing Queue or persisted Playing intent. Up Next must not infer this intent from Favorites, recent edits, or Prestige recommendations. A subordinate Manage queues surface is required in Core to add/remove/reorder Playing entries independently per role. Exact dialog/inline geometry is an engineering detail; membership/pin semantics await D01/D02. This does not add a fourth primary Dashboard job.
+The current application has no Playing Queue or persisted Playing intent. Up Next must not infer this intent from Favorites, recent edits, or Prestige recommendations. A subordinate Manage queues surface is required in Core to add/remove/reorder Playing entries independently per role. The approved D01/D02 membership and pin semantics are recorded in [the decision register](00b-open-design-questions.md). Exact dialog/inline geometry is an engineering detail. This does not add a fourth primary Dashboard job.
 
 ### 3. Continue Where You Left Off
 
@@ -147,16 +147,16 @@ Global shell actions such as save status, Export JSON, and Run character setups 
 
 ### Likely New Persisted Account State
 
-The following is a **recommended logical shape**, not an implemented or approved final schema. Resolve D01/D02 before fixing the pin entry/membership contract.
+Schema v3 uses one `planning` object as the sole writable planning state. Array position is manual rank; completion and availability are derived from current progression/catalog facts rather than persisted as stale flags.
 
 | State | Logical contents / ordering | Default / constraints |
 | --- | --- | --- |
-| Prestige queues by role | `prestigeQueues.survivor/killer`: ordered `{characterId,targetPrestige}` entries | Independent array rank; preserve target, completion and unavailable semantics. No five-entry limit on longer queues. |
-| Playing queues by role | `playingQueues.survivor/killer`: ordered character references | Independent manually editable lists; no inferred Favorites/recent intent and no invented Prestige target. |
-| Up Next by role | `upNext.survivor/killer`: ordered character references plus explicit intent representation | Unique character per lane, max five each, manual order independent of both longer queues. Intent representation gated by D01; membership validation gated by D02. |
-| Unresolved migrated planning records, if needed | Preserve unresolved old queue entries in a labeled read-only bucket when role cannot be resolved | Do not guess a role or discard unknown valid goals. Exact storage field is an engineering choice. |
+| Prestige queues by role | `planning.prestigeQueues.survivor/killer`: ordered `{characterId,targetPrestige}` entries | Independent array rank; preserve target; completion/unavailable is derived. No five-entry limit on longer queues. |
+| Playing queues by role | `planning.playingQueues.survivor/killer`: ordered `{characterId}` entries | Independent manually editable lists; no inferred Favorites/recent intent and no invented Prestige target. |
+| Up Next by role | `planning.upNext.survivor/killer`: ordered `{characterId,intent}` pins; intent is `prestige` or `play` | Unique character per lane, max five active pins each, manual order independent of both longer queues. Direct pin needs no queue membership; other-queue membership may appear as secondary context. |
+| Unresolved planning records | `planning.unresolved`: ordered `{queue,role,rank,record}` wrappers, where `role` may be `null` if unknown | Preserve the source queue, role when supplied, original rank and full record. Keep unresolved records read-only and outside active lanes; never guess a role or discard a valid unknown goal/pin. |
 
-Do not retain the legacy global queue and new role queues as competing writable sources. Prefer a versioned migration, likely schema v3 because old v2 validation reconstructs known fields and would silently strip added queue/pin data. `validateSave`, fresh defaults, `TrackerStorage.load/save/replace`, migration backup copy, import summaries/reset warnings, Data schema display and export all require compatible updates. No version bump or code change is made now.
+The `planning` object is the sole writable planning state; schema v3 does not retain the legacy global `prestigeQueue`. Split known old goals by canonical role while preserving within-role order, target and derived completion/unavailable behavior. Move unknown IDs to `planning.unresolved` with the original cross-role rank and record rather than guessing a role. `validateSave`, fresh defaults, `TrackerStorage.load/save/replace`, migration backup copy, import summaries/reset warnings, Data schema display and export all require compatible updates.
 
 ### Migration / Old Export Compatibility
 
@@ -170,11 +170,11 @@ Do not retain the legacy global queue and new role queues as competing writable 
 
 ### Validation / Malformed-State Recovery
 
-Use canonical safe IDs, supported roles, dense arrays, unique entries, valid targets/intent and max five unique pins per role. Known character IDs must agree with lane role. Keep completed/unowned saved goals visible as such rather than silently removing them or refilling pins; creation eligibility must preserve existing Prestige rules. Whether pin creation requires owned/queued membership must follow D01/D02, not an undocumented selector.
+Use canonical safe IDs, supported roles, dense arrays, unique entries, valid targets/intent and max five active unique pins per role. Known character IDs must agree with lane role. Preserve completed/unowned saved goals and pins rather than silently removing them or refilling lanes; creation eligibility must preserve existing Prestige rules. Direct pins are allowed and do not create membership; queue membership changes do not remove, reorder or retarget pins. Unknown or unresolved pins remain visible as read-only recovery information and never count as a hidden sixth active pin.
 
 New-state validation must distinguish missing fields in supported **older-version migration** (default empty) from malformed declared new-version fields (reject replacement, retain original). Do not silently truncate over-cap lanes, drop duplicates or manufacture ordering on corrupt portable input. Offer the existing raw export/import/backup recovery path. Valid unresolved records are preserved read-only and excluded from active resolved pin slots, with any retention container explicit; do not erase them to make the Dashboard look tidy. Final unresolved-pin policy must honor the unique/five limits without presenting a hidden sixth active entry.
 
-Reorders move one entry within its role lane and commit atomically. New pin in full lane presents its current five for explicit replace/unpin or Cancel; no silent eviction. Recommended replacement occupies the chosen rank and is one atomic edit. Queue edits cannot silently change pin rank. Completion, unowning, queue removal and dual intent must have explicit no-data-loss rules; the final membership/intent-dependent portions remain D01/D02 gates.
+Reorders move one entry within its role lane and commit atomically. New pin in full lane presents its current five for explicit replace/unpin or Cancel; no silent eviction. Recommended replacement occupies the chosen rank and is one atomic edit. Queue edits cannot silently change pin rank. Completion, unowning, queue removal and dual membership preserve pin data and explicit intent under the approved D01/D02 decisions.
 
 ### Continue State and Routing
 
@@ -182,11 +182,11 @@ Recommended local-only logical value: `{characterId, section, visitedAt?}` with 
 
 ### Queue Management Boundary
 
-Up Next exposes pin/edit/reorder and a subordinate **Manage queues** entry. The management surface distinguishes role and Prestige/Playing, retains valid target editing and independent add/remove/reorder, exposes unknown goals read-only, and does not duplicate a Current Focus primary panel. It can be an inline expansion or accessible dialog according to actual content fit; no new global route is required. There is enough scope for a roadmap, but D01/D02 must precede final schema/interaction acceptance.
+Up Next exposes pin/edit/reorder and a subordinate **Manage queues** entry. The management surface distinguishes role and Prestige/Playing, retains valid target editing and independent add/remove/reorder, exposes unknown goals read-only, and does not duplicate a Current Focus primary panel. It can be an inline expansion or accessible dialog according to actual content fit; no new global route is required. The approved D01/D02 decisions precede and govern the final schema/interaction contract.
 
 ## Open Product Decisions
 
-Only **D01** (dual intent/one pin representation) and **D02** (direct pin versus queue membership) still require user input; options/rationale are retained centrally. D03 is resolved as explicit full-lane replacement/cancel; D04 stable browse-only resume; D05 browser-local preference. Exact fields, migration fixtures, control geometry and route-hook placement are engineering details after the product gates.
+**D01 and D02 are approved** and recorded centrally. D03 is resolved as explicit full-lane replacement/cancel; D04 stable browse-only resume; D05 browser-local preference. Exact fields, migration fixtures, control geometry and route-hook placement are engineering details for Phase 1B/11.
 
 ## Dependencies / Verification Implications
 

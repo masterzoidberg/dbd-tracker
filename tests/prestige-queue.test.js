@@ -10,12 +10,13 @@ function queueFixture() {
   save.characters['meg-thomas'].owned = true;
   save.characters['meg-thomas'].prestige = 1;
   save.characters['dwight-fairfield'].owned = true;
-  save.prestigeQueue = [
+  save.planning.prestigeQueues.survivor = [
     { characterId: 'meg-thomas', targetPrestige: 1 },
-    { characterId: 'the-trapper', targetPrestige: 3 },
-    { characterId: 'future-goal-only', targetPrestige: 9 },
-    { characterId: 'dwight-fairfield', targetPrestige: 1 },
+    { characterId: 'dwight-fairfield', targetPrestige: 2 },
   ];
+  save.planning.prestigeQueues.killer = [{ characterId: 'the-trapper', targetPrestige: 3 }];
+  save.planning.unresolved = [{ queue: 'prestige', role: null, rank: 2,
+    record: { characterId: 'future-goal-only', targetPrestige: 9 } }];
   return save;
 }
 
@@ -23,22 +24,21 @@ test('derived focus skips complete unowned unknown and reactivates corrections w
   const save = queueFixture(), original = structuredClone(save);
   const derived = queue.derivePrestigeQueue(save);
   assert.equal(derived.focus.entry.characterId, 'dwight-fairfield');
-  assert.equal(derived.focus.index, 3);
+  assert.equal(derived.focus.index, 1);
   assert.equal(derived.rows[0].complete, true);
-  assert.equal(derived.rows[1].unavailable, true);
-  assert.equal(derived.rows[2].complete, null);
-  assert.equal(derived.rows[2].character, null);
-  assert.equal(derived.rows[2].progress, null);
+  assert.equal(derived.rows[1].complete, false);
+  assert.equal(derived.rows[2].unavailable, true);
   assert.deepEqual(save, original);
   save.characters['meg-thomas'].prestige = 0;
   assert.equal(queue.derivePrestigeQueue(save).focus.entry.characterId, 'meg-thomas');
   save.characters['meg-thomas'].owned = false;
+  assert.equal(queue.derivePrestigeQueue(save).focus.entry.characterId, 'dwight-fairfield');
+  save.characters['dwight-fairfield'].owned = false;
   save.characters['the-trapper'].owned = true;
   assert.equal(queue.derivePrestigeQueue(save).focus.entry.characterId, 'the-trapper');
   save.characters['the-trapper'].owned = false;
-  save.characters['dwight-fairfield'].owned = false;
   assert.equal(queue.derivePrestigeQueue(save).focus, null);
-  assert.deepEqual(save.prestigeQueue, original.prestigeQueue);
+  assert.deepEqual(save.planning, original.planning);
 });
 
 test('queue mutations only change manual intent and distinguish creation from persisted validity', () => {
@@ -54,7 +54,7 @@ test('queue mutations only change manual intent and distinguish creation from pe
   assert.equal(queue.applyPrestigeQueueAction(save, { type: 'target', characterId: 'meg-thomas', targetPrestige: 6 }), false);
   save.characters['meg-thomas'].prestige = 6;
   assert.throws(() => queue.applyPrestigeQueueAction(save, { type: 'target', characterId: 'meg-thomas', targetPrestige: 6 }), /greater|current/i);
-  assert.equal(validatePrestigeQueue(save.prestigeQueue)[0].targetPrestige, 6);
+  assert.equal(validatePrestigeQueue(save.planning.prestigeQueues.survivor)[0].targetPrestige, 6);
   assert.equal(queue.applyPrestigeQueueAction(save, { type: 'remove', characterId: 'meg-thomas' }), true);
   assert.equal(queue.applyPrestigeQueueAction(save, { type: 'remove', characterId: 'meg-thomas' }), false);
   // These deliberate fixture corrections aside, domain actions never stamp or change characters.
@@ -64,14 +64,14 @@ test('queue mutations only change manual intent and distinguish creation from pe
   assert.equal(save.updatedAt, timestamp);
 });
 
-test('unknown goals support remove and adjacent moves but not target editing', () => {
+test('moves and removals stay within one role queue and never alter unresolved goals', () => {
   const save = queueFixture(), initial = structuredClone(save);
   assert.equal(queue.applyPrestigeQueueAction(save, { type: 'move', characterId: 'meg-thomas', direction: -1 }), false);
-  assert.equal(queue.applyPrestigeQueueAction(save, { type: 'move', characterId: 'future-goal-only', direction: -1 }), true);
-  assert.deepEqual(save.prestigeQueue.map(e => e.characterId), ['meg-thomas', 'future-goal-only', 'the-trapper', 'dwight-fairfield']);
-  assert.throws(() => queue.applyPrestigeQueueAction(save, { type: 'target', characterId: 'future-goal-only', targetPrestige: 12 }), /character|resolved/i);
-  assert.throws(() => queue.applyPrestigeQueueAction(save, { type: 'move', characterId: 'future-goal-only', direction: 2 }), /direction/i);
-  assert.equal(queue.applyPrestigeQueueAction(save, { type: 'remove', characterId: 'future-goal-only' }), true);
+  assert.equal(queue.applyPrestigeQueueAction(save, { type: 'move', characterId: 'dwight-fairfield', direction: -1 }), true);
+  assert.deepEqual(save.planning.prestigeQueues.survivor.map(e => e.characterId), ['dwight-fairfield', 'meg-thomas']);
+  assert.throws(() => queue.applyPrestigeQueueAction(save, { type: 'move', characterId: 'meg-thomas', direction: 2 }), /direction/i);
+  assert.equal(queue.applyPrestigeQueueAction(save, { type: 'remove', characterId: 'the-trapper' }), true);
+  assert.deepEqual(save.planning.unresolved, initial.planning.unresolved);
   assert.deepEqual(save.characters, initial.characters);
   assert.deepEqual(save.perkOverrides, initial.perkOverrides);
 });
@@ -89,7 +89,7 @@ test('invalid queue actions do not mutate queue or other save state', () => {
   ]) {
     const before = structuredClone(save);
     assert.throws(() => queue.applyPrestigeQueueAction(save, action),
-      /positive safe integer|existing goal|Invalid Prestige Queue action/);
+      /positive safe integer|existing goal|No Prestige goal|Invalid Prestige Queue action/);
     assert.deepEqual(save, before);
   }
 });
@@ -97,7 +97,7 @@ test('invalid queue actions do not mutate queue or other save state', () => {
 test('catalog-resolved goal without saved progress is unavailable and never fabricates a record', () => {
   const save = freshSave();
   delete save.characters['meg-thomas'];
-  save.prestigeQueue = [{ characterId: 'meg-thomas', targetPrestige: 1 }];
+  save.planning.prestigeQueues.survivor = [{ characterId: 'meg-thomas', targetPrestige: 1 }];
   const { rows, focus } = queue.derivePrestigeQueue(save);
   assert.equal(rows[0].progress, null);
   assert.equal(rows[0].complete, null);

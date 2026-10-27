@@ -222,7 +222,7 @@ test('JSON, storage reload and aliases preserve confirmed zeroes, missing record
   assert.equal(loaded.characters['meg-thomas'].perks.unbreakable, 0);
   assert.equal(Object.hasOwn(loaded.characters['kate-denson'].perks, 'unbreakable'), false);
   assert.ok(historicalOwnershipControl(loaded, 'ace-visconti', perkById.unbreakable).includes('value="2" selected'));
-  assert.equal(loaded.schemaVersion, 2);
-  assert.deepEqual(loaded.prestigeQueue, []);
+  assert.equal(loaded.schemaVersion, 3);
+  assert.deepEqual(loaded.planning.prestigeQueues, { survivor: [], killer: [] });
   assert.deepEqual(loaded.characters['ace-visconti'].inventory, { items: {}, addons: {} });
 });

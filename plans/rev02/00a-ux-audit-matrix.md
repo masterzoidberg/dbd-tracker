@@ -110,7 +110,7 @@ Re-read at local/GitHub `main` commit **351ca1c**, clean before edits; `git ls-r
 
 | Core surface | Planning status / artifact | Closed decisions / remaining dependencies |
 | --- | --- | --- |
-| Dashboard | Complete direction + source-grounded state review, plan 01 | Three jobs, separate max-five manual role lanes; schema migration/validation/backup/import/export requirements identified. D01/D02 remain product gates before final pin contract. Stable browser-local Continue recommended. |
+| Dashboard | Complete direction + source-grounded state review, plan 01 | Three jobs, separate max-five manual role lanes; schema migration/validation/backup/import/export requirements identified. D01/D02 were gates at consolidation and were explicitly approved on 2026-10-27. Stable browser-local Continue recommended. |
 | Survivor roster | Reconciled, plan 02 | Six per page; broad link/Favorite; Owned/Locked display with mutation in Overview; native Account access recommendation qualifies General at global zero; global compact shell. |
 | Survivor workspace | Reconciled, plan 03 | Explicit Update/autosave/Done; separate correction, scoped atomic drafts, giant editor retirement after parity; safe session context; family→Item→compatible Add-ons and shared quantity controls. |
 | Killer roster | Reconciled, plan 04 | Same roster contracts; Power-name identity; Lore source and neutral named Slasher fallback, no Add-ons or square exception. |
@@ -130,7 +130,7 @@ Re-read at local/GitHub `main` commit **351ca1c**, clean before edits; `git ls-r
 | Context separation | Current Update session keyed to route resets search/selection/count; quantity session keyed to character resets values. Future safe session filters must be separated from per-character pending/error state. Density already persists browser-locally. |
 | Reference structure | Power renderer currently recursively prints raw nested keys; runtime structured fields permit summary/sections/component headings without changing datasets. Large Power dialog and smaller Add-on reference can share focus rules without identical geometry. |
 
-SW01–SW04, G01–G07, W01–W08 and KR01 are closed as explicit decisions or clearly labeled bounded recommendations. D03–D05 are closed recommendations. D01/D02 are the only unresolved product questions. Fit/tokens/target sizing, dirty-flow exercise and longest-reference/unknown-state checks are later verification work, not missing Core plans.
+SW01–SW04, G01–G07, W01–W08 and KR01 are closed as explicit decisions or clearly labeled bounded recommendations. D03–D05 are closed recommendations. D01/D02 were the only unresolved product questions at consolidation; both were explicitly approved on 2026-10-27. Fit/tokens/target sizing, dirty-flow exercise and longest-reference/unknown-state checks are later verification work, not missing Core plans.
 
 ## Representative Workflow Costs and Existing Efficiencies
 

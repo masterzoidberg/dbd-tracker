@@ -2,16 +2,16 @@
 
 ## Status
 
-Consolidated 2026-10-25 · Planning only. Explicit user decisions outrank older recommendations. Resolved questions retain their IDs, alternatives and rationale below; engineering checks are separated from product questions. No implementation or final roadmap is included.
+Consolidated 2026-10-25 · D01/D02 approved by explicit user decision on 2026-10-27. Explicit user decisions outrank older recommendations. Resolved questions retain their IDs, alternatives and rationale below; engineering checks are separated from product questions.
 
-## Still Requires User / Product Decision
+## Resolved Queue / Pin Decisions
 
-| ID / question | Known constraints | Recommendation, not approval | Dependency |
-| --- | --- | --- | --- |
-| D01 — Can a character have both Prestige and Playing intent, and how does Up Next represent it? | Separate longer queues; up to five **characters** per role, manual independent pin rank. No duplicate-based cap loophole. | Permit membership in both longer queues; one pin row per character with one chosen primary intent and optional secondary indication. Earlier alternatives were separate rows versus one row with both labels. | Resolve before finalizing pin intent shape, queue-removal behavior and migration validation rules. Does not block creating a roadmap containing this gate. |
-| D02 — May users pin directly without deeper queue membership? | Curated pins are independent of queue order; no automatic pinning from Favorites/recommendations. | Allow direct pin with explicit intent; no implicit queue creation. Alternative: require existing queue membership. Any Prestige goal creation still needs an explicit valid target. | Resolve before finalizing referential membership rules, queue-removal consequences and pin-management acceptance tests. |
+| ID / question | Approved user decision | Consequences |
+| --- | --- | --- |
+| D01 — Can a character have both Prestige and Playing intent, and how does Up Next represent it? | A character may belong to both longer-term queues. Up Next contains at most one pin per character, with exactly one explicit primary intent: Prestige or Play. Membership in the other queue may appear as secondary context; it never creates a second pin row. | Keep queue membership independent; keep each role's Up Next rank independent; do not infer or silently change primary intent. Earlier separate-row and dual-label alternatives are rejected. |
+| D02 — May users pin directly without deeper queue membership? | A character may be pinned directly to Up Next without either queue membership. Pinning creates no queue membership. Queue membership changes do not remove, reorder or retarget a pin. | Up Next is independent explicit user-controlled state. Any Prestige queue goal still requires a valid target and existing eligibility rules. Earlier queue-prerequisite alternative is rejected. |
 
-These are the only remaining product questions in this planning set. They are not answered by the consolidation brief, so no option has been silently approved. They block final queue/pin contract implementation, not preparation of a dependency-aware roadmap. Do not start schema/UI work while treating the proposals as facts.
+These were the only unresolved product questions in this planning set. The user explicitly approved both decisions on 2026-10-27; they are now authoritative for the Phase 1B schema, migration and Dashboard behavior. Field names, target/state representation and unknown-record storage remain engineering decisions that must preserve these semantics.
 
 ## Resolved Global Direction Decisions
 
@@ -67,7 +67,7 @@ Ownership mutation is removed from both mostly navigational roster cards. Displa
 
 - Confirm shell cutoff near the content-derived starting candidate, task widths, art fit, long labels, readable numbers, 200% text/400% reflow and focus clearance. Do not request arbitrary pixel approvals.
 - Audit scope-specific dirty/navigation guards, failed tier retry, external-save conflict and pending quantities across tab/character/Back/filter/context changes. Current general Edit guard is not setup parity.
-- Finalize future schema version/field names, migration chain, role-order preservation and unresolved queue record handling after D01/D02. Validate round trips and fail closed on invalid account-state replacement.
+- Finalize schema fields and migration chain while preserving the approved D01/D02 semantics, role-order preservation and unresolved queue records. Validate round trips and fail closed on invalid account-state replacement.
 - Verify structured longest-Power rendering, per-image containment, missing art and icon qualification without altering reference data.
 - Preserve existing naming settings, density preference, aliases, unknown records, single-writer capability, recovery/backups and untouched screens.
 
@@ -75,4 +75,4 @@ These are acceptance/architecture concerns for the later roadmap. They are not r
 
 ## Readiness
 
-**Ready for implementation-roadmap creation.** The roadmap must include D01/D02 as explicit gates before the final queue/pin schema contract and related UI work. No Core screen plan is missing. Plans 01–06 define behavior, shared constraints and persistence dependencies; full standalone libraries/Data redesign is not a prerequisite. No task-by-task roadmap or implementation is authorized in this consolidation pass.
+**D01/D02 are resolved and recorded.** They no longer block the final queue/pin contract or related Dashboard work. Plans 01–06 define behavior, shared constraints and persistence dependencies; full standalone libraries/Data redesign is not a prerequisite.
