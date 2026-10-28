@@ -83,7 +83,7 @@ export async function portraitsRegression(page, origin, manifest) {
     assert.equal(requests, 1);
     assert.deepEqual(await holder.boundingBox(), before);
     assert.equal(await holder.evaluate(n => n.classList.contains('has-art')), false);
-    await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
+    await page.locator('[data-character-progress-trigger]').click();
     await page.locator('[data-character-task-field="bloodwebLevel"]').fill('26');
     await page.getByRole('button', { name: 'Save progression', exact: true }).click();
     assert.equal(await page.locator('#save-status').textContent(), 'Saved locally');

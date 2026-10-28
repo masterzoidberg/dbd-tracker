@@ -37,13 +37,12 @@ export async function editorRegression(a, origin) {
     const accountStateBeforeEdit = await b.evaluate(() => ({
       save: localStorage.getItem('dbdTrackerData'), backups: localStorage.getItem('dbdTrackerBackups'),
     }));
-    await b.getByRole('button', { name: 'Edit progression', exact: true }).dispatchEvent('click');
-    assert.equal(await b.locator('[data-character-task-field="bloodwebLevel"]').isDisabled(), true);
-    await forcedChange(b, '[data-character-task-field="bloodwebLevel"]', '42', 'input');
+    assert.equal(await b.locator('[data-character-progress-trigger]').count(), 0, 'Read-only Overview values do not advertise an active editor');
+    assert.equal(await b.locator('[data-character-progress]').count(), 2, 'Read-only progression values remain readable');
+    assert.equal(await b.locator('[data-character-task="progression"]').count(), 0, 'Read-only activation cannot open progression editing');
     assert.deepEqual(await b.evaluate(() => ({
       save: localStorage.getItem('dbdTrackerData'), backups: localStorage.getItem('dbdTrackerBackups'),
     })), accountStateBeforeEdit, 'Programmatic progression edit must not write account data');
-    await b.getByRole('button', { name: 'Cancel', exact: true }).click();
     await openGlobalDestination(b, 'Data & backups');
     const accountStateBeforeDeniedActions = await b.evaluate(() => ({
       save: localStorage.getItem('dbdTrackerData'), backups: localStorage.getItem('dbdTrackerBackups'),
@@ -65,7 +64,7 @@ export async function editorRegression(a, origin) {
       assert.ok(await b.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     }
     await detail(a, 'Survivors', 'Meg Thomas');
-    await a.getByRole('button', { name: 'Edit progression', exact: true }).click();
+    await a.locator('[data-character-progress-trigger]').click();
     await a.locator('[data-character-task-field="bloodwebLevel"]').fill('29');
     await a.getByRole('button', { name: 'Save progression', exact: true }).click();
     await b.waitForFunction(() => document.querySelector('#message').textContent.includes('another tab'));
@@ -80,7 +79,7 @@ export async function editorRegression(a, origin) {
     // users close the modal before clicking the notice behind it.
     await b.locator('[data-action="enable-editing"]').dispatchEvent('click');
     await b.waitForFunction(() => document.querySelector('#save-status').textContent === 'Saved locally');
-    await b.getByRole('button', { name: 'Edit progression', exact: true }).click();
+    await b.locator('[data-character-progress-trigger]').click();
     assert.equal(await b.locator('[data-character-task-field="bloodwebLevel"]').inputValue(), '37');
     await b.locator('[data-character-task-field="bloodwebLevel"]').fill('38');
     await b.getByRole('button', { name: 'Save progression', exact: true }).click();
@@ -144,9 +143,9 @@ export async function editorRegression(a, origin) {
     assert.equal(await page.locator('#save-status').textContent(), 'Editing unavailable');
     assert.match(await page.locator('#editor-notice').textContent(), /unavailable/i);
     await detail(page, 'Survivors', 'Meg Thomas');
-    await page.getByRole('button', { name: 'Edit progression', exact: true }).dispatchEvent('click');
-    assert.equal(await page.locator('[data-character-task-field="bloodwebLevel"]').isDisabled(), true);
-    await forcedChange(page, '[data-character-task-field="bloodwebLevel"]', '22', 'input');
+    assert.equal(await page.locator('[data-character-progress-trigger]').count(), 0, 'Unavailable editing keeps the Overview progression read-only');
+    assert.equal(await page.locator('[data-character-progress]').count(), 2, 'Unavailable editing leaves both values readable');
+    assert.equal(await page.locator('[data-character-task="progression"]').count(), 0, 'Unavailable editing cannot open the progression editor');
     assert.deepEqual(await bytes(page), {});
     await isolated.close();
   }

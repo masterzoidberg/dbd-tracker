@@ -2340,16 +2340,37 @@ footer span {
 .character-workspace-title .eyebrow { margin-bottom:5px; }
 .character-workspace-status { display:flex; flex-wrap:wrap; gap:7px; margin-top:9px; }
 .status-chip { display:inline-flex; align-items:center; min-height:26px; padding:4px 8px; border:1px solid var(--border); border-radius:999px; color:var(--muted); font-size:10px; line-height:1.2; }
+.ownership-action { min-height:32px; background:transparent; color:var(--muted); cursor:pointer; }
+.ownership-action:hover { border-color:var(--gold); color:var(--text); }
 .status-chip.is-owned { color:var(--text); border-color:#535056; background:#242427; }
 .status-chip.is-favorite { color:var(--gold); border-color:#58492f; background:#211d16; }
 .character-workspace-favorite { min-height:44px; }
-.character-workspace-progress { display:flex; gap:34px; margin:16px 0 0 98px; }
-.character-workspace-progress>div { display:grid; gap:4px; min-width:92px; }
+.character-workspace-progress-shell { position:relative; width:max-content; max-width:100%; margin:16px 0 0 98px; }
+.character-workspace-progress { display:flex; gap:34px; min-height:44px; padding:0; border:0; background:transparent; color:inherit; font:inherit; text-align:left; }
+.character-workspace-progress.is-editable { cursor:pointer; }
+.character-workspace-progress.is-editable:hover { background:transparent; border-color:transparent; }
+.character-workspace-progress>[data-character-progress] { display:grid; gap:4px; min-width:92px; color:inherit; font-size:inherit; letter-spacing:normal; text-transform:none; }
 .character-workspace-progress span { color:var(--muted); font-size:9px; letter-spacing:1.45px; }
 .character-workspace-progress strong { font-size:18px; font-weight:600; font-variant-numeric:tabular-nums; }
+.character-progress-edit-cue { align-self:center; color:var(--muted); font-size:9px; letter-spacing:.5px; text-transform:uppercase; }
+.character-workspace-progress.is-editable:hover>[data-character-progress] { border-bottom:1px solid var(--gold); }
+.character-workspace-progress.is-editable:hover .character-progress-edit-cue { color:var(--gold); }
+.character-workspace-progress.is-editable:focus { outline:2px solid var(--gold); outline-offset:3px; border-radius:3px; }
+.character-progress-popover { position:relative; display:grid; gap:12px; box-sizing:border-box; width:min(420px,calc(100vw - 32px)); max-height:calc(100dvh - 24px); overflow:auto; margin-top:8px; padding:16px; border:1px solid #51432d; border-radius:6px; background:#1c1b1b; box-shadow:0 12px 32px #0009; }
+.character-progress-popover h2 { margin:0; font-size:15px; }
+.character-progress-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.character-progress-fields label { display:grid; align-content:start; gap:6px; min-width:0; color:var(--muted); font-size:11px; }
+.character-progress-fields input { box-sizing:border-box; width:100%; min-width:0; min-height:44px; font-variant-numeric:tabular-nums; }
+.character-progress-fields input[aria-invalid="true"] { border-color:#e4a29a; }
+.character-task-field-error { color:#f0a39a; font-size:11px; line-height:1.4; }
+.character-task-field-error[hidden] { display:none; }
+.character-progress-popover .dialog-actions { margin-top:0; }
+.character-progress-popover .dialog-actions button { min-width:84px; min-height:44px; }
+.character-progress-popover [data-character-task-errors] { margin:0; }
 .character-workspace-nav { gap:8px; }
 .character-workspace-nav a { background:#171719; border-color:transparent; color:var(--muted); }
 .character-workspace-nav a:hover { border-color:var(--border); color:var(--text); }
+.character-workspace-nav a:focus { outline:2px solid var(--gold); outline-offset:2px; }
 .character-workspace-nav a[aria-current] { color:var(--text); border-color:#6b5939; background:#201d18; box-shadow:inset 0 -2px var(--gold); }
 .character-overview { min-width:0; }
 .character-overview-grid { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr); gap:18px; align-items:start; }
@@ -2368,6 +2389,12 @@ footer span {
 .overview-context p { color:var(--muted); font-size:12px; line-height:1.55; margin-bottom:9px; }
 .overview-context a { color:var(--gold); font-size:12px; }
 .overview-helper { margin-top:14px; line-height:1.6; }
+.overview-setup { align-self:start; display:grid; justify-items:start; gap:7px; min-width:0; padding:4px 0 14px; border-bottom:1px solid var(--border); }
+.overview-setup strong { font-size:12px; font-weight:600; }
+.overview-setup p { max-width:48ch; margin:0; color:var(--muted); font-size:11px; line-height:1.5; }
+.overview-setup a { color:var(--gold); font-size:11px; }
+.overview-setup.needs-attention strong { color:#d6b57b; }
+.overview-setup.is-unowned { border-bottom:0; }
 .character-overview-summary { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:16px; min-width:0; padding:17px 4px; border-top:1px solid var(--border); }
 .character-overview-summary h2 { margin-top:4px; }
 .character-overview-summary>p, .character-overview-summary>.overview-summary-value, .character-overview-summary>.overview-unresolved { grid-column:1 / -1; }
@@ -2392,8 +2419,13 @@ footer span {
 @media(max-width:600px){
   .character-workspace-hero{align-items:flex-start; flex-direction:column; gap:14px;}
   .character-workspace-summary{width:100%;}
-  .character-workspace-progress{margin-left:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;}
-  .character-workspace-progress>div{min-width:0; padding:10px 12px; border:1px solid var(--border); border-radius:4px;}
+  .character-workspace-progress-shell{width:100%; margin-left:0;}
+  .character-workspace-progress{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;}
+  .character-workspace-progress.is-editable{width:100%;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;}
+  .character-workspace-progress>[data-character-progress]{min-width:0; padding:10px 12px; border:1px solid var(--border); border-radius:4px;}
+  .character-workspace-progress.is-editable:hover{background:transparent;border-color:transparent;}
+  .character-workspace-progress.is-editable:hover>[data-character-progress]{border-bottom:1px solid var(--gold);}
+  .character-progress-popover{width:100%;}
   .character-workspace-nav a{flex:1 1 auto; justify-content:center;}
   .overview-native-grid{grid-template-columns:minmax(0,1fr);}
   .character-overview-summary{grid-template-columns:minmax(0,1fr) auto; gap:12px;}
@@ -2402,9 +2434,11 @@ footer span {
 @media(max-width:360px){
   .character-workspace-identity{gap:12px;}
   .character-workspace-identity .portrait-large{flex:0 0 auto;}
-  .character-workspace-progress{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
+  .character-workspace-progress{grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px;}
+  .character-workspace-progress.is-editable{width:100%;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;}
   .character-overview-section{padding:16px;}
 }
+@media(min-width:601px){.character-workspace-favorite{align-self:flex-start;margin-top:48px;}}
 
 
 /* Character Workspace visual redesign: family-first stock */

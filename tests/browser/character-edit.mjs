@@ -12,6 +12,8 @@ export async function characterContextualTaskRegression(page, origin) {
   ]) {
     const save = freshSave();
     save.characters[id].notes = 'Existing note';
+    save.characters[id].prestige = 2;
+    save.characters[id].bloodwebLevel = 23;
     save.characters[id].inventory.addons[unknownAddonId] = 7;
     await page.evaluate(value => localStorage.setItem('dbdTrackerData', JSON.stringify(value)), save);
     await page.goto(origin + '/#character/' + id + '/overview');
@@ -20,12 +22,52 @@ export async function characterContextualTaskRegression(page, origin) {
     assert.equal(JSON.parse(before).characters[id].notes, 'Existing note', role + ' synthetic starting note was seeded');
     assert.match(await page.locator('[data-character-header]').textContent(), new RegExp(role));
 
-    await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
+    const progressTrigger = page.getByRole('button', { name: /^Edit Prestige and Bloodweb progress/ });
+    assert.equal(await progressTrigger.count(), 1, role + ' has one direct progression trigger');
+    assert.equal(await page.locator('[data-character-progress-trigger]').count(), 1, role + ' progression values share one keyboard stop');
+    assert.equal(await page.locator('[data-overview-section="progress"]').count(), 0, role + ' no longer has the Progress / setup card');
+    assert.equal(await page.locator('[data-overview-section="setup"]').count(), 1, role + ' retains subordinate setup status');
+    assert.equal(await page.getByRole('button', { name: 'Edit progression', exact: true }).count(), 0,
+      role + ' does not require a separate Edit progression button');
+
+    await page.locator('[data-character-progress="prestige"]').click();
+    let progressionEditor = page.getByRole('dialog', { name: 'Edit progress', exact: true });
+    assert.equal(await progressionEditor.count(), 1, role + ' Prestige value opens the shared editor');
+    assert.equal(await page.locator('[data-character-task-field="prestige"]').inputValue(), '2');
+    assert.equal(await page.locator('[data-character-task-field="bloodwebLevel"]').inputValue(), '23');
+    assert.equal(await page.locator('[data-character-task-field="prestige"]').evaluate(node => node === document.activeElement), true,
+      role + ' opening moves focus into the editor');
+    await progressionEditor.getByRole('button', { name: 'Cancel', exact: true }).click();
+    assert.equal(await progressTrigger.evaluate(node => node === document.activeElement), true, role + ' Cancel returns focus to the trigger');
+    assert.equal(await bytes(), before, role + ' opening and canceling does not write');
+    await page.locator('[data-character-progress="bloodweb"]').click();
+    progressionEditor = page.getByRole('dialog', { name: 'Edit progress', exact: true });
+    assert.equal(await progressionEditor.count(), 1, role + ' Bloodweb value opens the same editor');
+    assert.equal(await page.locator('[data-character-task-field="prestige"]').inputValue(), '2');
+    assert.equal(await page.locator('[data-character-task-field="bloodwebLevel"]').inputValue(), '23');
+    await progressionEditor.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await progressTrigger.press('Enter');
+    assert.equal(await page.locator('[data-character-task="progression"]').count(), 1, role + ' Enter opens progression editing');
+    await page.locator('[data-character-task-field="prestige"]').fill('9');
+    await page.locator('[data-character-task-field="bloodwebLevel"]').fill('41');
+    await page.keyboard.press('Escape');
+    assert.equal(await page.locator('[data-character-task="progression"]').count(), 0, role + ' Escape cancels the editor');
+    assert.equal(await progressTrigger.evaluate(node => node === document.activeElement), true, role + ' Escape returns focus to the trigger');
+    assert.equal(await bytes(), before, role + ' Escape cancellation does not write');
+    await progressTrigger.press('Space');
+    assert.equal(await page.locator('[data-character-task="progression"]').count(), 1, role + ' Space opens progression editing');
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await progressTrigger.click();
+    assert.equal(await page.getByLabel('Prestige', { exact: true }).inputValue(), '2', role + ' Prestige has a programmatic label');
+    assert.equal(await page.getByLabel('Bloodweb level (1–50)', { exact: true }).inputValue(), '23', role + ' Bloodweb has a programmatic label');
     await page.locator('[data-character-task-field="prestige"]').fill('1.5');
     await page.locator('[data-character-task-field="bloodwebLevel"]').fill('43');
     await page.getByRole('button', { name: 'Save progression', exact: true }).click();
     assert.equal(await page.locator('[data-character-task-field="prestige"]').inputValue(), '1.5', role + ' invalid raw Prestige remains visible');
     assert.equal(await bytes(), before, role + ' invalid progression does not write');
+    let prestigeDescription = await page.locator('[data-character-task-field="prestige"]').getAttribute('aria-describedby');
+    assert.ok(prestigeDescription, role + ' invalid Prestige references its error text');
+    assert.equal(await page.locator('#' + prestigeDescription.split(/\s+/)[0]).isVisible(), true, role + ' Prestige error is visible');
     for (const invalid of ['', '-1', '-0', '1.5', '9007199254740992']) {
       await page.locator('[data-character-task-field="prestige"]').fill(invalid);
       await page.getByRole('button', { name: 'Save progression', exact: true }).click();
@@ -34,6 +76,16 @@ export async function characterContextualTaskRegression(page, origin) {
       assert.equal(await bytes(), before, role + ' invalid Prestige never writes: ' + JSON.stringify(invalid));
     }
     await page.locator('[data-character-task-field="prestige"]').fill('3');
+    await page.locator('[data-character-task-field="bloodwebLevel"]').fill('51');
+    await page.getByRole('button', { name: 'Save progression', exact: true }).click();
+    assert.equal(await page.locator('[data-character-task-field="bloodwebLevel"]').inputValue(), '51', role + ' invalid raw Bloodweb remains visible');
+    assert.equal(await page.locator('[data-character-task-field="bloodwebLevel"]').getAttribute('aria-invalid'), 'true');
+    const bloodwebDescription = await page.locator('[data-character-task-field="bloodwebLevel"]').getAttribute('aria-describedby');
+    assert.ok(bloodwebDescription, role + ' invalid Bloodweb references its error text');
+    assert.match(await page.locator('#' + bloodwebDescription.split(/\s+/)[0]).textContent(), /1–50/);
+    assert.equal(await page.locator('[data-character-task-errors][role="alert"]').count(), 1, role + ' validation is announced');
+    assert.equal(await bytes(), before, role + ' invalid Bloodweb does not write');
+    await page.locator('[data-character-task-field="bloodwebLevel"]').fill('43');
     await page.getByRole('button', { name: 'Save progression', exact: true }).click();
     let stored = JSON.parse(await bytes());
     assert.equal(stored.characters[id].prestige, 3, role + ' accepts Prestige above P100');
@@ -41,12 +93,13 @@ export async function characterContextualTaskRegression(page, origin) {
     assert.equal(stored.characters[id].notes, 'Existing note', role + ' progression leaves Notes untouched');
     assert.deepEqual(stored.characters[id].inventory.addons, save.characters[id].inventory.addons, role + ' progression preserves unknown inventory');
     assert.deepEqual(stored.characters[otherId], save.characters[otherId], role + ' progression cannot update another character');
+    assert.equal(await progressTrigger.evaluate(node => node === document.activeElement), true, role + ' successful Save returns focus to progression');
     const native = page.locator('[data-overview-native-perk]').first();
     assert.match(await native.textContent(), /Effective Tier III/, role + ' Prestige updates this character\'s effective native tier');
     assert.match(await native.textContent(), /Account: Tier III/, role + ' Prestige updates account access');
 
     for (const allowed of ['100', String(Number.MAX_SAFE_INTEGER), '0']) {
-      await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
+      await progressTrigger.click();
       await page.locator('[data-character-task-field="prestige"]').fill(allowed);
       await page.getByRole('button', { name: 'Save progression', exact: true }).click();
       assert.equal(JSON.parse(await bytes()).characters[id].prestige, Number(allowed),
@@ -54,13 +107,39 @@ export async function characterContextualTaskRegression(page, origin) {
     }
 
     const afterProgression = await bytes();
-    await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
+    await progressTrigger.click();
     await page.getByRole('button', { name: 'Save progression', exact: true }).click();
     assert.equal(await bytes(), afterProgression, role + ' no-op save preserves timestamps and bytes');
-    await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
+    await progressTrigger.click();
     await page.locator('[data-character-task-field="bloodwebLevel"]').fill('44');
     await page.getByRole('button', { name: 'Cancel', exact: true }).click();
     assert.equal(await bytes(), afterProgression, role + ' Cancel does not write a progression draft');
+    assert.equal(await progressTrigger.evaluate(node => node === document.activeElement), true, role + ' canceled draft returns focus');
+
+    await progressTrigger.click();
+    await page.locator('[data-character-task-field="prestige"]').fill('4');
+    await page.locator('[data-character-task-field="bloodwebLevel"]').fill('44');
+    const beforeProgressionFailure = await bytes();
+    const displayedBeforeProgressionFailure = await page.locator('.character-workspace-progress').textContent();
+    await page.evaluate(() => {
+      window.originalProgressionSetItem = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(key, value) {
+        if (key === 'dbdTrackerData') throw Error('Synthetic progression write failure');
+        return window.originalProgressionSetItem.call(this, key, value);
+      };
+    });
+    await page.getByRole('button', { name: 'Save progression', exact: true }).click();
+    assert.equal(await page.locator('[data-character-task-field="prestige"]').inputValue(), '4', role + ' failed Save retains Prestige draft');
+    assert.equal(await page.locator('[data-character-task-field="bloodwebLevel"]').inputValue(), '44', role + ' failed Save retains Bloodweb draft');
+    assert.equal(await page.locator('[data-character-task-errors][role="alert"]').isVisible(), true, role + ' failed Save exposes an error');
+    assert.equal(await bytes(), beforeProgressionFailure, role + ' failed Save writes neither progression value');
+    assert.equal(await page.locator('.character-workspace-progress').textContent(), displayedBeforeProgressionFailure, role + ' failed Save does not display unpersisted values');
+    await page.evaluate(() => { Storage.prototype.setItem = window.originalProgressionSetItem; });
+    await page.getByRole('button', { name: 'Save progression', exact: true }).click();
+    stored = JSON.parse(await bytes());
+    assert.equal(stored.characters[id].prestige, 4, role + ' retry saves Prestige');
+    assert.equal(stored.characters[id].bloodwebLevel, 44, role + ' retry saves Bloodweb atomically');
+    assert.equal(await progressTrigger.evaluate(node => node === document.activeElement), true, role + ' successful retry returns focus');
 
     await page.getByRole('button', { name: 'Edit notes', exact: true }).first().click();
     const note = '<script>full note</script>'.repeat(30);
@@ -146,12 +225,12 @@ export async function characterContextualTaskRegression(page, origin) {
     await page.getByRole('button', { name: 'Cancel', exact: true }).click();
 
     const beforeDiscard = await bytes();
-    await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
-    await page.locator('[data-character-task-field="prestige"]').fill('4');
+    await progressTrigger.click();
+    await page.locator('[data-character-task-field="prestige"]').fill('5');
     await page.getByRole('link', { name: 'Perks', exact: true }).click();
     await page.getByRole('button', { name: 'Stay', exact: true }).click();
     assert.ok(page.url().endsWith('/overview'), role + ' Stay keeps the source task open');
-    assert.equal(await page.locator('[data-character-task-field="prestige"]').inputValue(), '4', role + ' Stay retains raw progression');
+    assert.equal(await page.locator('[data-character-task-field="prestige"]').inputValue(), '5', role + ' Stay retains raw progression');
     assert.equal(await page.evaluate(() => { const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); return event.defaultPrevented; }), true,
       role + ' unload remains guarded while a task draft is dirty');
     await page.getByRole('link', { name: 'Perks', exact: true }).click();
