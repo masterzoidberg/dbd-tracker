@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "tests/google-drive.test.js"
+        ],
+        "createdAt": "2026-10-28T05:39:15.522Z",
+        "reason": "Codex: intentional malicious HTML response fixture verifies safe error rendering; it is not product imagery."
+      }
+    ]
+  }
+}

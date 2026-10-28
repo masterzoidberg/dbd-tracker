@@ -1,6 +1,7 @@
 import { characters, characterById, perkById, catalogInfo, perkName } from '../data/catalog.js';
 import { freshSave, globalTier, isAvailable, unlockSource, inventoryTier, roleCharacters, rolePerks, characterStats, perkStats, parseSave, exportSave, setGlobalPerkUnlocked, syncGlobalInventories, completeCharacterSetup, automaticTier, recordedTier, ownedUnlockSource, bloodwebNextTier, bloodwebEligible, setHistoricalPerkTier } from './model.js';
 import { TrackerStorage } from './storage.js';
+import { createGoogleDrive } from './google-drive.js';
 import { parseCharacterWorkspaceRoute, characterWorkspaceHref, characterWorkspaceNeighbors } from './character-workspace.js';
 import {inventoryEntities,inventoryEntityById,inventoryCatalogStatus,survivorInventorySource,killerPowerByCharacterId} from '../data/inventory-catalog.js';
 import {inventoryIconPath,killerPowerIconPath} from './assets.js';
@@ -30,6 +31,9 @@ const roman = ['—', 'I', 'II', 'III'];
 const date = value => value ? new Date(value).toLocaleString() : 'Not updated yet';
 const editor = new EditorGuard(navigator.locks);
 const store = new TrackerStorage({ getItem: key => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value) }, () => editor.assertWriter());
+const drive = createGoogleDrive(typeof __LEDGER_GOOGLE_CONFIG__ === 'undefined' ? {} : __LEDGER_GOOGLE_CONFIG__);
+let driveBusy = false, drivePreparation = null, driveLoadError = '', lastDriveExport = '';
+let importInProgress = false;
 let save = freshSave();
 let storageBlocked = false;
 let initialized = false;
@@ -99,7 +103,7 @@ function message(text, error = false) {
   detailMessage.textContent = detailMessage.hidden ? '' : text;
 }
 
-const editingActions = new Set(['favorite', 'overview-ownership-toggle', 'ownership', 'cycle', 'character-inventory-set-tier', 'character-inventory-correction-open', 'character-inventory-correction-apply', 'account-unlock-tier', 'import', 'restore', 'reset', 'delete-backup', 'setup-open', 'setup-p1', 'setup-next', 'setup-back', 'character-task-start', 'character-task-save']);
+const editingActions = new Set(['favorite', 'overview-ownership-toggle', 'ownership', 'cycle', 'character-inventory-set-tier', 'character-inventory-correction-open', 'character-inventory-correction-apply', 'account-unlock-tier', 'drive-import', 'import', 'restore', 'reset', 'delete-backup', 'setup-open', 'setup-p1', 'setup-next', 'setup-back', 'character-task-start', 'character-task-save']);
 const editingControls = '#detail-content select, [data-up-next-intent], [data-character-task-field], [data-setup-owned], [data-setup-prestige], [data-setup-perk], [data-character-setup-perk], [data-character-setup-tier], [data-historical-ownership], [data-character-inventory-historical], [data-character-inventory-correction-tier], #character-setup-bloodweb, #halloween-names, #hellraiser-names, #import-file';
 function requiresEditor(action) { return editingActions.has(action) || ['queue-add','queue-target','queue-remove','queue-move','queue-move-down','queue-save','queue-shortcut','queue-select','playing-add','playing-remove','playing-move-up','playing-move-down','up-next-pin','up-next-save','up-next-unpin','up-next-move'].includes(action) || (action?.startsWith('character-setup-') && action !== 'character-setup-exit'); }
 function editorPresentation() {
@@ -653,7 +657,7 @@ function dataPage() {
   const unknownCharacters = Object.keys(save.characters).filter(id => !characterById[id]);
   const unknownPerks = new Set([...Object.keys(save.perkOverrides), ...Object.values(save.characters).flatMap(c => Object.keys(c.perks))].filter(id => !perkById[id]));
   return pageHeading('YOUR DATA, UNDER YOUR CONTROL', 'Data & backups', 'Take your ledger with you. Keep a copy outside your browser.') + inventoryProvenanceView() +
-    `<section class="panel">${sectionTitle('Account setup')}<button data-action="setup-open">Review account setup</button><button data-action="character-setup-all">Run character setups</button></section><section class="panel">${sectionTitle('Display settings')}${selectControl('halloween-names', 'Halloween perk names', [['generic', 'Renamed generic names'], ['original', 'Original Halloween names']], save.settings.halloweenNames)}${selectControl('hellraiser-names', 'Hellraiser perk names', [['original', 'Original Hellraiser names'], ['generic', 'Renamed generic names']], save.settings.hellraiserNames)}<p class="panel-note">Owned licensed characters use original names. These preferences apply to unowned sources. Search accepts either version.</p></section><section class="panel">${sectionTitle('Current save', '<span class="tag">SCHEMA v3</span>')}${storageBlocked ? '<p class="error">Stored progress is unavailable. Export JSON is disabled. Export the original stored data before recovering through a valid JSON import or readable backup.</p>' : `<div class="data-metrics"><div><span>LAST UPDATED</span><strong>${date(save.updatedAt)}</strong></div><div><span>SURVIVORS / KILLERS</span><strong>${roleCharacters('survivor').length} / ${roleCharacters('killer').length}</strong></div><div><span>PROGRESSION RECORDS</span><strong>${Object.keys(save.characters).length}</strong></div><div><span>RECORDED PERK TIERS</span><strong>${Object.values(save.characters).reduce((n, p) => n + Object.keys(p.perks).length, 0)}</strong></div></div>`}<div class="data-actions"><button class="primary" data-action="export">↓ Export JSON</button><button data-action="import">↑ Import JSON</button>${storageBlocked ? '<button data-action="raw-export">Export original stored data</button>' : ''}</div><p class="panel-note">${storageBlocked ? 'Recovery preserves the exact original stored data separately in this browser before replacement. It does not snapshot the unavailable progress or alter existing backups. Export the original first to keep a copy outside this browser.' : 'Autosaved to this browser. Import replaces progress after confirmation and creates a local backup first. Local snapshots stay in this browser; JSON exports travel with you.'}</p>${unknownCharacters.length || unknownPerks.size ? `<p class="notice">${unknownCharacters.length} unknown characters and ${unknownPerks.size} unknown perks are preserved in exports. They cannot be edited until their definitions are added to the catalog.</p>` : ''}</section><section class="panel">${sectionTitle('Local backups', `<span class="muted">${backups.length} / 5 snapshots</span>`)}<p class="muted compact">Created before import, reset, restore, or clearing a character’s perks. ${storageBlocked ? 'Recovery preserves original stored data separately and leaves these snapshots unchanged.' : 'Restoring also backs up your current progress.'}</p>${backupError ? `<p class="error">${esc(backupError)}</p>` : backups.length ? backups.map(b => `<div class="backup-row"><span class="backup-icon">↶</span><div><strong>${date(b.createdAt)}</strong><small>${esc(b.reason)}</small></div><button data-action="restore" data-id="${esc(b.id)}">Restore</button><button class="danger-text" data-action="delete-backup" data-id="${esc(b.id)}">Delete</button></div>`).join('') : empty('No snapshots yet. Your first import or reset will create one.')}</section><section class="panel catalog-panel">${sectionTitle('Game catalog', '<span class="tag">JSON CATALOG</span>')}<p>${catalogInfo.detail}</p><p class="muted">The tracker starts with no assumed ownership or progression. The catalog is separate from your save: definitions and compatibility mappings are embedded in <code>dist/app.js</code> at build time; the browser does not fetch catalog JSON. Existing save IDs stay stable. Unknown imported records stay intact.</p><p class="muted">General perks are Bloodweb-available and have no automatic owned tier. Native, Prestige, Legacy, and Shrine tiers provide owned minimums. Licensed aliases share one inventory record. Your display preference does not change progression.</p></section><section class="panel danger-zone">${sectionTitle('Reset progression')}<p>Clear ownership, prestige, Bloodweb levels, favorites, notes, inventories, and Shrine overrides. Catalog definitions stay intact. A backup is created first.</p><button class="danger-button" data-action="reset">Reset all progress</button></section>`;
+    `<section class="panel">${sectionTitle('Account setup')}<button data-action="setup-open">Review account setup</button><button data-action="character-setup-all">Run character setups</button></section><section class="panel">${sectionTitle('Display settings')}${selectControl('halloween-names', 'Halloween perk names', [['generic', 'Renamed generic names'], ['original', 'Original Halloween names']], save.settings.halloweenNames)}${selectControl('hellraiser-names', 'Hellraiser perk names', [['original', 'Original Hellraiser names'], ['generic', 'Renamed generic names']], save.settings.hellraiserNames)}<p class="panel-note">Owned licensed characters use original names. These preferences apply to unowned sources. Search accepts either version.</p></section><section class="panel">${sectionTitle('Current save', '<span class="tag">SCHEMA v3</span>')}${storageBlocked ? '<p class="error">Stored progress is unavailable. Export JSON is disabled. Export the original stored data before recovering through a valid JSON import or readable backup.</p>' : `<div class="data-metrics"><div><span>LAST UPDATED</span><strong>${date(save.updatedAt)}</strong></div><div><span>SURVIVORS / KILLERS</span><strong>${roleCharacters('survivor').length} / ${roleCharacters('killer').length}</strong></div><div><span>PROGRESSION RECORDS</span><strong>${Object.keys(save.characters).length}</strong></div><div><span>RECORDED PERK TIERS</span><strong>${Object.values(save.characters).reduce((n, p) => n + Object.keys(p.perks).length, 0)}</strong></div></div>`}<div class="data-actions"><button class="primary" data-action="export">↓ Export JSON</button><button data-action="import">↑ Import JSON</button>${storageBlocked ? '<button data-action="raw-export">Export original stored data</button>' : ''}</div><p class="panel-note">${storageBlocked ? 'Recovery preserves the exact original stored data separately in this browser before replacement. It does not snapshot the unavailable progress or alter existing backups. Export the original first to keep a copy outside this browser.' : 'Autosaved to this browser. Import replaces progress after confirmation and creates a local backup first. Local snapshots stay in this browser; JSON exports travel with you.'}</p>${unknownCharacters.length || unknownPerks.size ? `<p class="notice">${unknownCharacters.length} unknown characters and ${unknownPerks.size} unknown perks are preserved in exports. They cannot be edited until their definitions are added to the catalog.</p>` : ''}</section>${googleDriveView()}<section class="panel">${sectionTitle('Local backups', `<span class="muted">${backups.length} / 5 snapshots</span>`)}<p class="muted compact">Created before import, reset, restore, or clearing a character’s perks. ${storageBlocked ? 'Recovery preserves original stored data separately and leaves these snapshots unchanged.' : 'Restoring also backs up your current progress.'}</p>${backupError ? `<p class="error">${esc(backupError)}</p>` : backups.length ? backups.map(b => `<div class="backup-row"><span class="backup-icon">↶</span><div><strong>${date(b.createdAt)}</strong><small>${esc(b.reason)}</small></div><button data-action="restore" data-id="${esc(b.id)}">Restore</button><button class="danger-text" data-action="delete-backup" data-id="${esc(b.id)}">Delete</button></div>`).join('') : empty('No snapshots yet. Your first import or reset will create one.')}</section><section class="panel catalog-panel">${sectionTitle('Game catalog', '<span class="tag">JSON CATALOG</span>')}<p>${catalogInfo.detail}</p><p class="muted">The tracker starts with no assumed ownership or progression. The catalog is separate from your save: definitions and compatibility mappings are embedded in <code>dist/app.js</code> at build time; the browser does not fetch catalog JSON. Existing save IDs stay stable. Unknown imported records stay intact.</p><p class="muted">General perks are Bloodweb-available and have no automatic owned tier. Native, Prestige, Legacy, and Shrine tiers provide owned minimums. Licensed aliases share one inventory record. Your display preference does not change progression.</p></section><section class="panel danger-zone">${sectionTitle('Reset progression')}<p>Clear ownership, prestige, Bloodweb levels, favorites, notes, inventories, and Shrine overrides. Catalog definitions stay intact. A backup is created first.</p><button class="danger-button" data-action="reset">Reset all progress</button></section>`;
 }
 
 function preserveRender(element, html) {
@@ -1535,6 +1539,70 @@ function download(content, filename, type = 'application/json;charset=utf-8') {
   const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+function googleDriveView() {
+  const state = drive.status();
+  if (state.available && !drivePreparation) {
+    drivePreparation = drive.prepare().catch(() => { driveLoadError = 'Google libraries could not load. Check your connection and reload to retry.'; })
+      .finally(() => { if (route() === 'data') render(); });
+  }
+  const disabled = driveBusy || !state.ready || !!driveLoadError ? ' disabled' : '';
+  const actions = !state.available || driveLoadError ? '' : '<div class="data-actions">'
+    + (state.connected
+      ? '<button data-action="drive-export"' + (driveBusy || !initialized || storageBlocked ? ' disabled' : '') + '>Export to Google Drive</button>'
+        + '<button data-action="drive-import"' + disabled + '>Import from Google Drive</button>'
+        + '<button data-action="drive-disconnect"' + disabled + '>Disconnect</button>'
+      : '<button data-action="drive-connect"' + disabled + '>Connect Google Drive</button>') + '</div>';
+  return '<section class="panel" data-google-drive>' + sectionTitle('Google Drive', '<span class="tag">OPTIONAL CLOUD COPY</span>')
+    + '<p>Export or restore your portable Ledger JSON through The Ledger Backups/latest.json in Google Drive. Your browser-local Ledger remains the primary save.</p>'
+    + '<p role="status">' + esc(state.reason || driveLoadError || (state.connected ? 'Connected for this browser session' : 'Google Drive not connected')) + '</p>'
+    + (state.available && !state.ready && !driveLoadError ? '<p class="muted">Loading Google connection tools…</p>' : '')
+    + actions + (driveBusy ? '<p class="muted">Waiting for Google Drive…</p>' : '')
+    + (lastDriveExport ? '<p class="muted">Last Drive export: ' + esc(date(lastDriveExport)) + ' · latest.json</p>' : '') + '</section>';
+}
+async function driveAction(action) {
+  if (driveBusy) return;
+  driveBusy = true;
+  try {
+    if (action === 'drive-connect') {
+      // Libraries have already loaded in the Data section; request OAuth from this click.
+      const connection = drive.connect(); render(); await connection;
+    } else if (action === 'drive-disconnect') await drive.disconnect();
+    else if (action === 'drive-export') {
+      if (!initialized || storageBlocked) throw Error('Current progress is unavailable. Use the local recovery tools.');
+      const upload = drive.exportJson(exportSave(save)); render();
+      lastDriveExport = (await upload).exportedAt;
+      message('Backed up to Google Drive at ' + date(lastDriveExport) + '.');
+    } else if (action === 'drive-import') {
+      store.assertWriter();
+      const incoming = drive.importJson(); render();
+      await importText(await incoming);
+    }
+  } catch (error) {
+    pendingImport = null;
+    message(action === 'drive-export' ? 'Google Drive backup failed. Your Ledger data is still saved locally. ' + error.message : error.message, true);
+  } finally { driveBusy = false; render(); }
+}
+async function importText(bytes) {
+  if (importInProgress) throw Error('Finish the current import before choosing another file.');
+  importInProgress = true;
+  try {
+  if (await resolveWorkspaceDraftTransition({ action: 'import-file' }) !== 'proceed') return;
+  store.assertWriter();
+  const parsed = parseSave(bytes);
+  const incoming = parsed.save;
+  const summary = s => `${Object.keys(s.characters).length} records, ${Object.values(s.characters).filter(c => c.owned).length} owned, ${Object.values(s.characters).reduce((n, c) => n + Object.keys(c.perks).length, 0)} recorded perk tiers`;
+  const warning = parsed.warnings.length ? ` ${parsed.warnings.length} unknown IDs will be preserved.` : '';
+  const recovering = storageBlocked;
+  const predecessor = recovering ? 'Current stored progress is unavailable. Its original bytes will be preserved separately before replacement.' : `Current: ${summary(save)}. A backup of your current data will be created.`;
+  if (!await confirmAction('Import tracker data?', `${predecessor} Import: ${summary(incoming)}. This replaces your progression.${replacementNotice(parsed)}${warning}`, 'Import data')) return;
+  save = store.replace(save, incoming, 'Before JSON import', { recover: recovering });
+  clearContinue(localStorage);
+  storageBlocked = false;
+  $('#save-status').textContent = 'Saved locally';
+  message(`Import complete. ${recovering ? 'The original stored data was preserved separately in this browser.' : 'Your previous progress is in local backups.'}${parsed.warnings.length ? ' ' + parsed.warnings.join(' · ') : ''}`);
+  render();
+  } finally { importInProgress = false; }
+}
 function exportFile() {
   if (!initialized) { message('Wait for stored data to load before exporting.', true); return; }
   if (storageBlocked) { message('Export JSON is disabled because stored progress is unavailable. Use Export original stored data on Data & backups.', true); return; }
@@ -2064,6 +2132,7 @@ async function handleClick(event) {
   if (action === 'killer-addon-details') return openKillerAddonDetail(id,button);
   if (action === 'export') return exportFile();
   if (action === 'raw-export') return download(store.original(), 'dbd-tracker-original-data.txt', 'text/plain;charset=utf-8');
+  if (action?.startsWith('drive-')) return driveAction(action);
   if (action === 'import') return $('#import-file').click();
   if (action === 'close' || action === 'manage-link') { $('#detail').close(); modal = null; return; }
   if (action === 'character') return requestWorkspaceNavigation(characterWorkspaceHref(id));
@@ -2306,22 +2375,8 @@ document.addEventListener('change', async event => {
     if (target.id === 'sort') { filters.sort = target.value; render(); $('#sort')?.focus({ preventScroll: true }); }
     if (target.id === 'prestige-filter') { collectionFiltersOpen = $('#collection-filters')?.open ?? false; filters.prestige = target.value; render(); $('#prestige-filter')?.focus({ preventScroll: true }); }
     if (target.id === 'import-file') {
-      if (await resolveWorkspaceDraftTransition({ action: 'import-file' }) !== 'proceed') { target.value = ''; return; }
       const file = target.files[0]; target.value = '';
-      if (!file) return;
-      pendingImport = parseSave(await file.text());
-      const incoming = pendingImport.save;
-      const summary = s => `${Object.keys(s.characters).length} records, ${Object.values(s.characters).filter(c => c.owned).length} owned, ${Object.values(s.characters).reduce((n, c) => n + Object.keys(c.perks).length, 0)} recorded perk tiers`;
-      const warning = pendingImport.warnings.length ? ` ${pendingImport.warnings.length} unknown IDs will be preserved.` : '';
-      const recovering = storageBlocked;
-      const predecessor = recovering ? 'Current stored progress is unavailable. Its original bytes will be preserved separately before replacement.' : `Current: ${summary(save)}. A backup of your current data will be created.`;
-      if (!await confirmAction('Import tracker data?', `${predecessor} Import: ${summary(incoming)}. This replaces your progression.${replacementNotice(pendingImport)}${warning}`, 'Import data')) { pendingImport = null; return; }
-      save = store.replace(save, incoming, 'Before JSON import', { recover: recovering });
-      clearContinue(localStorage);
-      storageBlocked = false;
-      $('#save-status').textContent = 'Saved locally';
-      message(`Import complete. ${recovering ? 'The original stored data was preserved separately in this browser.' : 'Your previous progress is in local backups.'}${pendingImport.warnings.length ? ' ' + pendingImport.warnings.join(' · ') : ''}`);
-      pendingImport = null; render();
+      if (file) await importText(await file.text());
     }
   } catch (error) { pendingImport = null; message(error.message || 'Could not complete this change.', true); }
 });
@@ -2510,6 +2565,7 @@ document.addEventListener('error', event => {
   }
 }, true);
 window.addEventListener('resize', positionFilters);
+for (const event of ['online', 'offline']) window.addEventListener(event, () => { if (route() === 'data') render(); });
 window.addEventListener('scroll', positionFilters, true);
 window.addEventListener('resize', positionCharacterInventoryQuickPicker);
 window.addEventListener('scroll', positionCharacterInventoryQuickPicker, true);

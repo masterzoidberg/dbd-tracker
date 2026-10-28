@@ -1,5 +1,11 @@
 # The Ledger · Dead by Daylight tracker
 
+Google Drive is an optional online JSON backup transport on HTTP/HTTPS builds
+configured by the publisher. It is unavailable when opened directly from disk.
+Browser-local data remains the primary save; local import/export and recovery
+work offline. Drive authorization lasts only for the current page session and
+may expire; reconnect explicitly when needed. No automatic upload or sync occurs.
+
 Open `index.html` directly in a current Chrome or Edge browser. Keep this README,
 `index.html`, `styles.css`, `dist/app.js`, and the `images/` folder together. No Node.js, server, network,
 or installation is needed for direct-file use. The regular script embeds the

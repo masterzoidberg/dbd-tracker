@@ -2,6 +2,7 @@ import { build } from 'esbuild';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { writeKillerRuntimeCatalog } from './generate-killer-runtime-catalog.mjs';
+import { googleDriveConfig } from '../src/google-drive.js';
 
 export async function buildProject(root = resolve(import.meta.dirname, '..'), {
   bundle = build,
@@ -12,7 +13,8 @@ export async function buildProject(root = resolve(import.meta.dirname, '..'), {
   await writeCatalog(root);
   const generateManifest = writeManifest ?? (await import('./generate-assets.mjs')).writeAssetManifest;
   const manifest = await generateManifest(root);
-  await bundle({ absWorkingDir: root, entryPoints: ['src/app.js'], bundle: true, format: 'iife', target: 'es2022', minify: true, outfile: 'dist/app.js', logLevel: 'info' });
+  await bundle({ absWorkingDir: root, entryPoints: ['src/app.js'], bundle: true, format: 'iife', target: 'es2022', minify: true, outfile: 'dist/app.js', logLevel: 'info',
+    define: { __LEDGER_GOOGLE_CONFIG__: JSON.stringify(googleDriveConfig(process.env)) } });
   return manifest;
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

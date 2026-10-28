@@ -227,6 +227,10 @@ Run tests with `npm test`. Future schemas must be supported explicitly in `migra
 
 ## Verification
 
+Optional Google Drive import/export setup and manual acceptance are documented in
+[docs/google-drive.md](docs/google-drive.md). Local saves remain authoritative;
+unconfigured/offline builds retain all local JSON and recovery tools.
+
 Character managers offer Detailed/Compact using the same filters and progression
 actions. Compact shows perk names/icons, effective tiers, next-tier availability
 and the existing historical record selectors. The presentation choice lasts only

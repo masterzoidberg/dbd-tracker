@@ -7,7 +7,12 @@ import { freshSave } from '../../src/model.js';
 export async function artworkRegression(page, origin, manifest) {
   manifest ??= await generateAssetManifest();
   const requested = [];
-  const track = request => requested.push(request.url());
+  const googleIdentity = 'https://accounts.google.com/gsi/client';
+  const unexpectedGoogle = [];
+  const track = request => {
+    const url = request.url(); requested.push(url);
+    if (url === googleIdentity && new URL(page.url()).hash !== '#data') unexpectedGoogle.push(url);
+  };
   page.on('request', track);
   const save = freshSave();
   await page.evaluate(save => localStorage.setItem('dbdTrackerData', JSON.stringify(save)), save);
@@ -104,8 +109,9 @@ export async function artworkRegression(page, origin, manifest) {
   }
   await page.setViewportSize({ width: 1440, height: 900 });
   page.off('request', track);
-  assert.ok(requested.every(url => new URL(url).origin === origin && !new URL(url).pathname.endsWith('.json')),
-    'Artwork must not request external services or catalog/manifest JSON');
+  assert.deepEqual(unexpectedGoogle, [], 'Google Identity Services loads only on Data & backups');
+  assert.ok(requested.every(url => url === googleIdentity || (new URL(url).origin === origin && !new URL(url).pathname.endsWith('.json'))),
+    'Artwork stays local; only the optional Google Identity Services bootstrap is allowed on Data');
   return { decodedIcons: decoded.length, killerAddons: killerAddons.length, killerPowers: killerPowers.length,
     powerFallbacks: Object.values(manifest.killerPowers).filter(value => value === null).length,
     fallbacks: Object.values(manifest.perks).filter(value => value === null).length };
