@@ -59,7 +59,7 @@ try {
   await page.waitForFunction(() => location.hash === '#character/meg-thomas/overview');
   const writer = (await page.locator('#save-status').textContent()) === 'Saved locally';
   if (writer) {
-    await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
+    await page.locator('[data-character-progress-trigger]').click();
     await page.locator('[data-character-task-field="bloodwebLevel"]').fill('37');
     await page.getByRole('button', { name: 'Save progression', exact: true }).click();
     await page.goto(url + '#character/meg-thomas/overview');
@@ -85,7 +85,10 @@ try {
     await page.locator('#queue-management > summary').click();
     await page.locator('[data-management-queue="prestige"][data-role="survivor"] [data-dashboard-character-link][href="#character/meg-thomas/overview"]').click();
     await page.locator('[data-character-workspace]').waitFor();
-  } else assert.equal(await page.locator('[data-action="character-task-start"][data-task="progression"]').isDisabled(), true);
+  } else {
+    assert.equal(await page.locator('[data-character-progress-trigger]').count(), 0);
+    assert.equal(await page.locator('[data-character-progress]').count(), 2);
+  }
   assert.equal(writer,true,'Direct-file quantity save verification requires real writer access');
   await page.goto(url+'#character/meg-thomas/items-addons');
   await page.locator('[data-stock-family]').waitFor();

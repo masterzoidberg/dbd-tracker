@@ -715,15 +715,25 @@ function characterWorkspaceHeader(character, descriptor) {
     character.role === 'survivor' ? ['items-addons', 'Items & Add-ons'] : ['power-addons', 'Power & Add-ons']];
   const collectionLabel = character.role === 'survivor' ? 'Survivors' : 'Killers';
   const roleLabel = character.role === 'survivor' ? 'Survivor' : 'Killer';
+  const isOverview = descriptor.section === 'overview';
+  const task = characterTaskSession?.characterId === character.id ? characterTaskSession : null;
+  const progressionEditor = isOverview && task?.task === 'progression' ? characterOverviewTaskEditor(character.id, task) : '';
+  const canStartProgression = isOverview && task?.task !== 'progression'
+    && initialized && editor.state === 'editing' && !storageBlocked;
   return '<header class="character-workspace-header" data-character-header>'
     + '<a class="character-workspace-back" href="#' + character.role + 's">← ' + collectionLabel + '</a>'
     + characterRosterNavigation(character, descriptor)
     + '<div class="character-workspace-hero"><div class="character-workspace-summary"><div class="character-workspace-identity">' + workspaceCharacterArtwork(character, 80)
     + '<div class="character-workspace-title"><div class="eyebrow">' + roleLabel.toUpperCase() + '</div><h1>' + esc(character.name) + '</h1>'
     + '<div class="character-workspace-status"><span class="status-chip ' + (progress.owned ? 'is-owned' : 'is-unowned') + '">' + (progress.owned ? 'Owned' : 'Locked') + '</span>'
+    + (isOverview ? '<button type="button" class="status-chip ownership-action" data-action="overview-ownership-toggle" data-id="' + character.id + '">' + (progress.owned ? 'Mark Locked' : 'Mark Owned') + '</button>' : '')
     + '<span class="status-chip ' + (progress.favorite ? 'is-favorite' : '') + '">' + (progress.favorite ? 'Favorite ★' : 'Not favorite') + '</span></div></div></div>'
-    + '<div class="character-workspace-progress" aria-label="Character progression"><div data-character-progress="prestige"><span>PRESTIGE</span><strong>P' + progress.prestige + '</strong></div>'
-    + '<div data-character-progress="bloodweb"><span>BLOODWEB</span><strong>' + progress.bloodwebLevel + ' / 50</strong></div></div></div>'
+    + '<div class="character-workspace-progress-shell"><' + (canStartProgression ? 'button type="button" data-action="character-task-start" data-task="progression" data-character-progress-trigger aria-label="Edit Prestige and Bloodweb progress"' : 'div role="group" aria-label="Character progression"')
+    + ' class="character-workspace-progress' + (canStartProgression ? ' is-editable' : '') + '"><span data-character-progress="prestige"><span>PRESTIGE</span><strong>P' + progress.prestige + '</strong></span>'
+    + '<span data-character-progress="bloodweb"><span>BLOODWEB</span><strong>' + progress.bloodwebLevel + ' / 50</strong></span>'
+    + (canStartProgression ? '<span class="character-progress-edit-cue" aria-hidden="true">Edit</span>' : '')
+    + '</' + (canStartProgression ? 'button' : 'div') + '>'
+    + progressionEditor + '</div></div>'
     + '<button type="button" class="character-workspace-favorite" data-action="favorite" data-id="' + character.id + '" aria-pressed="' + progress.favorite + '" aria-label="Favorite ' + esc(character.name) + '">' + (progress.favorite ? '★ Favorite' : '☆ Favorite') + '</button>'
     + '</div>'
     + '<nav class="character-workspace-nav" aria-label="Character workspace">' + sections.map(([section, label]) =>
@@ -757,13 +767,12 @@ function characterOverview(id) {
       + '<a data-open-character-perk="' + perkId + '" href="' + characterWorkspaceHref(id, 'perks') + '">Open in Perks</a></div></article>';
   }).join('');
   const task = characterTaskSession?.characterId === id ? characterTaskSession : null;
-  const progressionEditor = task?.task === 'progression' ? characterOverviewTaskEditor(id, task) : '';
   const notesEditor = task?.task === 'notes' ? characterOverviewTaskEditor(id, task) : '';
   const setup = progress.owned
-    ? '<div class="overview-context ' + (progress.setupComplete ? 'is-complete' : 'needs-attention') + '"><strong>' + (progress.setupComplete ? 'Initial setup complete' : 'Initial setup incomplete') + '</strong>'
+    ? '<section class="overview-setup ' + (progress.setupComplete ? 'is-complete' : 'needs-attention') + '" data-overview-section="setup"><strong>' + (progress.setupComplete ? 'Initial setup complete' : 'Initial setup incomplete') + '</strong>'
       + '<p>' + (progress.setupComplete ? 'Review the saved Bloodweb setup when you need to reconcile older progress.' : 'Record the starting Bloodweb context before relying on setup-specific progression details.') + '</p>'
-      + '<a href="' + characterWorkspaceHref(id, 'setup') + '">' + (progress.setupComplete ? 'Review initial setup' : 'Start initial setup') + '</a></div>'
-    : '<p class="muted">This character is not marked Owned. Initial setup remains optional until ownership changes.</p>';
+      + '<a href="' + characterWorkspaceHref(id, 'setup') + '">' + (progress.setupComplete ? 'Review initial setup' : 'Start initial setup') + '</a></section>'
+    : '<section class="overview-setup is-unowned" data-overview-section="setup"><strong>Initial setup unavailable</strong><p class="muted">This character is not marked Owned. Initial setup remains optional until ownership changes.</p></section>';
   const inventorySummary = character.role === 'survivor' && inventoryCatalogStatus.survivor === 'ready'
     ? '<p><strong>Catalog</strong> · ' + inventoryEntities.filter(entity => entity.role === 'survivor' && entity.map === 'items').length + ' Items · '
       + inventoryEntities.filter(entity => entity.role === 'survivor' && entity.map === 'addons').length + ' Add-ons</p>'
@@ -787,11 +796,7 @@ function characterOverview(id) {
   return '<div class="character-overview">'
     + killerPowerIdentity + '<div class="character-overview-grid">'
     + '<section class="character-overview-section overview-native" data-overview-section="native-perks"><div class="section-title"><h2>Native Perks</h2></div><div class="overview-native-grid">' + nativeCards + '</div></section>'
-    + '<section class="character-overview-section overview-progress" data-overview-section="progress"><div class="section-title"><h2>Progress / setup</h2></div>'
-      + '<div class="overview-character-state"><span>' + (progress.owned ? 'Owned' : 'Locked') + '</span><button type="button" data-action="overview-ownership-toggle" data-id="' + id + '">' + (progress.owned ? 'Mark Locked' : 'Mark Owned') + '</button></div>'
-      + '<div class="overview-contextual-actions"><button type="button" data-action="character-task-start" data-task="progression"' + (task ? ' disabled' : '') + '>Edit progression</button></div>'
-      + progressionEditor + setup
-      + '<p class="muted overview-helper">Personal records remain separate from Native, Prestige, Shrine and Legacy minimums.</p></section>'
+    + setup
     + '<section class="character-overview-summary" data-overview-section="perks"><div><div class="eyebrow">PERKS</div><h2>Perk inventory</h2></div>'
       + '<div class="overview-summary-number"><strong>' + stats.owned + '</strong><span>effective owned</span></div><div class="overview-summary-number"><strong>' + stats.tier3 + '</strong><span>Tier III</span></div>'
       + '<a href="' + characterWorkspaceHref(id, 'perks') + '">View Perks</a></section>'
@@ -804,12 +809,16 @@ function characterOverview(id) {
 function characterOverviewTaskEditor(id, session) {
   const errors = session.errors.length ? '<div role="alert" class="error" data-character-task-errors><strong>Not saved</strong><ul>'
     + session.errors.map(error => '<li>' + esc(error.message) + '</li>').join('') + '</ul></div>' : '<div data-character-task-errors hidden></div>';
+  const fieldError = field => {
+    const error = session.errors.find(item => item.field === field);
+    return '<span id="character-task-error-' + field + '" class="character-task-field-error"' + (error ? '' : ' hidden') + '>' + (error ? esc(error.message) : '') + '</span>';
+  };
   const fields = session.task === 'progression'
-    ? '<label>Prestige<input type="text" inputmode="numeric" data-character-task-field="prestige" value="' + esc(session.rawInputs.prestige) + '" aria-invalid="' + session.errors.some(error => error.field === 'prestige') + '"></label>'
-      + '<label>Bloodweb level (1–50)<input type="text" inputmode="numeric" data-character-task-field="bloodwebLevel" value="' + esc(session.rawInputs.bloodwebLevel) + '" aria-invalid="' + session.errors.some(error => error.field === 'bloodwebLevel') + '"></label>'
+    ? '<div class="character-progress-fields"><label for="character-task-prestige">Prestige<input id="character-task-prestige" type="text" inputmode="numeric" data-character-task-field="prestige" value="' + esc(session.rawInputs.prestige) + '" aria-invalid="' + session.errors.some(error => error.field === 'prestige') + '" aria-describedby="character-task-error-prestige">' + fieldError('prestige') + '</label>'
+      + '<label for="character-task-bloodweb">Bloodweb level (1–50)<input id="character-task-bloodweb" type="text" inputmode="numeric" data-character-task-field="bloodwebLevel" value="' + esc(session.rawInputs.bloodwebLevel) + '" aria-invalid="' + session.errors.some(error => error.field === 'bloodwebLevel') + '" aria-describedby="character-task-error-bloodwebLevel">' + fieldError('bloodwebLevel') + '</label></div>'
     : '<label>Notes<textarea data-character-task-field="notes" rows="5" aria-invalid="' + session.errors.some(error => error.field === 'notes') + '">' + esc(session.draft.notes) + '</textarea></label>';
-  return '<form class="character-task-editor" data-character-task="' + session.task + '" novalidate>' + errors + fields
-    + '<div class="dialog-actions"><button type="button" data-action="character-task-cancel">Cancel</button><button type="button" class="primary" data-action="character-task-save">Save ' + (session.task === 'progression' ? 'progression' : 'note') + '</button></div></form>';
+  return '<div class="character-task-editor' + (session.task === 'progression' ? ' character-progress-popover" role="dialog" aria-labelledby="character-task-title' : '') + '" data-character-task="' + session.task + '">' + (session.task === 'progression' ? '<h2 id="character-task-title">Edit progress</h2>' : '') + errors + fields
+    + '<div class="dialog-actions"><button type="button" data-action="character-task-cancel">Cancel</button><button type="button" class="primary" data-action="character-task-save">Save ' + (session.task === 'progression' ? 'progression' : 'note') + '</button></div></div>';
 }
 function characterWorkspaceUnavailable() {
   return '<section class="panel"><h1>Character/section unavailable</h1><p>This character or section cannot be resolved.</p><a href="#survivors">Survivors</a> · <a href="#killers">Killers</a> · <a href="#dashboard">Dashboard</a></section>';
@@ -1155,7 +1164,7 @@ function acceptStock(id,trigger,nextTargetId=null) {
     return true;
   }catch(error){stockSession.errors[id]='Not saved. '+error.message;render();if(trigger==='enter'||trigger==='step')$('#quantity-'+id)?.focus({preventScroll:true});return false;}
 }
-function saveCharacterTask({ navigate = false } = {}) {
+function saveCharacterTask({ navigate = false, returnFocus = false } = {}) {
   if (!characterTaskSession) return false;
   characterTaskSession = { ...characterTaskSession, errors: characterTaskSession.errors.filter(error => !error.saveFailure) };
   const result = buildCharacterTaskCandidate(save, characterTaskSession);
@@ -1163,7 +1172,8 @@ function saveCharacterTask({ navigate = false } = {}) {
     characterTaskSession = { ...characterTaskSession, errors: result.errors, conflicted: result.conflict };
     render();
     const field = result.errors[0].field;
-    document.querySelector('[data-character-task-field="' + CSS.escape(field) + '"]')?.focus({ preventScroll: true });
+    (document.querySelector('[data-character-task-field="' + CSS.escape(field) + '"]')
+      || document.querySelector('[data-action="character-task-save"]'))?.focus({ preventScroll: true });
     return false;
   }
   const { characterId, task } = characterTaskSession;
@@ -1174,12 +1184,28 @@ function saveCharacterTask({ navigate = false } = {}) {
   }, characterId)) {
     characterTaskSession = { ...characterTaskSession, errors: [{ field: 'session', saveFailure: true, message: 'Not saved. Your draft is retained for retry.' }] };
     render();
+    document.querySelector('[data-action="character-task-save"]')?.focus({ preventScroll: true });
     return false;
   }
   characterTaskSession = null;
   render();
   message(result.changed ? (task === 'progression' ? 'Progression saved.' : 'Note saved.') : 'No changes to save.');
+  if (returnFocus) {
+    const target = task === 'progression'
+      ? document.querySelector('[data-character-progress-trigger]')
+      : document.querySelector('[data-action="character-task-start"][data-task="notes"]');
+    target?.focus({ preventScroll: true });
+  }
   return true;
+}
+function cancelCharacterTask() {
+  const task = characterTaskSession?.task;
+  characterTaskSession = null;
+  render();
+  const target = task === 'progression'
+    ? document.querySelector('[data-character-progress-trigger]')
+    : document.querySelector('[data-action="character-task-start"][data-task="notes"]');
+  target?.focus({ preventScroll: true });
 }
 function captureCharacterSetupInput() {
   const input = $('#character-setup-bloodweb');
@@ -1803,12 +1829,9 @@ async function handleClick(event) {
     document.querySelector('[data-character-task-field]')?.focus({ preventScroll: true });
     return;
   }
-  if (action === 'character-task-save') { store.assertWriter(); saveCharacterTask(); return; }
+  if (action === 'character-task-save') { store.assertWriter(); saveCharacterTask({ returnFocus: true }); return; }
   if (action === 'character-task-cancel') {
-    const task = characterTaskSession?.task;
-    characterTaskSession = null;
-    render();
-    document.querySelector('[data-action="character-task-start"][data-task="' + task + '"]')?.focus({ preventScroll: true });
+    cancelCharacterTask();
     return;
   }
   if (action === 'overview-ownership-toggle') {
@@ -2309,6 +2332,10 @@ document.addEventListener('keydown', event => {
     return;
   }
   if (event.key === 'Escape' && $('dialog[open]')) return;
+  if (event.key === 'Escape' && characterTaskSession?.task === 'progression'
+    && event.target.closest?.('[data-character-task="progression"]')) {
+    event.preventDefault(); cancelCharacterTask(); return;
+  }
   if (event.key === 'Escape' && $('#menu-toggle').getAttribute('aria-expanded') === 'true') {
     event.preventDefault(); setGlobalMenuOpen(false, true); return;
   }

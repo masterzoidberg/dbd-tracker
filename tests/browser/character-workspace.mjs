@@ -45,8 +45,18 @@ export async function characterWorkspaceRegression(page, origin) {
   assert.equal(await workspace.locator('.character-portrait').count(), 1, 'Overview must not repeat character portrait');
 
   // Overview is grouped by meaning instead of a full-width panel stack.
-  for (const section of ['native-perks','progress','perks','inventory','notes'])
+  for (const section of ['native-perks','setup','perks','inventory','notes'])
     assert.equal(await workspace.locator('[data-overview-section="'+section+'"]').count(), 1, section);
+  assert.equal(await workspace.locator('[data-overview-section="progress"]').count(), 0, 'Overview has no generic Progress / setup card');
+  const ownershipAction = workspace.locator('[data-character-header] .character-workspace-status [data-action="overview-ownership-toggle"]');
+  assert.equal(await ownershipAction.count(), 1, 'Ownership action stays beside Owned/Locked');
+  assert.equal(await workspace.locator('.character-overview-grid [data-action="overview-ownership-toggle"]').count(), 0,
+    'Ownership is not separated from character identity');
+  assert.equal(await workspace.locator('[data-character-progress-trigger]').count(), 1, 'Prestige and Bloodweb share one direct trigger');
+  assert.equal(await workspace.locator('[data-character-progress-trigger] .character-progress-edit-cue').isVisible(), true,
+    'The single direct trigger shows an at-rest edit cue');
+  assert.equal(await workspace.getByRole('button', { name: 'Edit progression', exact: true }).count(), 0,
+    'Overview does not require an extra progression-edit button');
   const nativeSection = workspace.locator('[data-overview-section="native-perks"]');
   assert.ok(await nativeSection.locator('[data-perk-icon]').count() > 0, 'Native perks reuse artwork');
   assert.match(await nativeSection.textContent(), /Recorded:/);
@@ -247,9 +257,17 @@ async function survivorOverviewRegression(page, origin) {
   assert.equal(await native.locator(`[data-open-character-perk="${nativeId}"]`).getAttribute('href'),
     `#character/${survivor.id}/perks`, 'Native perks link to the ordinary Perks workspace');
 
-  const setup = page.locator('[data-overview-section="progress"]');
+  const setup = page.locator('[data-overview-section="setup"]');
   assert.match(await setup.textContent(), /Initial setup incomplete/);
-  assert.equal(await setup.locator('a[href$="/setup"]').count(), 1, 'Incomplete setup stays actionable for this locked character');
+  assert.equal(await setup.locator('a[href$="/setup"]').count(), 1, 'Incomplete setup remains actionable');
+  assert.equal(await setup.getByRole('link', { name: 'Start initial setup', exact: true }).count(), 1);
+  save.characters[survivor.id].setupComplete = true;
+  await page.evaluate(value => localStorage.setItem('dbdTrackerData', JSON.stringify(value)), save);
+  await page.reload();
+  const completedSetup = page.locator('[data-overview-section="setup"]');
+  assert.match(await completedSetup.textContent(), /Initial setup complete/);
+  assert.equal(await completedSetup.getByRole('link', { name: 'Review initial setup', exact: true }).count(), 1,
+    'Completed setup remains reviewable from its subordinate Overview location');
   const inventory = page.locator('[data-overview-section="inventory"]');
   const inventoryText = await inventory.textContent();
   assert.match(inventoryText, /38 Items/);
@@ -309,7 +327,7 @@ async function setupDraftNavigationRegression(page, origin) {
   await page.evaluate(value => localStorage.setItem('dbdTrackerData', JSON.stringify(value)), save);
   await page.reload();
   await page.goto(origin + '/#character/meg-thomas/overview');
-  await page.locator('[data-overview-section="progress"] a[href="#character/meg-thomas/setup"]').click();
+  await page.locator('[data-overview-section="setup"] a[href="#character/meg-thomas/setup"]').click();
   await page.locator('#character-setup-bloodweb').fill('12');
   await page.goBack();
   await page.locator('#dirty-navigation[open]').waitFor();
@@ -531,7 +549,7 @@ export async function characterWorkspaceResponsive(page,origin){
   Object.assign(save.characters['meg-thomas'],{owned:true,favorite:true,prestige:3,bloodwebLevel:27,notes:'Long notes '.repeat(60)});
   await page.evaluate(s=>localStorage.setItem('dbdTrackerData',JSON.stringify(s)),save);
   await page.goto(origin+'/#character/meg-thomas/overview');await page.reload();
-  for(const width of [320,500,760,1100,1440,1600]){
+  for(const width of [320,390,500,700,760,768,900,1024,1100,1440,1600]){
     await page.setViewportSize({width,height:900});
     const edges=[];
     for(const section of ['overview','perks','items-addons']){
@@ -554,7 +572,28 @@ export async function characterWorkspaceResponsive(page,origin){
       const navigation=header.locator('[data-workspace-section="'+section+'"]');await navigation.focus();
       assert.ok(await navigation.evaluate(n=>{const s=getComputedStyle(n);return s.outlineStyle!=='none'&&parseFloat(s.outlineWidth)>0;}),'Visible navigation focus');
       if(section==='overview'){
-        assert.deepEqual(await page.locator('[data-overview-section]').evaluateAll(nodes=>nodes.map(n=>n.dataset.overviewSection)),['native-perks','progress','perks','inventory','notes']);
+        assert.deepEqual(await page.locator('[data-overview-section]').evaluateAll(nodes=>nodes.map(n=>n.dataset.overviewSection)),['native-perks','setup','perks','inventory','notes']);
+        const trigger=header.locator('[data-character-progress-trigger]');
+        assert.ok((await trigger.boundingBox()).height>=44,'Progression trigger remains a practical target '+width);
+        await trigger.focus();
+        assert.ok(await trigger.evaluate(n=>{const s=getComputedStyle(n);return s.outlineStyle!=='none'&&parseFloat(s.outlineWidth)>0;}),'Progression trigger has visible keyboard focus '+width);
+        await trigger.press('Enter');
+        const editor=page.getByRole('dialog',{name:'Edit progress',exact:true});
+        const popup=await editor.boundingBox();
+        assert.ok(popup.x>=0&&popup.y>=0&&popup.x+popup.width<=width&&popup.y+popup.height<=900,
+          'Progression editor stays inside the viewport '+width);
+        assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Progression editor has no horizontal overflow '+width);
+        await page.locator('[data-character-task-field="prestige"]').fill('1.5');
+        await page.getByRole('button',{name:'Save progression',exact:true}).click();
+        const error=page.locator('[data-character-task-errors][role="alert"]');
+        assert.ok(await error.isVisible(),'Progression validation remains visible '+width);
+        const editorAfterError=await editor.boundingBox(),errorBounds=await error.boundingBox();
+        assert.ok(errorBounds.x>=editorAfterError.x&&errorBounds.y>=editorAfterError.y
+          &&errorBounds.x+errorBounds.width<=editorAfterError.x+editorAfterError.width
+          &&errorBounds.y+errorBounds.height<=editorAfterError.y+editorAfterError.height,
+          'Validation text remains inside the editor '+width);
+        await page.getByRole('button',{name:'Cancel',exact:true}).click();
+        assert.equal(await trigger.evaluate(n=>n===document.activeElement),true,'Cancel restores progression focus '+width);
       }
       if(section==='items-addons'){
         assert.equal(await page.getByRole('navigation',{name:'Item families'}).locator('[aria-pressed="true"]').count(),1);

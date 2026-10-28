@@ -39,7 +39,7 @@ export async function smokeStage(stage, { channel = 'msedge', regression, manife
     await globalNavigation.getByRole('link', { name: /^Survivors/ }).click();
     await page.getByPlaceholder('Search characters…').fill('Meg');
     await page.getByRole('link', { name: 'View Meg Thomas workspace', exact: true }).click();
-    await page.getByRole('button', { name: 'Edit progression', exact: true }).click();
+    await page.locator('[data-character-progress-trigger]').click();
     await page.locator('[data-character-task-field="bloodwebLevel"]').fill('25');
     await page.getByRole('button', { name: 'Save progression', exact: true }).click();
     await page.locator('.character-workspace-favorite').click();
