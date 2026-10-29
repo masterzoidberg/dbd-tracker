@@ -70,6 +70,7 @@ export function createGoogleDrive(config = {}, dependencies = {}) {
   const request = dependencies.fetch || globalThis.fetch.bind(globalThis);
   const load = dependencies.loadLibraries || loadLibraries;
   const loadPicker = dependencies.loadPicker || loadPickerLibraries;
+  const pickerTimeoutMs = Number.isFinite(dependencies.pickerTimeoutMs) && dependencies.pickerTimeoutMs > 0 ? dependencies.pickerTimeoutMs : 120000;
   const preferenceStorage = dependencies.storage || {
     getItem: key => globalThis.localStorage?.getItem(key) ?? null,
     setItem: (key, value) => {
@@ -77,7 +78,7 @@ export function createGoogleDrive(config = {}, dependencies = {}) {
       globalThis.localStorage.setItem(key, value);
     },
   };
-  let libraries, preparation, pickerLibrary, pickerPreparation, accessToken = '', expiresAt = 0, pickerOpening = false;
+  let libraries, preparation, pickerLibrary, pickerPreparation, accessToken = '', expiresAt = 0, pickerOpening = false, selectionTrace = null;
   const configured = /^[\w.-]+\.apps\.googleusercontent\.com$/.test(config.clientId || '');
   const pickerConfigured = /^AIza[A-Za-z0-9_-]{35}$/.test(config.apiKey || '') && /^\d{1,20}$/.test(config.appId || '');
 
@@ -103,17 +104,72 @@ export function createGoogleDrive(config = {}, dependencies = {}) {
       return [...unique.values()].slice(0, MAX_RECENT_DESTINATIONS);
     } catch { return []; }
   }
-  function rememberDestination(folder) {
+  function rememberDestination(folder, trace = null) {
     if (typeof folder?.id !== 'string' || !folder.id.trim() || typeof folder?.name !== 'string' || !folder.name.trim()) {
       throw Error('Google Picker did not return a usable folder. Choose a folder again.');
     }
     const isRoot = folder.isRoot === true || folder.id === 'root';
     const selected = { id: folder.id, name: isRoot ? 'My Drive' : folder.name, ...(isRoot ? { isRoot: true } : {}) };
-    preferenceStorage.setItem(DESTINATION_KEY, JSON.stringify(selected));
+    try {
+      preferenceStorage.setItem(DESTINATION_KEY, JSON.stringify(selected));
+      if (trace) trace.destinationWriteSucceeded = true;
+    } catch (error) {
+      if (!trace) throw error;
+      trace.destinationWriteSucceeded = false;
+      trace.outcomeCategory = 'destination-storage-failed';
+      throw codedError('The backup location could not be remembered in this browser.', 'destination-storage-failed');
+    }
     const recent = [selected, ...recentDestinations().filter(item => item.id !== selected.id)].slice(0, MAX_RECENT_DESTINATIONS);
-    preferenceStorage.setItem(RECENT_DESTINATIONS_KEY, JSON.stringify(recent));
+    try {
+      preferenceStorage.setItem(RECENT_DESTINATIONS_KEY, JSON.stringify(recent));
+      if (trace) trace.recentLocationsWriteSucceeded = true;
+    } catch (error) {
+      if (!trace) throw error;
+      trace.recentLocationsWriteSucceeded = false;
+      trace.destinationRecognized = destination()?.id === selected.id;
+      trace.finalPanelDestination = trace.destinationRecognized ? 'selected' : 'not-selected';
+      trace.outcomeCategory = 'recent-storage-failed';
+      throw codedError('The backup location was saved, but recent locations could not be updated.', 'recent-storage-failed');
+    }
+    if (trace) {
+      trace.destinationRecognized = destination()?.id === selected.id;
+      trace.finalPanelDestination = trace.destinationRecognized ? 'selected' : 'not-selected';
+      if (!trace.destinationRecognized) {
+        trace.outcomeCategory = 'destination-storage-failed';
+        throw codedError('The backup location could not be remembered in this browser.', 'destination-storage-failed');
+      }
+      trace.outcomeCategory = 'success';
+    }
     return selected;
   }
+
+  function diagnosticMimeType(value) {
+    return typeof value === 'string' ? value.slice(0, 100) : null;
+  }
+
+  function createSelectionTrace() {
+    return {
+      pickerOpened: false, callbackFired: false, callbackAction: 'not-received', documentCount: null,
+      selectedIdPresent: null, selectedNamePresent: null, selectedMimeType: null, folderMimeAccepted: null,
+      filesGetAttempted: false, filesGetStatus: null, responseIdPresent: null, responseMimeType: null,
+      responseTrashed: null, folderResponseAccepted: null, destinationWriteSucceeded: null,
+      recentLocationsWriteSucceeded: null, destinationRecognized: false, finalPanelDestination: 'not-selected',
+      outcomeCategory: 'in-progress',
+    };
+  }
+
+  function selectionDiagnostics(finalPanelDestination) {
+    if (!selectionTrace) return null;
+    const result = { ...selectionTrace };
+    if (finalPanelDestination === 'selected' || finalPanelDestination === 'not-selected') result.finalPanelDestination = finalPanelDestination;
+    return result;
+  }
+
+  function selectionDiagnosticText(finalPanelDestination) {
+    const trace = selectionDiagnostics(finalPanelDestination);
+    return trace ? JSON.stringify(trace, null, 2) : '';
+  }
+
   function removeRecentDestination(id) {
     preferenceStorage.setItem(RECENT_DESTINATIONS_KEY, JSON.stringify(recentDestinations().filter(item => item.id !== id)));
   }
@@ -188,15 +244,41 @@ export function createGoogleDrive(config = {}, dependencies = {}) {
     return response;
   }
 
-  async function readFolder(id, fallbackName = '') {
+  async function readFolder(id, fallbackName = '', trace = null) {
     let data;
+    let response;
     try {
-      data = await (await api('/drive/v3/files/' + encodeURIComponent(id) + '?fields=id,name,mimeType,trashed')).json();
+      if (trace) trace.filesGetAttempted = true;
+      response = await api('/drive/v3/files/' + encodeURIComponent(id) + '?fields=id,name,mimeType,trashed');
+      if (trace) trace.filesGetStatus = response.status;
     } catch (error) {
+      if (trace) {
+        trace.filesGetStatus = Number.isInteger(error.status) ? error.status : 'no-http-response';
+        trace.outcomeCategory = error.status === 403 || error.status === 404 ? 'folder-verification-failed' : 'google-drive-request-failed';
+        trace.folderResponseAccepted = false;
+      }
       if (error.status === 403 || error.status === 404) throw codedError('The saved Google Drive backup location is unavailable. Choose a folder again.', 'destination-unavailable');
       throw error;
     }
+    try { data = await response.json(); }
+    catch (error) {
+      if (trace) {
+        trace.responseIdPresent = false;
+        trace.responseMimeType = null;
+        trace.responseTrashed = null;
+        trace.folderResponseAccepted = false;
+        trace.outcomeCategory = 'google-drive-request-failed';
+      }
+      throw error;
+    }
+    if (trace) {
+      trace.responseIdPresent = !!data?.id;
+      trace.responseMimeType = diagnosticMimeType(data?.mimeType);
+      trace.responseTrashed = typeof data?.trashed === 'boolean' ? data.trashed : null;
+      trace.folderResponseAccepted = !!data?.id && !data.trashed && data.mimeType === FOLDER_MIME;
+    }
     if (!data.id || data.trashed || data.mimeType !== FOLDER_MIME) {
+      if (trace) trace.outcomeCategory = 'folder-verification-failed';
       throw codedError('The saved Google Drive backup location is unavailable. Choose a folder again.', 'destination-unavailable');
     }
     return { id: data.id, name: id === 'root' ? 'My Drive' : typeof data.name === 'string' && data.name.trim() ? data.name : fallbackName };
@@ -215,11 +297,13 @@ export function createGoogleDrive(config = {}, dependencies = {}) {
   }
 
   async function selectFolder() {
-    requireAvailable();
-    if (!pickerConfigured) throw Error('Google Drive folder picker is not configured for this build. Local JSON tools remain available.');
     if (pickerOpening) throw Error('Google Drive folder chooser is already open.');
     pickerOpening = true;
+    selectionTrace = createSelectionTrace();
+    let candidateId = '';
     try {
+      requireAvailable();
+      if (!pickerConfigured) throw Error('Google Drive folder picker is not configured for this build. Local JSON tools remain available.');
       await connect();
       if (!pickerLibrary) {
         pickerPreparation ||= loadPicker().then(result => { pickerLibrary = result; }).catch(error => {
@@ -230,13 +314,20 @@ export function createGoogleDrive(config = {}, dependencies = {}) {
       }
       const picker = pickerLibrary;
       const folder = await new Promise((resolve, reject) => {
+        let timer, settled = false, instance;
+        const finish = (callback, value) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          callback(value);
+        };
         try {
           const view = new picker.DocsView(picker.ViewId.FOLDERS)
             .setIncludeFolders(true)
             .setSelectFolderEnabled(true)
             .setMimeTypes(FOLDER_MIME)
             .setMode(picker.DocsViewMode.LIST);
-          const instance = new picker.PickerBuilder()
+          instance = new picker.PickerBuilder()
             .setAppId(config.appId)
             .setDeveloperKey(config.apiKey)
             .setOAuthToken(accessToken)
@@ -246,22 +337,67 @@ export function createGoogleDrive(config = {}, dependencies = {}) {
             .enableFeature(picker.Feature.NAV_HIDDEN)
             .addView(view)
             .setCallback(data => {
-              if (data.action === picker.Action.CANCEL) { resolve(null); return; }
-              if (data.action !== picker.Action.PICKED) { reject(Error('Google Drive folder chooser did not complete. Retry folder selection.')); return; }
-              const selected = data.docs?.[0];
-              if (!selected?.id || selected.mimeType !== FOLDER_MIME) {
-                reject(Error('Google Picker did not return a folder. Choose a folder again.')); return;
+              if (settled) return;
+              selectionTrace.callbackFired = true;
+              const action = data?.action;
+              selectionTrace.callbackAction = ['PICKED', 'CANCEL', 'ERROR', 'picked', 'cancel', 'error'].includes(action) ? action : 'other';
+              const docs = Array.isArray(data?.docs) ? data.docs : [];
+              selectionTrace.documentCount = docs.length;
+              if (action === picker.Action.CANCEL) {
+                selectionTrace.outcomeCategory = 'picker-canceled';
+                finish(resolve, null);
+                return;
               }
-              resolve({ id: selected.id, name: selected.name || 'Selected folder' });
+              if (action !== picker.Action.PICKED) {
+                selectionTrace.outcomeCategory = 'picker-action-unexpected';
+                finish(reject, codedError('Google Drive folder chooser did not complete. Retry folder selection.', 'picker-action-unexpected'));
+                return;
+              }
+              const selected = docs[0];
+              selectionTrace.selectedIdPresent = !!selected?.id;
+              selectionTrace.selectedNamePresent = !!selected?.name;
+              selectionTrace.selectedMimeType = diagnosticMimeType(selected?.mimeType);
+              selectionTrace.folderMimeAccepted = selected?.mimeType === FOLDER_MIME;
+              if (!selected?.id || !selectionTrace.folderMimeAccepted) {
+                selectionTrace.outcomeCategory = 'picker-folder-invalid';
+                finish(reject, codedError('Google Picker did not return a folder. Choose a folder again.', 'picker-folder-invalid'));
+                return;
+              }
+              finish(resolve, { id: selected.id, name: selected.name || 'Selected folder' });
             })
             .build();
+          timer = setTimeout(() => {
+            if (settled) return;
+            selectionTrace.outcomeCategory = 'picker-timeout';
+            settled = true;
+            clearTimeout(timer);
+            try { instance?.setVisible(false); } catch { /* timeout is already reported */ }
+            reject(codedError('Google Picker did not respond. Try choosing a folder again.', 'picker-timeout'));
+          }, pickerTimeoutMs);
           instance.setVisible(true);
-        } catch { reject(Error('Google Drive folder chooser could not open. Retry folder selection.')); }
+          selectionTrace.pickerOpened = true;
+        } catch {
+          selectionTrace.outcomeCategory = 'picker-open-failed';
+          finish(reject, codedError('Google Drive folder chooser could not open. Retry folder selection.', 'picker-open-failed'));
+        }
       });
       if (!folder) return null;
-      const verified = await readFolder(folder.id, folder.name);
-      return rememberDestination(verified);
-    } finally { pickerOpening = false; }
+      candidateId = folder.id;
+      const verified = await readFolder(folder.id, folder.name, selectionTrace);
+      return rememberDestination(verified, selectionTrace);
+    } catch (error) {
+      if (selectionTrace.outcomeCategory === 'in-progress') {
+        selectionTrace.outcomeCategory = error.code === 'picker-timeout' ? 'picker-timeout'
+          : error.code === 'picker-action-unexpected' ? 'picker-action-unexpected'
+            : error.code === 'picker-folder-invalid' ? 'picker-folder-invalid'
+              : 'google-drive-request-failed';
+      }
+      throw error;
+    } finally {
+      if (candidateId) selectionTrace.destinationRecognized = destination()?.id === candidateId;
+      selectionTrace.finalPanelDestination = destination() ? 'selected' : 'not-selected';
+      pickerOpening = false;
+    }
   }
 
   async function useMyDrive() {
@@ -330,5 +466,5 @@ export function createGoogleDrive(config = {}, dependencies = {}) {
     return (await api('/drive/v3/files/' + encodeURIComponent(file) + '?alt=media')).text();
   }
 
-  return { status, prepare, connect, disconnect, destination, recentDestinations, selectFolder, useMyDrive, useRecentDestination, exportJson, importJson };
+  return { status, prepare, connect, disconnect, destination, recentDestinations, selectFolder, selectionDiagnostics, selectionDiagnosticText, useMyDrive, useRecentDestination, exportJson, importJson };
 }

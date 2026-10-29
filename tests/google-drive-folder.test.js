@@ -8,7 +8,7 @@ const config = {
   appId: '938560128029',
 };
 
-function fixture({ pickerAction = 'PICKED', folder = { id: 'folder-1', name: 'Backups', mimeType: 'application/vnd.google-apps.folder' }, stored = null, recent = null, responses = [], pickerLoadFailure = false } = {}) {
+function fixture({ pickerAction = 'PICKED', pickerPayload = null, folder = { id: 'folder-1', name: 'Backups', mimeType: 'application/vnd.google-apps.folder' }, stored = null, recent = null, responses = [], pickerLoadFailure = false, pickerTimeoutMs = 120000, failWriteKey = '' } = {}) {
   const calls = [], storage = new Map(), pickerCalls = [];
   if (stored) storage.set('dbdTrackerDriveFolder', JSON.stringify(stored));
   if (recent) storage.set('dbdTrackerDriveRecentFolders', JSON.stringify(recent));
@@ -37,13 +37,14 @@ function fixture({ pickerAction = 'PICKED', folder = { id: 'folder-1', name: 'Ba
     setCallback(callback) { pickerCallback = callback; return this; }
     build() { return { setVisible(value) {
       pickerVisible = value;
-      if (value && pickerAction !== 'HOLD') queueMicrotask(() => pickerCallback(pickerAction === 'PICKED'
+      if (value && pickerAction !== 'HOLD') queueMicrotask(() => pickerCallback(pickerPayload || (pickerAction === 'PICKED'
         ? { action: 'PICKED', docs: [folder] }
-        : { action: pickerAction }));
+        : { action: pickerAction })));
     } }; }
   }
   const drive = createGoogleDrive(config, {
-    storage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) },
+    storage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => { if (key === failWriteKey) throw Error('synthetic storage failure'); storage.set(key, value); } },
+    pickerTimeoutMs,
     environment: () => ({ protocol: 'https:', online: true, origin: 'https://example.test' }),
     loadLibraries: async () => ({ oauth }),
     loadPicker: async () => {
@@ -57,11 +58,11 @@ function fixture({ pickerAction = 'PICKED', folder = { id: 'folder-1', name: 'Ba
       if (next instanceof Error) throw next;
       const fileId = decodeURIComponent(url.match(/\/drive\/v3\/files\/([^?]+)/)?.[1] || '');
       const folderBodies = {
-        'folder-1': { id: 'folder-1', name: 'Backups', mimeType: 'application/vnd.google-apps.folder', trashed: false },
+        [folder?.id || 'folder-1']: { id: folder?.id || 'folder-1', name: folder?.name || 'Backups', mimeType: folder?.mimeType || 'application/vnd.google-apps.folder', trashed: false },
         root: { id: 'drive-root', name: 'My Drive', mimeType: 'application/vnd.google-apps.folder', trashed: false },
         'drive-root': { id: 'drive-root', name: 'My Drive', mimeType: 'application/vnd.google-apps.folder', trashed: false },
       };
-      const body = next?.body ?? folderBodies[fileId] ?? {};
+      const body = next?.body ?? (fileId ? folderBodies[fileId] ?? {} : {});
       return new Response(typeof body === 'string' ? body : JSON.stringify(body), { status: next?.status ?? 200 });
     },
   });
@@ -165,6 +166,158 @@ test('Picker rejects any result that does not explicitly identify a folder', asy
     assert.deepEqual(f.drive.recentDestinations(), []);
     assert.equal(f.calls.length, 0);
   }
+});
+
+test('a Picker callback timeout is recorded when the chooser closes without a callback', async () => {
+  const f = fixture({ pickerAction: 'HOLD', pickerTimeoutMs: 5 });
+  const selection = f.drive.selectFolder();
+  await assert.rejects(Promise.race([selection, new Promise((_, reject) => setTimeout(() => reject(Error('test harness timeout')), 20))]), error => error.code === 'picker-timeout');
+  assert.deepEqual(f.drive.selectionDiagnostics(), {
+    pickerOpened: true, callbackFired: false, callbackAction: 'not-received', documentCount: null,
+    selectedIdPresent: null, selectedNamePresent: null, selectedMimeType: null, folderMimeAccepted: null,
+    filesGetAttempted: false, filesGetStatus: null, responseIdPresent: null, responseMimeType: null,
+    responseTrashed: null, folderResponseAccepted: null, destinationWriteSucceeded: null,
+    recentLocationsWriteSucceeded: null, destinationRecognized: false,
+    finalPanelDestination: 'not-selected', outcomeCategory: 'picker-timeout',
+  });
+});
+
+test('unexpected Picker actions are reported without saving a destination', async () => {
+  const f = fixture({ pickerAction: 'ERROR' });
+  await assert.rejects(f.drive.selectFolder(), error => error.code === 'picker-action-unexpected');
+  const trace = f.drive.selectionDiagnostics();
+  assert.equal(trace.callbackFired, true);
+  assert.equal(trace.callbackAction, 'ERROR');
+  assert.equal(trace.outcomeCategory, 'picker-action-unexpected');
+  assert.equal(trace.filesGetAttempted, false);
+});
+
+test('a PICKED callback with no documents is reported as unusable', async () => {
+  const f = fixture({ pickerPayload: { action: 'PICKED', docs: [] } });
+  await assert.rejects(f.drive.selectFolder(), error => error.code === 'picker-folder-invalid');
+  const trace = f.drive.selectionDiagnostics();
+  assert.equal(trace.documentCount, 0);
+  assert.equal(trace.selectedIdPresent, false);
+  assert.equal(trace.selectedNamePresent, false);
+  assert.equal(trace.selectedMimeType, null);
+  assert.equal(trace.outcomeCategory, 'picker-folder-invalid');
+});
+
+test('a picked document without an ID is rejected and diagnosed', async () => {
+  const f = fixture({ folder: { name: 'Private folder', mimeType: 'application/vnd.google-apps.folder' } });
+  await assert.rejects(f.drive.selectFolder(), error => error.code === 'picker-folder-invalid');
+  assert.equal(f.drive.selectionDiagnostics().selectedIdPresent, false);
+  assert.equal(f.calls.length, 0);
+});
+
+test('a picked document without a name remains selectable using the existing fallback', async () => {
+  const f = fixture({ folder: { id: 'folder-1', mimeType: 'application/vnd.google-apps.folder' } });
+  assert.deepEqual(await f.drive.selectFolder(), { id: 'folder-1', name: 'Backups' });
+  assert.equal(f.drive.selectionDiagnostics().selectedNamePresent, false);
+  assert.equal(f.drive.selectionDiagnostics().outcomeCategory, 'success');
+});
+
+test('missing or incorrect Picker MIME types are rejected before Drive verification', async () => {
+  for (const folder of [
+    { id: 'folder-1', name: 'Private folder' },
+    { id: 'folder-1', name: 'Private folder', mimeType: 'application/json' },
+  ]) {
+    const f = fixture({ folder });
+    await assert.rejects(f.drive.selectFolder(), error => error.code === 'picker-folder-invalid');
+    assert.equal(f.drive.selectionDiagnostics().folderMimeAccepted, false);
+    assert.equal(f.drive.selectionDiagnostics().filesGetAttempted, false);
+  }
+});
+
+test('post-Picker files.get failures record their HTTP status', async () => {
+  for (const status of [403, 404, 500]) {
+    const f = fixture({ responses: [{ status }] });
+    await assert.rejects(f.drive.selectFolder());
+    const trace = f.drive.selectionDiagnostics();
+    assert.equal(trace.callbackAction, 'PICKED');
+    assert.equal(trace.folderMimeAccepted, true);
+    assert.equal(trace.filesGetAttempted, true);
+    assert.equal(trace.filesGetStatus, status);
+    assert.equal(trace.destinationWriteSucceeded, null);
+    assert.equal(trace.outcomeCategory, status === 403 || status === 404 ? 'folder-verification-failed' : 'google-drive-request-failed');
+  }
+});
+
+test('malformed files.get JSON is reported as a failed Drive response', async () => {
+  const f = fixture({ responses: [{ body: '{not-json' }] });
+  await assert.rejects(f.drive.selectFolder());
+  const trace = f.drive.selectionDiagnostics();
+  assert.equal(trace.filesGetStatus, 200);
+  assert.equal(trace.responseIdPresent, false);
+  assert.equal(trace.folderResponseAccepted, false);
+  assert.equal(trace.outcomeCategory, 'google-drive-request-failed');
+});
+
+test('files.get responses that are not live folders are recorded as rejected', async () => {
+  for (const body of [
+    { id: 'folder-1', name: 'Private folder', mimeType: 'application/json', trashed: false },
+    { id: 'folder-1', name: 'Private folder', mimeType: 'application/vnd.google-apps.folder', trashed: true },
+  ]) {
+    const f = fixture({ responses: [{ body }] });
+    await assert.rejects(f.drive.selectFolder(), error => error.code === 'destination-unavailable');
+    const trace = f.drive.selectionDiagnostics();
+    assert.equal(trace.responseIdPresent, true);
+    assert.equal(trace.responseMimeType, body.mimeType);
+    assert.equal(trace.responseTrashed, body.trashed);
+    assert.equal(trace.folderResponseAccepted, false);
+  }
+});
+
+test('destination and recent-location storage failures are diagnosed independently', async () => {
+  const activeWriteFailure = fixture({ stored: { id: 'existing-folder', name: 'Existing folder' }, failWriteKey: 'dbdTrackerDriveFolder' });
+  await assert.rejects(activeWriteFailure.drive.selectFolder(), error => error.code === 'destination-storage-failed');
+  let trace = activeWriteFailure.drive.selectionDiagnostics();
+  assert.equal(trace.destinationWriteSucceeded, false);
+  assert.equal(trace.recentLocationsWriteSucceeded, null);
+  assert.equal(trace.destinationRecognized, false);
+  assert.equal(trace.finalPanelDestination, 'selected');
+  assert.deepEqual(activeWriteFailure.drive.destination(), { id: 'existing-folder', name: 'Existing folder' });
+
+  const recentWriteFailure = fixture({ failWriteKey: 'dbdTrackerDriveRecentFolders' });
+  await assert.rejects(recentWriteFailure.drive.selectFolder(), error => error.code === 'recent-storage-failed');
+  trace = recentWriteFailure.drive.selectionDiagnostics();
+  assert.equal(trace.destinationWriteSucceeded, true);
+  assert.equal(trace.recentLocationsWriteSucceeded, false);
+  assert.equal(trace.destinationRecognized, true);
+  assert.equal(trace.finalPanelDestination, 'selected');
+  assert.deepEqual(recentWriteFailure.drive.destination(), { id: 'folder-1', name: 'Backups' });
+});
+
+test('successful selection records recognized persistence using an allowlisted sanitized trace', async () => {
+  const f = fixture({ folder: { id: 'private-folder-id', name: 'Private folder name', mimeType: 'application/vnd.google-apps.folder' } });
+  assert.deepEqual(await f.drive.selectFolder(), { id: 'private-folder-id', name: 'Private folder name' });
+  const trace = f.drive.selectionDiagnostics();
+  assert.equal(trace.pickerOpened, true);
+  assert.equal(trace.callbackFired, true);
+  assert.equal(trace.documentCount, 1);
+  assert.equal(trace.selectedIdPresent, true);
+  assert.equal(trace.selectedNamePresent, true);
+  assert.equal(trace.selectedMimeType, 'application/vnd.google-apps.folder');
+  assert.equal(trace.folderMimeAccepted, true);
+  assert.equal(trace.filesGetAttempted, true);
+  assert.equal(trace.filesGetStatus, 200);
+  assert.equal(trace.responseIdPresent, true);
+  assert.equal(trace.responseMimeType, 'application/vnd.google-apps.folder');
+  assert.equal(trace.responseTrashed, false);
+  assert.equal(trace.folderResponseAccepted, true);
+  assert.equal(trace.destinationWriteSucceeded, true);
+  assert.equal(trace.recentLocationsWriteSucceeded, true);
+  assert.equal(trace.destinationRecognized, true);
+  assert.equal(trace.finalPanelDestination, 'selected');
+  assert.equal(trace.outcomeCategory, 'success');
+  assert.deepEqual(Object.keys(trace), [
+    'pickerOpened', 'callbackFired', 'callbackAction', 'documentCount', 'selectedIdPresent', 'selectedNamePresent',
+    'selectedMimeType', 'folderMimeAccepted', 'filesGetAttempted', 'filesGetStatus', 'responseIdPresent',
+    'responseMimeType', 'responseTrashed', 'folderResponseAccepted', 'destinationWriteSucceeded',
+    'recentLocationsWriteSucceeded', 'destinationRecognized', 'finalPanelDestination', 'outcomeCategory',
+  ]);
+  const encoded = JSON.stringify(trace);
+  for (const forbidden of ['private-folder-id', 'Private folder name', 'memory-token', config.apiKey, 'Authorization']) assert.ok(!encoded.includes(forbidden));
 });
 
 test('backup and restore without a destination fail without launching Picker', async () => {
