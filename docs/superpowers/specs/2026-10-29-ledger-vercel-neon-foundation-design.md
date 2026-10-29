@@ -1,6 +1,6 @@
 # Ledger Hosted Persistence Proof — Design
 
-**Status:** Proposed for review. Implementation, cloud resource creation, and deployment are gated on approval of this document.
+**Status:** Approved by the user on 2026-10-29. The implementation plan is approved; execution is authorized within its constraints.
 
 ## Intent
 
@@ -11,7 +11,7 @@ Build an isolated Vercel Preview proof that stores a whole Ledger JSON document 
 - The requested baseline is origin/main at 807f8ce on 2026-10-29. The application is vanilla JavaScript built with esbuild; Node tests and a guarded release script are already present.
 - The current canonical save is schema v3. The existing validator accepts schema v1 and v2 and migrates them to v3. Existing tests cover the v2-to-v3 migration. The proof will use v3 as canonical and reuse this validator without changing the existing migration or localStorage code.
 - The release artifact is an allowlisted GitHub Pages bundle. New API routes will not enter that artifact.
-- The local Vercel CLI is not authenticated. The connected Vercel team is available but has no dbd-tracker project; the connected Neon organization is available but has no projects. The requested resources must be created after design approval.
+- The local Vercel CLI is authenticated as `nicolasqueen-4326` (verified on 2026-10-29). The connected Vercel team is available but has no dbd-tracker project; the connected Neon organization is available but has no projects. The requested resources must be created under the approved implementation plan.
 
 ## Approaches considered
 
