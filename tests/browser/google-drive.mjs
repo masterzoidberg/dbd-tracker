@@ -23,10 +23,10 @@ export async function googleDriveRegression(browser, origin) {
       hasGrantedAllScopes: () => true, revoke: (token, cb) => cb({}),
     };
     const picker = {
-      ViewId: { FOLDERS: 'FOLDERS' }, Action: { PICKED: 'PICKED', CANCEL: 'CANCEL' },
-      DocsView: class { constructor(id) { this.id = id; } setIncludeFolders() { return this; } setSelectFolderEnabled() { return this; } setMimeTypes() { return this; } },
+      ViewId: { FOLDERS: 'FOLDERS' }, DocsViewMode: { LIST: 'LIST' }, Feature: { NAV_HIDDEN: 'NAV_HIDDEN' }, Action: { PICKED: 'PICKED', CANCEL: 'CANCEL' },
+      DocsView: class { constructor(id) { this.id = id; } setIncludeFolders() { return this; } setSelectFolderEnabled() { return this; } setMimeTypes() { return this; } setMode() { return this; } },
       PickerBuilder: class {
-        setAppId() { return this; } setDeveloperKey() { return this; } setOAuthToken() { return this; } addView() { return this; }
+        setAppId() { return this; } setDeveloperKey() { return this; } setOAuthToken() { return this; } setTitle() { return this; } setMaxItems() { return this; } setSelectableMimeTypes() { return this; } enableFeature() { return this; } addView() { return this; }
         setCallback(callback) { this.callback = callback; return this; }
         build() { const builder = this; return { setVisible(value) { if (value) queueMicrotask(() => builder.callback(window.driveTest.pickerAction === 'PICKED'
           ? { action: 'PICKED', docs: [window.driveTest.selected] } : { action: window.driveTest.pickerAction })); } }; }
@@ -69,6 +69,12 @@ export async function googleDriveRegression(browser, origin) {
     await page.evaluate(() => { window.driveTest.denied = false; });
     await page.getByRole('button', { name: 'Connect Google Drive', exact: true }).click();
     await page.getByRole('status').filter({ hasText: 'Connected' }).waitFor();
+    assert.equal(await page.getByRole('button', { name: 'Backup now', exact: true }).count(), 0,
+      'Backup now is not shown until a destination is selected');
+    assert.equal(await page.getByRole('button', { name: 'Restore from Drive', exact: true }).isDisabled(), true,
+      'Restore cannot launch Picker as a side effect');
+    await page.getByRole('button', { name: 'Choose backup folder', exact: true }).click();
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem('dbdTrackerDriveFolder') || 'null')?.id === 'folder-one');
     const before = await page.evaluate(() => localStorage.dbdTrackerData);
     await page.getByRole('button', { name: 'Backup now', exact: true }).click();
     await page.waitForFunction(() => document.querySelector('#message').textContent.startsWith('Backed up to Google Drive'));
@@ -77,6 +83,7 @@ export async function googleDriveRegression(browser, origin) {
     const localExport = JSON.parse(await readFile(await (await localDownload).path(), 'utf8'));
     const comparable = value => { const copy = structuredClone(value); delete copy.exportedAt; return copy; };
     assert.deepEqual(comparable(uploaded), comparable(localExport), 'Drive and local export share the complete canonical payload');
+    assert.equal(JSON.stringify(localExport).includes('Synthetic backup folder'), false, 'local destination preferences stay outside portable Ledger JSON');
     assert.equal(uploaded.schemaVersion, 3); assert.deepEqual(uploaded.planning, JSON.parse(before).planning);
     assert.ok(!JSON.stringify(uploaded).includes('synthetic-token'));
     assert.equal(await page.evaluate(() => localStorage.dbdTrackerData), before);

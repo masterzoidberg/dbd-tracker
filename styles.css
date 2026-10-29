@@ -3068,7 +3068,7 @@ footer span {
 
 .drive-panel {
   display:grid;
-  gap:8px;
+  gap:10px;
   padding:16px 18px;
   margin-bottom:16px;
   min-width:0
@@ -3082,16 +3082,17 @@ footer span {
   font-weight:500;
   letter-spacing:.2px
 }
-.drive-description,.drive-location,.drive-location-note,.drive-last-backup,.drive-configuration-note,.drive-busy-message {
+.drive-description,.drive-location-note,.drive-last-backup,.drive-configuration-note,.drive-busy-message,.drive-picker-hint,.drive-unavailable {
   min-width:0;
   margin:0;
   line-height:1.55;
   overflow-wrap:anywhere
 }
-.drive-description,.drive-location-note,.drive-last-backup,.drive-configuration-note,.drive-busy-message {
+.drive-description,.drive-location-note,.drive-last-backup,.drive-configuration-note,.drive-busy-message,.drive-picker-hint {
   color:var(--muted);
   font-size:12px
 }
+.drive-description { max-width:72ch }
 .drive-status {
   display:flex;
   align-items:center;
@@ -3112,13 +3113,31 @@ footer span {
   background:var(--green)
 }
 .drive-location {
-  color:var(--text);
-  font-size:12px
+  display:grid;
+  grid-template-columns:minmax(105px,.4fr) minmax(0,1fr);
+  align-items:baseline;
+  gap:4px 12px;
+  min-width:0;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--raised);
+  color:var(--muted);
+  font-size:11px
 }
 .drive-location strong {
+  min-width:0;
+  color:var(--text);
+  font-size:14px;
+  font-weight:600;
+  overflow-wrap:anywhere
+}
+.drive-unavailable {
+  color:var(--warning,#a55b00);
+  font-size:12px;
   font-weight:600
 }
-.drive-actions,.drive-quiet-actions {
+.drive-actions {
   display:flex;
   align-items:center;
   gap:8px;
@@ -3128,15 +3147,12 @@ footer span {
 .drive-actions {
   margin-top:2px
 }
-.drive-quiet-actions {
-  margin-left:auto
-}
-.drive-quiet-actions .quiet {
+.drive-actions .quiet {
   color:var(--muted);
   background:transparent;
   border-color:transparent
 }
-.drive-quiet-actions .quiet:hover {
+.drive-actions .quiet:hover {
   color:var(--text);
   background:var(--raised);
   border-color:var(--border)
@@ -3144,21 +3160,56 @@ footer span {
 .drive-actions button {
   max-width:100%;
   min-height:42px;
+  overflow-wrap:anywhere;
+  white-space:normal
+}
+.drive-recent {
+  min-width:0;
+  padding-top:8px;
+  border-top:1px solid var(--border)
+}
+.drive-recent h3 {
+  margin:0 0 5px;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:600
+}
+.drive-recent ul {
+  display:grid;
+  gap:2px;
+  margin:0;
+  padding:0;
+  list-style:none
+}
+.drive-recent li {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  min-width:0;
+  padding:4px 0
+}
+.drive-recent li span {
+  min-width:0;
   overflow-wrap:anywhere
+}
+.drive-recent li button {
+  flex:0 0 auto;
+  min-height:34px
 }
 
 @media(max-width:500px) {
   .drive-panel {
     padding:14px
   }
-  .drive-actions,.drive-quiet-actions {
+  .drive-location {
+    grid-template-columns:minmax(0,1fr)
+  }
+  .drive-actions {
     width:100%;
     margin-left:0
   }
   .drive-actions>button {
-    flex:1 1 145px
-  }
-  .drive-quiet-actions>button {
-    flex:1 1 auto
+    flex:1 1 140px
   }
 }

@@ -26,14 +26,18 @@ export async function googleDriveFolderRegression(browser, origin) {
       hasGrantedAllScopes: () => true, revoke: (_token, callback) => callback({}),
     };
     const picker = {
-      ViewId: { FOLDERS: 'FOLDERS' }, Action: { PICKED: 'PICKED', CANCEL: 'CANCEL' },
-      DocsView: class { constructor(id) { this.id = id; window.driveTest.pickerConfig.view = id; } setSelectFolderEnabled(value) { this.selectFolderEnabled = value; window.driveTest.pickerConfig.selectFolderEnabled = value; return this; } setIncludeFolders(value) { window.driveTest.pickerConfig.includeFolders = value; return this; } setMimeTypes(value) { this.mimeTypes = value; window.driveTest.pickerConfig.mimeTypes = value; return this; } },
+      ViewId: { FOLDERS: 'FOLDERS' }, DocsViewMode: { LIST: 'LIST' }, Feature: { NAV_HIDDEN: 'NAV_HIDDEN' }, Action: { PICKED: 'PICKED', CANCEL: 'CANCEL' },
+      DocsView: class { constructor(id) { this.id = id; window.driveTest.pickerConfig.view = id; } setSelectFolderEnabled(value) { this.selectFolderEnabled = value; window.driveTest.pickerConfig.selectFolderEnabled = value; return this; } setIncludeFolders(value) { window.driveTest.pickerConfig.includeFolders = value; return this; } setMimeTypes(value) { this.mimeTypes = value; window.driveTest.pickerConfig.mimeTypes = value; return this; } setMode(value) { window.driveTest.pickerConfig.mode = value; return this; } },
     };
     // The fake Picker calls back after visibility changes while preserving the SDK boundary.
     picker.PickerBuilder = class {
       setAppId(value) { this.appId = value; window.driveTest.pickerConfig.appId = value; return this; }
       setDeveloperKey(value) { this.apiKey = value; window.driveTest.pickerConfig.hasApiKey = !!value; return this; }
       setOAuthToken(value) { this.token = value; window.driveTest.pickerConfig.hasOAuthToken = !!value; return this; }
+      setTitle(value) { window.driveTest.pickerConfig.title = value; return this; }
+      setMaxItems(value) { window.driveTest.pickerConfig.maxItems = value; return this; }
+      setSelectableMimeTypes(value) { window.driveTest.pickerConfig.selectableMimeTypes = value; return this; }
+      enableFeature(value) { window.driveTest.pickerConfig.feature = value; return this; }
       addView(value) { this.view = value; return this; }
       setCallback(callback) { this.callback = callback; return this; }
       build() { const builder = this; return { setVisible(value) {
@@ -57,11 +61,11 @@ export async function googleDriveFolderRegression(browser, origin) {
     if (url.startsWith('https://www.googleapis.com/')) {
       const page = route.request().frame().page(), state = await page.evaluate(() => window.driveTest);
       const path = new URL(url).pathname;
-      const folderMatch = path.match(/\/drive\/v3\/files\/(folder-one|folder-two)/);
+      const folderMatch = path.match(/\/drive\/v3\/files\/(folder-one|folder-two|root|drive-root)/);
       if (folderMatch) {
-        const id = folderMatch[1], name = id === 'folder-one' ? 'First folder' : 'Second folder';
+        const id = folderMatch[1], responseId = id === 'root' ? 'drive-root' : id, name = id === 'folder-one' ? 'First folder' : id === 'folder-two' ? 'Second folder' : 'My Drive';
         if (state.unavailable.includes(id)) return route.fulfill({ status: 404, body: 'synthetic missing folder' });
-        return route.fulfill({ json: { id, name, mimeType: 'application/vnd.google-apps.folder', trashed: false } });
+        return route.fulfill({ json: { id: responseId, name, mimeType: 'application/vnd.google-apps.folder', trashed: false } });
       }
       if (url.includes('alt=media')) return route.fulfill({ body: state.incoming });
       if (url.includes('/upload/')) {
@@ -99,34 +103,48 @@ export async function googleDriveFolderRegression(browser, origin) {
 
     const restore = () => page.getByRole('button', { name: 'Restore from Drive', exact: true });
     const localBeforeChoose = await page.evaluate(() => localStorage.getItem('dbdTrackerData'));
-    await restore().click();
+    assert.equal(await page.getByRole('button', { name: 'Backup now', exact: true }).count(), 0, 'no active Backup now before a destination is chosen');
+    assert.equal(await restore().isDisabled(), true, 'restore cannot unexpectedly open Picker without a destination');
+    assert.equal(await page.getByRole('button', { name: 'Use My Drive', exact: true }).isEnabled(), true, 'root can be selected without Picker');
+    assert.match(await page.locator('[data-google-drive]').textContent(), /Choose where The Ledger should keep its backup/);
+    assert.equal(requests.includes('https://apis.google.com/js/api.js'), false, 'connected Data page still does not load Picker');
+    await page.getByRole('button', { name: 'Choose backup folder', exact: true }).click();
     await page.waitForFunction(() => window.driveTest.pickerOpens === 1);
     await page.getByText('Choosing backup folder…', { exact: true }).waitFor();
+    assert.equal(await page.locator('[data-google-drive]').getAttribute('aria-busy'), 'true');
+    assert.equal(await page.getByRole('button', { name: 'Choose backup folder', exact: true }).isDisabled(), true, 'busy state blocks duplicate Picker launches');
     assert.equal(await restore().isDisabled(), true, 'restore stays disabled while Picker is open');
-    assert.equal(await page.getByRole('button', { name: 'Backup now', exact: true }).isDisabled(), true, 'backup stays disabled while Picker is open');
     await page.evaluate(() => window.driveTest.finishPicker('CANCEL'));
-    assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerDriveFolder')), null, 'restore without a destination asks for a folder first');
+    assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerDriveFolder')), null, 'cancelled destination choice leaves no active folder');
+    assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerDriveRecentFolders')), null, 'cancelled destination choice leaves recent locations unchanged');
     assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), localBeforeChoose);
-    assert.equal(await page.locator('#confirmation').isVisible(), false, 'cancelled folder selection does not enter restore preview');
-    await page.waitForFunction(() => document.activeElement?.dataset.action === 'drive-import', null, { timeout: 1000 });
+    assert.equal(await page.locator('#confirmation').isVisible(), false);
+    await page.waitForFunction(() => document.activeElement?.dataset.action === 'drive-choose-folder', null, { timeout: 1000 });
 
     const backup = () => page.getByRole('button', { name: 'Backup now', exact: true });
-    await page.evaluate(() => { window.driveTest.pickerAction = 'CANCEL'; });
-    await backup().click();
-    await backup().waitFor({ state: 'visible' });
-    assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerDriveFolder')), null, 'Picker cancellation does not remember a destination');
+    await page.evaluate(() => { window.driveTest.pickerAction = 'PICKED'; window.driveTest.selected = { id: 'file-one', name: 'Not a folder', mimeType: 'application/json' }; });
+    await page.getByRole('button', { name: 'Choose backup folder', exact: true }).click();
+    await page.evaluate(() => window.driveTest.finishPicker('PICKED'));
+    await page.waitForFunction(() => document.querySelector('#message').textContent.includes('did not return a folder'));
+    assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerDriveFolder')), null, 'file result is not stored as a destination');
     assert.equal(uploads.length, 0, 'Picker cancellation does not back up');
-    await page.waitForFunction(() => document.activeElement?.dataset.action === 'drive-export', null, { timeout: 1000 });
-    assert.equal(await page.locator('#message').textContent(), '', 'Picker cancellation does not show an error');
+    await page.waitForFunction(() => document.activeElement?.dataset.action === 'drive-choose-folder', null, { timeout: 1000 });
 
-    await page.evaluate(() => { window.driveTest.pickerAction = 'PICKED'; });
-    await backup().click();
-    await page.getByText('Backed up to Google Drive', { exact: false }).waitFor();
+    await page.evaluate(() => { window.driveTest.selected = { id: 'folder-one', name: 'First folder', mimeType: 'application/vnd.google-apps.folder' }; });
+    await page.getByRole('button', { name: 'Choose backup folder', exact: true }).click();
+    await page.evaluate(() => window.driveTest.finishPicker('PICKED'));
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem('dbdTrackerDriveFolder') || 'null')?.id === 'folder-one');
+    await page.waitForFunction(() => document.activeElement?.dataset.action === 'drive-export', null, { timeout: 1000 });
     assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('dbdTrackerDriveFolder'))), { id: 'folder-one', name: 'First folder' });
+    assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('dbdTrackerDriveRecentFolders'))), [{ id: 'folder-one', name: 'First folder' }]);
+    assert.equal(uploads.length, 0, 'choosing a folder never starts a backup');
     assert.deepEqual(await page.evaluate(() => window.driveTest.pickerConfig), {
       view: 'FOLDERS', selectFolderEnabled: true, includeFolders: true, mimeTypes: 'application/vnd.google-apps.folder',
+      mode: 'LIST', title: 'Choose backup folder', maxItems: 1, selectableMimeTypes: 'application/vnd.google-apps.folder', feature: 'NAV_HIDDEN',
       appId, hasApiKey: true, hasOAuthToken: true,
     });
+    await backup().click();
+    await page.getByText('Backed up to Google Drive', { exact: false }).waitFor();
     assert.equal(uploads.length, 1);
     assert.equal(uploads[0].fileId, 'latest-folder-one');
     assert.equal(requests.filter(url => url === 'https://apis.google.com/js/api.js').length, 1, 'Picker bootstrap loads only after explicit selection');
@@ -151,14 +169,14 @@ export async function googleDriveFolderRegression(browser, origin) {
     await page.waitForFunction(() => document.querySelector('#message').textContent.startsWith('Google Drive backup failed'));
     assert.equal(uploads.length, 2, 'an unavailable destination is never silently replaced by Drive root');
     assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), localBeforeUnavailable);
-    assert.match(await page.locator('[data-google-drive]').textContent(), /Saved backup location is unavailable/);
-    assert.equal(await page.getByRole('button', { name: 'Choose folder', exact: true }).isEnabled(), true);
+    assert.match(await page.locator('[data-google-drive]').textContent(), /Your saved Google Drive backup location is no longer available/);
+    assert.equal(await page.getByRole('button', { name: 'Choose another folder', exact: true }).isEnabled(), true);
     await page.evaluate(() => { window.driveTest.unavailable = []; window.driveTest.pickerAction = 'CANCEL'; });
-    await page.getByRole('button', { name: 'Choose folder', exact: true }).click();
+    await page.getByRole('button', { name: 'Choose another folder', exact: true }).click();
     assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('dbdTrackerDriveFolder'))), { id: 'folder-one', name: 'First folder' });
 
     await page.evaluate(() => { window.driveTest.selected = { id: 'folder-two', name: 'Second folder', mimeType: 'application/vnd.google-apps.folder' }; window.driveTest.pickerAction = 'PICKED'; });
-    await page.getByRole('button', { name: 'Choose folder', exact: true }).click();
+    await page.getByRole('button', { name: 'Choose another folder', exact: true }).click();
     await page.waitForFunction(() => JSON.parse(localStorage.getItem('dbdTrackerDriveFolder') || 'null')?.id === 'folder-two');
     assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('dbdTrackerDriveFolder'))), { id: 'folder-two', name: 'Second folder' });
     assert.equal(uploads.length, 2, 'changing folder leaves the old Drive file untouched');
@@ -176,10 +194,40 @@ export async function googleDriveFolderRegression(browser, origin) {
     assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), savedBeforeRestore, 'cancelled restore does not replace local progress');
     assert.ok(requests.some(url => new URL(url).searchParams.get('q')?.includes("'folder-two' in parents")), 'restore searches only the current selected destination');
 
+    await page.getByRole('button', { name: 'Use First folder', exact: true }).click();
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem('dbdTrackerDriveFolder') || 'null')?.id === 'folder-one');
+    assert.equal(uploads.length, 3, 'using a recent location does not start a backup');
+    await page.getByRole('button', { name: 'Use My Drive', exact: true }).click();
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem('dbdTrackerDriveFolder') || 'null')?.id === 'drive-root');
+    assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('dbdTrackerDriveFolder'))), { id: 'drive-root', name: 'My Drive', isRoot: true });
+    assert.equal(await page.locator('[data-google-drive]').getByText('My Drive', { exact: true }).count(), 1);
+    assert.equal(uploads.length, 3, 'choosing My Drive does not start a backup');
+    const pickerCountBeforeRootBackup = await page.evaluate(() => window.driveTest.pickerOpens);
+    await backup().click();
+    await page.waitForFunction(() => window.driveTest.uploads === 4);
+    assert.equal(await page.evaluate(() => window.driveTest.pickerOpens), pickerCountBeforeRootBackup, 'root backup skips Picker');
+    assert.equal(uploads[3].fileId, 'latest-drive-root');
+
+    const pickerRequestsBeforeReload = requests.filter(url => url === 'https://apis.google.com/js/api.js').length;
+    await page.reload();
+    await page.getByRole('button', { name: 'Connect Google Drive', exact: true }).waitFor();
+    assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('dbdTrackerDriveFolder'))), { id: 'drive-root', name: 'My Drive', isRoot: true });
+    await page.getByRole('button', { name: 'Connect Google Drive', exact: true }).click();
+    await page.getByRole('status').filter({ hasText: 'Connected' }).waitFor();
+    const pickerCountAfterReload = await page.evaluate(() => window.driveTest.pickerOpens);
+    await backup().click();
+    await page.waitForFunction(() => window.driveTest.uploads === 1);
+    assert.equal(uploads.length, 5, 'the remembered root remains active after reload');
+    assert.equal(uploads[4].fileId, 'latest-drive-root');
+    assert.equal(await page.evaluate(() => window.driveTest.pickerOpens), pickerCountAfterReload, 'reload does not make Backup now reopen Picker');
+    assert.equal(requests.filter(url => url === 'https://apis.google.com/js/api.js').length, pickerRequestsBeforeReload, 'reload and backup do not reload Picker');
+
     const destinationBeforeDisconnect = await page.evaluate(() => localStorage.getItem('dbdTrackerDriveFolder'));
+    const recentsBeforeDisconnect = await page.evaluate(() => localStorage.getItem('dbdTrackerDriveRecentFolders'));
     await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
     await page.getByRole('button', { name: 'Connect Google Drive', exact: true }).waitFor();
     assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerDriveFolder')), destinationBeforeDisconnect, 'disconnect preserves the local destination preference');
+    assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerDriveRecentFolders')), recentsBeforeDisconnect, 'disconnect preserves browser-local recent destinations');
     assert.equal(await page.locator('#main').getByRole('button', { name: /Export JSON/ }).isEnabled(), true);
     assert.equal(await page.locator('#main').getByRole('button', { name: /Import JSON/ }).isEnabled(), true);
     for (const width of [320, 390, 768, 1440]) {

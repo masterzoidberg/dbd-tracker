@@ -4,6 +4,8 @@ const API = 'https://www.googleapis.com';
 const FOLDER_MIME = 'application/vnd.google-apps.folder';
 const TAG = 'the-ledger-v1';
 const DESTINATION_KEY = 'dbdTrackerDriveFolder';
+const RECENT_DESTINATIONS_KEY = 'dbdTrackerDriveRecentFolders';
+const MAX_RECENT_DESTINATIONS = 3;
 const GIS_SCRIPT = 'https://accounts.google.com/gsi/client';
 const PICKER_SCRIPT = 'https://apis.google.com/js/api.js';
 
@@ -83,16 +85,37 @@ export function createGoogleDrive(config = {}, dependencies = {}) {
     try {
       const value = JSON.parse(preferenceStorage.getItem(DESTINATION_KEY) || 'null');
       if (typeof value?.id !== 'string' || !value.id.trim() || typeof value?.name !== 'string' || !value.name.trim()) return null;
-      return { id: value.id, name: value.name };
+      const isRoot = value.isRoot === true || value.id === 'root';
+      return { id: value.id, name: isRoot ? 'My Drive' : value.name, ...(isRoot ? { isRoot: true } : {}) };
     } catch { return null; }
+  }
+  function recentDestinations() {
+    try {
+      const values = JSON.parse(preferenceStorage.getItem(RECENT_DESTINATIONS_KEY) || '[]');
+      if (!Array.isArray(values)) return [];
+      const unique = new Map();
+      for (const value of values) {
+        if (typeof value?.id !== 'string' || !value.id.trim() || typeof value?.name !== 'string' || !value.name.trim()) continue;
+        const isRoot = value.isRoot === true || value.id === 'root';
+        const item = { id: value.id, name: isRoot ? 'My Drive' : value.name, ...(isRoot ? { isRoot: true } : {}) };
+        if (!unique.has(item.id)) unique.set(item.id, item);
+      }
+      return [...unique.values()].slice(0, MAX_RECENT_DESTINATIONS);
+    } catch { return []; }
   }
   function rememberDestination(folder) {
     if (typeof folder?.id !== 'string' || !folder.id.trim() || typeof folder?.name !== 'string' || !folder.name.trim()) {
       throw Error('Google Picker did not return a usable folder. Choose a folder again.');
     }
-    const selected = { id: folder.id, name: folder.name };
+    const isRoot = folder.isRoot === true || folder.id === 'root';
+    const selected = { id: folder.id, name: isRoot ? 'My Drive' : folder.name, ...(isRoot ? { isRoot: true } : {}) };
     preferenceStorage.setItem(DESTINATION_KEY, JSON.stringify(selected));
+    const recent = [selected, ...recentDestinations().filter(item => item.id !== selected.id)].slice(0, MAX_RECENT_DESTINATIONS);
+    preferenceStorage.setItem(RECENT_DESTINATIONS_KEY, JSON.stringify(recent));
     return selected;
+  }
+  function removeRecentDestination(id) {
+    preferenceStorage.setItem(RECENT_DESTINATIONS_KEY, JSON.stringify(recentDestinations().filter(item => item.id !== id)));
   }
 
   function status() {
@@ -176,15 +199,19 @@ export function createGoogleDrive(config = {}, dependencies = {}) {
     if (!data.id || data.trashed || data.mimeType !== FOLDER_MIME) {
       throw codedError('The saved Google Drive backup location is unavailable. Choose a folder again.', 'destination-unavailable');
     }
-    return { id: data.id, name: typeof data.name === 'string' && data.name.trim() ? data.name : fallbackName };
+    return { id: data.id, name: id === 'root' ? 'My Drive' : typeof data.name === 'string' && data.name.trim() ? data.name : fallbackName };
   }
 
   async function validateDestination() {
     const current = destination();
     if (!current) throw codedError('Choose a Google Drive folder for this Ledger backup first.', 'destination-missing');
-    const checked = await readFolder(current.id, current.name);
-    if (checked.name !== current.name) rememberDestination(checked);
-    return checked;
+    const checked = await readFolder(current.isRoot || current.id === 'root' ? 'root' : current.id, current.name);
+    if ((current.isRoot && current.id !== 'root' && checked.id !== current.id)) {
+      throw codedError('The saved Google Drive backup location is unavailable. Choose a folder again.', 'destination-unavailable');
+    }
+    const selected = current.isRoot || current.id === 'root' ? { ...checked, name: 'My Drive', isRoot: true } : checked;
+    if (checked.id !== current.id || selected.name !== current.name) rememberDestination(selected);
+    return selected;
   }
 
   async function selectFolder() {
@@ -207,17 +234,22 @@ export function createGoogleDrive(config = {}, dependencies = {}) {
           const view = new picker.DocsView(picker.ViewId.FOLDERS)
             .setIncludeFolders(true)
             .setSelectFolderEnabled(true)
-            .setMimeTypes(FOLDER_MIME);
+            .setMimeTypes(FOLDER_MIME)
+            .setMode(picker.DocsViewMode.LIST);
           const instance = new picker.PickerBuilder()
             .setAppId(config.appId)
             .setDeveloperKey(config.apiKey)
             .setOAuthToken(accessToken)
+            .setTitle('Choose backup folder')
+            .setMaxItems(1)
+            .setSelectableMimeTypes(FOLDER_MIME)
+            .enableFeature(picker.Feature.NAV_HIDDEN)
             .addView(view)
             .setCallback(data => {
               if (data.action === picker.Action.CANCEL) { resolve(null); return; }
               if (data.action !== picker.Action.PICKED) { reject(Error('Google Drive folder chooser did not complete. Retry folder selection.')); return; }
               const selected = data.docs?.[0];
-              if (!selected?.id || (selected.mimeType && selected.mimeType !== FOLDER_MIME)) {
+              if (!selected?.id || selected.mimeType !== FOLDER_MIME) {
                 reject(Error('Google Picker did not return a folder. Choose a folder again.')); return;
               }
               resolve({ id: selected.id, name: selected.name || 'Selected folder' });
@@ -232,9 +264,39 @@ export function createGoogleDrive(config = {}, dependencies = {}) {
     } finally { pickerOpening = false; }
   }
 
+  async function useMyDrive() {
+    await connect();
+    const root = await readFolder('root', 'My Drive');
+    return rememberDestination({ ...root, name: 'My Drive', isRoot: true });
+  }
+
+  async function useRecentDestination(id) {
+    const recent = recentDestinations().find(item => item.id === id);
+    if (!recent) throw Error('That recent Google Drive location is no longer available. Choose a folder again.');
+    await connect();
+    let verified;
+    try {
+      const isRoot = recent.isRoot || recent.id === 'root';
+      verified = await readFolder(isRoot ? 'root' : recent.id, recent.name);
+      if (isRoot && recent.id !== 'root' && verified.id !== recent.id) {
+        throw codedError('The saved Google Drive backup location is unavailable. Choose a folder again.', 'destination-unavailable');
+      }
+      if (isRoot) verified = { ...verified, name: 'My Drive', isRoot: true };
+    }
+    catch (error) {
+      if (error.code === 'destination-unavailable') {
+        removeRecentDestination(recent.id);
+        throw codedError('That recent Google Drive location is unavailable. Choose another folder.', 'destination-unavailable');
+      }
+      throw error;
+    }
+    return rememberDestination(verified);
+  }
+
   async function findBackupEntry(parent, create = false) {
     // Private appProperties prevent name collisions with user-created files.
-    const q = `trashed = false and name = 'latest.json' and mimeType = 'application/json' and appProperties has { key='ledgerBackup' and value='${TAG}' } and '${parent}' in parents`;
+    const parentQuery = String(parent).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const q = `trashed = false and name = 'latest.json' and mimeType = 'application/json' and appProperties has { key='ledgerBackup' and value='${TAG}' } and '${parentQuery}' in parents`;
     const query = new URLSearchParams({ q, fields: 'files(id),nextPageToken', pageSize: '100', orderBy: 'createdTime' });
     let pageToken;
     do {
@@ -268,5 +330,5 @@ export function createGoogleDrive(config = {}, dependencies = {}) {
     return (await api('/drive/v3/files/' + encodeURIComponent(file) + '?alt=media')).text();
   }
 
-  return { status, prepare, connect, disconnect, destination, selectFolder, exportJson, importJson };
+  return { status, prepare, connect, disconnect, destination, recentDestinations, selectFolder, useMyDrive, useRecentDestination, exportJson, importJson };
 }

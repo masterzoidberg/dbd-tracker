@@ -1541,41 +1541,58 @@ function download(content, filename, type = 'application/json;charset=utf-8') {
 }
 function googleDriveView() {
   const state = drive.status();
-  const destination = drive.destination();
+  const savedDestination = drive.destination();
   if (state.available && !drivePreparation) {
     drivePreparation = drive.prepare().catch(() => { driveLoadError = 'Google libraries could not load. Check your connection and reload to retry.'; })
       .finally(() => { if (route() === 'data') render(); });
   }
   const unavailable = !state.available || !!driveLoadError;
   const operationDisabled = driveBusy || !state.ready || !!driveLoadError;
-  const selectionDisabled = operationDisabled || !state.pickerAvailable;
-  const destinationMissing = !destination || driveDestinationUnavailable;
-  const canSelect = state.pickerAvailable;
-  const actions = unavailable ? '' : state.connected
-    ? '<div class="drive-actions">'
-      + '<button class="primary" data-action="drive-export"' + (operationDisabled || !initialized || storageBlocked || (destinationMissing && !canSelect) ? ' disabled' : '') + '>Backup now</button>'
-      + '<button data-action="drive-import"' + (operationDisabled || (destinationMissing && !canSelect) ? ' disabled' : '') + '>Restore from Drive</button>'
-      + '<div class="drive-quiet-actions"><button class="quiet" data-action="drive-change-folder"' + (selectionDisabled ? ' disabled' : '') + '>' + (destinationMissing ? 'Choose folder' : 'Change folder') + '</button>'
-      + '<button class="quiet" data-action="drive-disconnect"' + (driveBusy ? ' disabled' : '') + '>Disconnect</button></div></div>'
-    : '<div class="drive-actions"><button class="primary" data-action="drive-connect"' + (operationDisabled ? ' disabled' : '') + '>Connect Google Drive</button></div>';
+  const activeDestination = state.connected && !driveDestinationUnavailable ? savedDestination : null;
+  const destinationMissing = !activeDestination;
+  const chooserDisabled = operationDisabled || !state.pickerAvailable;
+  const recents = state.connected ? drive.recentDestinations().filter(item => item.id !== activeDestination?.id) : [];
+  const actions = unavailable ? '' : !state.connected
+    ? '<div class="drive-actions"><button class="primary" data-action="drive-connect"' + (operationDisabled ? ' disabled' : '') + '>Connect Google Drive</button></div>'
+    : destinationMissing
+      ? '<div class="drive-actions">'
+        + '<button class="primary" data-action="drive-choose-folder"' + (chooserDisabled ? ' disabled' : '') + '>' + (driveDestinationUnavailable ? 'Choose another folder' : 'Choose backup folder') + '</button>'
+        + '<button data-action="drive-use-my-drive"' + (operationDisabled ? ' disabled' : '') + '>Use My Drive</button>'
+        + '<button data-action="drive-import" aria-describedby="drive-restore-help" disabled>Restore from Drive</button>'
+        + '<button class="quiet" data-action="drive-disconnect"' + (driveBusy ? ' disabled' : '') + '>Disconnect</button></div>'
+      : '<div class="drive-actions">'
+        + '<button class="primary" data-action="drive-export"' + (operationDisabled || !initialized || storageBlocked ? ' disabled' : '') + '>Backup now</button>'
+        + '<button data-action="drive-import"' + (operationDisabled ? ' disabled' : '') + '>Restore from Drive</button>'
+        + '<button class="quiet" data-action="drive-change-folder"' + (chooserDisabled ? ' disabled' : '') + '>Change folder</button>'
+        + (activeDestination.isRoot ? '' : '<button class="quiet" data-action="drive-use-my-drive"' + (operationDisabled ? ' disabled' : '') + '>Use My Drive</button>')
+        + '<button class="quiet" data-action="drive-disconnect"' + (driveBusy ? ' disabled' : '') + '>Disconnect</button></div>';
   const status = unavailable ? (state.reason || driveLoadError)
     : state.connected ? 'Connected' : 'Not connected';
-  const destinationText = !state.connected ? '' : destinationMissing
-    ? '<p class="drive-location" role="status">' + (driveDestinationUnavailable ? 'Saved backup location is unavailable. Choose a folder to continue.' : 'Choose a folder for your Ledger backups.') + '</p>'
-    : '<p class="drive-location">Backup location: <strong>' + esc(destination.name) + '</strong></p>';
-  return '<section class="panel drive-panel" data-google-drive>' + sectionTitle('Google Drive', '<span class="drive-optional">Optional</span>')
-    + '<p class="drive-description">Keep an optional copy of your Ledger in Google Drive. Your browser remains the primary save.</p>'
+  const destinationText = !state.connected ? '' : '<div class="drive-location"><span>Backup location</span><strong>'
+    + (activeDestination ? esc(activeDestination.name) : driveDestinationUnavailable ? 'Location unavailable' : 'Not chosen') + '</strong></div>';
+  const recentList = recents.length ? '<div class="drive-recent"><h3>Recent locations</h3><ul>' + recents.map(item => '<li><span>' + esc(item.name) + '</span><button class="quiet" data-action="drive-use-recent" data-id="' + esc(item.id) + '" aria-label="Use ' + esc(item.name) + '"' + (operationDisabled ? ' disabled' : '') + '>Use</button></li>').join('') + '</ul></div>' : '';
+  const pickerHint = state.connected && state.pickerAvailable
+    ? '<p class="drive-picker-hint">In Google’s chooser, select the folder row and choose Select; opening it only navigates into it.</p>' : '';
+  return '<section class="panel drive-panel" data-google-drive aria-busy="' + (driveBusy ? 'true' : 'false') + '">' + sectionTitle('Google Drive', '<span class="drive-optional">Optional</span>')
+    + '<p class="drive-description">' + (state.connected
+      ? 'Choose where The Ledger should keep its backup. Your browser remains the primary save.'
+      : 'Keep an optional copy of your Ledger in Google Drive. Your browser remains the primary save.') + '</p>'
     + '<p class="drive-status" role="status" aria-live="polite"><span class="drive-status-indicator' + (state.connected ? ' is-connected' : '') + '"></span>' + esc(status) + '</p>'
     + destinationText
-    + (state.connected && destination ? '<p class="drive-location-note">Changing the folder leaves existing Drive backups in place.</p>' : '')
-    + (state.connected && lastDriveExport ? '<p class="drive-last-backup">Last successful backup: <time datetime="' + esc(lastDriveExport) + '">' + esc(date(lastDriveExport)) + '</time></p>' : '')
-    + (state.available && !state.pickerAvailable ? '<p class="drive-configuration-note">' + esc(state.pickerReason) + (destination ? ' Existing selected-folder backups can still be used.' : ' Folder selection is unavailable.') + '</p>' : '')
+    + (state.connected && driveDestinationUnavailable ? '<p class="drive-unavailable" role="status">Your saved Google Drive backup location is no longer available.</p>' : '')
+    + (state.connected && !activeDestination ? '<p class="drive-location-note">The rolling backup is stored as <code>latest.json</code>. Choose a backup location before restoring.</p>' : '')
+    + (state.connected && activeDestination && lastDriveExport ? '<p class="drive-last-backup">Last backup: <time datetime="' + esc(lastDriveExport) + '">' + esc(date(lastDriveExport)) + '</time></p>' : '')
+    + (state.connected && activeDestination ? '<p class="drive-location-note">Changing location does not move or delete an existing backup.</p>' : '')
+    + (state.available && !state.pickerAvailable ? '<p class="drive-configuration-note">' + esc(state.pickerReason) + (activeDestination ? ' The selected-folder backup can still be used.' : ' Use My Drive or local JSON tools while folder selection is unavailable.') + '</p>' : '')
+    + pickerHint
     + (state.available && !state.ready && !driveLoadError ? '<p class="drive-busy-message">Loading Google connection tools…</p>' : '')
     + actions
-    + (driveBusy ? '<p class="drive-busy-message" role="status">' + (driveChoosingFolder ? 'Choosing backup folder…' : driveBusyAction === 'drive-import' ? 'Preparing restore…' : driveBusyAction === 'drive-disconnect' ? 'Disconnecting…' : driveBusyAction === 'drive-connect' ? 'Connecting…' : 'Backing up to Google Drive…') + '</p>' : '')
+    + (driveBusy ? '<p class="drive-busy-message" role="status">' + (driveChoosingFolder ? 'Choosing backup folder…' : driveBusyAction === 'drive-import' ? 'Preparing restore…' : driveBusyAction === 'drive-disconnect' ? 'Disconnecting…' : driveBusyAction === 'drive-connect' ? 'Connecting…' : driveBusyAction === 'drive-use-my-drive' || driveBusyAction === 'drive-use-recent' ? 'Checking backup location…' : 'Backing up to Google Drive…') + '</p>' : '')
+    + (state.connected && !activeDestination ? '<span id="drive-restore-help" class="sr-only">Choose a backup location before restoring.</span>' : '')
+    + recentList
     + '</section>';
 }
-async function driveAction(action) {
+async function driveAction(action, destinationId = '') {
   if (driveBusy) return;
   driveBusy = true; driveBusyAction = action;
   render();
@@ -1586,43 +1603,51 @@ async function driveAction(action) {
     } else if (action === 'drive-disconnect') await drive.disconnect();
     else if (action === 'drive-export') {
       if (!initialized || storageBlocked) throw Error('Current progress is unavailable. Use the local recovery tools.');
-      if (!await ensureDriveDestination()) return;
       const upload = drive.exportJson(exportSave(save)); render();
       lastDriveExport = (await upload).exportedAt;
       driveDestinationUnavailable = false;
       message('Backed up to Google Drive at ' + date(lastDriveExport) + '.');
     } else if (action === 'drive-import') {
+      if (!drive.destination() || driveDestinationUnavailable) throw Error('Choose a backup location before restoring from Google Drive.');
       store.assertWriter();
-      if (!await ensureDriveDestination()) return;
       const incoming = drive.importJson(); render();
       await importText(await incoming);
       driveDestinationUnavailable = false;
-    } else if (action === 'drive-change-folder') {
+    } else if (action === 'drive-change-folder' || action === 'drive-choose-folder') {
+      const previous = drive.destination();
       const selected = await chooseDriveFolder();
       if (!selected) return;
       driveDestinationUnavailable = false;
-      message('Backup location changed to ' + selected.name + '. Existing Drive backups remain in the previous folder; the next backup uses this folder.');
+      if (previous?.id !== selected.id) lastDriveExport = '';
+      message('Backup location set to ' + selected.name + '. Existing Drive backups remain in the previous folder; no backup was created.');
+    } else if (action === 'drive-use-my-drive' || action === 'drive-use-recent') {
+      const previous = drive.destination();
+      const selected = action === 'drive-use-my-drive' ? await drive.useMyDrive() : await drive.useRecentDestination(destinationId);
+      driveDestinationUnavailable = false;
+      if (previous?.id !== selected.id) lastDriveExport = '';
+      message('Backup location set to ' + selected.name + '. No backup was created.');
     }
   } catch (error) {
-    if (error.code === 'destination-unavailable') driveDestinationUnavailable = true;
+    if (error.code === 'destination-unavailable' && ['drive-export', 'drive-import'].includes(action)) driveDestinationUnavailable = true;
     message(action === 'drive-export' ? 'Google Drive backup failed. Your Ledger data is still saved locally. ' + error.message : error.message, true);
   } finally {
     driveBusy = false; driveBusyAction = ''; driveChoosingFolder = false;
     render();
     if (route() === 'data') {
-      const focusAction = action === 'drive-connect' ? 'drive-export' : action === 'drive-disconnect' ? 'drive-connect' : action;
-      requestAnimationFrame(() => document.querySelector(`[data-action="${focusAction}"]:not(:disabled)`)?.focus({ preventScroll: true }));
+      let focusAction = action === 'drive-connect' ? (drive.destination() ? 'drive-export' : 'drive-choose-folder')
+        : action === 'drive-disconnect' ? 'drive-connect' : action;
+      if (['drive-use-my-drive', 'drive-use-recent'].includes(action)) focusAction = 'drive-export';
+      if (action === 'drive-choose-folder' && drive.destination() && !driveDestinationUnavailable) focusAction = 'drive-export';
+      requestAnimationFrame(() => {
+        const target = document.querySelector(`[data-action="${focusAction}"]:not(:disabled)`)
+          || document.querySelector('[data-action="drive-connect"]:not(:disabled)')
+          || document.querySelector('[data-action="drive-choose-folder"]:not(:disabled)')
+          || document.querySelector('[data-action="drive-change-folder"]:not(:disabled)')
+          || document.querySelector('[data-action="drive-export"]:not(:disabled)');
+        target?.focus({ preventScroll: true });
+      });
     }
   }
-}
-async function ensureDriveDestination() {
-  const current = drive.destination();
-  if (current && !driveDestinationUnavailable) return current;
-  const state = drive.status();
-  if (!state.pickerAvailable) throw Error(state.pickerReason || 'Google Drive folder selection is unavailable.');
-  const selected = await chooseDriveFolder();
-  if (selected) driveDestinationUnavailable = false;
-  return selected;
 }
 async function chooseDriveFolder() {
   driveChoosingFolder = true; render();
@@ -2179,7 +2204,7 @@ async function handleClick(event) {
   if (action === 'killer-addon-details') return openKillerAddonDetail(id,button);
   if (action === 'export') return exportFile();
   if (action === 'raw-export') return download(store.original(), 'dbd-tracker-original-data.txt', 'text/plain;charset=utf-8');
-  if (action?.startsWith('drive-')) return driveAction(action);
+  if (action?.startsWith('drive-')) return driveAction(action, button.dataset.id || '');
   if (action === 'import') return $('#import-file').click();
   if (action === 'close' || action === 'manage-link') { $('#detail').close(); modal = null; return; }
   if (action === 'character') return requestWorkspaceNavigation(characterWorkspaceHref(id));
