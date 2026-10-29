@@ -20,7 +20,8 @@ export async function googleDriveFolderRegression(browser, origin) {
   const initial = freshSave();
   await context.addInitScript(save => { localStorage.setItem('dbdTrackerData', JSON.stringify(save)); }, initial);
   await context.addInitScript(() => {
-    window.driveTest = { pickerAction: 'HOLD', selected: { id: 'folder-one', name: 'First folder', mimeType: 'application/vnd.google-apps.folder' }, pickerOpens: 0, uploads: 0, incoming: '', missing: false, unavailable: [], pickerConfig: {} };
+    window.driveTest = { pickerAction: 'HOLD', selected: { id: 'folder-one', name: 'First folder', mimeType: 'application/vnd.google-apps.folder' }, pickerOpens: 0, uploads: 0, incoming: '', missing: false, unavailable: [], failGetStatus: 0, pickerConfig: {}, copiedDiagnostic: '' };
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async value => { window.driveTest.copiedDiagnostic = value; } } });
     const oauth = {
       initTokenClient(options) { return { requestAccessToken() { options.callback({ access_token: 'memory-only-token', expires_in: 3600, scope: 'https://www.googleapis.com/auth/drive.file' }); } }; },
       hasGrantedAllScopes: () => true, revoke: (_token, callback) => callback({}),
@@ -64,6 +65,7 @@ export async function googleDriveFolderRegression(browser, origin) {
       const folderMatch = path.match(/\/drive\/v3\/files\/(folder-one|folder-two|root|drive-root)/);
       if (folderMatch) {
         const id = folderMatch[1], responseId = id === 'root' ? 'drive-root' : id, name = id === 'folder-one' ? 'First folder' : id === 'folder-two' ? 'Second folder' : 'My Drive';
+        if (state.failGetStatus && id === 'folder-one') return route.fulfill({ status: state.failGetStatus, body: 'synthetic private response body' });
         if (state.unavailable.includes(id)) return route.fulfill({ status: 404, body: 'synthetic missing folder' });
         return route.fulfill({ json: { id: responseId, name, mimeType: 'application/vnd.google-apps.folder', trashed: false } });
       }
@@ -126,15 +128,36 @@ export async function googleDriveFolderRegression(browser, origin) {
     await page.getByRole('button', { name: 'Choose backup folder', exact: true }).click();
     await page.evaluate(() => window.driveTest.finishPicker('PICKED'));
     await page.waitForFunction(() => document.querySelector('#message').textContent.includes('did not return a folder'));
+    const invalidSelectionError = page.locator('[data-google-drive] [role="alert"]');
+    await invalidSelectionError.getByText('Google Picker did not return a usable folder.', { exact: false }).waitFor();
+    await page.locator('[data-drive-diagnostics]').waitFor();
+    const invalidTraceText = await page.locator('[data-drive-diagnostics] pre').textContent();
+    assert.match(invalidTraceText, /"callbackAction": "PICKED"/);
+    assert.match(invalidTraceText, /"selectedMimeType": "application\/json"/);
+    assert.doesNotMatch(invalidTraceText, /file-one|Not a folder|memory-only-token|Authorization|synthetic private response body|AIza/);
+    await page.waitForFunction(() => document.activeElement?.dataset.action === 'drive-choose-folder', null, { timeout: 1000 });
+    await page.getByRole('button', { name: 'Copy diagnostic', exact: true }).click();
+    const copiedTrace = await page.evaluate(() => window.driveTest.copiedDiagnostic);
+    assert.deepEqual(JSON.parse(copiedTrace), JSON.parse(invalidTraceText));
+    assert.doesNotMatch(copiedTrace, /file-one|Not a folder|memory-only-token|Authorization|synthetic private response body|AIza/);
     assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerDriveFolder')), null, 'file result is not stored as a destination');
     assert.equal(uploads.length, 0, 'Picker cancellation does not back up');
-    await page.waitForFunction(() => document.activeElement?.dataset.action === 'drive-choose-folder', null, { timeout: 1000 });
+    await page.evaluate(() => { window.driveTest.selected = { id: 'folder-one', name: 'First folder', mimeType: 'application/vnd.google-apps.folder' }; window.driveTest.failGetStatus = 403; });
+    await page.getByRole('button', { name: 'Choose backup folder', exact: true }).click();
+    await page.evaluate(() => window.driveTest.finishPicker('PICKED'));
+    await page.locator('[data-google-drive] [role="alert"]').getByText('The Ledger could not verify access to this folder.', { exact: false }).waitFor();
+    const deniedTraceText = await page.locator('[data-drive-diagnostics] pre').textContent();
+    assert.match(deniedTraceText, /"filesGetAttempted": true/);
+    assert.match(deniedTraceText, /"filesGetStatus": 403/);
+    assert.doesNotMatch(deniedTraceText, /folder-one|First folder|memory-only-token|Authorization|synthetic private response body|AIza/);
 
+    await page.evaluate(() => { window.driveTest.failGetStatus = 0; });
     await page.evaluate(() => { window.driveTest.selected = { id: 'folder-one', name: 'First folder', mimeType: 'application/vnd.google-apps.folder' }; });
     await page.getByRole('button', { name: 'Choose backup folder', exact: true }).click();
     await page.evaluate(() => window.driveTest.finishPicker('PICKED'));
     await page.waitForFunction(() => JSON.parse(localStorage.getItem('dbdTrackerDriveFolder') || 'null')?.id === 'folder-one');
     await page.waitForFunction(() => document.activeElement?.dataset.action === 'drive-export', null, { timeout: 1000 });
+    assert.equal(await page.locator('[data-drive-diagnostics]').count(), 0, 'diagnostic details stay hidden after successful selection');
     assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('dbdTrackerDriveFolder'))), { id: 'folder-one', name: 'First folder' });
     assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('dbdTrackerDriveRecentFolders'))), [{ id: 'folder-one', name: 'First folder' }]);
     assert.equal(uploads.length, 0, 'choosing a folder never starts a backup');

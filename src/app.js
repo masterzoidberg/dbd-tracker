@@ -32,7 +32,7 @@ const date = value => value ? new Date(value).toLocaleString() : 'Not updated ye
 const editor = new EditorGuard(navigator.locks);
 const store = new TrackerStorage({ getItem: key => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value) }, () => editor.assertWriter());
 const drive = createGoogleDrive(typeof __LEDGER_GOOGLE_CONFIG__ === 'undefined' ? {} : __LEDGER_GOOGLE_CONFIG__);
-let driveBusy = false, driveBusyAction = '', driveChoosingFolder = false, drivePreparation = null, driveLoadError = '', lastDriveExport = '', driveDestinationUnavailable = false;
+let driveBusy = false, driveBusyAction = '', driveChoosingFolder = false, drivePreparation = null, driveLoadError = '', lastDriveExport = '', driveDestinationUnavailable = false, drivePanelError = null;
 let importInProgress = false;
 let save = freshSave();
 let storageBlocked = false;
@@ -1573,6 +1573,11 @@ function googleDriveView() {
   const recentList = recents.length ? '<div class="drive-recent"><h3>Recent locations</h3><ul>' + recents.map(item => '<li><span>' + esc(item.name) + '</span><button class="quiet" data-action="drive-use-recent" data-id="' + esc(item.id) + '" aria-label="Use ' + esc(item.name) + '"' + (operationDisabled ? ' disabled' : '') + '>Use</button></li>').join('') + '</ul></div>' : '';
   const pickerHint = state.connected && state.pickerAvailable
     ? '<p class="drive-picker-hint">In Google’s chooser, select the folder row and choose Select; opening it only navigates into it.</p>' : '';
+  const diagnosticPanelState = activeDestination ? 'selected' : 'not-selected';
+  const driveError = drivePanelError ? '<div class="drive-inline-error" role="alert"><p>' + esc(drivePanelError.message) + '</p>'
+    + (drivePanelError.showDiagnostics && drive.selectionDiagnosticText(diagnosticPanelState)
+      ? '<details data-drive-diagnostics open><summary>Diagnostic details</summary><pre>' + esc(drive.selectionDiagnosticText(diagnosticPanelState)) + '</pre><button type="button" data-action="drive-copy-diagnostic">Copy diagnostic</button><span class="drive-copy-status" data-drive-diagnostic-copy-status role="status" aria-live="polite"></span></details>' : '')
+    + '</div>' : '';
   return '<section class="panel drive-panel" data-google-drive aria-busy="' + (driveBusy ? 'true' : 'false') + '">' + sectionTitle('Google Drive', '<span class="drive-optional">Optional</span>')
     + '<p class="drive-description">' + (state.connected
       ? 'Choose where The Ledger should keep its backup. Your browser remains the primary save.'
@@ -1583,6 +1588,7 @@ function googleDriveView() {
     + (state.connected && !activeDestination ? '<p class="drive-location-note">The rolling backup is stored as <code>latest.json</code>. Choose a backup location before restoring.</p>' : '')
     + (state.connected && activeDestination && lastDriveExport ? '<p class="drive-last-backup">Last backup: <time datetime="' + esc(lastDriveExport) + '">' + esc(date(lastDriveExport)) + '</time></p>' : '')
     + (state.connected && activeDestination ? '<p class="drive-location-note">Changing location does not move or delete an existing backup.</p>' : '')
+    + driveError
     + (state.available && !state.pickerAvailable ? '<p class="drive-configuration-note">' + esc(state.pickerReason) + (activeDestination ? ' The selected-folder backup can still be used.' : ' Use My Drive or local JSON tools while folder selection is unavailable.') + '</p>' : '')
     + pickerHint
     + (state.available && !state.ready && !driveLoadError ? '<p class="drive-busy-message">Loading Google connection tools…</p>' : '')
@@ -1594,6 +1600,7 @@ function googleDriveView() {
 }
 async function driveAction(action, destinationId = '') {
   if (driveBusy) return;
+  drivePanelError = null;
   driveBusy = true; driveBusyAction = action;
   render();
   try {
@@ -1629,6 +1636,22 @@ async function driveAction(action, destinationId = '') {
     }
   } catch (error) {
     if (error.code === 'destination-unavailable' && ['drive-export', 'drive-import'].includes(action)) driveDestinationUnavailable = true;
+    const folderAction = action === 'drive-choose-folder' || action === 'drive-change-folder';
+    const trace = folderAction ? drive.selectionDiagnostics() : null;
+    const category = trace?.outcomeCategory;
+    const inlineMessage = folderAction
+      ? category === 'picker-timeout' ? 'Google Picker did not respond. Try choosing a folder again.'
+        : category === 'picker-action-unexpected' || category === 'picker-folder-invalid' ? 'Google Picker did not return a usable folder. Try again or choose another folder.'
+          : category === 'folder-verification-failed' ? 'Google returned a folder, but The Ledger could not verify access to this folder. Try again or choose another folder.'
+            : category === 'destination-storage-failed' ? 'The backup location could not be remembered in this browser. Try again or check browser storage settings.'
+              : category === 'recent-storage-failed' ? 'The backup location was saved, but recent locations could not be updated. You can continue with this location.'
+                : category === 'google-drive-request-failed' ? 'Google Drive request failed while checking the selected folder. Try again.'
+                  : 'Google Drive could not finish choosing a backup folder. Try again.'
+      : action === 'drive-export' ? 'Google Drive backup failed. Your Ledger data is still saved locally.'
+        : action === 'drive-import' ? 'Google Drive restore could not be completed. Review the restore state and try again.'
+          : action === 'drive-connect' ? 'Google Drive could not connect. Try connecting again.'
+            : 'Google Drive could not verify that backup location. Choose another location and retry.';
+    drivePanelError = { message: inlineMessage, showDiagnostics: folderAction && !!trace };
     message(action === 'drive-export' ? 'Google Drive backup failed. Your Ledger data is still saved locally. ' + error.message : error.message, true);
   } finally {
     driveBusy = false; driveBusyAction = ''; driveChoosingFolder = false;
@@ -1647,6 +1670,17 @@ async function driveAction(action, destinationId = '') {
         target?.focus({ preventScroll: true });
       });
     }
+  }
+}
+async function copyDriveDiagnostic(button) {
+  const diagnostic = button.closest('[data-drive-diagnostics]')?.querySelector('pre')?.textContent || '';
+  const status = button.closest('.drive-inline-error')?.querySelector('[data-drive-diagnostic-copy-status]');
+  if (!diagnostic || !status) return;
+  try {
+    await navigator.clipboard.writeText(diagnostic);
+    status.textContent = 'Sanitized diagnostic copied.';
+  } catch {
+    status.textContent = 'Could not copy. Select the diagnostic text and copy it manually.';
   }
 }
 async function chooseDriveFolder() {
@@ -2204,6 +2238,7 @@ async function handleClick(event) {
   if (action === 'killer-addon-details') return openKillerAddonDetail(id,button);
   if (action === 'export') return exportFile();
   if (action === 'raw-export') return download(store.original(), 'dbd-tracker-original-data.txt', 'text/plain;charset=utf-8');
+  if (action === 'drive-copy-diagnostic') return copyDriveDiagnostic(button);
   if (action?.startsWith('drive-')) return driveAction(action, button.dataset.id || '');
   if (action === 'import') return $('#import-file').click();
   if (action === 'close' || action === 'manage-link') { $('#detail').close(); modal = null; return; }
