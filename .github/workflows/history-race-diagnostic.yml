@@ -1,0 +1,26 @@
+name: History guard race diagnostic
+
+on:
+  push:
+    branches:
+      - diagnostic/pages-smoke-timeout
+
+permissions:
+  contents: read
+
+jobs:
+  stress:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          LEDGER_GOOGLE_CLIENT_ID: ${{ vars.LEDGER_GOOGLE_CLIENT_ID }}
+          LEDGER_GOOGLE_API_KEY: ${{ vars.LEDGER_GOOGLE_API_KEY }}
+          LEDGER_GOOGLE_APP_ID: ${{ vars.LEDGER_GOOGLE_APP_ID }}
+      - run: node tests/browser/history-guard-stress.mjs .
