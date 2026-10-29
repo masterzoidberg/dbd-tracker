@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 export async function smokeStage(stage, { channel = 'msedge', regression, manifest } = {}) {
   stage = resolve(stage);
   const requests = [], errors = [];
-  const googleBootstrap = new Set(['https://accounts.google.com/gsi/client']);
+  const googleBootstrap = new Set(['https://accounts.google.com/gsi/client', 'https://apis.google.com/js/api.js']);
   const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.png': 'image/png', '.webp': 'image/webp' };
   const server = createServer(async (request, response) => {
     try {
@@ -88,6 +88,8 @@ export async function smokeStage(stage, { channel = 'msedge', regression, manife
       await dataFlowsRegression(page, origin);
       const { googleDriveRegression } = await import('./google-drive.mjs');
       await googleDriveRegression(browser, origin);
+      const { googleDriveFolderRegression } = await import('./google-drive-folder.mjs');
+      await googleDriveFolderRegression(browser, origin);
       const { compactRegression } = await import('./compact.mjs');
       await compactRegression(page, origin);
       const { portraitsRegression } = await import('./portraits.mjs');
@@ -107,9 +109,9 @@ export async function smokeStage(stage, { channel = 'msedge', regression, manife
       await editorRegression(page, origin);
     }
     assert.ok(requests.some(url => url === origin + '/dist/app.js'));
-    assert.ok(requests.every(url => googleBootstrap.has(url) || (new URL(url).origin === origin && !new URL(url).pathname.endsWith('.json'))), 'Runtime must only request local assets or optional Google Identity Services on Data.');
+    assert.ok(requests.every(url => googleBootstrap.has(url) || (new URL(url).origin === origin && !new URL(url).pathname.endsWith('.json'))), 'Runtime may request only local assets or the exact optional Google SDK scripts on Data.');
     assert.deepEqual(errors, []);
-    return { localhost: 'AUTOMATED PASS', browser: `${channel} ${browser.version()}`, checks: ['startup', 'contextual Bloodweb/Favorite save', 'reload persistence', 'six labeled global destinations at wide and compact widths; Menu keyboard/Escape/focus, current route, skip-link contrast and navigation save safety', 'Filtering predicates/facets/route memory', 'native popover/focus/caret/skip/history', 'tier success/failure focus', '500/700/900/1440 shell and panel', 'all 321 perks, 880 Killer Add-ons and 37 Powers decode against manifest dimensions', 'Killer Power/Add-ons details, quantity persistence/writer/focus and 320/500/760/1100/1440/1600 layouts', 'artwork aliases/nulls/error fallback/editing', 'export/import/backup/restore/reset and cancellations', 'Compact/Detailed ordered results, transient mode and route lifecycle', 'Compact next-tier floor/history/keyboard/focus/storage failure', 'Compact 500/700/900/1440 shell, actions and image fallback', 'all 98 portraits decode; PNG/WebP MIME and canonical mappings', 'portrait card/detail/manager layouts, fallback and editing', 'corrupt-current raw export/import/restore, corrupt backups and recovery failures', 'recovery Data controls at 500/700/900/1440', 'canonical character Perks routes, aliases, direct tiers, account unlock propagation, card presets and responsive cards', 'compact Survivor/Killer Perks selectors, isolated tier saves, retry/discard, scroll, keyboard focus, Details focus return, and 320/390/768/1440 layouts', 'Survivor/Killer Lore cards, Power identity, account access, controls, routes and responsive layouts', 'no external/catalog/manifest JSON requests'] };
+    return { localhost: 'AUTOMATED PASS', browser: `${channel} ${browser.version()}`, checks: ['startup', 'contextual Bloodweb/Favorite save', 'reload persistence', 'six labeled global destinations at wide and compact widths; Menu keyboard/Escape/focus, current route, skip-link contrast and navigation save safety', 'Filtering predicates/facets/route memory', 'native popover/focus/caret/skip/history', 'tier success/failure focus', '500/700/900/1440 shell and panel', 'all 321 perks, 880 Killer Add-ons and 37 Powers decode against manifest dimensions', 'Killer Power/Add-ons details, quantity persistence/writer/focus and 320/500/760/1100/1440/1600 layouts', 'artwork aliases/nulls/error fallback/editing', 'export/import/backup/restore/reset and cancellations', 'Google Drive safe import/export, lazy folder-only Picker, remembered destination, Change folder, cancellation, and responsive wrapping', 'Compact/Detailed ordered results, transient mode and route lifecycle', 'Compact next-tier floor/history/keyboard/focus/storage failure', 'Compact 500/700/900/1440 shell, actions and image fallback', 'all 98 portraits decode; PNG/WebP MIME and canonical mappings', 'portrait card/detail/manager layouts, fallback and editing', 'corrupt-current raw export/import/restore, corrupt backups and recovery failures', 'recovery Data controls at 500/700/900/1440', 'canonical character Perks routes, aliases, direct tiers, account unlock propagation, card presets and responsive cards', 'compact Survivor/Killer Perks selectors, isolated tier saves, retry/discard, scroll, keyboard focus, Details focus return, and 320/390/768/1440 layouts', 'Survivor/Killer Lore cards, Power identity, account access, controls, routes and responsive layouts', 'no external/catalog/manifest JSON requests'] };
   } finally {
     try { await browser?.close(); } finally { await new Promise(accept => server.close(accept)); }
   }

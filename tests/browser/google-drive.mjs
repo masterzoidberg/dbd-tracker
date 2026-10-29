@@ -6,8 +6,9 @@ import { freshSave, parseSave } from '../../src/model.js';
 
 // Exercises the real provider and UI; only Google's external SDK/REST boundary is stubbed.
 export async function googleDriveRegression(browser, origin) {
+  const apiKey = 'AIza' + 'a'.repeat(35);
   const compiled = await build({ absWorkingDir: fileURLToPath(new URL('../../', import.meta.url)), entryPoints: ['src/app.js'], bundle: true, write: false, format: 'iife', target: 'es2022',
-    define: { __LEDGER_GOOGLE_CONFIG__: JSON.stringify({ clientId: '123.apps.googleusercontent.com' }) } });
+    define: { __LEDGER_GOOGLE_CONFIG__: JSON.stringify({ clientId: '123.apps.googleusercontent.com', apiKey, appId: '938560128029' }) } });
   const context = await browser.newContext();
   const errors = [], requests = [];
   const initial = freshSave();
@@ -15,27 +16,43 @@ export async function googleDriveRegression(browser, origin) {
   initial.planning.prestigeQueues.survivor = [{ characterId: 'meg-thomas', targetPrestige: 3 }];
   await context.addInitScript(save => { if (!localStorage.getItem('dbdTrackerData')) localStorage.setItem('dbdTrackerData', JSON.stringify(save)); }, initial);
   await context.addInitScript(() => {
-    window.driveTest = { uploaded: null, fail: false, missing: false, downloadFail: false, incoming: '', denied: false };
+    window.driveTest = { uploaded: null, fail: false, missing: false, downloadFail: false, incoming: '', denied: false,
+      selected: { id: 'folder-one', name: 'Synthetic backup folder', mimeType: 'application/vnd.google-apps.folder' }, pickerAction: 'PICKED' };
     const oauth = {
       initTokenClient(options) { return { requestAccessToken() { options.callback(window.driveTest.denied ? { error: 'denied' } : { access_token: 'synthetic-token', expires_in: 3600, scope: 'https://www.googleapis.com/auth/drive.file' }); } }; },
       hasGrantedAllScopes: () => true, revoke: (token, cb) => cb({}),
     };
-    window.google = { accounts: { oauth2: oauth } };
+    const picker = {
+      ViewId: { FOLDERS: 'FOLDERS' }, Action: { PICKED: 'PICKED', CANCEL: 'CANCEL' },
+      DocsView: class { constructor(id) { this.id = id; } setIncludeFolders() { return this; } setSelectFolderEnabled() { return this; } setMimeTypes() { return this; } },
+      PickerBuilder: class {
+        setAppId() { return this; } setDeveloperKey() { return this; } setOAuthToken() { return this; } addView() { return this; }
+        setCallback(callback) { this.callback = callback; return this; }
+        build() { const builder = this; return { setVisible(value) { if (value) queueMicrotask(() => builder.callback(window.driveTest.pickerAction === 'PICKED'
+          ? { action: 'PICKED', docs: [window.driveTest.selected] } : { action: window.driveTest.pickerAction })); } }; }
+      },
+    };
+    window.google = { accounts: { oauth2: oauth }, picker };
+    window.gapi = { load: (_name, options) => options.callback() };
   });
   await context.route('**/*', async route => {
     const url = route.request().url(); requests.push(url);
     if (url === origin + '/dist/app.js') return route.fulfill({ contentType: 'text/javascript', body: compiled.outputFiles[0].text });
     if (url.startsWith(origin + '/')) return route.continue();
     if (url === 'https://accounts.google.com/gsi/client') return route.fulfill({ contentType: 'text/javascript', body: '' });
+    if (url === 'https://apis.google.com/js/api.js') return route.fulfill({ contentType: 'text/javascript', body: '' });
     if (url.startsWith('https://www.googleapis.com/')) {
       const page = route.request().frame().page(), state = await page.evaluate(() => window.driveTest);
+      const path = new URL(url).pathname;
+      if (/\/drive\/v3\/files\/folder-one$/.test(path)) return route.fulfill({ json: { id: 'folder-one', name: 'Synthetic backup folder', mimeType: 'application/vnd.google-apps.folder', trashed: false } });
       if (url.includes('alt=media')) return route.fulfill(state.downloadFail ? { status: 500, body: 'synthetic download failure' } : { body: state.incoming });
       if (url.includes('/upload/')) {
         if (state.fail) return route.fulfill({ status: 500, body: '<img onerror=alert(1)>synthetic-token' });
         await page.evaluate(bytes => { window.driveTest.uploaded = bytes; }, route.request().postData());
-        return route.fulfill({ json: { id: 'latest' } });
+        return route.fulfill({ json: { id: path.split('/').at(-1) } });
       }
-      return route.fulfill({ json: { files: state.missing ? [] : [{ id: url.includes('folder') ? 'folder' : 'latest' }] } });
+      if (route.request().method() === 'POST') return route.fulfill({ json: { id: 'latest' } });
+      return route.fulfill({ json: { files: state.missing ? [] : [{ id: 'latest' }] } });
     }
     throw Error('Unexpected external request: ' + url);
   });
@@ -44,16 +61,16 @@ export async function googleDriveRegression(browser, origin) {
     await page.goto(origin + '/#dashboard'); await page.getByRole('heading', { name: 'Dashboard', exact: true }).waitFor();
     assert.equal(requests.filter(url => url.includes('google')).length, 0, 'Google stays lazy on other routes');
     await page.goto(origin + '/#data');
-    await page.getByText('Google Drive not connected', { exact: true }).waitFor();
+    await page.getByText('Not connected', { exact: true }).waitFor();
     await page.evaluate(() => { window.driveTest.denied = true; });
     await page.getByRole('button', { name: 'Connect Google Drive', exact: true }).click();
     await page.waitForFunction(() => !document.querySelector('[data-action="drive-connect"]').disabled);
-    assert.equal(await page.getByRole('button', { name: 'Import from Google Drive', exact: true }).count(), 0);
+    assert.equal(await page.getByRole('button', { name: 'Restore from Drive', exact: true }).count(), 0);
     await page.evaluate(() => { window.driveTest.denied = false; });
     await page.getByRole('button', { name: 'Connect Google Drive', exact: true }).click();
-    await page.getByText('Connected for this browser session', { exact: true }).waitFor();
+    await page.getByRole('status').filter({ hasText: 'Connected' }).waitFor();
     const before = await page.evaluate(() => localStorage.dbdTrackerData);
-    await page.getByRole('button', { name: 'Export to Google Drive', exact: true }).click();
+    await page.getByRole('button', { name: 'Backup now', exact: true }).click();
     await page.waitForFunction(() => document.querySelector('#message').textContent.startsWith('Backed up to Google Drive'));
     const uploaded = await page.evaluate(() => JSON.parse(window.driveTest.uploaded));
     const localDownload = page.waitForEvent('download'); await page.locator('#main [data-action="export"]').click();
@@ -64,7 +81,7 @@ export async function googleDriveRegression(browser, origin) {
     assert.ok(!JSON.stringify(uploaded).includes('synthetic-token'));
     assert.equal(await page.evaluate(() => localStorage.dbdTrackerData), before);
     await page.evaluate(() => { window.driveTest.fail = true; });
-    await page.getByRole('button', { name: 'Export to Google Drive', exact: true }).click();
+    await page.getByRole('button', { name: 'Backup now', exact: true }).click();
     await page.waitForFunction(() => document.querySelector('#message').textContent.startsWith('Google Drive backup failed'));
     assert.equal(await page.evaluate(() => localStorage.dbdTrackerData), before);
     assert.equal(await page.locator('#message img').count(), 0);
@@ -75,7 +92,7 @@ export async function googleDriveRegression(browser, origin) {
     await page.evaluate(() => localStorage.setItem('dbdTrackerContinue', JSON.stringify({ version: 1, characterId: 'meg-thomas', role: 'survivor', section: 'perks', visitedAt: new Date().toISOString() })));
     const continueBefore = await page.evaluate(() => localStorage.dbdTrackerContinue);
     await page.evaluate(bytes => { window.driveTest.incoming = bytes; window.driveTest.missing = true; }, JSON.stringify(incoming));
-    const importButton = () => page.getByRole('button', { name: 'Import from Google Drive', exact: true });
+    const importButton = () => page.getByRole('button', { name: 'Restore from Drive', exact: true });
     await importButton().click(); await page.waitForFunction(() => !document.querySelector('[data-action="drive-import"]').disabled);
     assert.equal(await page.locator('#confirmation').isVisible(), false);
     await page.evaluate(() => { window.driveTest.missing = false; });
@@ -123,11 +140,13 @@ export async function googleDriveRegression(browser, origin) {
     assert.ok(!await page.evaluate(() => JSON.stringify(localStorage).includes('synthetic-token')));
     const reader = await context.newPage(); await reader.goto(origin + '/#data');
     await reader.getByRole('button', { name: 'Connect Google Drive', exact: true }).click();
-    assert.equal(await reader.getByRole('button', { name: 'Import from Google Drive', exact: true }).isDisabled(), true);
-    assert.equal(await reader.getByRole('button', { name: 'Export to Google Drive', exact: true }).isDisabled(), false);
+    await reader.getByRole('status').filter({ hasText: 'Connected' }).waitFor();
+    assert.equal(await reader.getByRole('button', { name: 'Restore from Drive', exact: true }).isDisabled(), true,
+      'the existing writer guard disables restore from a second read-only tab');
+    assert.deepEqual(await reader.evaluate(() => JSON.parse(localStorage.getItem('dbdTrackerDriveFolder'))), { id: 'folder-one', name: 'Synthetic backup folder' });
     await reader.close();
     await page.getByRole('button', { name: 'Disconnect', exact: true }).click();
-    await page.getByText('Google Drive not connected', { exact: true }).waitFor();
+    await page.getByText('Not connected', { exact: true }).waitFor();
     assert.equal(await page.locator('#main').getByRole('button', { name: /Export JSON/ }).isEnabled(), true);
     assert.equal(await page.getByRole('button', { name: /Import JSON/ }).isEnabled(), true);
     assert.deepEqual(errors, []);

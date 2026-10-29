@@ -32,7 +32,7 @@ const date = value => value ? new Date(value).toLocaleString() : 'Not updated ye
 const editor = new EditorGuard(navigator.locks);
 const store = new TrackerStorage({ getItem: key => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value) }, () => editor.assertWriter());
 const drive = createGoogleDrive(typeof __LEDGER_GOOGLE_CONFIG__ === 'undefined' ? {} : __LEDGER_GOOGLE_CONFIG__);
-let driveBusy = false, drivePreparation = null, driveLoadError = '', lastDriveExport = '';
+let driveBusy = false, driveBusyAction = '', driveChoosingFolder = false, drivePreparation = null, driveLoadError = '', lastDriveExport = '', driveDestinationUnavailable = false;
 let importInProgress = false;
 let save = freshSave();
 let storageBlocked = false;
@@ -1541,46 +1541,93 @@ function download(content, filename, type = 'application/json;charset=utf-8') {
 }
 function googleDriveView() {
   const state = drive.status();
+  const destination = drive.destination();
   if (state.available && !drivePreparation) {
     drivePreparation = drive.prepare().catch(() => { driveLoadError = 'Google libraries could not load. Check your connection and reload to retry.'; })
       .finally(() => { if (route() === 'data') render(); });
   }
-  const disabled = driveBusy || !state.ready || !!driveLoadError ? ' disabled' : '';
-  const actions = !state.available || driveLoadError ? '' : '<div class="data-actions">'
-    + (state.connected
-      ? '<button data-action="drive-export"' + (driveBusy || !initialized || storageBlocked ? ' disabled' : '') + '>Export to Google Drive</button>'
-        + '<button data-action="drive-import"' + disabled + '>Import from Google Drive</button>'
-        + '<button data-action="drive-disconnect"' + disabled + '>Disconnect</button>'
-      : '<button data-action="drive-connect"' + disabled + '>Connect Google Drive</button>') + '</div>';
-  return '<section class="panel" data-google-drive>' + sectionTitle('Google Drive', '<span class="tag">OPTIONAL CLOUD COPY</span>')
-    + '<p>Export or restore your portable Ledger JSON through The Ledger Backups/latest.json in Google Drive. Your browser-local Ledger remains the primary save.</p>'
-    + '<p role="status">' + esc(state.reason || driveLoadError || (state.connected ? 'Connected for this browser session' : 'Google Drive not connected')) + '</p>'
-    + (state.available && !state.ready && !driveLoadError ? '<p class="muted">Loading Google connection tools…</p>' : '')
-    + actions + (driveBusy ? '<p class="muted">Waiting for Google Drive…</p>' : '')
-    + (lastDriveExport ? '<p class="muted">Last Drive export: ' + esc(date(lastDriveExport)) + ' · latest.json</p>' : '') + '</section>';
+  const unavailable = !state.available || !!driveLoadError;
+  const operationDisabled = driveBusy || !state.ready || !!driveLoadError;
+  const selectionDisabled = operationDisabled || !state.pickerAvailable;
+  const destinationMissing = !destination || driveDestinationUnavailable;
+  const canSelect = state.pickerAvailable;
+  const actions = unavailable ? '' : state.connected
+    ? '<div class="drive-actions">'
+      + '<button class="primary" data-action="drive-export"' + (operationDisabled || !initialized || storageBlocked || (destinationMissing && !canSelect) ? ' disabled' : '') + '>Backup now</button>'
+      + '<button data-action="drive-import"' + (operationDisabled || (destinationMissing && !canSelect) ? ' disabled' : '') + '>Restore from Drive</button>'
+      + '<div class="drive-quiet-actions"><button class="quiet" data-action="drive-change-folder"' + (selectionDisabled ? ' disabled' : '') + '>' + (destinationMissing ? 'Choose folder' : 'Change folder') + '</button>'
+      + '<button class="quiet" data-action="drive-disconnect"' + (driveBusy ? ' disabled' : '') + '>Disconnect</button></div></div>'
+    : '<div class="drive-actions"><button class="primary" data-action="drive-connect"' + (operationDisabled ? ' disabled' : '') + '>Connect Google Drive</button></div>';
+  const status = unavailable ? (state.reason || driveLoadError)
+    : state.connected ? 'Connected' : 'Not connected';
+  const destinationText = !state.connected ? '' : destinationMissing
+    ? '<p class="drive-location" role="status">' + (driveDestinationUnavailable ? 'Saved backup location is unavailable. Choose a folder to continue.' : 'Choose a folder for your Ledger backups.') + '</p>'
+    : '<p class="drive-location">Backup location: <strong>' + esc(destination.name) + '</strong></p>';
+  return '<section class="panel drive-panel" data-google-drive>' + sectionTitle('Google Drive', '<span class="drive-optional">Optional</span>')
+    + '<p class="drive-description">Keep an optional copy of your Ledger in Google Drive. Your browser remains the primary save.</p>'
+    + '<p class="drive-status" role="status" aria-live="polite"><span class="drive-status-indicator' + (state.connected ? ' is-connected' : '') + '"></span>' + esc(status) + '</p>'
+    + destinationText
+    + (state.connected && destination ? '<p class="drive-location-note">Changing the folder leaves existing Drive backups in place.</p>' : '')
+    + (state.connected && lastDriveExport ? '<p class="drive-last-backup">Last successful backup: <time datetime="' + esc(lastDriveExport) + '">' + esc(date(lastDriveExport)) + '</time></p>' : '')
+    + (state.available && !state.pickerAvailable ? '<p class="drive-configuration-note">' + esc(state.pickerReason) + (destination ? ' Existing selected-folder backups can still be used.' : ' Folder selection is unavailable.') + '</p>' : '')
+    + (state.available && !state.ready && !driveLoadError ? '<p class="drive-busy-message">Loading Google connection tools…</p>' : '')
+    + actions
+    + (driveBusy ? '<p class="drive-busy-message" role="status">' + (driveChoosingFolder ? 'Choosing backup folder…' : driveBusyAction === 'drive-import' ? 'Preparing restore…' : driveBusyAction === 'drive-disconnect' ? 'Disconnecting…' : driveBusyAction === 'drive-connect' ? 'Connecting…' : 'Backing up to Google Drive…') + '</p>' : '')
+    + '</section>';
 }
 async function driveAction(action) {
   if (driveBusy) return;
-  driveBusy = true;
+  driveBusy = true; driveBusyAction = action;
+  render();
   try {
     if (action === 'drive-connect') {
-      // Libraries have already loaded in the Data section; request OAuth from this click.
+      // GIS has loaded in the Data section; request OAuth from this explicit click.
       const connection = drive.connect(); render(); await connection;
     } else if (action === 'drive-disconnect') await drive.disconnect();
     else if (action === 'drive-export') {
       if (!initialized || storageBlocked) throw Error('Current progress is unavailable. Use the local recovery tools.');
+      if (!await ensureDriveDestination()) return;
       const upload = drive.exportJson(exportSave(save)); render();
       lastDriveExport = (await upload).exportedAt;
+      driveDestinationUnavailable = false;
       message('Backed up to Google Drive at ' + date(lastDriveExport) + '.');
     } else if (action === 'drive-import') {
       store.assertWriter();
+      if (!await ensureDriveDestination()) return;
       const incoming = drive.importJson(); render();
       await importText(await incoming);
+      driveDestinationUnavailable = false;
+    } else if (action === 'drive-change-folder') {
+      const selected = await chooseDriveFolder();
+      if (!selected) return;
+      driveDestinationUnavailable = false;
+      message('Backup location changed to ' + selected.name + '. Existing Drive backups remain in the previous folder; the next backup uses this folder.');
     }
   } catch (error) {
-    pendingImport = null;
+    if (error.code === 'destination-unavailable') driveDestinationUnavailable = true;
     message(action === 'drive-export' ? 'Google Drive backup failed. Your Ledger data is still saved locally. ' + error.message : error.message, true);
-  } finally { driveBusy = false; render(); }
+  } finally {
+    driveBusy = false; driveBusyAction = ''; driveChoosingFolder = false;
+    render();
+    if (route() === 'data') {
+      const focusAction = action === 'drive-connect' ? 'drive-export' : action === 'drive-disconnect' ? 'drive-connect' : action;
+      requestAnimationFrame(() => document.querySelector(`[data-action="${focusAction}"]:not(:disabled)`)?.focus({ preventScroll: true }));
+    }
+  }
+}
+async function ensureDriveDestination() {
+  const current = drive.destination();
+  if (current && !driveDestinationUnavailable) return current;
+  const state = drive.status();
+  if (!state.pickerAvailable) throw Error(state.pickerReason || 'Google Drive folder selection is unavailable.');
+  const selected = await chooseDriveFolder();
+  if (selected) driveDestinationUnavailable = false;
+  return selected;
+}
+async function chooseDriveFolder() {
+  driveChoosingFolder = true; render();
+  try { return await drive.selectFolder(); }
+  finally { driveChoosingFolder = false; }
 }
 async function importText(bytes) {
   if (importInProgress) throw Error('Finish the current import before choosing another file.');
