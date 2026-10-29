@@ -14,6 +14,14 @@
         width:100%;
         max-width:none;
         padding:8px;
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        column-gap:6px;
+      }
+      .character-inventory-quick-picker > strong,
+      .character-inventory-quick-picker > .character-inventory-quick-state,
+      .character-inventory-quick-picker > .character-inventory-tier-controls {
+        grid-column:1 / -1;
       }
       .character-inventory-quick-picker strong { margin-bottom:6px; }
       .character-inventory-quick-picker .character-inventory-quick-state { margin-bottom:6px; }
@@ -21,9 +29,24 @@
         grid-template-columns:repeat(2,minmax(0,1fr));
         gap:4px;
       }
-      .character-inventory-quick-picker .character-inventory-quick-actions {
+      .character-inventory-quick-picker > .character-inventory-correction {
+        grid-column:1;
         margin-top:5px;
         padding-top:4px;
+        border-top:1px solid var(--border);
+      }
+      .character-inventory-quick-picker > .character-inventory-quick-actions {
+        grid-column:2;
+        margin-top:5px;
+        padding-top:4px;
+      }
+      .character-inventory-quick-picker:not(:has(> .character-inventory-correction)) > .character-inventory-quick-actions,
+      .character-inventory-quick-picker > .character-inventory-correction:has([data-character-inventory-correction]) {
+        grid-column:1 / -1;
+      }
+      .character-inventory-quick-picker > .character-inventory-correction > button,
+      .character-inventory-quick-picker > .character-inventory-quick-actions > button {
+        width:100%;
       }
     }
   </style>
