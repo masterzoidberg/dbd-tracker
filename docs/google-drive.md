@@ -8,23 +8,39 @@ Canceling restore changes nothing.
 
 ## Choose and remember a backup folder
 
-Connect Google Drive, then choose a destination when you first select **Backup
-now** or **Restore from Drive**. The official Google Picker opens only at that
-point and is configured to select folders, not arbitrary files. Picker is loaded
-on demand; opening the Dashboard or visiting Data & backups does not load Picker.
+Connect Google Drive, then choose **Choose backup folder** or **Use My Drive**.
+Choosing a location is separate from backing up: it does not upload Ledger data.
+**Backup now** appears only after a destination is active, then writes there
+without reopening Picker. **Restore from Drive** uses the same active location;
+without one, restore is disabled and the page guides you to choose one first.
 
-The selected folder is the backup location. The Ledger remembers its folder ID
-and display name in a separate local browser preference; the preference is not
-part of Ledger saves, exports, snapshots, or schema migrations. The rolling
-`latest.json` file is created directly inside the selected folder. The Ledger
-does not create an extra wrapper folder.
+Google Picker is configured for folders only, with a single list view and the
+title **Choose backup folder**. Google’s documented API can make folder rows
+selectable, but does not expose a supported action for selecting the currently
+open folder. Select the folder row from its parent and choose **Select**;
+opening a folder only navigates into it. Picker is loaded only after an explicit
+folder-selection action, not on Dashboard, startup, or simply visiting Data &
+backups. The single-view Picker hides its view-navigation pane; folder
+browsing remains in the main view.
 
-Later backups reuse the remembered folder and update the same app-managed
-`latest.json`. A private `appProperties` marker distinguishes it from unrelated
-files with the same name. **Change folder** changes only the local destination;
-it does not move or delete the old Drive backup. The next backup uses the new
-folder. Restore looks only for the app-managed backup in the currently selected
-folder.
+**Use My Drive** selects the Drive root directly without Picker. Otherwise, the
+selected folder is the backup location. The Ledger stores its folder ID and
+display name in a browser-local preference and keeps at most three recent
+locations. These preferences are nonportable: they are not part of Ledger saves,
+exports, snapshots, or schema migrations, and they contain no OAuth tokens.
+Selecting a recent location validates that it is still accessible before
+activating it; unavailable entries are removed and never cause a fallback to
+another folder. My Drive is remembered by the resolved root folder ID, so a
+different Google account's root is not silently substituted after reconnect.
+
+The rolling `latest.json` file is created directly inside the selected folder;
+the Ledger does not create a wrapper folder. Later backups reuse the selected
+folder and update the same app-managed file. A private `appProperties` marker
+distinguishes it from unrelated files with the same name. **Change folder** only
+changes the active local destination. It does not create a backup, or move or
+delete the old Drive backup. Restore looks only for the app-managed backup in
+the currently selected folder. Disconnect preserves the local destination and
+recent-location preferences; the folder is validated when used after reconnect.
 
 If a saved folder was deleted, trashed, or became inaccessible, the Ledger does
 not fall back to Drive root. It reports that the location is unavailable and
@@ -70,9 +86,9 @@ In the Google Cloud project associated with the Web Client ID:
 ## Runtime and data safety
 
 Google Identity Services loads on configured online Data & backups. Google
-Picker's `https://apis.google.com/js/api.js` loads only after the user starts
-choosing a folder. No Google request occurs on normal startup, the Dashboard, or
-unrelated routes. Picker does not broaden OAuth beyond `drive.file`.
+Picker's `https://apis.google.com/js/api.js` loads only after the user explicitly
+chooses or changes a folder. No Google request occurs on normal startup, the
+Dashboard, or unrelated routes. Picker does not broaden OAuth beyond `drive.file`.
 
 OAuth access tokens remain in the provider's memory, expire, and disappear on
 reload or Disconnect. They are never written to localStorage, IndexedDB, account
@@ -107,19 +123,22 @@ checks do not replace genuine manual keyboard and 200% zoom acceptance.
 After deployment, test with synthetic/non-critical progress:
 
 1. Connect and confirm the requested access is limited to `drive.file`.
-2. Click **Backup now**, select a folder, and verify `latest.json` appears
-   directly inside it.
-3. Change synthetic progress and back up again. Confirm Picker does not reopen
-   and the same app-managed file is updated.
+2. Choose **Choose backup folder**, select the folder row in Picker, and verify
+   no backup starts until you press **Backup now**.
+3. Confirm `latest.json` appears directly inside that folder. Change synthetic
+   progress and back up again; Picker should stay closed and the same
+   app-managed file should update.
 4. Change folder. Confirm the old backup remains untouched and the next backup
-   appears in the new folder.
-5. Restore from Drive, inspect the existing replacement preview, and cancel to
-   confirm local data is unchanged. Repeat and confirm only when ready.
+   appears in the new folder. Try a recent location and **Use My Drive**.
+5. Restore from the active location, inspect the existing replacement preview,
+   and cancel to confirm local data is unchanged. Repeat and confirm only when
+   ready.
 6. Disconnect and confirm local data, local JSON tools, and Drive files remain.
 
 Official references:
 [Google Picker web integration](https://developers.google.com/workspace/drive/picker/guides/web-picker),
 [folder selection in DocsView](https://developers.google.com/workspace/drive/picker/reference/picker.docsview.setselectfolderenabled),
+[single-view navigation and Picker features](https://developers.google.com/workspace/drive/picker/reference/picker.feature),
 [Picker App ID](https://developers.google.com/workspace/drive/picker/reference/picker.pickerbuilder.setappid),
 [GIS token model](https://developers.google.com/identity/oauth2/web/guides/use-token-model),
 [Drive file queries](https://developers.google.com/workspace/drive/api/guides/search-files),

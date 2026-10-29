@@ -228,10 +228,10 @@ Run tests with `npm test`. Future schemas must be supported explicitly in `migra
 ## Verification
 
 Optional Google Drive backup setup and manual acceptance are documented in
-[docs/google-drive.md](docs/google-drive.md). Choose a Drive folder for the
-rolling `latest.json` backup; that destination is remembered locally, while
-browser saves remain authoritative. Unconfigured/offline builds retain all local
-JSON and recovery tools.
+[docs/google-drive.md](docs/google-drive.md). Choose a Drive folder or use My
+Drive before pressing Backup now; the destination is remembered locally, while
+browser saves remain authoritative. Unconfigured/offline builds retain all
+local JSON and recovery tools.
 
 Character managers offer Detailed/Compact using the same filters and progression
 actions. Compact shows perk names/icons, effective tiers, next-tier availability
