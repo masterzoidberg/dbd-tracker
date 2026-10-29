@@ -26,6 +26,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run release
+        env:
+          LEDGER_GOOGLE_CLIENT_ID: ${{ vars.LEDGER_GOOGLE_CLIENT_ID }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: release/runtime

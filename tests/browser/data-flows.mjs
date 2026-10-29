@@ -75,6 +75,11 @@ export async function dataFlowsRegression(page, origin) {
   const bytes = () => page.evaluate(() => localStorage.getItem('dbdTrackerData'));
   const predecessor = await bytes();
   assert.ok((await page.locator('#main').textContent()).includes('SCHEMA v3'));
+  await page.locator('[data-google-drive]').waitFor();
+  // Production builds may be configured; missing configuration must remain a safe state.
+  if (!await page.locator('[data-action="drive-connect"]').count()) {
+    assert.match(await page.locator('[data-google-drive]').textContent(), /not configured|offline|requires an online|could not load/);
+  }
   const downloadEvent = page.waitForEvent('download');
   await page.locator('#main [data-action="export"]').click();
   const download = await downloadEvent;
