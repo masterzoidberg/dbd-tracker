@@ -28,6 +28,8 @@ jobs:
       - run: npm run release
         env:
           LEDGER_GOOGLE_CLIENT_ID: ${{ vars.LEDGER_GOOGLE_CLIENT_ID }}
+          LEDGER_GOOGLE_API_KEY: ${{ vars.LEDGER_GOOGLE_API_KEY }}
+          LEDGER_GOOGLE_APP_ID: ${{ vars.LEDGER_GOOGLE_APP_ID }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: release/runtime

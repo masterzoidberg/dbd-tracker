@@ -1,111 +1,126 @@
-# Optional Google Drive backups — V1
+# Optional Google Drive backups
 
-Drive transports the same portable JSON as local Export JSON. Browser-local saves
-stay authoritative. V1 manages `The Ledger Backups/latest.json`; explicit import
-restores that app-managed file through the existing parser, migrations, preview,
-confirmation, writer guard, and backup/recovery protections. It never restores
-automatically. Use local Import JSON for other portable files.
+Google Drive is an optional transport for the same portable Ledger JSON used by
+local Export JSON. The browser remains the authoritative save. Drive import is
+explicit and sends downloaded bytes through the existing validation, migration,
+replacement preview, confirmation, writer guard, and backup/recovery pipeline.
+Canceling restore changes nothing.
 
-## Public configuration
+## Choose and remember a backup folder
 
-The only build value is **`LEDGER_GOOGLE_CLIENT_ID`**, the public OAuth 2.0
-**Web application** Client ID. The existing esbuild script reads native
-`process.env`; no dotenv/dependency is added. Set it as a repository Actions
-variable for Pages, or in the shell before `npm start`, `npm run build`, or
-`npm run release`. In PowerShell:
-`$env:LEDGER_GOOGLE_CLIENT_ID='your-web-client-id.apps.googleusercontent.com'`.
+Connect Google Drive, then choose a destination when you first select **Backup
+now** or **Restore from Drive**. The official Google Picker opens only at that
+point and is configured to select folders, not arbitrary files. Picker is loaded
+on demand; opening the Dashboard or visiting Data & backups does not load Picker.
 
-Absent/invalid configuration shows an unconfigured state and leaves local tools
-available. Client IDs ship publicly in the bundle. V1 requires no Google Picker,
-browser API key, project-number/App-ID setting, client secret, backend exchange,
-or refresh token. Automated tests use a synthetic ID only in an isolated mock
-bundle; production defaults to unconfigured.
+The selected folder is the backup location. The Ledger remembers its folder ID
+and display name in a separate local browser preference; the preference is not
+part of Ledger saves, exports, snapshots, or schema migrations. The rolling
+`latest.json` file is created directly inside the selected folder. The Ledger
+does not create an extra wrapper folder.
 
-In the Google Cloud project associated with the Web client:
+Later backups reuse the remembered folder and update the same app-managed
+`latest.json`. A private `appProperties` marker distinguishes it from unrelated
+files with the same name. **Change folder** changes only the local destination;
+it does not move or delete the old Drive backup. The next backup uses the new
+folder. Restore looks only for the app-managed backup in the currently selected
+folder.
 
-1. Enable **Google Drive API**.
-2. Configure Auth Platform branding, audience/consent and test users if in testing.
-   Request only `https://www.googleapis.com/auth/drive.file`.
-3. Authorize JavaScript origins `https://masterzoidberg.github.io`,
-   `http://localhost:5173`, and `http://127.0.0.1:5173` as needed for the existing
-   development server. Origins contain no `/dbd-tracker/` path.
-4. Supply the public Web Client ID through the build variable. No server redirect
-   URI or client secret is used.
+If a saved folder was deleted, trashed, or became inaccessible, the Ledger does
+not fall back to Drive root. It reports that the location is unavailable and
+offers **Choose folder**. Reconnecting validates access before using the saved
+destination. Disconnect clears the in-memory OAuth session but keeps the local
+folder preference and existing Drive files.
+
+## Public build configuration
+
+The Pages build reads these public values through the centralized
+`googleDriveConfig` function:
+
+- `LEDGER_GOOGLE_CLIENT_ID`: OAuth 2.0 Web Client ID.
+- `LEDGER_GOOGLE_API_KEY`: restricted browser API key for Google Picker.
+- `LEDGER_GOOGLE_APP_ID`: Google Cloud project number used by Picker.
+
+For GitHub Pages, set them as repository Actions **variables** under **Settings
+→ Secrets and variables → Actions → Variables**. Local builds may set the same
+environment variables before `npm run build` or `npm run release`. If OAuth is
+configured but either Picker value is missing or malformed, Drive can still
+connect and use an already remembered destination. Folder selection is reported
+unavailable; local JSON tools remain available.
+
+The API key is intentionally delivered to the browser and is therefore visible
+in the built bundle. Restrict it in Google Cloud by the production website and
+any development websites you use, and allow only Google Picker API and Google
+Drive API. Do not commit the key or put it in documentation or tests. It is not
+a client secret. No client secret, backend, server exchange, refresh-token
+storage, or token persistence is used.
+
+In the Google Cloud project associated with the Web Client ID:
+
+1. Enable Google Drive API and Google Picker API.
+2. Set the OAuth consent screen and audience as needed. Request only
+   `https://www.googleapis.com/auth/drive.file`.
+3. Authorize JavaScript origins `https://masterzoidberg.github.io` and the
+   localhost origins used for development (for example,
+   `http://localhost:5173` and `http://127.0.0.1:5173`). Origins have no app path.
+4. Restrict the browser API key to the intended websites and the Picker and Drive
+   APIs. The Picker UI may also require `https://docs.google.com/*` as an allowed
+   website referrer, as described in Google's Picker setup guide.
 
 ## Runtime and data safety
 
-Only Google Identity Services (`https://accounts.google.com/gsi/client`) loads,
-lazily from configured online Data & backups. No Google request occurs during
-normal startup or on unrelated routes. OAuth requires explicit Connect/action.
-A failed library load requires reload instead of repeated background attempts.
-Offline and `file://` use keep local saving, import/export and recovery working;
-Drive shows unavailable.
+Google Identity Services loads on configured online Data & backups. Google
+Picker's `https://apis.google.com/js/api.js` loads only after the user starts
+choosing a folder. No Google request occurs on normal startup, the Dashboard, or
+unrelated routes. Picker does not broaden OAuth beyond `drive.file`.
 
-Access tokens remain in the provider closure, expire, and disappear on reload or
-Disconnect. No token enters localStorage, IndexedDB, exports, backups, logs, or
-REST URLs. Expired/rejected authorization can be reacquired through explicit
-Connect/action. Disconnect clears memory and attempts GIS revocation; it does
-not delete local data or Drive files or sign out Google globally.
+OAuth access tokens remain in the provider's memory, expire, and disappear on
+reload or Disconnect. They are never written to localStorage, IndexedDB, account
+JSON, backups, URLs, or logs. Drive requests use Authorization headers and fixed
+Google API origins. Response bodies are not rendered or logged.
 
-REST calls use Authorization headers under fixed
-`https://www.googleapis.com/drive/v3/` and `/upload/drive/v3/` paths. Provider
-response bodies are not rendered/logged; UI errors use text. No existing CSP
-was present or weakened. Catalogs/artwork remain local. The release static
-fetch/import guard remains; browser tests allow only the exact optional GIS SDK
-URL on Data and reject other external runtime requests.
+Offline and direct-file (`file://`) use preserve browser-local saves, JSON
+import/export, and recovery. Google Drive is unavailable in those contexts.
+Missing Picker configuration does not disable local data tools.
 
-Both actions find non-trashed entries carrying the private
-`appProperties.ledgerBackup` marker. Names alone never permit overwriting or
-importing unrelated files. Returned stable IDs address each upload/download.
-Queries rediscover IDs each time, avoiding stale preferences after deletion or
-account changes. Provider IDs are never stored in portable JSON or preferences.
+Drive failures never change Ledger data. Backup uses the canonical export
+payload. Restore validates downloaded bytes through the existing importer;
+unknown valid records and planning data remain under the same rules as local
+imports. The local backup and writer guard must both succeed before replacement,
+and Continue is invalidated only after successful replacement.
 
-First export locates/creates the app folder/current file and uploads the complete
-canonical payload. Repeat exports update it. Last-export status reflects only a
-confirmed upload during this page session. Import only looks up/downloads the
-app backup; missing entries produce an explanation without creating files.
-Downloaded bytes remain untrusted until the existing importer validates them.
-Preview cancellation preserves data/Continue. Backup or writer failure blocks
-replacement; Continue clears only after successful replacement.
-
-Drive list/create is not atomic across windows/devices. Avoid simultaneous
-initial exports: these can create duplicate app-marked folders/files. Sequential
-actions select the oldest matching entries deterministically and repeat exports
-update those IDs. No history, retention, merge, background upload, automatic
-backup, cloud sync, service worker, or Phase 13/14 work is included.
+Drive lookup and creation are not atomic across separate windows/devices.
+Simultaneous first backups may race and create duplicate app-managed entries.
+This feature adds no automatic backup, background upload, history, cloud sync,
+conflict resolution, arbitrary file picker, or Phase 13/14 work.
 
 ## Verification and manual acceptance
 
-`npm test` covers configuration, sessions, first/repeat uploads, app-managed
-downloads, missing backups, failures and non-mutation. The existing smoke/release
-entry point tests the actual Data page using deterministic GIS/REST stubs,
-synthetic Ledger data and disposable contexts. It verifies canonical local/Drive
-payload equality, schemas, invalid input, preview/cancel, storage/writer failures
-and Continue behavior. Mocks do not establish real Google integration; automated
-viewport/direct-file tests do not establish genuine manual zoom/keyboard checks.
+Automated tests use deterministic OAuth, Picker, and Drive REST stubs; they do
+not establish real Google acceptance. Browser coverage checks that Picker is
+lazy, cancellation preserves the destination and Ledger, first backup uses the
+selected folder, repeat backup reuses the same `latest.json`, changing folders
+leaves the old backup in place, and restore uses the current destination.
+Direct-file tests cover local tools with Drive unavailable. Automated viewport
+checks do not replace genuine manual keyboard and 200% zoom acceptance.
 
-After supplying the Client ID and confirming Cloud settings:
+After deployment, test with synthetic/non-critical progress:
 
-1. Use a disposable profile, synthetic progress and a safe Google test account.
-   Connect and confirm only `drive.file` consent.
-2. Export and inspect `The Ledger Backups/latest.json`. Compare with local export.
-   Change synthetic progress and export again; confirm the same ID updates and
-   unrelated same-name files remain untouched.
-3. Import from Drive and cancel preview; verify unchanged data/Continue. Repeat
-   and confirm; verify the previous local backup and persistence after reload.
-   Test missing backup/download failure. No file chooser should open.
-4. Disconnect/reconnect and test expiry. Verify data/files remain, and local JSON
-   tools work offline and in the direct-file release.
-5. After required acceptance, publish through Pages, compare the deployed bundle
-   hash with the accepted release, and repeat the real Google flow synthetically.
+1. Connect and confirm the requested access is limited to `drive.file`.
+2. Click **Backup now**, select a folder, and verify `latest.json` appears
+   directly inside it.
+3. Change synthetic progress and back up again. Confirm Picker does not reopen
+   and the same app-managed file is updated.
+4. Change folder. Confirm the old backup remains untouched and the next backup
+   appears in the new folder.
+5. Restore from Drive, inspect the existing replacement preview, and cancel to
+   confirm local data is unchanged. Repeat and confirm only when ready.
+6. Disconnect and confirm local data, local JSON tools, and Drive files remain.
 
-For `origin_mismatch`, check the exact JavaScript origin and Web client type.
-For denied consent, check audience/test users. For API/permission failures,
-enable Drive API and reconnect. No broader scope is required for app-created
-backups. A manually uploaded JSON might be inaccessible under `drive.file`;
-use local Import JSON, then Export to Drive to establish the app-managed backup.
-
-Official contracts checked:
+Official references:
+[Google Picker web integration](https://developers.google.com/workspace/drive/picker/guides/web-picker),
+[folder selection in DocsView](https://developers.google.com/workspace/drive/picker/reference/picker.docsview.setselectfolderenabled),
+[Picker App ID](https://developers.google.com/workspace/drive/picker/reference/picker.pickerbuilder.setappid),
 [GIS token model](https://developers.google.com/identity/oauth2/web/guides/use-token-model),
 [Drive file queries](https://developers.google.com/workspace/drive/api/guides/search-files),
 [Drive uploads](https://developers.google.com/workspace/drive/api/guides/manage-uploads).
