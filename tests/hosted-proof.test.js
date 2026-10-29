@@ -11,6 +11,26 @@ try {
   if (error.code !== 'ERR_MODULE_NOT_FOUND') throw error;
 }
 
+let createLazyRepositoryFactory;
+try {
+  ({ createLazyRepositoryFactory } = await import('../src/hosted-proof/runtime.js'));
+} catch (error) {
+  if (error.code !== 'ERR_MODULE_NOT_FOUND') throw error;
+}
+
+const proofRoutes = {};
+for (const [name, path] of [
+  ['state', '../api/proof/state.js'],
+  ['backups', '../api/proof/backups.js'],
+  ['backup', '../api/proof/backups/[id].js'],
+]) {
+  try {
+    proofRoutes[name] = (await import(path)).default;
+  } catch (error) {
+    if (error.code !== 'ERR_MODULE_NOT_FOUND') throw error;
+  }
+}
+
 const fixedDbTime = '2026-10-29T12:01:00.000Z';
 
 function clone(value) {
@@ -255,6 +275,70 @@ test('proof routes reject non-preview requests before repository construction', 
 
   assert.equal(result.statusCode, 404);
   assert.equal(harness.constructions, 0);
+});
+
+test('production and development environments reject before reading DATABASE_URL or creating a Neon client', async t => {
+  for (const environment of ['production', 'development']) {
+    await t.test(environment, async () => {
+      assert.equal(typeof createLazyRepositoryFactory, 'function', 'lazy repository factory must be implemented');
+      let urlReads = 0;
+      let clientConstructions = 0;
+      const env = { VERCEL_ENV: environment };
+      const getRepository = createLazyRepositoryFactory({
+        env,
+        getDatabaseUrl() {
+          urlReads += 1;
+          return 'should-not-be-read';
+        },
+        createSqlClient() {
+          clientConstructions += 1;
+          throw new Error('should-not-be-constructed');
+        },
+      });
+      const handlers = createProofHandlers({ env, getRepository, validateSave });
+      const result = await invoke(handlers.state, { method: 'GET' });
+
+      assert.equal(result.statusCode, 404);
+      assert.equal(urlReads, 0);
+      assert.equal(clientConstructions, 0);
+    });
+  }
+});
+
+test('a Preview request with no DATABASE_URL returns a generic 500 before creating a Neon client', async () => {
+  assert.equal(typeof createLazyRepositoryFactory, 'function', 'lazy repository factory must be implemented');
+  let clientConstructions = 0;
+  const env = { VERCEL_ENV: 'preview' };
+  const getRepository = createLazyRepositoryFactory({
+    env,
+    getDatabaseUrl: () => undefined,
+    createSqlClient() {
+      clientConstructions += 1;
+      throw new Error('database credentials must be checked before client construction');
+    },
+  });
+  const handlers = createProofHandlers({ env, getRepository, validateSave });
+  const result = await invoke(handlers.state, { method: 'GET' });
+
+  assert.equal(result.statusCode, 500);
+  assert.doesNotMatch(JSON.stringify(result.body), /DATABASE_URL|credentials|postgres/i);
+  assert.equal(clientConstructions, 0);
+});
+
+test('root API route modules expose only the approved endpoint methods', async () => {
+  assert.equal(typeof proofRoutes.state, 'function', 'state route must exist at /api/proof/state');
+  assert.equal(typeof proofRoutes.backups, 'function', 'backup creation route must exist at /api/proof/backups');
+  assert.equal(typeof proofRoutes.backup, 'function', 'backup read route must exist at /api/proof/backups/:id');
+  const previousVercelEnv = process.env.VERCEL_ENV;
+  process.env.VERCEL_ENV = 'preview';
+  try {
+    assert.equal((await invoke(proofRoutes.state, { method: 'POST' })).statusCode, 405);
+    assert.equal((await invoke(proofRoutes.backups, { method: 'GET' })).statusCode, 405);
+    assert.equal((await invoke(proofRoutes.backup, { method: 'POST' })).statusCode, 405);
+  } finally {
+    if (previousVercelEnv === undefined) delete process.env.VERCEL_ENV;
+    else process.env.VERCEL_ENV = previousVercelEnv;
+  }
 });
 
 test('concurrent writers using one revision produce one success and one conflict', async () => {
