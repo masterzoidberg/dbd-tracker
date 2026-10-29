@@ -5,6 +5,20 @@
   <meta name="theme-color" content="#101011">
   <title>The Ledger · DBD Tracker</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Keep the perk update panel compact on phones, matching the older card-width editor. */
+    @media (max-width:430px) {
+      .character-inventory-quick-picker {
+        left:0 !important;
+        right:auto !important;
+        width:100%;
+        max-width:none;
+      }
+      .character-inventory-quick-picker .character-inventory-tier-controls {
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+    }
+  </style>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
