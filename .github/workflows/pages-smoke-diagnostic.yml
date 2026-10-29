@@ -20,6 +20,7 @@ jobs:
           - killer-power-addons.mjs
           - character-setup.mjs
           - character-edit.mjs
+          - character-edit-sequence-diagnostic.mjs
           - inventory.mjs
           - filtering.mjs
           - artwork.mjs
