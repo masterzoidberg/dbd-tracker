@@ -218,5 +218,5 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   try {
     const result = await runRelease();
     console.log(`AUTOMATED PASS: ${result.stage}\nDIRECT FILE: MANUAL ACCEPTANCE REQUIRED (see runtime README).\nThis staging run is not fully release-accepted until that manual check passes.`);
-  } catch (error) { console.error(`Release failed: ${error.message}`); process.exitCode = 1; }
+  } catch (error) { console.error(`Release failed: ${error.stack ?? error.message}`); process.exitCode = 1; }
 }
