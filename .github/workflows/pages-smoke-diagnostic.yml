@@ -1,0 +1,49 @@
+name: Pages smoke diagnostic
+
+on:
+  push:
+    branches:
+      - diagnostic/pages-smoke-timeout
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        script:
+          - dashboard.mjs
+          - character-workspace.mjs
+          - killer-power-addons.mjs
+          - character-setup.mjs
+          - character-edit.mjs
+          - inventory.mjs
+          - filtering.mjs
+          - artwork.mjs
+          - data-flows.mjs
+          - google-drive.mjs
+          - google-drive-folder.mjs
+          - compact.mjs
+          - portraits.mjs
+          - recovery.mjs
+          - character-inventory.mjs
+          - perk-update-interaction.mjs
+          - collection-cards.mjs
+          - editor.mjs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          LEDGER_GOOGLE_CLIENT_ID: ${{ vars.LEDGER_GOOGLE_CLIENT_ID }}
+          LEDGER_GOOGLE_API_KEY: ${{ vars.LEDGER_GOOGLE_API_KEY }}
+          LEDGER_GOOGLE_APP_ID: ${{ vars.LEDGER_GOOGLE_APP_ID }}
+      - name: Run ${{ matrix.script }}
+        run: node tests/browser/${{ matrix.script }} .
