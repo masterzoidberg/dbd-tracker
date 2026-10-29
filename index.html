@@ -5,6 +5,55 @@
   <meta name="theme-color" content="#101011">
   <title>The Ledger · DBD Tracker</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Keep the perk update panel compact on phones, matching the older card-width editor. */
+    @media (max-width:430px) {
+      .character-inventory-quick-picker {
+        left:0 !important;
+        right:auto !important;
+        width:100%;
+        max-width:none;
+        padding:8px;
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        column-gap:6px;
+      }
+      .character-inventory-quick-picker > strong,
+      .character-inventory-quick-picker > .character-inventory-quick-state,
+      .character-inventory-quick-picker > .character-inventory-tier-controls {
+        grid-column:1 / -1;
+      }
+      .character-inventory-quick-picker strong { margin-bottom:6px; }
+      .character-inventory-quick-picker .character-inventory-quick-state { margin-bottom:6px; }
+      .character-inventory-quick-picker .character-inventory-tier-controls {
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:4px;
+      }
+      .character-inventory-quick-picker > .character-inventory-correction {
+        grid-column:1;
+        margin-top:5px;
+        padding-top:4px;
+        border-top:1px solid var(--border);
+      }
+      .character-inventory-quick-picker > .character-inventory-quick-actions {
+        grid-column:2;
+        margin-top:5px;
+        padding-top:4px;
+      }
+      .character-inventory-quick-picker:not(:has(> .character-inventory-correction)) > .character-inventory-quick-actions,
+      .character-inventory-quick-picker > .character-inventory-correction:has([data-character-inventory-correction]) {
+        grid-column:1 / -1;
+      }
+      .character-inventory-quick-picker > .character-inventory-correction > button,
+      .character-inventory-quick-picker > .character-inventory-quick-actions > button {
+        width:100%;
+        min-height:44px;
+        padding:4px 3px;
+        font-size:9px;
+        line-height:1.2;
+      }
+    }
+  </style>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
