@@ -23,3 +23,4 @@ jobs:
           LEDGER_GOOGLE_CLIENT_ID: ${{ vars.LEDGER_GOOGLE_CLIENT_ID }}
           LEDGER_GOOGLE_API_KEY: ${{ vars.LEDGER_GOOGLE_API_KEY }}
           LEDGER_GOOGLE_APP_ID: ${{ vars.LEDGER_GOOGLE_APP_ID }}
+      - run: node tests/browser/mobile-perk-editor.mjs release/runtime
