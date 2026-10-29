@@ -3,6 +3,10 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { freshSave } from '../../src/model.js';
 
+async function settleHistoryGuard(page) {
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+}
+
 export async function characterContextualTaskRegression(page, origin) {
   page.setDefaultTimeout(30000);
   const bytes = () => page.evaluate(() => localStorage.getItem('dbdTrackerData'));
@@ -248,6 +252,7 @@ export async function characterContextualTaskRegression(page, origin) {
     await page.goBack();
     await page.locator('#dirty-navigation[open]').waitFor();
     await page.locator('#dirty-navigation [value="stay"]').click();
+    await settleHistoryGuard(page);
     assert.ok(page.url().endsWith('/overview'), role + ' Back Stay restores the source route');
     assert.equal(await page.locator('[data-character-task-field="notes"]').inputValue(), 'Back navigation draft', role + ' Back Stay retains the task draft');
     await page.goBack();
@@ -266,6 +271,7 @@ export async function characterContextualTaskRegression(page, origin) {
     await page.goForward();
     await page.locator('#dirty-navigation[open]').waitFor();
     await page.locator('#dirty-navigation [value="stay"]').click();
+    await settleHistoryGuard(page);
     assert.ok(page.url().endsWith('/overview'), role + ' Forward Stay restores the source route');
     assert.equal(await page.locator('[data-character-task-field="notes"]').inputValue(), 'Forward navigation draft', role + ' Forward Stay retains the task draft');
     await page.goForward();
@@ -286,6 +292,7 @@ export async function characterContextualTaskRegression(page, origin) {
     await page.evaluate(id => { location.hash = '#character/' + id + '/edit'; }, id);
     await page.locator('#dirty-navigation[open]').waitFor();
     await page.locator('#dirty-navigation [value="stay"]').click();
+    await settleHistoryGuard(page);
     await page.waitForFunction(hash => location.hash === hash, '#character/' + id + '/overview');
     assert.equal(await page.locator('[data-character-task-field="notes"]').inputValue(), 'Legacy route draft', role + ' Stay retains the task draft on a legacy route attempt');
     assert.equal(await bytes(), beforeLegacyRoute, role + ' Stay on legacy route does not write');
