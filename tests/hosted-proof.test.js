@@ -31,6 +31,14 @@ for (const [name, path] of [
   }
 }
 
+let verifyHostedProof;
+let runVerifierCli;
+try {
+  ({ verifyHostedProof, runVerifierCli } = await import('../scripts/verify-hosted-proof.mjs'));
+} catch (error) {
+  if (error.code !== 'ERR_MODULE_NOT_FOUND') throw error;
+}
+
 const fixedDbTime = '2026-10-29T12:01:00.000Z';
 
 function clone(value) {
@@ -385,4 +393,77 @@ test('database errors return generic 500 responses without exposing details', as
 
   assert.equal(result.statusCode, 500);
   assert.doesNotMatch(JSON.stringify(result.body), /synthetic-secret|postgres:\/\//);
+});
+
+test('hosted verifier CLI requires an explicit Preview URL before making requests', async () => {
+  assert.equal(typeof runVerifierCli, 'function', 'hosted verifier CLI must be implemented');
+  let requests = 0;
+
+  await assert.rejects(
+    runVerifierCli([], {
+      env: { VERCEL_AUTOMATION_BYPASS_SECRET: 'unit-test-only' },
+      fetchImpl: async () => {
+        requests += 1;
+      },
+    }),
+    /--url/,
+  );
+  assert.equal(requests, 0);
+});
+
+test('hosted verifier rejects the generic 404 returned outside Preview', async () => {
+  assert.equal(typeof verifyHostedProof, 'function', 'hosted verifier must be implemented');
+  let requests = 0;
+
+  await assert.rejects(
+    verifyHostedProof('https://preview.example.test', {
+      bypassSecret: 'unit-test-only',
+      fetchImpl: async () => {
+        requests += 1;
+        return { status: 404, json: async () => ({ error: 'Not found.' }) };
+      },
+    }),
+    /404|empty Neon branch|Preview/,
+  );
+  assert.equal(requests, 1);
+});
+
+test('hosted verifier sends the automation bypass header on every request', async () => {
+  assert.equal(typeof verifyHostedProof, 'function', 'hosted verifier must be implemented');
+  const harness = createHarness();
+  const handlers = requireHandlers(harness);
+  const seenHeaders = [];
+  const fetchImpl = async (url, options = {}) => {
+    seenHeaders.push(options.headers);
+    const parsed = new URL(url);
+    const handler = parsed.pathname === '/api/proof/state'
+      ? handlers.state
+      : parsed.pathname === '/api/proof/backups'
+        ? handlers.backups
+        : handlers.backup;
+    const result = await invoke(handler, {
+      method: options.method ?? 'GET',
+      body: options.body ? JSON.parse(options.body) : undefined,
+      query: parsed.pathname.startsWith('/api/proof/backups/')
+        ? { id: parsed.pathname.split('/').at(-1) }
+        : undefined,
+    });
+    return { status: result.statusCode, json: async () => result.body };
+  };
+
+  const result = await runVerifierCli(['--url', 'https://preview.example.test'], {
+    env: { VERCEL_AUTOMATION_BYPASS_SECRET: 'unit-test-only' },
+    fetchImpl,
+  });
+  await runVerifierCli([
+    '--url', 'https://preview.example.test',
+    '--verify-backup', result.backupId,
+    '--fingerprint', result.backupFingerprint,
+  ], {
+    env: { VERCEL_AUTOMATION_BYPASS_SECRET: 'unit-test-only' },
+    fetchImpl,
+  });
+
+  assert.ok(seenHeaders.length > 1);
+  assert.ok(seenHeaders.every(headers => headers?.['x-vercel-protection-bypass'] === 'unit-test-only'));
 });
