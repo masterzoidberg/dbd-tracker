@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
 import { createAuthRuntime } from '../src/auth/runtime.js';
-import { createAuthRoute } from '../api/auth/[...all].js';
+import { createAuthRoute } from '../api/auth/[...].js';
 
 const previewEnv = () => ({
   VERCEL_ENV: 'preview',
@@ -33,6 +33,28 @@ test('auth route returns 404 outside Preview before loading auth runtime', async
   assert.equal(res.statusCode, 404);
   assert.deepEqual(res.body, { error: 'Not found.' });
   assert.equal(loaded, false);
+});
+
+test('auth splat route restores nested Better Auth paths after Vercel routing', async () => {
+  let routedUrl;
+  const route = createAuthRoute({
+    env: { VERCEL_ENV: 'preview' },
+    getRuntime: async () => ({
+      async handle(req, res) {
+        routedUrl = req.url;
+        return res.status(200).json(null);
+      },
+    }),
+  });
+  const res = response();
+
+  await route({
+    method: 'POST',
+    url: '/api/auth/[...]?path=sign-up%2Femail&callbackURL=%2Fdashboard',
+    query: { path: 'sign-up/email', callbackURL: '/dashboard' },
+  }, res);
+
+  assert.equal(routedUrl, '/api/auth/sign-up/email?callbackURL=%2Fdashboard');
 });
 
 test('auth runtime refuses missing Preview credentials before creating a pool', () => {
