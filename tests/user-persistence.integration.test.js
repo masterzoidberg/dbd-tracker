@@ -9,7 +9,7 @@ try {
   if (error.code !== 'ERR_MODULE_NOT_FOUND') throw error;
 }
 
-const previewUrl = 'https://dbd-tracker-git-codex-ledger-authenticated-boundary-nick-queens-projects.vercel.app';
+const previewUrl = 'https://dbd-tracker-580wl1mmr-nick-queens-projects.vercel.app';
 
 function clone(value) {
   return value == null ? value : structuredClone(value);
@@ -130,6 +130,43 @@ test('CLI accepts only an explicit URL and does not accept accounts or credentia
   await assert.rejects(runVerifierCli([], { fetchImpl }), /--url/i);
   await assert.rejects(runVerifierCli(['--url', previewUrl, '--email', 'person@example.com'], { fetchImpl }), /--url/i);
   assert.equal(requests, 0);
+});
+
+test('CLI forwards the local Vercel trusted-source token on every Preview request', async () => {
+  requireVerifier();
+  const previousToken = process.env.VERCEL_OIDC_TOKEN;
+  const token = 'synthetic-trusted-source-token';
+  process.env.VERCEL_OIDC_TOKEN = token;
+  const hosted = createSyntheticPreview();
+
+  try {
+    const result = await runVerifierCli(['--url', previewUrl], { fetchImpl: hosted.fetchImpl });
+    assert.equal(hosted.requests.length > 0, true);
+    assert.ok(hosted.requests.every(request => request.headers['x-vercel-trusted-oidc-idp-token'] === token));
+    assert.equal(JSON.stringify(result).includes(token), false);
+  } finally {
+    if (previousToken === undefined) delete process.env.VERCEL_OIDC_TOKEN;
+    else process.env.VERCEL_OIDC_TOKEN = previousToken;
+  }
+});
+
+test('CLI does not send the trusted-source token to a different Vercel project', async () => {
+  requireVerifier();
+  const previousToken = process.env.VERCEL_OIDC_TOKEN;
+  process.env.VERCEL_OIDC_TOKEN = 'synthetic-trusted-source-token';
+  let requests = 0;
+  const fetchImpl = async () => { requests += 1; return jsonResponse(200, null); };
+
+  try {
+    await assert.rejects(
+      runVerifierCli(['--url', 'https://dbd-tracker-attacker-nick-queens-projects.vercel.app'], { fetchImpl }),
+      /dbd-tracker Preview host/i,
+    );
+    assert.equal(requests, 0);
+  } finally {
+    if (previousToken === undefined) delete process.env.VERCEL_OIDC_TOKEN;
+    else process.env.VERCEL_OIDC_TOKEN = previousToken;
+  }
 });
 
 test('a Production deployment is rejected before synthetic account creation', async () => {

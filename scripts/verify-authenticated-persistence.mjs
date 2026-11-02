@@ -301,7 +301,22 @@ export function parseVerifierArgs(args) {
 }
 
 export async function runVerifierCli(args, options = {}) {
-  return verifyAuthenticatedPersistence(parseVerifierArgs(args), options);
+  const previewUrl = explicitPreviewBaseUrl(parseVerifierArgs(args));
+  const fetchImpl = options.fetchImpl ?? globalThis.fetch;
+  const trustedSourceToken = process.env.VERCEL_OIDC_TOKEN;
+  if (trustedSourceToken) {
+    const hostname = new URL(previewUrl).hostname;
+    if (!/^dbd-tracker-[a-z0-9]{9}-nick-queens-projects\.vercel\.app$/i.test(hostname)) {
+      throw new Error('Trusted-source authentication is only available for the dbd-tracker Preview host.');
+    }
+  }
+  const authenticatedFetch = trustedSourceToken
+    ? (input, requestOptions = {}) => fetchImpl(input, {
+      ...requestOptions,
+      headers: { ...requestOptions.headers, 'x-vercel-trusted-oidc-idp-token': trustedSourceToken },
+    })
+    : fetchImpl;
+  return verifyAuthenticatedPersistence(previewUrl, { ...options, fetchImpl: authenticatedFetch });
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
