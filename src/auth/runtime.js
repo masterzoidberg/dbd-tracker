@@ -3,8 +3,11 @@ import { fromNodeHeaders, toNodeHandler } from 'better-auth/node';
 import { attachDatabasePool } from '@vercel/functions';
 import { Pool } from 'pg';
 import { createAuthConfig } from './config.js';
+import { createAuthRateLimitStorage } from './rate-limit-storage.js';
+import { createEmailVerificationTokenGuard } from './verification-token-guard.js';
 
 const unavailable = () => new Error('Authentication is unavailable.');
+const deliveryUnavailable = async () => { throw unavailable(); };
 
 export function createAuthRuntime({
   env = process.env,
@@ -13,6 +16,9 @@ export function createAuthRuntime({
   createAuth = betterAuth,
   createNodeHandler = toNodeHandler,
   convertHeaders = fromNodeHeaders,
+  emailDelivery = deliveryUnavailable,
+  createRateLimitStorage = createAuthRateLimitStorage,
+  createVerificationTokenGuard = createEmailVerificationTokenGuard,
 } = {}) {
   if (env?.VERCEL_ENV !== 'preview') throw unavailable();
 
@@ -27,7 +33,14 @@ export function createAuthRuntime({
 
   const pool = createPool(databaseUrl);
   attachPool(pool);
-  const auth = createAuth(createAuthConfig({ env, database: pool }));
+  const rateLimitStorage = createRateLimitStorage(pool, { secret });
+  const auth = createAuth(createAuthConfig({
+    env,
+    database: pool,
+    emailDelivery,
+    rateLimitStorage,
+    verificationTokenGuard: createVerificationTokenGuard({ pool, secret }),
+  }));
 
   return {
     auth,
@@ -38,6 +51,16 @@ export function createAuthRuntime({
       if (typeof session?.user?.id !== 'string' || !session.user.id ||
           typeof session?.session?.id !== 'string' || !session.session.id) return null;
       return { userId: session.user.id, sessionId: session.session.id };
+    },
+    async limitPasswordVerification(userId) {
+      if (typeof userId !== 'string' || !userId) throw new TypeError('A verified user identity is required.');
+      return rateLimitStorage.consume(`account-deletion:${userId}`, { window: 300, max: 5 });
+    },
+    async verifyPassword(req, password) {
+      return auth.api.verifyPassword({
+        headers: convertHeaders(req.headers),
+        body: { password },
+      });
     },
   };
 }

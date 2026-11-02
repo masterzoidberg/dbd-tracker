@@ -75,6 +75,8 @@ test('auth runtime configures an exact Preview host and secure cookie protection
     env,
     createPool: connectionString => ({ connectionString }),
     attachPool() {},
+    createRateLimitStorage: () => ({ async consume() { return { allowed: true, retryAfter: null }; } }),
+    createVerificationTokenGuard: () => async () => {},
     createAuth: config => {
       options = config;
       return { handler() {}, api: { async getSession() { return null; } } };
@@ -95,7 +97,13 @@ test('auth runtime configures an exact Preview host and secure cookie protection
   assert.notEqual(options.advanced.disableCSRFCheck, true);
   assert.notEqual(options.advanced.disableOriginCheck, true);
   assert.equal(options.emailAndPassword.enabled, true);
-  assert.equal(options.emailAndPassword.requireEmailVerification, false);
+  assert.equal(options.emailAndPassword.requireEmailVerification, true);
+  assert.equal(options.emailAndPassword.revokeSessionsOnPasswordReset, true);
+  assert.equal(options.emailAndPassword.resetPasswordTokenExpiresIn, 3600);
+  assert.equal(options.emailVerification.expiresIn, 3600);
+  assert.equal(options.emailVerification.sendOnSignUp, true);
+  assert.equal(options.emailVerification.sendOnSignIn, true);
+  assert.equal(options.emailVerification.autoSignInAfterVerification, false);
   assert.notEqual(options.user?.deleteUser?.enabled, true);
   assert.equal(runtime.pool.connectionString, env.DATABASE_URL);
 });
@@ -105,6 +113,8 @@ test('session resolution uses the verified Better Auth session, not request-body
     env: previewEnv(),
     createPool: () => ({}),
     attachPool() {},
+    createRateLimitStorage: () => ({ async consume() { return { allowed: true, retryAfter: null }; } }),
+    createVerificationTokenGuard: () => async () => {},
     createAuth: () => ({
       handler() {},
       api: {
@@ -124,6 +134,33 @@ test('session resolution uses the verified Better Auth session, not request-body
     body: { userId: 'synthetic-user-b' },
   }), { userId: 'synthetic-user-a', sessionId: 'session-a' });
   assert.equal(await runtime.resolveSession({ headers: { cookie: 'session=expired' } }), null);
+});
+
+test('account deletion password checks use the durable user-scoped limiter', async () => {
+  const consumed = [];
+  const runtime = createAuthRuntime({
+    env: previewEnv(),
+    createPool: () => ({}),
+    attachPool() {},
+    createRateLimitStorage: () => ({
+      async consume(key, rule) {
+        consumed.push({ key, rule });
+        return { allowed: false, retryAfter: 300 };
+      },
+    }),
+    createVerificationTokenGuard: () => async () => {},
+    createAuth: () => ({ handler() {}, api: { async getSession() { return null; } } }),
+    createNodeHandler: handler => handler,
+  });
+
+  assert.deepEqual(await runtime.limitPasswordVerification('synthetic-user-a'), {
+    allowed: false,
+    retryAfter: 300,
+  });
+  assert.deepEqual(consumed, [{
+    key: 'account-deletion:synthetic-user-a',
+    rule: { window: 300, max: 5 },
+  }]);
 });
 
 test('Preview auth handler errors do not expose database or auth configuration details', async () => {
