@@ -325,19 +325,21 @@ test('authenticated users have independent state and backups; a foreign backup i
   assert.deepEqual(foreignRead.body, missingRead.body);
 });
 
-test('owner query parameters cannot change the authenticated state identity', async () => {
+test('state reads reject client-supplied owner query parameters', async () => {
   const harness = createHarness();
   const handlers = requireHandlers(harness);
   const data = hostedSaveV3Fixture();
   data.characters['meg-thomas'].notes = 'belongs to account A';
 
   await invoke(handlers.state, { method: 'PUT', body: { expectedRevision: 0, data }, headers: sameOriginHeaders() });
-  const read = await invoke(handlers.state, {
-    method: 'GET', query: { userId: 'synthetic-user-b' }, headers: sameOriginHeaders(),
-  });
+  for (const field of ['userId', 'ownerId']) {
+    const read = await invoke(handlers.state, {
+      method: 'GET', query: { [field]: 'synthetic-user-b' }, headers: sameOriginHeaders(),
+    });
 
-  assert.equal(read.statusCode, 200);
-  assert.equal(read.body.data.characters['meg-thomas'].notes, 'belongs to account A');
+    assert.equal(read.statusCode, 400);
+    assert.deepEqual(read.body, { error: 'Invalid request.' });
+  }
 });
 
 test('stale same-user revisions return 409 without changing the stored document', async () => {

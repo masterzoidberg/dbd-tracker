@@ -175,11 +175,11 @@ export async function verifyAuthenticatedPersistence(value, { fetchImpl = global
   requireCondition(stateA.data.characters['meg-thomas'].notes === 'Synthetic authenticated proof account A', 'First synthetic account readback failed.');
   requireCondition(stateB.data.characters['meg-thomas'].notes === 'Synthetic authenticated proof account B', 'Second synthetic account readback failed.');
 
-  const stateARequestingB = (await fetchJson(fetchImpl, baseUrl, `${statePath}?userId=${encodeURIComponent(userIdB)}`, { cookie: cookieA })).payload;
-  const stateBRequestingA = (await fetchJson(fetchImpl, baseUrl, `${statePath}?userId=${encodeURIComponent(userIdA)}`, { cookie: cookieB })).payload;
-  requireCondition(stateARequestingB.data.characters['meg-thomas'].notes === originalA.characters['meg-thomas'].notes &&
-    stateBRequestingA.data.characters['meg-thomas'].notes === originalB.characters['meg-thomas'].notes,
-  'A request for another user\u2019s state did not return foreign data.');
+  const stateARequestingB = await fetchJson(fetchImpl, baseUrl, `${statePath}?userId=${encodeURIComponent(userIdB)}`, { cookie: cookieA, expectedStatus: 400 });
+  const stateBRequestingA = await fetchJson(fetchImpl, baseUrl, `${statePath}?userId=${encodeURIComponent(userIdA)}`, { cookie: cookieB, expectedStatus: 400 });
+  requireCondition(stateARequestingB.payload?.error === 'Invalid request.' &&
+    stateBRequestingA.payload?.error === 'Invalid request.',
+  'Client-selected owner IDs were not rejected on state reads.');
 
   const foreignWriteA = await fetchJson(fetchImpl, baseUrl, statePath, {
     method: 'PUT', cookie: cookieA,

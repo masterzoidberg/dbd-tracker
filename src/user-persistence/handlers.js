@@ -49,6 +49,9 @@ export function createUserPersistenceHandlers({ env = process.env, resolveSessio
   async function state(req, res) {
     if (outsidePreview(res)) return;
     if (req.method !== 'GET' && req.method !== 'PUT') return send(res, 405, { error: 'Method not allowed.' });
+    if (req.method === 'GET' && ['userId', 'ownerId'].some(key => Object.hasOwn(req.query ?? {}, key))) {
+      return send(res, 400, { error: 'Invalid request.' });
+    }
 
     let canonicalData;
     let expectedRevision;

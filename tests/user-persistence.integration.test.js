@@ -86,6 +86,7 @@ function createSyntheticPreview({ preview = true } = {}) {
       return jsonResponse(200, clone(account.state));
     }
     if (url.pathname === '/api/ledger/state' && options.method === 'GET') {
+      if (url.searchParams.has('userId') || url.searchParams.has('ownerId')) return jsonResponse(400, { error: 'Invalid request.' });
       return account.state ? jsonResponse(200, clone(account.state)) : jsonResponse(404, { error: 'State not found.' });
     }
     if (url.pathname === '/api/ledger/backups' && options.method === 'POST') {
