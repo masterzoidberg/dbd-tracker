@@ -1,5 +1,6 @@
 import { validateSave } from '../model.js';
 import { getAuthRuntime } from '../auth/runtime.js';
+import { getSessionCookie } from 'better-auth/cookies';
 import { createUserPersistenceRepository } from './repository.js';
 import { createUserPersistenceHandlers } from './handlers.js';
 
@@ -13,14 +14,14 @@ function getRepository() {
   return repository;
 }
 
-async function resolveSession(req) {
-  if (typeof req.headers?.cookie !== 'string' || req.headers.cookie.length === 0) return null;
-  return getAuthRuntime().resolveSession(req);
+export async function resolveUserSession(req, getRuntime = getAuthRuntime) {
+  if (!getSessionCookie(new Headers(req.headers))) return null;
+  return getRuntime().resolveSession(req);
 }
 
 export const userPersistenceHandlers = createUserPersistenceHandlers({
   env,
-  resolveSession,
+  resolveSession: resolveUserSession,
   getRepository,
   validateSave,
 });
