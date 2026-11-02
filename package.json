@@ -16,6 +16,9 @@
     "playwright-core": "^1.63.0"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^1.2.0"
+    "@neondatabase/serverless": "^1.2.0",
+    "@vercel/functions": "3.6.1",
+    "better-auth": "^1.7.15",
+    "pg": "^8.23.1"
   }
 }
