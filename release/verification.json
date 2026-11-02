@@ -1,0 +1,56 @@
+{
+  "status": "PASS",
+  "stage": "C:\\Users\\nicol\\.codex\\worktrees\\ledger-hosted-foundation\\dbd-tracker\\release\\runtime",
+  "catalog": {
+    "patch": "10.1.2a",
+    "date": "2026-10-05"
+  },
+  "localhost": "AUTOMATED PASS",
+  "browser": "msedge 156.0.4314.58",
+  "checks": [
+    "startup",
+    "contextual Bloodweb/Favorite save",
+    "reload persistence",
+    "six labeled global destinations at wide and compact widths; Menu keyboard/Escape/focus, current route, skip-link contrast and navigation save safety",
+    "Filtering predicates/facets/route memory",
+    "native popover/focus/caret/skip/history",
+    "tier success/failure focus",
+    "500/700/900/1440 shell and panel",
+    "all 321 perks, 880 Killer Add-ons and 37 Powers decode against manifest dimensions",
+    "Killer Power/Add-ons details, quantity persistence/writer/focus and 320/500/760/1100/1440/1600 layouts",
+    "artwork aliases/nulls/error fallback/editing",
+    "export/import/backup/restore/reset and cancellations",
+    "Google Drive safe import/export, lazy folder-only Picker, remembered destination, Change folder, cancellation, and responsive wrapping",
+    "Compact/Detailed ordered results, transient mode and route lifecycle",
+    "Compact next-tier floor/history/keyboard/focus/storage failure",
+    "Compact 500/700/900/1440 shell, actions and image fallback",
+    "all 98 portraits decode; PNG/WebP MIME and canonical mappings",
+    "portrait card/detail/manager layouts, fallback and editing",
+    "corrupt-current raw export/import/restore, corrupt backups and recovery failures",
+    "recovery Data controls at 500/700/900/1440",
+    "canonical character Perks routes, aliases, direct tiers, account unlock propagation, card presets and responsive cards",
+    "compact Survivor/Killer Perks selectors, isolated tier saves, retry/discard, scroll, keyboard focus, Details focus return, and 320/390/768/1440 layouts",
+    "Survivor/Killer Lore cards, Power identity, account access, controls, routes and responsive layouts",
+    "no external/catalog/manifest JSON requests"
+  ],
+  "artwork": {
+    "usableIcons": 321,
+    "fallbackPerks": 0,
+    "usablePortraits": 98,
+    "fallbackPortraits": 0,
+    "usableCollectionPortraits": 97,
+    "fallbackCollectionPortraits": 1,
+    "killerAddons": 880,
+    "killerPowers": 37,
+    "fallbackKillerPowers": 7
+  },
+  "directFile": "MANUAL PASS",
+  "directFileAcceptance": {
+    "acceptedDate": "2026-11-01",
+    "browser": "msedge 156.0.4314.58",
+    "bundleSha256": "0edd12af17497240e65f25cae6ebf81d9647f30fabb5c825a207d6d80a8bf2a5",
+    "visualKeyboard200PercentZoomChecks": "PASS",
+    "persistenceThroughReloadAndReopen": "PASS"
+  },
+  "bundleSha256": "0edd12af17497240e65f25cae6ebf81d9647f30fabb5c825a207d6d80a8bf2a5"
+}
