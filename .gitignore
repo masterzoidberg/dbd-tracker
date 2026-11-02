@@ -29,3 +29,4 @@ test-results/
 /images/updated-images/Character Portraits/Killers/*
 !/images/updated-images/Character Portraits/Killers/Lore/
 /images/missing-perks/
+.vercel
