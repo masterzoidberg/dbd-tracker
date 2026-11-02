@@ -105,6 +105,8 @@ test('compareAndSwapState uses one parameterized conditional upsert for creation
     const writeCalls = client.calls.filter(call => /INSERT\s+INTO\s+ledger_user_state/i.test(call.text));
     assert.equal(writeCalls.length, 1);
     assert.match(writeCalls[0].text, /ON\s+CONFLICT\s*\(\s*user_id\s*\)\s+DO\s+UPDATE/i);
+    assert.match(writeCalls[0].text, /WHERE\s+\$1::bigint\s*=\s*0\s+OR\s+EXISTS\s*\(/i);
+    assert.match(writeCalls[0].text, /FROM\s+ledger_user_state\s+AS\s+current_state[\s\S]+current_state\.user_id\s*=\s*current_setting\s*\(\s*'app\.user_id'[\s\S]+current_state\.revision\s*=\s*\$1::bigint/i);
     assert.match(writeCalls[0].text, /WHERE\s+ledger_user_state\.revision\s*=\s*\$\d+/i);
     assert.match(writeCalls[0].text, /ledger_user_state\.revision\s*<\s*9007199254740991/i);
     assert.ok(writeCalls[0].values.includes(3));

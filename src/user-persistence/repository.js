@@ -52,6 +52,12 @@ function createUserRepository(client) {
         INSERT INTO ledger_user_state (user_id, revision, data, updated_at)
         SELECT current_setting('app.user_id', true), 1, $2::jsonb, NOW()
         WHERE $1::bigint = 0
+           OR EXISTS (
+             SELECT 1
+             FROM ledger_user_state AS current_state
+             WHERE current_state.user_id = current_setting('app.user_id', true)
+               AND current_state.revision = $1::bigint
+           )
         ON CONFLICT (user_id) DO UPDATE
         SET revision = ledger_user_state.revision + 1,
             data = EXCLUDED.data,
