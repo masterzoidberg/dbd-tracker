@@ -91,7 +91,9 @@ async function createSignedInSyntheticAccount(fetchImpl, baseUrl) {
     body: account,
     expectedStatus: [200, 201],
   });
-  if (signup.payload?.user?.email !== account.email) throw new Error('Synthetic account creation failed.');
+  if (signup.payload?.user?.email !== account.email || typeof signup.payload?.user?.id !== 'string') {
+    throw new Error('Synthetic account creation failed.');
+  }
 
   const signInResponse = await fetchImpl(`${baseUrl}${authBasePath}/sign-in/email`, {
     method: 'POST',
@@ -105,10 +107,10 @@ async function createSignedInSyntheticAccount(fetchImpl, baseUrl) {
   }
   const cookie = cookieHeaders(signInResponse);
   const session = await fetchJson(fetchImpl, baseUrl, `${authBasePath}/get-session`, { cookie });
-  if (session.payload?.user?.email !== account.email || typeof session.payload?.user?.id !== 'string') {
+  if (session.payload?.user?.email !== account.email || session.payload?.user?.id !== signup.payload.user.id) {
     throw new Error('Preview sign-in did not establish the requested synthetic session.');
   }
-  return cookie;
+  return { cookie, userId: signup.payload.user.id };
 }
 
 function syntheticSave(note) {
@@ -148,8 +150,15 @@ export async function verifyAuthenticatedPersistence(value, { fetchImpl = global
   }
   if (emptySession !== null) throw new Error('Preview session probe did not return an empty session.');
 
-  const cookieA = await createSignedInSyntheticAccount(fetchImpl, baseUrl);
-  const cookieB = await createSignedInSyntheticAccount(fetchImpl, baseUrl);
+  const anonymousState = await fetchJson(fetchImpl, baseUrl, statePath, { expectedStatus: 401 });
+  const anonymousBackup = await fetchJson(fetchImpl, baseUrl, backupsPath, { method: 'POST', expectedStatus: 401 });
+  requireCondition(anonymousState.payload?.error === 'Authentication required.' &&
+    anonymousBackup.payload?.error === 'Authentication required.', 'Unauthenticated persistence requests were not rejected.');
+
+  const accountA = await createSignedInSyntheticAccount(fetchImpl, baseUrl);
+  const accountB = await createSignedInSyntheticAccount(fetchImpl, baseUrl);
+  const { cookie: cookieA, userId: userIdA } = accountA;
+  const { cookie: cookieB, userId: userIdB } = accountB;
 
   const originalA = syntheticSave('Synthetic authenticated proof account A');
   const originalB = syntheticSave('Synthetic authenticated proof account B');
@@ -166,22 +175,69 @@ export async function verifyAuthenticatedPersistence(value, { fetchImpl = global
   requireCondition(stateA.data.characters['meg-thomas'].notes === 'Synthetic authenticated proof account A', 'First synthetic account readback failed.');
   requireCondition(stateB.data.characters['meg-thomas'].notes === 'Synthetic authenticated proof account B', 'Second synthetic account readback failed.');
 
+  const stateARequestingB = (await fetchJson(fetchImpl, baseUrl, `${statePath}?userId=${encodeURIComponent(userIdB)}`, { cookie: cookieA })).payload;
+  const stateBRequestingA = (await fetchJson(fetchImpl, baseUrl, `${statePath}?userId=${encodeURIComponent(userIdA)}`, { cookie: cookieB })).payload;
+  requireCondition(stateARequestingB.data.characters['meg-thomas'].notes === originalA.characters['meg-thomas'].notes &&
+    stateBRequestingA.data.characters['meg-thomas'].notes === originalB.characters['meg-thomas'].notes,
+  'A request for another user\u2019s state did not return foreign data.');
+
+  const foreignWriteA = await fetchJson(fetchImpl, baseUrl, statePath, {
+    method: 'PUT', cookie: cookieA,
+    body: { expectedRevision: 1, userId: userIdB, data: syntheticSave('Rejected cross-owner write from A') },
+    expectedStatus: 400,
+  });
+  const foreignWriteB = await fetchJson(fetchImpl, baseUrl, statePath, {
+    method: 'PUT', cookie: cookieB,
+    body: { expectedRevision: 1, userId: userIdA, data: syntheticSave('Rejected cross-owner write from B') },
+    expectedStatus: 400,
+  });
+  requireCondition(foreignWriteA.payload?.error === 'Invalid request.' &&
+    foreignWriteB.payload?.error === 'Invalid request.', 'A cross-owner state write was not rejected.');
+  const stateAfterForeignWritesA = (await fetchJson(fetchImpl, baseUrl, statePath, { cookie: cookieA })).payload;
+  const stateAfterForeignWritesB = (await fetchJson(fetchImpl, baseUrl, statePath, { cookie: cookieB })).payload;
+  requireCondition(stateAfterForeignWritesA.revision === 1 &&
+    stateAfterForeignWritesA.data.characters['meg-thomas'].notes === originalA.characters['meg-thomas'].notes &&
+    stateAfterForeignWritesB.revision === 1 &&
+    stateAfterForeignWritesB.data.characters['meg-thomas'].notes === originalB.characters['meg-thomas'].notes,
+  'A rejected cross-owner write changed a user state.');
+
   const backup = (await fetchJson(fetchImpl, baseUrl, backupsPath, {
     method: 'POST', cookie: cookieA, expectedStatus: 201,
   })).payload;
   const backupSnapshot = cloneBackup(backup);
   requireCondition(backup.sourceRevision === 1 && backup.data.characters['meg-thomas'].notes === originalA.characters['meg-thomas'].notes,
     'Synthetic backup did not snapshot the authenticated account state.');
+  const backupB = (await fetchJson(fetchImpl, baseUrl, backupsPath, {
+    method: 'POST', cookie: cookieB, expectedStatus: 201,
+  })).payload;
+  const backupSnapshotB = cloneBackup(backupB);
+  requireCondition(backupB.sourceRevision === 1 && backupB.data.characters['meg-thomas'].notes === originalB.characters['meg-thomas'].notes,
+    'Second synthetic backup did not snapshot its authenticated account state.');
 
   const foreignBackup = await fetchJson(fetchImpl, baseUrl, `${backupsPath}/${encodeURIComponent(backup.id)}`, {
     cookie: cookieB, expectedStatus: 404,
+  });
+  const foreignBackupB = await fetchJson(fetchImpl, baseUrl, `${backupsPath}/${encodeURIComponent(backupB.id)}`, {
+    cookie: cookieA, expectedStatus: 404,
   });
   const unknownBackup = await fetchJson(fetchImpl, baseUrl, `${backupsPath}/00000000-0000-4000-8000-999999999999`, {
     cookie: cookieB, expectedStatus: 404,
   });
   requireCondition(foreignBackup.payload?.error === unknownBackup.payload?.error, 'Foreign backup response differs from an unknown backup.');
+  const unknownBackupA = await fetchJson(fetchImpl, baseUrl, `${backupsPath}/00000000-0000-4000-8000-999999999998`, {
+    cookie: cookieA, expectedStatus: 404,
+  });
+  requireCondition(foreignBackupB.payload?.error === unknownBackupA.payload?.error,
+    'Second foreign backup response differs from an unknown backup.');
   const ownBackup = (await fetchJson(fetchImpl, baseUrl, `${backupsPath}/${encodeURIComponent(backup.id)}`, { cookie: cookieA })).payload;
   requireCondition(sameDocument(ownBackup, backupSnapshot), 'Backup owner could not read the original snapshot.');
+  const ownBackupB = (await fetchJson(fetchImpl, baseUrl, `${backupsPath}/${encodeURIComponent(backupB.id)}`, { cookie: cookieB })).payload;
+  requireCondition(sameDocument(ownBackupB, backupSnapshotB), 'Second backup owner could not read the original snapshot.');
+
+  const backupMutation = await fetchJson(fetchImpl, baseUrl, `${backupsPath}/${encodeURIComponent(backup.id)}`, {
+    method: 'DELETE', cookie: cookieA, expectedStatus: 405,
+  });
+  requireCondition(backupMutation.payload?.error === 'Method not allowed.', 'The Preview API exposed a backup mutation method.');
 
   const revisionTwo = syntheticSave('Synthetic authenticated proof account A revision two');
   const updatedA = (await fetchJson(fetchImpl, baseUrl, statePath, {
@@ -214,10 +270,16 @@ export async function verifyAuthenticatedPersistence(value, { fetchImpl = global
   const backupAfterUpdates = (await fetchJson(fetchImpl, baseUrl, `${backupsPath}/${encodeURIComponent(backup.id)}`, { cookie: cookieA })).payload;
   const backupUnchanged = sameDocument(backupAfterUpdates, backupSnapshot);
   requireCondition(backupUnchanged, 'Immutable backup changed after later state revisions.');
+  const backupBAfterUpdates = (await fetchJson(fetchImpl, baseUrl, `${backupsPath}/${encodeURIComponent(backupB.id)}`, { cookie: cookieB })).payload;
+  requireCondition(sameDocument(backupBAfterUpdates, backupSnapshotB), 'Second immutable backup changed after later state revisions.');
 
   return {
     independentUsers: true,
+    unauthenticatedAccessRejected: true,
+    foreignStateReadsContained: true,
+    foreignStateWritesRejected: true,
     foreignBackupHidden: true,
+    backupMutationRejected: true,
     staleWriteConflict: true,
     concurrentWinners,
     backupId: backup.id,

@@ -99,6 +99,7 @@ function createSyntheticPreview({ preview = true } = {}) {
       const backup = account.backups.get(url.pathname.split('/').at(-1));
       return backup ? jsonResponse(200, clone(backup)) : jsonResponse(404, { error: 'Backup not found.' });
     }
+    if (url.pathname.startsWith('/api/ledger/backups/')) return jsonResponse(405, { error: 'Method not allowed.' });
     return jsonResponse(404, { error: 'Not found.' });
   }
 
@@ -164,7 +165,11 @@ test('verifier creates only synthetic users and proves independent state, backup
   assert.notEqual(passwords[0], passwords[1]);
   assert.deepEqual(revisions.sort(), [1, 3]);
   assert.equal(result.independentUsers, true);
+  assert.equal(result.unauthenticatedAccessRejected, true);
+  assert.equal(result.foreignStateReadsContained, true);
+  assert.equal(result.foreignStateWritesRejected, true);
   assert.equal(result.foreignBackupHidden, true);
+  assert.equal(result.backupMutationRejected, true);
   assert.equal(result.staleWriteConflict, true);
   assert.equal(result.concurrentWinners, 1);
   assert.equal(typeof result.backupId, 'string');
@@ -173,10 +178,14 @@ test('verifier creates only synthetic users and proves independent state, backup
   assert.equal(Object.hasOwn(result, 'password'), false);
   assert.ok(hosted.requests.some(request => request.path === '/api/auth/sign-up/email'));
   assert.ok(hosted.requests.some(request => request.path === '/api/auth/sign-in/email'));
-  assert.ok(hosted.requests.filter(request => request.path === '/api/ledger/state' && request.method === 'PUT')
+  assert.ok(hosted.requests.some(request => request.path === '/api/ledger/state' && request.method === 'GET' && !request.headers.cookie));
+  assert.ok(hosted.requests.some(request => request.path === '/api/ledger/backups' && request.method === 'POST' && !request.headers.cookie));
+  assert.equal(hosted.requests.filter(request => request.path === '/api/ledger/state' && request.method === 'PUT' && request.body?.userId).length, 2);
+  assert.ok(hosted.requests.some(request => request.path.startsWith('/api/ledger/backups/') && request.method === 'DELETE'));
+  assert.ok(hosted.requests.filter(request => request.path === '/api/ledger/state' && request.method === 'PUT' && !request.body?.userId)
     .every(request => Object.keys(request.body).sort().join(',') === 'data,expectedRevision'));
-  assert.ok(hosted.requests.filter(request => request.path.startsWith('/api/ledger/') && request.method !== 'GET')
-    .every(request => request.headers.origin === previewUrl && typeof request.headers.cookie === 'string'));
+  assert.ok(hosted.requests.filter(request => ['PUT', 'POST'].includes(request.method) && request.headers.cookie)
+    .every(request => request.headers.origin === previewUrl));
   assert.ok(hosted.requests.filter(request => request.path === '/api/auth/sign-up/email')
     .every(request => request.body.name === 'Ledger synthetic proof' && request.body.email.endsWith('@example.invalid')));
 });
