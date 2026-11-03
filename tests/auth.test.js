@@ -183,16 +183,43 @@ test('account deletion password checks use the durable user-scoped limiter', asy
   }]);
 });
 
-test('Preview auth handler errors do not expose database or auth configuration details', async () => {
+test('Preview auth handler errors log safe database metadata and keep the public response generic', async () => {
+  const logs = [];
+  const originalConsoleError = console.error;
+  console.error = (...args) => logs.push(args);
   const route = createAuthRoute({
     env: { VERCEL_ENV: 'preview' },
-    getRuntime: async () => { throw Error('postgresql://secret@database.invalid'); },
+    getRuntime: async () => {
+      const databaseError = Object.assign(new Error('private SQL and connection details'), {
+        code: '42501',
+        table: 'auth_rate_limits',
+        column: 'last_request',
+        constraint: 'synthetic_constraint',
+      });
+      throw Object.assign(new Error('postgresql://secret@database.invalid'), { cause: databaseError });
+    },
   });
   const res = response();
 
-  await route({ method: 'GET' }, res);
+  try {
+    await route({ method: 'GET' }, res);
+  } finally {
+    console.error = originalConsoleError;
+  }
 
   assert.equal(res.statusCode, 503);
   assert.deepEqual(res.body, { error: 'Authentication is unavailable.' });
   assert.doesNotMatch(JSON.stringify(res.body), /secret|database\.invalid/);
+  assert.deepEqual(logs, [[
+    '[auth] route request failed',
+    {
+      category: 'postgres_error',
+      name: 'Error',
+      code: '42501',
+      table: 'auth_rate_limits',
+      column: 'last_request',
+      constraint: 'synthetic_constraint',
+    },
+  ]]);
+  assert.doesNotMatch(JSON.stringify(logs), /postgresql:|private SQL|database\.invalid/);
 });
