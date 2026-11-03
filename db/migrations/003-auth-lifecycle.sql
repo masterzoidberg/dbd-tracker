@@ -1,5 +1,7 @@
 -- Preview-only account lifecycle storage and narrowly privileged account erasure.
 
+BEGIN;
+
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'ledger_erasure_owner') THEN
@@ -138,3 +140,5 @@ GRANT EXECUTE ON FUNCTION public.erase_ledger_account_for_session(TEXT) TO ledge
 RESET ROLE;
 REVOKE CREATE ON SCHEMA public FROM ledger_erasure_owner;
 REVOKE ledger_erasure_owner FROM CURRENT_USER;
+
+COMMIT;

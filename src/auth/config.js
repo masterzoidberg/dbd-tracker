@@ -1,11 +1,14 @@
 import { createAuthMiddleware } from 'better-auth/api';
 
+const vercelHost = /^[a-z0-9.-]+(?::\d+)?$/i;
+
 export function createAuthConfig({ env, database, emailDelivery, rateLimitStorage, verificationTokenGuard }) {
   return {
     database,
     secret: env.BETTER_AUTH_SECRET,
     baseURL: {
-      allowedHosts: [env.VERCEL_URL],
+      allowedHosts: [...new Set([env.VERCEL_URL, env.VERCEL_BRANCH_URL]
+        .filter(host => typeof host === 'string' && vercelHost.test(host)))],
       protocol: 'https',
     },
     basePath: '/api/auth',

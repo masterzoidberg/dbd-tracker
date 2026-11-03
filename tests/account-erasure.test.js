@@ -5,7 +5,8 @@ import { createErasureRuntime } from '../src/auth/erasure-runtime.js';
 
 const env = {
   VERCEL_ENV: 'preview',
-  VERCEL_URL: 'dbd-tracker-git-codex-ledger-production-auth-readiness.vercel.app',
+  VERCEL_URL: 'dbd-tracker-unique-deployment.vercel.app',
+  VERCEL_BRANCH_URL: 'dbd-tracker-git-codex-ledger-production-auth-readiness.vercel.app',
 };
 
 function response() {
@@ -22,7 +23,7 @@ function response() {
 function request(body = { password: 'correct horse battery staple' }, overrides = {}) {
   return {
     method: 'POST',
-    headers: { origin: `https://${env.VERCEL_URL}` },
+    headers: { origin: `https://${env.VERCEL_BRANCH_URL}` },
     body,
     ...overrides,
   };
@@ -144,6 +145,23 @@ test('deletion derives the session server-side, verifies the current password, t
     ['password', 'correct horse battery staple'],
     ['session', 'session-a'],
   ]);
+});
+
+test('account deletion accepts only Vercel Preview deployment and branch origins', async () => {
+  for (const host of [env.VERCEL_URL, env.VERCEL_BRANCH_URL]) {
+    const handler = createAccountErasureHandler({
+      env,
+      resolveSession: async () => ({ userId: 'user-a', sessionId: 'session-a' }),
+      limitPasswordVerification: allowPasswordVerification,
+      verifyPassword: async () => ({ status: true }),
+      eraseAccount: async () => true,
+    });
+    const res = response();
+
+    await handler(request(undefined, { headers: { origin: `https://${host}` } }), res);
+
+    assert.equal(res.statusCode, 204);
+  }
 });
 
 test('failed database erasure returns a generic error without claiming success', async () => {

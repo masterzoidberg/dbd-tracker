@@ -1,4 +1,5 @@
 const internalError = { error: 'Internal server error.' };
+const vercelHost = /^[a-z0-9.-]+$/i;
 
 function send(res, status, body) {
   if (body === undefined) return res.status(status).end();
@@ -13,9 +14,9 @@ function parseBody(body) {
 }
 
 function sameOrigin(req, env) {
-  const host = env?.VERCEL_URL;
-  return typeof host === 'string' && /^[a-z0-9.-]+$/i.test(host) &&
-    req.headers?.origin === `https://${host}`;
+  const hosts = [env?.VERCEL_URL, env?.VERCEL_BRANCH_URL]
+    .filter(host => typeof host === 'string' && vercelHost.test(host));
+  return hosts.some(host => req.headers?.origin === `https://${host}`);
 }
 
 export function createAccountErasureHandler({ env = process.env, resolveSession, limitPasswordVerification, verifyPassword, eraseAccount }) {

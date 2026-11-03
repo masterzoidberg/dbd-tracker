@@ -4,6 +4,11 @@ import { readFileSync } from 'node:fs';
 
 const sql = readFileSync(new URL('../db/migrations/003-auth-lifecycle.sql', import.meta.url), 'utf8');
 
+test('lifecycle migration is atomic so failures cannot leave the erasure function publicly executable', () => {
+  assert.match(sql, /^\s*--[^\n]*\n\s*BEGIN\s*;/i);
+  assert.match(sql, /REVOKE\s+ALL\s+ON\s+FUNCTION\s+public\.erase_ledger_account_for_session\(TEXT\)\s+FROM\s+PUBLIC[\s\S]+COMMIT\s*;\s*$/i);
+});
+
 test('lifecycle storage keeps only hashed rate keys and expiring digest-only verification claims', () => {
   assert.match(sql, /CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+auth_rate_limits\s*\([\s\S]+key_hash\s+TEXT\s+PRIMARY\s+KEY[\s\S]+count\s+INTEGER[\s\S]+last_request\s+BIGINT/i);
   assert.match(sql, /CREATE\s+TABLE\s+IF\s+NOT\s+EXISTS\s+auth_email_verification_tokens\s*\([\s\S]+token_hash\s+BYTEA\s+PRIMARY\s+KEY[\s\S]+user_id\s+TEXT\s+NOT\s+NULL\s+REFERENCES\s+public\."user"\s*\(id\)\s+ON\s+DELETE\s+CASCADE[\s\S]+expires_at\s+TIMESTAMPTZ/i);

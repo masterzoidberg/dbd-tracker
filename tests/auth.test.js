@@ -7,6 +7,7 @@ import { createAuthRoute } from '../api/auth/[...].js';
 const previewEnv = () => ({
   VERCEL_ENV: 'preview',
   VERCEL_URL: 'dbd-tracker-preview.vercel.app',
+  VERCEL_BRANCH_URL: 'dbd-tracker-git-codex-ledger-production-auth-readiness.vercel.app',
   DATABASE_URL: 'postgresql://test.invalid/ledger',
   BETTER_AUTH_SECRET: randomBytes(32).toString('base64url'),
 });
@@ -85,7 +86,7 @@ test('auth runtime configures an exact Preview host and secure cookie protection
   });
 
   assert.deepEqual(options.baseURL, {
-    allowedHosts: [env.VERCEL_URL],
+    allowedHosts: [env.VERCEL_URL, env.VERCEL_BRANCH_URL],
     protocol: 'https',
   });
   assert.equal(options.advanced.useSecureCookies, true);
