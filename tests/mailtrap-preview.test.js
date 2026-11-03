@@ -118,19 +118,42 @@ test('Mailtrap delivery rejects real recipients, unsupported message kinds, and 
   }
 });
 
-test('SMTP errors are replaced with a generic error and never returned verbatim', async () => {
+test('SMTP errors are replaced with a generic error and log only allowlisted metadata', async () => {
+  const logs = [];
+  const originalError = console.error;
+  console.error = (...args) => logs.push(args);
   const delivery = createMailtrapPreviewDelivery({
     env: env(),
-    createTransport: () => ({ async sendMail() { throw new Error('smtp credential detail'); } }),
+    createTransport: () => ({
+      async sendMail() {
+        const error = new Error('SMTP credential detail: password=do-not-log');
+        error.code = 'EAUTH';
+        error.responseCode = 535;
+        error.command = 'AUTH PLAIN';
+        error.response = '535 invalid password=do-not-log';
+        throw error;
+      },
+    }),
   });
 
-  await assert.rejects(delivery({
-    kind: 'verification',
-    to: 'synthetic@example.invalid',
-    url: 'https://dbd-tracker-deployment.vercel.app/api/auth/verify-email?token=synthetic',
-  }), error => {
-    assert.equal(error.message, 'Email delivery is unavailable.');
-    assert.doesNotMatch(error.message, /smtp credential detail/);
-    return true;
-  });
+  try {
+    await assert.rejects(delivery({
+      kind: 'verification',
+      to: 'synthetic@example.invalid',
+      url: 'https://dbd-tracker-deployment.vercel.app/api/auth/verify-email?token=synthetic',
+    }), error => {
+      assert.equal(error.message, 'Email delivery is unavailable.');
+      assert.doesNotMatch(error.message, /SMTP credential detail|do-not-log/);
+      return true;
+    });
+  } finally {
+    console.error = originalError;
+  }
+
+  assert.deepEqual(logs, [['[mailtrap] SMTP delivery failed', {
+    code: 'EAUTH',
+    responseCode: 535,
+    command: 'AUTH PLAIN',
+  }]]);
+  assert.doesNotMatch(JSON.stringify(logs), /credential detail|do-not-log|invalid password/);
 });

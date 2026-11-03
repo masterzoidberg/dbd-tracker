@@ -4,6 +4,25 @@ const featureBranch = 'codex/ledger-production-auth-readiness';
 const sandboxHost = 'sandbox.smtp.mailtrap.io';
 const unavailable = () => new Error('Email delivery is unavailable.');
 const vercelHost = /^[a-z0-9.-]+(?::\d+)?$/i;
+const smtpCommands = new Set([
+  'AUTH LOGIN', 'AUTH PLAIN', 'CONN', 'DATA', 'EHLO', 'HELO', 'MAIL FROM',
+  'NOOP', 'QUIT', 'RCPT TO', 'STARTTLS',
+]);
+
+function safeSmtpErrorMetadata(error) {
+  const metadata = {};
+  if (typeof error?.code === 'string' && /^[A-Z0-9_-]{1,32}$/i.test(error.code)) {
+    metadata.code = error.code;
+  }
+  if (Number.isInteger(error?.responseCode) && error.responseCode >= 400 && error.responseCode <= 599) {
+    metadata.responseCode = error.responseCode;
+  }
+  if (typeof error?.command === 'string') {
+    const command = error.command.toUpperCase();
+    if (smtpCommands.has(command)) metadata.command = command;
+  }
+  return metadata;
+}
 
 function validMessage({ env, kind, to, url }) {
   if (env?.VERCEL_ENV !== 'preview' || env?.VERCEL_GIT_COMMIT_REF !== featureBranch ||
@@ -65,7 +84,8 @@ export function createMailtrapPreviewDelivery({ env = process.env, createTranspo
         subject: subjects[message.kind],
         text: `Use this one-time link to ${actions[message.kind]}: ${message.url}`,
       });
-    } catch {
+    } catch (error) {
+      console.error('[mailtrap] SMTP delivery failed', safeSmtpErrorMetadata(error));
       transporter = undefined;
       throw unavailable();
     }
