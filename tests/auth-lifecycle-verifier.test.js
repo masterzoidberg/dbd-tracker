@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { messageMatches, verifyAuthLifecycle } from '../scripts/verify-auth-lifecycle.mjs';
+import { messageMatches, verifyAuthLifecycle, verifyResendLimiter } from '../scripts/verify-auth-lifecycle.mjs';
 
 const env = {
   VERCEL_AUTOMATION_BYPASS_SECRET: 'unit-test-bypass-secret',
@@ -32,6 +32,28 @@ test('lifecycle verifier matches only the exact synthetic recipient and verifica
   assert.equal(messageMatches(message, message.to_email, message.subject), true);
   assert.equal(messageMatches(message, 'codex-pr20-other@example.invalid', message.subject), false);
   assert.equal(messageMatches(message, message.to_email, 'Reset your Ledger Tracker password'), false);
+});
+
+test('lifecycle verifier refuses to test resend behavior with a verified or session-bearing actor', async () => {
+  let requests = 0;
+  const mailtrap = {
+    ids: { accountId: '12345', inboxId: '67890' },
+    token: 'unit-test-mailtrap-secret',
+  };
+  const fetchImpl = async () => { requests++; };
+  const previewOrigin = 'https://dbd-tracker-3bph976ln-nick-queens-projects.vercel.app';
+  const bypassSecret = 'unit-test-bypass-secret';
+
+  for (const actor of [
+    { email: 'codex-pr20-run-a@example.invalid', verified: true, cookies: new Map() },
+    { email: 'codex-pr20-run-a@example.invalid', verified: false, cookies: new Map([['session', 'test']]) },
+  ]) {
+    await assert.rejects(
+      verifyResendLimiter(fetchImpl, previewOrigin, bypassSecret, mailtrap, actor),
+      /require an unverified account without a session/i,
+    );
+  }
+  assert.equal(requests, 0);
 });
 
 test('lifecycle verifier rejects the Production project alias before making a request', async () => {

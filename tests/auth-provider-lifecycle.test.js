@@ -94,7 +94,13 @@ test('Better Auth gates signup and sign-in on verified email, and verification d
   assert.equal(beforeVerification.cookie, '');
   assert.equal(emails[1].kind, 'verification');
 
-  const verificationUrl = new URL(emails[0].url);
+  const resend = await request('/send-verification-email', {
+    method: 'POST', body: { email, callbackURL: `${origin}/` },
+  });
+  assert.equal(resend.status, 200);
+  assert.equal(emails[2].kind, 'verification');
+
+  const verificationUrl = new URL(emails[2].url);
   const verified = await request(`${verificationUrl.pathname.replace('/api/auth', '')}${verificationUrl.search}`);
   assert.equal(verified.status, 302);
   assert.equal(verified.cookie, '');
@@ -107,6 +113,10 @@ test('Better Auth gates signup and sign-in on verified email, and verification d
   });
   assert.equal(afterVerification.status, 200);
   assert.match(afterVerification.cookie, /better-auth\.session_token=/);
+  const verifiedResend = await request('/send-verification-email', {
+    method: 'POST', body: { email, callbackURL: `${origin}/` }, cookie: afterVerification.cookie,
+  });
+  assert.equal(verifiedResend.status, 400);
   close();
 });
 

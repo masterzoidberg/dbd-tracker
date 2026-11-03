@@ -150,6 +150,7 @@ async function sendPreview(fetchImpl, previewOrigin, path, options = {}) {
 async function verifyActorSignup(fetchImpl, previewOrigin, bypassSecret, mailtrap, actor, {
   waitForSigninWindow = false,
   excludedMessageIds = new Set(),
+  checkResendLimit = false,
 } = {}) {
   const signup = await sendPreview(fetchImpl, previewOrigin, `${authPath}/sign-up/email`, {
     method: 'POST', body: { name: 'Synthetic Ledger User', email: actor.email, password: actor.password },
@@ -165,7 +166,7 @@ async function verifyActorSignup(fetchImpl, previewOrigin, bypassSecret, mailtra
   requireStatus(unverifiedSignIn, 403, 'Unverified sign-in');
   assert.equal(actor.cookies.size, 0, 'An unverified sign-in must not set a session cookie.');
 
-  const body = await waitForMessage(
+  let body = await waitForMessage(
     fetchImpl,
     mailtrap.ids,
     mailtrap.token,
@@ -173,6 +174,12 @@ async function verifyActorSignup(fetchImpl, previewOrigin, bypassSecret, mailtra
     'Verify your Ledger Tracker email',
     excludedMessageIds,
   );
+  let resendLimiter;
+  if (checkResendLimit) {
+    const result = await verifyResendLimiter(fetchImpl, previewOrigin, bypassSecret, mailtrap, actor);
+    body = result.verificationBody;
+    resendLimiter = result.report;
+  }
   const link = extractLink(body, 'verification', previewOrigin);
   const verification = await requestJson(fetchImpl, link, { bypassSecret, origin: previewOrigin });
   requireStatus(verification, 302, 'Email verification');
@@ -189,7 +196,14 @@ async function verifyActorSignup(fetchImpl, previewOrigin, bypassSecret, mailtra
   assert.ok(actor.cookies.size > 0, 'Verified sign-in must create a session cookie.');
   const activeSession = await sendPreview(fetchImpl, previewOrigin, `${authPath}/get-session`, { actor, bypassSecret });
   assert.equal(requireStatus(activeSession, 200, 'Verified session check')?.user?.email, actor.email);
-  return { signup: true, unverifiedSignInRejected: true, verificationCaptured: true, verificationSucceeded: true, verificationReplayRejected: true };
+  return {
+    signup: true,
+    unverifiedSignInRejected: true,
+    verificationCaptured: true,
+    verificationSucceeded: true,
+    verificationReplayRejected: true,
+    ...(resendLimiter ? { resendLimiter } : {}),
+  };
 }
 
 async function verifyPasswordRecovery(fetchImpl, previewOrigin, bypassSecret, mailtrap, actor) {
@@ -243,7 +257,12 @@ async function verifyPasswordRecovery(fetchImpl, previewOrigin, bypassSecret, ma
   return { resetCaptured: true, resetSucceeded: true, resetReplayRejected: true, oldPasswordRejected: true, newPasswordAccepted: true, priorSessionRevoked: true };
 }
 
-async function verifyResendLimiter(fetchImpl, previewOrigin, bypassSecret, actor) {
+export async function verifyResendLimiter(fetchImpl, previewOrigin, bypassSecret, mailtrap, actor) {
+  if (actor?.verified !== false || !(actor.cookies instanceof Map) || actor.cookies.size !== 0) {
+    throw new Error('Verification resend checks require an unverified account without a session.');
+  }
+  const priorMessages = await listMessages(fetchImpl, mailtrap.ids, mailtrap.token);
+  const excludedMessageIds = new Set(priorMessages.map(message => String(message.id)));
   const responses = [];
   for (let attempt = 0; attempt < 4; attempt++) {
     responses.push(await sendPreview(fetchImpl, previewOrigin, `${authPath}/send-verification-email`, {
@@ -252,7 +271,18 @@ async function verifyResendLimiter(fetchImpl, previewOrigin, bypassSecret, actor
   }
   for (const response of responses.slice(0, 3)) requireStatus(response, 200, 'Verification resend');
   requireStatus(responses[3], 429, 'Verification resend limit');
-  return { resendAccepted: 3, fourthResendRateLimited: true, neonLimiterObserved: true };
+  const verificationBody = await waitForMessage(
+    fetchImpl,
+    mailtrap.ids,
+    mailtrap.token,
+    actor.email,
+    'Verify your Ledger Tracker email',
+    excludedMessageIds,
+  );
+  return {
+    report: { resendAccepted: 3, fourthResendRateLimited: true, resendEmailCaptured: true, neonLimiterObserved: true },
+    verificationBody,
+  };
 }
 
 async function saveStateAndBackup(fetchImpl, previewOrigin, bypassSecret, actor, note) {
@@ -303,8 +333,9 @@ export async function verifyAuthLifecycle(previewUrl, {
   requireStatus(previewCheck, 200, 'Preview auth preflight');
   assert.equal(previewCheck.data, null, 'The verifier requires an unauthenticated Preview endpoint before creating synthetic users.');
 
-  const signup = await verifyActorSignup(fetchImpl, previewOrigin, bypassSecret, mailtrap, primary);
-  const resend = await verifyResendLimiter(fetchImpl, previewOrigin, bypassSecret, primary);
+  const { resendLimiter: resend, ...signup } = await verifyActorSignup(
+    fetchImpl, previewOrigin, bypassSecret, mailtrap, primary, { checkResendLimit: true },
+  );
   const recovery = await verifyPasswordRecovery(fetchImpl, previewOrigin, bypassSecret, mailtrap, primary);
   const secondarySignup = await verifyActorSignup(fetchImpl, previewOrigin, bypassSecret, mailtrap, secondary, { waitForSigninWindow: true });
 
