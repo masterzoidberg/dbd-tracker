@@ -33,7 +33,7 @@ test('rate limits increment atomically, hash IP/path keys, and prune expired rec
   assert.deepEqual(result, { allowed: true, retryAfter: null });
   const calls = pool.clients[0].calls;
   assert.equal(calls[0].text, 'BEGIN');
-  assert.match(calls[1].text, /DELETE\s+FROM\s+auth_rate_limits[\s\S]+last_request\s*<\s*\$1/i);
+  assert.match(calls[1].text, /DELETE\s+FROM\s+auth_rate_limits[\s\S]+last_request\s*<\s*\$1::bigint\s*-\s*\$2::bigint/i);
   assert.match(calls[2].text, /DELETE\s+FROM\s+auth_email_verification_tokens[\s\S]+expires_at\s*<=\s*NOW\(\)/i);
   assert.equal(calls[3].values[0], createHmac('sha256', 'test-only-secret-with-at-least-32-bytes')
     .update('198.51.100.17|/sign-in/email').digest('hex'));

@@ -24,7 +24,7 @@ export function createAuthRateLimitStorage(pool, { secret, now = Date.now } = {}
         transactionStarted = true;
         await client.query(`
           DELETE FROM auth_rate_limits
-          WHERE last_request < $1 - $2
+          WHERE last_request < $1::bigint - $2::bigint
         `, [time, MAX_WINDOW_MS]);
         await client.query(`
           DELETE FROM auth_email_verification_tokens
