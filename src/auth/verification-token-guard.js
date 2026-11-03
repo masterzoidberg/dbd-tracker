@@ -33,10 +33,11 @@ export function createEmailVerificationTokenGuard({ pool, secret, now = Date.now
         SELECT $1, app_user.id, to_timestamp($2)
         FROM public."user" AS app_user
         WHERE lower(app_user.email) = lower($3)
-        ON CONFLICT (token_hash) DO NOTHING
-        RETURNING token_hash
+        -- Naming token_hash here requires SELECT privilege the runtime must not have.
+        ON CONFLICT DO NOTHING
+        RETURNING 1 AS claimed
       )
-      SELECT token_hash FROM claimed
+      SELECT claimed FROM claimed
     `, [tokenHash, payload.exp, payload.email]);
     if (result.rows.length !== 1) throw invalidToken();
   };

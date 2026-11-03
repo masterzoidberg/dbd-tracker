@@ -29,7 +29,8 @@ test('a valid email verification token is atomically claimed by digest, never st
   await guard({ path: '/verify-email', query: { token } });
 
   assert.equal(pool.calls.length, 1);
-  assert.match(pool.calls[0].text, /INSERT\s+INTO\s+auth_email_verification_tokens[\s\S]+ON\s+CONFLICT\s*\(\s*token_hash\s*\)\s+DO\s+NOTHING/i);
+  assert.match(pool.calls[0].text, /INSERT\s+INTO\s+auth_email_verification_tokens[\s\S]+ON\s+CONFLICT\s+DO\s+NOTHING\s+RETURNING\s+1\s+AS\s+claimed/i);
+  assert.match(pool.calls[0].text, /SELECT\s+claimed\s+FROM\s+claimed/i);
   assert.equal(pool.calls[0].values[0].toString('hex'), createHash('sha256').update(token).digest('hex'));
   assert.equal(JSON.stringify(pool.calls).includes(token), false);
   assert.equal(pool.calls[0].values[2], 'verify-1@example.invalid');
