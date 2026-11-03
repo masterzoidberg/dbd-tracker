@@ -76,6 +76,9 @@ BEGIN
 
   IF has_table_privilege('ledger_runtime', 'public.ledger_user_backups', 'DELETE') OR
      has_table_privilege('ledger_runtime', 'public.ledger_user_backups', 'UPDATE') OR
+     has_table_privilege('ledger_runtime', 'public.auth_email_verification_tokens', 'SELECT') OR
+     has_column_privilege('ledger_runtime', 'public.auth_email_verification_tokens', 'token_hash', 'SELECT') OR
+     NOT has_column_privilege('ledger_runtime', 'public.auth_email_verification_tokens', 'expires_at', 'SELECT') OR
      has_table_privilege('ledger_runtime', 'public."user"', 'DELETE') OR
      has_table_privilege('ledger_preview', 'public."user"', 'DELETE') OR
      has_table_privilege('ledger_preview', 'public.ledger_user_backups', 'DELETE') OR
@@ -152,6 +155,8 @@ $$;
 GRANT ledger_runtime TO CURRENT_USER;
 SET LOCAL ROLE ledger_runtime;
 SELECT set_config('app.user_id', 'lifecycle-fixture-a', TRUE);
+DELETE FROM public.auth_email_verification_tokens
+WHERE expires_at <= NOW() AND FALSE;
 DO $$
 DECLARE
   visible_state INTEGER;

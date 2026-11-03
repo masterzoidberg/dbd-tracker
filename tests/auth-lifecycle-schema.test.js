@@ -15,6 +15,8 @@ test('lifecycle storage keeps only hashed rate keys and expiring digest-only ver
   assert.match(sql, /octet_length\(token_hash\)\s*=\s*32/i);
   assert.match(sql, /GRANT\s+SELECT\s*,\s*INSERT\s*,\s*UPDATE\s*,\s*DELETE\s+ON\s+TABLE\s+public\.auth_rate_limits\s+TO\s+ledger_runtime/i);
   assert.match(sql, /GRANT\s+INSERT\s*,\s*DELETE\s+ON\s+TABLE\s+public\.auth_email_verification_tokens\s+TO\s+ledger_runtime/i);
+  assert.match(sql, /GRANT\s+SELECT\s*\(\s*expires_at\s*\)\s+ON\s+TABLE\s+public\.auth_email_verification_tokens\s+TO\s+ledger_runtime/i);
+  assert.doesNotMatch(sql, /GRANT\s+(?:SELECT|ALL(?:\s+PRIVILEGES)?)\s+ON\s+TABLE\s+public\.auth_email_verification_tokens\s+TO\s+ledger_runtime/i);
 });
 
 test('only the no-login erasure owner can delete backups under forced RLS, while runtime cannot delete auth users', () => {

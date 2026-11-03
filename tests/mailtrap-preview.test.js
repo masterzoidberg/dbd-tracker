@@ -11,6 +11,19 @@ const env = () => ({
   MAILTRAP_SMTP_PASS: 'synthetic-password',
 });
 
+test('Mailtrap transport does not construct or connect to SMTP during auth initialization', () => {
+  let transportsCreated = 0;
+  createMailtrapPreviewDelivery({
+    env: env(),
+    createTransport() {
+      transportsCreated++;
+      return { async sendMail() {} };
+    },
+  });
+
+  assert.equal(transportsCreated, 0);
+});
+
 test('Mailtrap SMTP is fixed to the capture sandbox and requires STARTTLS', async () => {
   const settings = [];
   const messages = [];

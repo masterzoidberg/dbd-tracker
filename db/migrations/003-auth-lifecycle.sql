@@ -44,6 +44,7 @@ CREATE INDEX IF NOT EXISTS auth_email_verification_tokens_expiry_idx
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.auth_rate_limits TO ledger_runtime;
 GRANT INSERT, DELETE ON TABLE public.auth_email_verification_tokens TO ledger_runtime;
+GRANT SELECT (expires_at) ON TABLE public.auth_email_verification_tokens TO ledger_runtime;
 
 -- Better Auth account deletion is disabled. The runtime login must not be able
 -- to bypass the erasure transaction by deleting the auth user directly.
