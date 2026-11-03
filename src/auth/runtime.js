@@ -5,9 +5,9 @@ import { Pool } from 'pg';
 import { createAuthConfig } from './config.js';
 import { createAuthRateLimitStorage } from './rate-limit-storage.js';
 import { createEmailVerificationTokenGuard } from './verification-token-guard.js';
+import { createMailtrapPreviewDelivery } from './mailtrap-preview.js';
 
 const unavailable = () => new Error('Authentication is unavailable.');
-const deliveryUnavailable = async () => { throw unavailable(); };
 
 export function createAuthRuntime({
   env = process.env,
@@ -16,7 +16,7 @@ export function createAuthRuntime({
   createAuth = betterAuth,
   createNodeHandler = toNodeHandler,
   convertHeaders = fromNodeHeaders,
-  emailDelivery = deliveryUnavailable,
+  emailDelivery = createMailtrapPreviewDelivery({ env }),
   createRateLimitStorage = createAuthRateLimitStorage,
   createVerificationTokenGuard = createEmailVerificationTokenGuard,
 } = {}) {

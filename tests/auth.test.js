@@ -109,6 +109,25 @@ test('auth runtime configures an exact Preview host and secure cookie protection
   assert.equal(runtime.pool.connectionString, env.DATABASE_URL);
 });
 
+test('auth runtime defaults email callbacks to the Preview Mailtrap transport and fails closed without credentials', async () => {
+  const env = previewEnv();
+  let options;
+  createAuthRuntime({
+    env,
+    createPool: connectionString => ({ connectionString }),
+    attachPool() {},
+    createRateLimitStorage: () => ({ async consume() { return { allowed: true, retryAfter: null }; } }),
+    createVerificationTokenGuard: () => async () => {},
+    createAuth: config => { options = config; return { handler() {}, api: { async getSession() { return null; } } }; },
+    createNodeHandler: handler => handler,
+  });
+
+  await assert.rejects(options.emailVerification.sendVerificationEmail({
+    user: { email: 'synthetic@example.invalid' },
+    url: `https://${env.VERCEL_URL}/api/auth/verify-email?token=synthetic`,
+  }), error => error.message === 'Email delivery is unavailable.');
+});
+
 test('session resolution uses the verified Better Auth session, not request-body identity', async () => {
   const runtime = createAuthRuntime({
     env: previewEnv(),
