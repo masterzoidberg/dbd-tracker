@@ -56,6 +56,60 @@ test('lifecycle verifier refuses to test resend behavior with a verified or sess
   assert.equal(requests, 0);
 });
 
+test('lifecycle verifier spaces accepted resends for Mailtrap and probes the fourth request without email', async () => {
+  const previewOrigin = 'https://dbd-tracker-3bph976ln-nick-queens-projects.vercel.app';
+  const actor = {
+    email: 'codex-pr20-run-a@example.invalid',
+    verified: false,
+    cookies: new Map(),
+  };
+  const mailtrap = {
+    ids: { accountId: '12345', inboxId: '67890' },
+    token: 'unit-test-mailtrap-secret',
+  };
+  const waitIntervals = [];
+  const resendStatuses = [];
+  let messageQueries = 0;
+
+  const fetchImpl = async (input, options) => {
+    const url = String(input);
+    if (url.startsWith('https://mailtrap.io/')) {
+      if (url.endsWith('/messages')) {
+        messageQueries++;
+        const messages = messageQueries === 1 ? [] : [{
+          id: 'fresh-resend',
+          to_email: actor.email,
+          subject: 'Verify your Ledger Tracker email',
+        }];
+        return new Response(JSON.stringify(messages), { status: 200 });
+      }
+      if (url.endsWith('/body.txt')) return new Response('Synthetic verification email body', { status: 200 });
+      throw new Error('Unexpected Mailtrap request.');
+    }
+
+    assert.match(url, /\/api\/auth\/send-verification-email$/);
+    assert.equal(options.method, 'POST');
+    assert.match(options.headers.cookie ?? '', /^$/);
+    const status = resendStatuses.length < 3 ? 200 : 429;
+    resendStatuses.push(status);
+    return new Response(JSON.stringify({ status: status === 200 }), { status });
+  };
+
+  const result = await verifyResendLimiter(fetchImpl, previewOrigin, 'unit-test-bypass-secret', mailtrap, actor, {
+    wait: async milliseconds => waitIntervals.push(milliseconds),
+  });
+
+  assert.deepEqual(waitIntervals, [11_000, 11_000, 11_000]);
+  assert.deepEqual(resendStatuses, [200, 200, 200, 429]);
+  assert.deepEqual(result.report, {
+    resendAccepted: 3,
+    fourthResendRateLimited: true,
+    resendEmailCaptured: true,
+    neonLimiterObserved: true,
+  });
+  assert.equal(result.verificationBody, 'Synthetic verification email body');
+});
+
 test('lifecycle verifier rejects the Production project alias before making a request', async () => {
   let requests = 0;
 

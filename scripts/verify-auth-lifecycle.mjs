@@ -8,6 +8,7 @@ const projectPrefix = 'dbd-tracker-';
 const authPath = '/api/auth';
 const mailtrapBase = 'https://mailtrap.io';
 const bypassHeader = 'x-vercel-protection-bypass';
+const mailtrapMinimumSendIntervalMs = 11_000;
 
 function getPreviewOrigin(value) {
   let url;
@@ -257,7 +258,9 @@ async function verifyPasswordRecovery(fetchImpl, previewOrigin, bypassSecret, ma
   return { resetCaptured: true, resetSucceeded: true, resetReplayRejected: true, oldPasswordRejected: true, newPasswordAccepted: true, priorSessionRevoked: true };
 }
 
-export async function verifyResendLimiter(fetchImpl, previewOrigin, bypassSecret, mailtrap, actor) {
+export async function verifyResendLimiter(fetchImpl, previewOrigin, bypassSecret, mailtrap, actor, {
+  wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds)),
+} = {}) {
   if (actor?.verified !== false || !(actor.cookies instanceof Map) || actor.cookies.size !== 0) {
     throw new Error('Verification resend checks require an unverified account without a session.');
   }
@@ -265,6 +268,8 @@ export async function verifyResendLimiter(fetchImpl, previewOrigin, bypassSecret
   const excludedMessageIds = new Set(priorMessages.map(message => String(message.id)));
   const responses = [];
   for (let attempt = 0; attempt < 4; attempt++) {
+    // Mailtrap Sandbox's lowest published plan allows one message per 10 seconds.
+    if (attempt < 3) await wait(mailtrapMinimumSendIntervalMs);
     responses.push(await sendPreview(fetchImpl, previewOrigin, `${authPath}/send-verification-email`, {
       method: 'POST', body: { email: actor.email, callbackURL: `${previewOrigin}/` }, actor, bypassSecret,
     }));
