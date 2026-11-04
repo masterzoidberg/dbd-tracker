@@ -393,7 +393,7 @@ export async function verifyAuthLifecycle(previewUrl, {
   requireStatus(removedState, 401, 'Deleted account Ledger access');
   await readBackup(fetchImpl, previewOrigin, bypassSecret, secondary, second.backup.id, 200, second.data);
   const secondaryStateAfter = await sendPreview(fetchImpl, previewOrigin, '/api/ledger/state', { actor: secondary, bypassSecret });
-  assert.equal(requireStatus(secondaryStateAfter, 200, 'Other account after erasure').data.revision, 1);
+  assert.equal(requireStatus(secondaryStateAfter, 200, 'Other account after erasure').revision, 1);
 
   const repeatedDelete = await deleteSyntheticAccount(fetchImpl, previewOrigin, bypassSecret, primary, primary.password);
   requireStatus(repeatedDelete, 401, 'Repeated account erasure');
