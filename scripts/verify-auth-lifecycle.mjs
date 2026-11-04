@@ -139,7 +139,7 @@ async function waitForMessage(fetchImpl, ids, token, email, subject, excludedIds
   throw new Error('A synthetic auth message did not reach the Mailtrap inbox in time.');
 }
 
-function extractLink(body, type, previewOrigin) {
+export function extractLink(body, type, previewOrigin) {
   const candidate = body.match(/https:\/\/[^\s<>"']+/g)?.map(value => value.replace(/[),.;]+$/, ''))
     .find(value => {
       try { return new URL(value).origin === previewOrigin; } catch { return false; }
@@ -149,7 +149,7 @@ function extractLink(body, type, previewOrigin) {
   if (type === 'verification' && (link.pathname !== `${authPath}/verify-email` || !link.searchParams.has('token'))) {
     throw new Error('The captured verification email contained an unexpected link.');
   }
-  if (type === 'password-reset' && (!/^\/reset-password\/[^/]+$/.test(link.pathname) || !link.searchParams.has('callbackURL'))) {
+  if (type === 'password-reset' && (!new RegExp(`^${authPath}/reset-password/[^/]+$`).test(link.pathname) || !link.searchParams.has('callbackURL'))) {
     throw new Error('The captured password-reset email contained an unexpected link.');
   }
   return link;

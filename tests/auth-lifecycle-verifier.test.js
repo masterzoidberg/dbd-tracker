@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createMailtrapSendPacer, messageMatches, verifyAuthLifecycle, verifyResendLimiter } from '../scripts/verify-auth-lifecycle.mjs';
+import { createMailtrapSendPacer, extractLink, messageMatches, verifyAuthLifecycle, verifyResendLimiter } from '../scripts/verify-auth-lifecycle.mjs';
 
 const env = {
   VERCEL_AUTOMATION_BYPASS_SECRET: 'unit-test-bypass-secret',
@@ -32,6 +32,17 @@ test('lifecycle verifier matches only the exact synthetic recipient and verifica
   assert.equal(messageMatches(message, message.to_email, message.subject), true);
   assert.equal(messageMatches(message, 'codex-pr20-other@example.invalid', message.subject), false);
   assert.equal(messageMatches(message, message.to_email, 'Reset your Ledger Tracker password'), false);
+});
+
+test('lifecycle verifier accepts Better Auth reset URLs under the configured base path', () => {
+  const previewOrigin = 'https://dbd-tracker-3bph976ln-nick-queens-projects.vercel.app';
+  const url = `${previewOrigin}/api/auth/reset-password/synthetic-token?callbackURL=${encodeURIComponent(`${previewOrigin}/`)}`;
+
+  assert.equal(extractLink(url, 'password-reset', previewOrigin).pathname, '/api/auth/reset-password/synthetic-token');
+  assert.throws(
+    () => extractLink(`${previewOrigin}/reset-password/synthetic-token?callbackURL=${encodeURIComponent(`${previewOrigin}/`)}`, 'password-reset', previewOrigin),
+    /unexpected link/i,
+  );
 });
 
 test('lifecycle verifier spaces email sends to honor the Mailtrap sandbox interval', async () => {
