@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 
 const featureBranch = 'codex/ledger-production-auth-readiness';
+const authPath = '/api/auth';
 const sandboxHost = 'sandbox.smtp.mailtrap.io';
 const unavailable = () => new Error('Email delivery is unavailable.');
 const vercelHost = /^[a-z0-9.-]+(?::\d+)?$/i;
@@ -40,7 +41,8 @@ function validMessage({ env, kind, to, url }) {
   if (kind === 'verification') {
     return link.pathname === '/api/auth/verify-email' && link.searchParams.has('token');
   }
-  return /^\/reset-password\/[^/]+$/.test(link.pathname) && link.searchParams.has('callbackURL');
+  return new RegExp(`^${authPath}/reset-password/[^/]+$`).test(link.pathname) &&
+    link.searchParams.has('callbackURL');
 }
 
 export function createMailtrapPreviewDelivery({ env = process.env, createTransport = nodemailer.createTransport } = {}) {

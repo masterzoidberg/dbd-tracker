@@ -43,7 +43,7 @@ test('Mailtrap SMTP is fixed to the capture sandbox and requires STARTTLS', asyn
   await delivery({
     kind: 'password-reset',
     to: 'synthetic@example.invalid',
-    url: 'https://dbd-tracker-deployment.vercel.app/reset-password/synthetic-token?callbackURL=https%3A%2F%2Fdbd-tracker-deployment.vercel.app%2F',
+    url: 'https://dbd-tracker-deployment.vercel.app/api/auth/reset-password/synthetic-token?callbackURL=https%3A%2F%2Fdbd-tracker-deployment.vercel.app%2F',
   });
 
   assert.equal(settings.length, 1);
@@ -65,7 +65,7 @@ test('Mailtrap SMTP is fixed to the capture sandbox and requires STARTTLS', asyn
   ]);
   assert.deepEqual(messages.map(message => message.text), [
     'Use this one-time link to verify your email: https://dbd-tracker-git-codex-ledger-production-auth-readiness.vercel.app/api/auth/verify-email?token=synthetic-token',
-    'Use this one-time link to reset your password: https://dbd-tracker-deployment.vercel.app/reset-password/synthetic-token?callbackURL=https%3A%2F%2Fdbd-tracker-deployment.vercel.app%2F',
+    'Use this one-time link to reset your password: https://dbd-tracker-deployment.vercel.app/api/auth/reset-password/synthetic-token?callbackURL=https%3A%2F%2Fdbd-tracker-deployment.vercel.app%2F',
   ]);
   assert.ok(messages.every(message => message.from === 'Ledger Tracker <no-reply@example.invalid>'));
 });
@@ -101,7 +101,8 @@ test('Mailtrap delivery rejects real recipients, unsupported message kinds, and 
     ['real recipient', { kind: 'verification', to: 'real@example.com', url: 'https://dbd-tracker-deployment.vercel.app/api/auth/verify-email?token=x' }],
     ['unsupported message kind', { kind: 'notice', to: 'synthetic@example.invalid', url: 'https://dbd-tracker-deployment.vercel.app/api/auth/verify-email?token=x' }],
     ['untrusted origin', { kind: 'verification', to: 'synthetic@example.invalid', url: 'https://attacker.invalid/api/auth/verify-email?token=x' }],
-    ['wrong link path', { kind: 'password-reset', to: 'synthetic@example.invalid', url: 'https://dbd-tracker-deployment.vercel.app/api/auth/verify-email?token=x' }],
+    ['reset URL outside the Better Auth path', { kind: 'password-reset', to: 'synthetic@example.invalid', url: 'https://dbd-tracker-deployment.vercel.app/reset-password/token?callbackURL=https%3A%2F%2Fdbd-tracker-deployment.vercel.app%2F' }],
+    ['wrong verification link path', { kind: 'verification', to: 'synthetic@example.invalid', url: 'https://dbd-tracker-deployment.vercel.app/api/auth/reset-password/token?callbackURL=https%3A%2F%2Fdbd-tracker-deployment.vercel.app%2F' }],
   ];
 
   for (const [name, message] of cases) {

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { messageMatches, verifyAuthLifecycle, verifyResendLimiter } from '../scripts/verify-auth-lifecycle.mjs';
+import { createMailtrapSendPacer, messageMatches, verifyAuthLifecycle, verifyResendLimiter } from '../scripts/verify-auth-lifecycle.mjs';
 
 const env = {
   VERCEL_AUTOMATION_BYPASS_SECRET: 'unit-test-bypass-secret',
@@ -32,6 +32,26 @@ test('lifecycle verifier matches only the exact synthetic recipient and verifica
   assert.equal(messageMatches(message, message.to_email, message.subject), true);
   assert.equal(messageMatches(message, 'codex-pr20-other@example.invalid', message.subject), false);
   assert.equal(messageMatches(message, message.to_email, 'Reset your Ledger Tracker password'), false);
+});
+
+test('lifecycle verifier spaces email sends to honor the Mailtrap sandbox interval', async () => {
+  let now = 1_000;
+  const waits = [];
+  const paceEmail = createMailtrapSendPacer({
+    now: () => now,
+    wait: async milliseconds => {
+      waits.push(milliseconds);
+      now += milliseconds;
+    },
+  });
+
+  await paceEmail();
+  now += 3_000;
+  await paceEmail();
+  now += 12_000;
+  await paceEmail();
+
+  assert.deepEqual(waits, [8_000]);
 });
 
 test('lifecycle verifier refuses to test resend behavior with a verified or session-bearing actor', async () => {
@@ -96,7 +116,7 @@ test('lifecycle verifier spaces accepted resends for Mailtrap and probes the fou
   };
 
   const result = await verifyResendLimiter(fetchImpl, previewOrigin, 'unit-test-bypass-secret', mailtrap, actor, {
-    wait: async milliseconds => waitIntervals.push(milliseconds),
+    paceEmail: async () => waitIntervals.push(11_000),
   });
 
   assert.deepEqual(waitIntervals, [11_000, 11_000, 11_000]);

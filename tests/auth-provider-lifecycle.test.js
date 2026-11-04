@@ -143,7 +143,10 @@ test('Better Auth recovery rejects invalid, expired, and reused reset tokens and
   assert.equal(validResetRequest.status, 200);
   assert.equal(unknownReset.body.message, validResetRequest.body.message);
   const resetEmail = emails.findLast(message => message.kind === 'password-reset');
-  const validToken = new URL(resetEmail.url).pathname.split('/').at(-1);
+  const resetUrl = new URL(resetEmail.url);
+  assert.match(resetUrl.pathname, /^\/api\/auth\/reset-password\/[^/]+$/);
+  assert.equal(resetUrl.searchParams.has('callbackURL'), true);
+  const validToken = resetUrl.pathname.split('/').at(-1);
 
   const invalid = await request('/reset-password', { method: 'POST', body: { token: 'not-a-real-token', newPassword } });
   assert.equal(invalid.status, 400);
