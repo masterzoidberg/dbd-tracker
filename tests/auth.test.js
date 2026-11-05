@@ -7,6 +7,7 @@ import { createAuthRoute } from '../api/auth/[...].js';
 const previewEnv = () => ({
   VERCEL_ENV: 'preview',
   VERCEL_URL: 'dbd-tracker-preview.vercel.app',
+  VERCEL_BRANCH_URL: 'dbd-tracker-git-codex-ledger-production-auth-readiness.vercel.app',
   DATABASE_URL: 'postgresql://test.invalid/ledger',
   BETTER_AUTH_SECRET: randomBytes(32).toString('base64url'),
 });
@@ -75,6 +76,8 @@ test('auth runtime configures an exact Preview host and secure cookie protection
     env,
     createPool: connectionString => ({ connectionString }),
     attachPool() {},
+    createRateLimitStorage: () => ({ async consume() { return { allowed: true, retryAfter: null }; } }),
+    createVerificationTokenGuard: () => async () => {},
     createAuth: config => {
       options = config;
       return { handler() {}, api: { async getSession() { return null; } } };
@@ -83,7 +86,7 @@ test('auth runtime configures an exact Preview host and secure cookie protection
   });
 
   assert.deepEqual(options.baseURL, {
-    allowedHosts: [env.VERCEL_URL],
+    allowedHosts: [env.VERCEL_URL, env.VERCEL_BRANCH_URL],
     protocol: 'https',
   });
   assert.equal(options.advanced.useSecureCookies, true);
@@ -95,9 +98,34 @@ test('auth runtime configures an exact Preview host and secure cookie protection
   assert.notEqual(options.advanced.disableCSRFCheck, true);
   assert.notEqual(options.advanced.disableOriginCheck, true);
   assert.equal(options.emailAndPassword.enabled, true);
-  assert.equal(options.emailAndPassword.requireEmailVerification, false);
+  assert.equal(options.emailAndPassword.requireEmailVerification, true);
+  assert.equal(options.emailAndPassword.revokeSessionsOnPasswordReset, true);
+  assert.equal(options.emailAndPassword.resetPasswordTokenExpiresIn, 3600);
+  assert.equal(options.emailVerification.expiresIn, 3600);
+  assert.equal(options.emailVerification.sendOnSignUp, true);
+  assert.equal(options.emailVerification.sendOnSignIn, true);
+  assert.equal(options.emailVerification.autoSignInAfterVerification, false);
   assert.notEqual(options.user?.deleteUser?.enabled, true);
   assert.equal(runtime.pool.connectionString, env.DATABASE_URL);
+});
+
+test('auth runtime defaults email callbacks to the Preview Mailtrap transport and fails closed without credentials', async () => {
+  const env = previewEnv();
+  let options;
+  createAuthRuntime({
+    env,
+    createPool: connectionString => ({ connectionString }),
+    attachPool() {},
+    createRateLimitStorage: () => ({ async consume() { return { allowed: true, retryAfter: null }; } }),
+    createVerificationTokenGuard: () => async () => {},
+    createAuth: config => { options = config; return { handler() {}, api: { async getSession() { return null; } } }; },
+    createNodeHandler: handler => handler,
+  });
+
+  await assert.rejects(options.emailVerification.sendVerificationEmail({
+    user: { email: 'synthetic@example.invalid' },
+    url: `https://${env.VERCEL_URL}/api/auth/verify-email?token=synthetic`,
+  }), error => error.message === 'Email delivery is unavailable.');
 });
 
 test('session resolution uses the verified Better Auth session, not request-body identity', async () => {
@@ -105,6 +133,8 @@ test('session resolution uses the verified Better Auth session, not request-body
     env: previewEnv(),
     createPool: () => ({}),
     attachPool() {},
+    createRateLimitStorage: () => ({ async consume() { return { allowed: true, retryAfter: null }; } }),
+    createVerificationTokenGuard: () => async () => {},
     createAuth: () => ({
       handler() {},
       api: {
@@ -126,16 +156,70 @@ test('session resolution uses the verified Better Auth session, not request-body
   assert.equal(await runtime.resolveSession({ headers: { cookie: 'session=expired' } }), null);
 });
 
-test('Preview auth handler errors do not expose database or auth configuration details', async () => {
+test('account deletion password checks use the durable user-scoped limiter', async () => {
+  const consumed = [];
+  const runtime = createAuthRuntime({
+    env: previewEnv(),
+    createPool: () => ({}),
+    attachPool() {},
+    createRateLimitStorage: () => ({
+      async consume(key, rule) {
+        consumed.push({ key, rule });
+        return { allowed: false, retryAfter: 300 };
+      },
+    }),
+    createVerificationTokenGuard: () => async () => {},
+    createAuth: () => ({ handler() {}, api: { async getSession() { return null; } } }),
+    createNodeHandler: handler => handler,
+  });
+
+  assert.deepEqual(await runtime.limitPasswordVerification('synthetic-user-a'), {
+    allowed: false,
+    retryAfter: 300,
+  });
+  assert.deepEqual(consumed, [{
+    key: 'account-deletion:synthetic-user-a',
+    rule: { window: 300, max: 5 },
+  }]);
+});
+
+test('Preview auth handler errors log safe database metadata and keep the public response generic', async () => {
+  const logs = [];
+  const originalConsoleError = console.error;
+  console.error = (...args) => logs.push(args);
   const route = createAuthRoute({
     env: { VERCEL_ENV: 'preview' },
-    getRuntime: async () => { throw Error('postgresql://secret@database.invalid'); },
+    getRuntime: async () => {
+      const databaseError = Object.assign(new Error('private SQL and connection details'), {
+        code: '42501',
+        table: 'auth_rate_limits',
+        column: 'last_request',
+        constraint: 'synthetic_constraint',
+      });
+      throw Object.assign(new Error('postgresql://secret@database.invalid'), { cause: databaseError });
+    },
   });
   const res = response();
 
-  await route({ method: 'GET' }, res);
+  try {
+    await route({ method: 'GET' }, res);
+  } finally {
+    console.error = originalConsoleError;
+  }
 
   assert.equal(res.statusCode, 503);
   assert.deepEqual(res.body, { error: 'Authentication is unavailable.' });
   assert.doesNotMatch(JSON.stringify(res.body), /secret|database\.invalid/);
+  assert.deepEqual(logs, [[
+    '[auth] route request failed',
+    {
+      category: 'postgres_error',
+      name: 'Error',
+      code: '42501',
+      table: 'auth_rate_limits',
+      column: 'last_request',
+      constraint: 'synthetic_constraint',
+    },
+  ]]);
+  assert.doesNotMatch(JSON.stringify(logs), /postgresql:|private SQL|database\.invalid/);
 });
