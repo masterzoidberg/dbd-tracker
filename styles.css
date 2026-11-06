@@ -3242,3 +3242,8 @@ footer span {
     flex:1 1 140px
   }
 }
+#ledger-account { width: min(32rem, calc(100vw - 2rem)); }
+#ledger-account form:not([hidden]) { display: grid; gap: .65rem; margin-block: 1rem; }
+#ledger-account input { width: 100%; min-width: 0; }
+#ledger-account p { overflow-wrap: anywhere; }
+#ledger-account .dialog-actions { flex-wrap: wrap; }

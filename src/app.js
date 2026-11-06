@@ -1,6 +1,7 @@
 import { characters, characterById, perkById, catalogInfo, perkName } from '../data/catalog.js';
 import { freshSave, globalTier, isAvailable, unlockSource, inventoryTier, roleCharacters, rolePerks, characterStats, perkStats, parseSave, exportSave, setGlobalPerkUnlocked, syncGlobalInventories, completeCharacterSetup, automaticTier, recordedTier, ownedUnlockSource, bloodwebNextTier, bloodwebEligible, setHistoricalPerkTier } from './model.js';
 import { TrackerStorage } from './storage.js';
+import { mountAccount } from './account.js';
 import { createGoogleDrive } from './google-drive.js';
 import { parseCharacterWorkspaceRoute, characterWorkspaceHref, characterWorkspaceNeighbors } from './character-workspace.js';
 import {inventoryEntities,inventoryEntityById,inventoryCatalogStatus,survivorInventorySource,killerPowerByCharacterId} from '../data/inventory-catalog.js';
@@ -25,6 +26,7 @@ import { getFilterContext, perkFilterDefinitions, matchesPerkFilterState, select
 import { CHARACTER_INVENTORY_CATEGORIES, CHARACTER_CARD_SIZES, DEFAULT_CHARACTER_CARD_SIZE, normalizeCharacterCardSize, characterInventoryCandidatePool, filterCharacterInventoryCandidates, characterNormalInventory, setCharacterPersonalTier, createCharacterInventorySession, syncCharacterInventorySession, parseCharacterInventoryRoute } from './character-inventory.js';
 
 const $ = selector => document.querySelector(selector);
+if (typeof __LEDGER_PREVIEW_ACCOUNT__ !== 'undefined' && __LEDGER_PREVIEW_ACCOUNT__) mountAccount(document, location);
 const artworkUrl = path => path.split('/').map(encodeURIComponent).join('/');
 const esc = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const roman = ['—', 'I', 'II', 'III'];
