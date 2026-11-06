@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
+  "buildCommand": "node scripts/build.mjs --preview-account-acceptance",
   "outputDirectory": ".",
   "rewrites": [
     {

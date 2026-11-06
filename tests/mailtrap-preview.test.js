@@ -11,6 +11,22 @@ const env = () => ({
   MAILTRAP_SMTP_PASS: 'synthetic-password',
 });
 
+test('account acceptance SMTP permits only its exact Preview branch and sandbox recipients and links', async () => {
+  for (const [environment, branch, to, host, allowed] of [
+    ['preview', 'codex/ledger-preview-account-ui', 'synthetic@example.invalid', 'dbd-tracker-deployment.vercel.app', true],
+    ['production', 'codex/ledger-preview-account-ui', 'synthetic@example.invalid', 'dbd-tracker-deployment.vercel.app', false],
+    ['development', 'codex/ledger-preview-account-ui', 'synthetic@example.invalid', 'dbd-tracker-deployment.vercel.app', false],
+    ['preview', 'codex/ledger-preview-account-ui-other', 'synthetic@example.invalid', 'dbd-tracker-deployment.vercel.app', false],
+    ['preview', 'codex/ledger-preview-account-ui', 'real@example.com', 'dbd-tracker-deployment.vercel.app', false],
+    ['preview', 'codex/ledger-preview-account-ui', 'synthetic@example.invalid', 'attacker.invalid', false],
+  ]) {
+    const delivery = createMailtrapPreviewDelivery({ env: { ...env(), VERCEL_ENV: environment, VERCEL_GIT_COMMIT_REF: branch },
+      createTransport: () => ({ async sendMail() {} }) });
+    const result = delivery({ kind: 'verification', to, url: `https://${host}/api/auth/verify-email?token=synthetic` });
+    if (allowed) await result; else await assert.rejects(result, /Email delivery is unavailable/);
+  }
+});
+
 test('Mailtrap transport does not construct or connect to SMTP during auth initialization', () => {
   let transportsCreated = 0;
   createMailtrapPreviewDelivery({

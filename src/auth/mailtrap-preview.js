@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 
-const featureBranch = 'codex/ledger-production-auth-readiness';
+const featureBranches = new Set(['codex/ledger-production-auth-readiness', 'codex/ledger-preview-account-ui']);
 const authPath = '/api/auth';
 const sandboxHost = 'sandbox.smtp.mailtrap.io';
 const unavailable = () => new Error('Email delivery is unavailable.');
@@ -26,7 +26,7 @@ function safeSmtpErrorMetadata(error) {
 }
 
 function validMessage({ env, kind, to, url }) {
-  if (env?.VERCEL_ENV !== 'preview' || env?.VERCEL_GIT_COMMIT_REF !== featureBranch ||
+  if (env?.VERCEL_ENV !== 'preview' || !featureBranches.has(env?.VERCEL_GIT_COMMIT_REF) ||
       !['verification', 'password-reset'].includes(kind) ||
       typeof to !== 'string' || !/^[^\s@]+@example\.invalid$/i.test(to) ||
       typeof url !== 'string' || url.length > 8192) return false;
