@@ -1,5 +1,20 @@
 # Optional Preview account UI
 
+## Controlled live acceptance configuration
+
+The repository's Vercel build command now passes `--preview-account-acceptance`.
+This enables the interface only when `VERCEL_ENV=preview` and
+`VERCEL_GIT_COMMIT_REF=codex/ledger-preview-account-ui`. Normal builds remain
+default-off; Production still overrides every opt-in. No project-wide build
+setting is needed. Mailtrap permits this exact additional branch, retaining the
+Preview-only, `example.invalid`, HTTPS and same-origin link restrictions.
+
+For this controlled test, the five existing sensitive auth-readiness variables
+can be moved to this exact Preview branch without reading their values. Restore
+their original branch scope after deployment; existing deployments retain their
+captured environment. Do not trigger an auth-readiness deployment during this
+temporary scope move. Deployment and acceptance results are recorded in PR #21.
+
 This milestone adds email/password sign-in, explicit session refresh, session identity and sign-out for existing verified Preview accounts. Accounts remain optional. DBD progression setup is separate.
 
 ## Visibility and local review

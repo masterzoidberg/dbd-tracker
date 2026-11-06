@@ -9,6 +9,7 @@ export async function buildProject(root = resolve(import.meta.dirname, '..'), {
   writeCatalog = writeKillerRuntimeCatalog,
   writeManifest,
   previewAccount = false,
+  previewAccountAcceptance = false,
 } = {}) {
   root = resolve(root);
   await writeCatalog(root);
@@ -16,10 +17,13 @@ export async function buildProject(root = resolve(import.meta.dirname, '..'), {
   const manifest = await generateManifest(root);
   await bundle({ absWorkingDir: root, entryPoints: ['src/app.js'], bundle: true, format: 'iife', target: 'es2022', minify: true, outfile: 'dist/app.js', logLevel: 'info',
     define: { __LEDGER_GOOGLE_CONFIG__: JSON.stringify(googleDriveConfig(process.env)),
-      __LEDGER_PREVIEW_ACCOUNT__: JSON.stringify(previewAccount && process.env.VERCEL_ENV !== 'production') } });
+      __LEDGER_PREVIEW_ACCOUNT__: JSON.stringify(process.env.VERCEL_ENV !== 'production' && (previewAccount ||
+        (previewAccountAcceptance && process.env.VERCEL_ENV === 'preview' &&
+          process.env.VERCEL_GIT_COMMIT_REF === 'codex/ledger-preview-account-ui'))) } });
   return manifest;
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  try { await buildProject(undefined, { previewAccount: process.argv.includes('--preview-account') }); }
+  try { await buildProject(undefined, { previewAccount: process.argv.includes('--preview-account'),
+    previewAccountAcceptance: process.argv.includes('--preview-account-acceptance') }); }
   catch (error) { console.error(error.message); process.exitCode = 1; }
 }
