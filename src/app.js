@@ -740,7 +740,7 @@ function characterWorkspaceHeader(character, descriptor) {
     + '</' + (canStartProgression ? 'button' : 'div') + '>'
     + progressionEditor + '</div></div>'
     + '<div class="character-workspace-actions"><button type="button" class="character-workspace-favorite" data-action="favorite" data-id="' + character.id + '" aria-pressed="' + progress.favorite + '" aria-label="Favorite ' + esc(character.name) + '">' + (progress.favorite ? '★ Favorite' : '☆ Favorite') + '</button>'
-    + '<button type="button" id="character-export-trigger" data-character-export-controls data-action="character-export-open" aria-haspopup="dialog" aria-controls="character-export-menu" aria-expanded="false"><span aria-hidden="true">↓</span> Export Character</button></div>'
+    + '<button type="button" id="character-export-trigger" data-character-export-controls data-action="character-export-open" popovertarget="character-export-menu" aria-haspopup="dialog" aria-controls="character-export-menu" aria-expanded="false"><span aria-hidden="true">↓</span> Export Character</button></div>'
     + '</div>'
     + '<nav class="character-workspace-nav" aria-label="Character workspace">' + sections.map(([section, label]) =>
       '<a data-workspace-section="' + section + '" href="' + characterWorkspaceHref(character.id, section) + '"'
@@ -1559,11 +1559,8 @@ function assertCharacterExportReady() {
   if (descriptor?.status !== 'valid') throw new Error('Open a character workspace before exporting.');
   return descriptor.characterId;
 }
-function openCharacterExport() {
-  assertCharacterExportReady();
+function positionCharacterExport() {
   const menu = $('#character-export-menu'), trigger = $('#character-export-trigger');
-  if (menu.matches(':popover-open')) { closeCharacterExport(true); return; }
-  menu.showPopover();
   const bounds = trigger.getBoundingClientRect(), box = menu.getBoundingClientRect();
   menu.style.left = Math.max(8, Math.min(bounds.right - box.width, innerWidth - box.width - 8)) + 'px';
   menu.style.top = Math.max(8, Math.min(bounds.bottom + 6, innerHeight - box.height - 8)) + 'px';
@@ -2016,7 +2013,11 @@ async function handleClick(event) {
   const button = event.target.closest('[data-action]');
   if (!button) return;
   const { action, id, character, perk, mode, family } = button.dataset;
-  if (action === 'character-export-open') { openCharacterExport(); return; }
+  if (action === 'character-export-open') {
+    try { assertCharacterExportReady(); }
+    catch (error) { event.preventDefault(); throw error; }
+    return; // Native invocation toggles the popover without a light-dismiss/reopen race.
+  }
   if (action === 'character-export') { await exportCharacter(button.dataset.format); return; }
   if(action==='stock-step'){stepStock(button);return;}
   if(action==='killer-stock-step'){stepKillerQuantity(button);return;}
@@ -2700,7 +2701,11 @@ window.addEventListener('storage', event => {
   if (event.key === 'dbdTrackerBackups' && route() === 'data') render();
 });
 $('#perk-filter-panel').addEventListener('toggle', () => $('#filters-trigger')?.setAttribute('aria-expanded', String($('#perk-filter-panel').matches(':popover-open'))));
-$('#character-export-menu').addEventListener('toggle', () => $('#character-export-trigger')?.setAttribute('aria-expanded', String($('#character-export-menu').matches(':popover-open'))));
+$('#character-export-menu').addEventListener('toggle', () => {
+  const open = $('#character-export-menu').matches(':popover-open');
+  $('#character-export-trigger')?.setAttribute('aria-expanded', String(open));
+  if (open) positionCharacterExport();
+});
 $('#character-export-menu').addEventListener('keydown', event => {
   if (event.key === 'Escape') { event.preventDefault(); closeCharacterExport(true); return; }
   const buttons = [...$('#character-export-menu').querySelectorAll('button')];

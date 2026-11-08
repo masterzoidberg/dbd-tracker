@@ -53,6 +53,9 @@ export async function characterExportRegression(page, origin) {
   assert.equal(await page.locator('#character-export-menu:popover-open').count(), 0);
   assert.equal(await page.evaluate(() => document.activeElement.id), 'character-export-trigger');
   await openMenu(page);
+  await page.locator('#character-export-trigger').click();
+  assert.equal(await page.locator('#character-export-menu:popover-open').count(), 0, 'Clicking the trigger again closes its popover');
+  await openMenu(page);
   await page.locator('h1').click();
   assert.equal(await page.locator('#character-export-menu:popover-open').count(), 0);
 

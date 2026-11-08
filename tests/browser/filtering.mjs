@@ -380,9 +380,16 @@ export async function shellNavigationRegression(page, origin) {
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), taskBytes);
   await page.keyboard.press('Enter');
   await page.getByRole('button', { name: 'Stay', exact: true }).waitFor();
-  await page.keyboard.press('Enter');
+  // Target Stay explicitly when reopening the native dialog; a visible button
+  // alone does not establish which element receives a page-level Enter.
+  await page.getByRole('button', { name: 'Stay', exact: true }).press('Enter');
+  await page.waitForFunction(() => !document.querySelector('#dirty-navigation').open);
   assert.equal(await menu.getAttribute('aria-expanded'), 'false', 'Stay dismisses compact Menu');
-  await page.waitForFunction(() => document.activeElement.id === 'menu-toggle');
+  await page.waitForFunction(() => document.activeElement.id === 'menu-toggle').catch(async error => {
+    const state = await page.evaluate(() => ({ activeTag: document.activeElement.tagName, activeId: document.activeElement.id,
+      menuExpanded: document.querySelector('#menu-toggle').getAttribute('aria-expanded'), dialogOpen: document.querySelector('#dirty-navigation').open }));
+    throw new Error('Stay did not restore Menu focus: ' + JSON.stringify(state), { cause: error });
+  });
   assert.ok(page.url().endsWith('/overview'), 'Blocked compact-menu navigation leaves the current route in place');
   assert.equal(await page.locator('[data-character-task-field="notes"]').inputValue(), 'Compact navigation draft');
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), taskBytes, 'Staying in the task editor preserves the existing save');
