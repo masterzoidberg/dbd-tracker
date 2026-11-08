@@ -1,131 +1,101 @@
-import { characterById, perkById, perkName, catalogInfo } from '../data/catalog.js';
-import { inventoryEntityById, killerPowerByCharacterId } from '../data/inventory-catalog.js';
-import { rolePerks, globalTier, automaticTier, inventoryTier, unlockSource, ownedUnlockSource, bloodwebNextTier, isAvailable } from './model.js';
+import { characterById, perkById, perkName } from '../data/catalog.js';
+import { inventoryEntityById } from '../data/inventory-catalog.js';
 
-const sorted = object => Object.fromEntries(Object.entries(object ?? {}).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
-const pick = (object, keys) => Object.fromEntries(keys.filter(key => object?.[key] !== undefined).map(key => [key, structuredClone(object[key])]));
-const compareId = (a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
 const formats = { json: 'application/json', md: 'text/markdown', txt: 'text/plain', csv: 'text/csv' };
 export const characterExportMime = format => {
   if (!Object.hasOwn(formats, format)) throw new Error('Unsupported character export format.');
   return formats[format] + ';charset=utf-8';
 };
+const pick = (object, keys) => Object.fromEntries(keys.filter(key => object?.[key] !== undefined && object[key] !== null).map(key => [key, object[key]]));
+const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0;
+const byName = (a, b) => compare(a.name, b.name) || compare(a.id, b.id);
 
-// Explicit projections keep unrelated records and arbitrary imported extensions out.
-// Account-derived minima remain separate from the user's personal perk records.
+// Project only this character's records. Catalogs supply names, never progress
+// or additional entries. No account unlock/effective-tier calculations belong here.
 export function characterExportSnapshot(save, characterId, exportedAt = new Date().toISOString()) {
   const character = Object.hasOwn(characterById, characterId) ? characterById[characterId] : null;
   if (!character || !save.characters?.[characterId]) throw new Error('Unknown character or unavailable recorded progress.');
   if (!Number.isFinite(Date.parse(exportedAt))) throw new Error('Invalid export timestamp.');
   const progress = save.characters[characterId];
-  const personalPerks = sorted(progress.perks);
-  const relevantPerks = rolePerks(character.role).filter(perk => character.nativePerkIds.includes(perk.id)
-    || isAvailable(save, perk) || Object.hasOwn(personalPerks, perk.id));
-  const perkIds = [...new Set([...relevantPerks.map(perk => perk.id), ...Object.keys(personalPerks)])].sort();
-  const applicableInventory = Object.values(inventoryEntityById).filter(entity =>
-    entity.role === character.role && (character.role === 'survivor' || entity.characterId === characterId)).sort(compareId);
+  const perks = Object.entries(progress.perks ?? {}).filter(([, tier]) => tier > 0).map(([id, tier]) => {
+    const perk = Object.hasOwn(perkById, id) ? perkById[id] : null;
+    return { id, name: perk ? perkName(save, perk) : id, tier };
+  }).sort(byName);
+  const inventory = {};
+  for (const map of character.role === 'survivor' ? ['items', 'addons'] : ['addons']) {
+    inventory[map] = Object.entries(progress.inventory?.[map] ?? {}).filter(([, quantity]) => quantity > 0)
+      .filter(([id]) => {
+        const entity = Object.hasOwn(inventoryEntityById, id) ? inventoryEntityById[id] : null;
+        return !entity || (entity.role === character.role && entity.map === map
+          && (character.role === 'survivor' || entity.characterId === characterId));
+      })
+      .map(([id, quantity]) => ({ id, name: Object.hasOwn(inventoryEntityById, id) ? inventoryEntityById[id].name : id, quantity })).sort(byName);
+  }
   const planning = {};
-  for (const [name, field] of [['prestige', 'prestigeQueues'], ['playing', 'playingQueues'], ['upNext', 'upNext']]) {
+  for (const [name, field, keys] of [['prestige', 'prestigeQueues', ['targetPrestige']], ['playing', 'playingQueues', []], ['upNext', 'upNext', ['intent']]]) {
     const lane = save.planning?.[field]?.[character.role] ?? [];
     const index = lane.findIndex(entry => entry.characterId === characterId);
-    planning[name] = index < 0 ? null : { position: index + 1, ...pick(lane[index], ['targetPrestige', 'intent']) };
+    if (index >= 0) planning[name] = { position: index + 1, ...pick(lane[index], keys) };
   }
-  const power = killerPowerByCharacterId[characterId];
   return {
     exportType: 'ledger-character',
-    exportSchemaVersion: 1,
+    exportSchemaVersion: 2,
     exportedAt,
-    notice: 'Character information only. Not a full-account save and not importable through account restore. Null means not recorded or unavailable. Quantities omitted from recorded inventory display as zero in the tracker.',
     character: { id: character.id, name: character.name, role: character.role },
-    recorded: {
-      owned: progress.owned ?? null,
-      favorite: progress.favorite ?? null,
-      prestige: progress.prestige ?? null,
-      bloodwebLevel: progress.bloodwebLevel ?? null,
-      setupComplete: progress.setupComplete ?? null,
-      notes: progress.notes ?? null,
-      updatedAt: progress.updatedAt ?? null,
-      perks: personalPerks,
-      inventory: { items: sorted(progress.inventory?.items), addons: sorted(progress.inventory?.addons) },
-      planning,
-    },
-    accountRules: {
-      accountRulesVersion: save.accountRulesVersion ?? null,
-      inventoryPolicy: save.inventoryPolicy ?? null,
-      explanation: 'Account unlock tiers are shared rules, not personal Bloodweb progress. General availability alone grants no owned tier. Native perks have a Tier I minimum. Lock status is derived from character ownership; equipment/loadouts are not modeled.',
-      perkUnlocks: relevantPerks.map(perk => ({ id: perk.id, tier: globalTier(save, perk), source: unlockSource(save, perk) })).sort(compareId),
-    },
-    reference: {
-      catalog: pick(catalogInfo, ['patch', 'date']),
-      nativePerkIds: [...character.nativePerkIds].sort(),
-      perks: perkIds.map(id => {
-        const perk = Object.hasOwn(perkById, id) ? perkById[id] : null;
-        return perk ? { id, name: perkName(save, perk), canonicalName: perk.name, description: perk.description,
-          summary: perk.summary, general: perk.general, sourceCharacterName: perk.sourceCharacterName,
-          ...pick(perk, ['historicalAvailability']) } : { id, name: null, description: null };
-      }),
-      power: character.role === 'killer' && power ? pick(power, ['powerName', 'shortSummary', 'fullExplanation', 'components', 'mechanics',
-        'resources', 'survivorInteractions', 'powerStates', 'addonRelevantMechanics', 'complexRules']) : null,
-      inventory: applicableInventory.map(entity => ({ id: entity.id, name: entity.name, kind: entity.kind, map: entity.map,
-        rarity: entity.rarity ?? null, description: entity.effect ?? entity.description ?? null,
-        ...pick(entity, ['familyId', 'itemTypeId', 'compatibleItemIds', 'status', 'event', 'notes', 'needsVerification']) })),
-    },
-    derived: {
-      locked: typeof progress.owned === 'boolean' ? !progress.owned : null,
-      perks: relevantPerks.map(perk => ({ id: perk.id, native: character.nativePerkIds.includes(perk.id),
-        available: isAvailable(save, perk) || character.nativePerkIds.includes(perk.id),
-        automaticMinimum: automaticTier(save, characterId, perk), effectiveTier: inventoryTier(save, characterId, perk.id),
-        ownedSource: ownedUnlockSource(save, characterId, perk), nextBloodwebTier: bloodwebNextTier(save, characterId, perk) })).sort(compareId),
-    },
+    progression: pick(progress, ['owned', 'favorite', 'prestige', 'bloodwebLevel', 'setupComplete']),
+    perks,
+    inventory,
+    ...(typeof progress.notes === 'string' && progress.notes.trim() ? { notes: progress.notes } : {}),
+    ...(Object.keys(planning).length ? { planning } : {}),
   };
 }
 
-const display = value => value === null || value === undefined ? 'Not recorded / unavailable' : String(value);
-const label = key => key.replace(/([a-z])([A-Z])/g, '$1 $2').replaceAll('.', ' / ').replace(/^./, c => c.toUpperCase());
-function fields(value, prefix = '') {
-  if (value !== null && typeof value === 'object') {
-    const entries = Object.entries(value);
-    return entries.length ? entries.flatMap(([key, child]) => fields(child, prefix ? prefix + '.' + key : key)) : [[prefix, 'None']];
+const roleName = role => role === 'killer' ? 'Killer' : 'Survivor';
+const humanValue = value => typeof value === 'boolean' ? value ? 'Yes' : 'No' : String(value);
+const romanTier = tier => ['0', 'I', 'II', 'III'][tier];
+function summaryFields(snapshot) {
+  const labels = { owned: 'Owned', favorite: 'Favorite', prestige: 'Prestige', bloodwebLevel: 'Bloodweb Level', setupComplete: 'Setup Complete' };
+  return [['Role', roleName(snapshot.character.role)], ...Object.entries(snapshot.progression).map(([key, value]) => [labels[key], humanValue(value)]), ['Exported At', snapshot.exportedAt]];
+}
+function planningFields(snapshot) {
+  const rows = [], planning = snapshot.planning ?? {};
+  if (planning.prestige) {
+    if (planning.prestige.targetPrestige !== undefined) rows.push(['Prestige target', planning.prestige.targetPrestige]);
+    rows.push(['Prestige queue position', planning.prestige.position]);
   }
-  return [[prefix, value]];
+  if (planning.playing) rows.push(['Playing queue position', planning.playing.position]);
+  if (planning.upNext) {
+    if (planning.upNext.intent) rows.push(['Up Next intent', planning.upNext.intent]);
+    rows.push(['Up Next position', planning.upNext.position]);
+  }
+  return rows;
 }
-
-// Every human-readable format consumes the same sections, including CSV's long-form rows.
-function reportSections(snapshot) {
-  const { character, recorded, reference, derived, accountRules } = snapshot;
-  const perkNames = Object.fromEntries(reference.perks.map(row => [row.id, row.name ?? 'Unknown perk']));
-  const inventoryNames = Object.fromEntries(reference.inventory.map(row => [row.id, row.name]));
-  const section = (title, columns, rows) => ({ title, columns, rows });
-  const fieldSection = (title, value) => section(title, ['Field', 'Value'], fields(value).map(([key, value]) => [label(key), value]));
-  return [
-    fieldSection('Character summary', { ...character, locked: derived.locked, exportedAt: snapshot.exportedAt, exportSchemaVersion: snapshot.exportSchemaVersion }),
-    fieldSection('Recorded progression and notes', pick(recorded, ['owned', 'favorite', 'prestige', 'bloodwebLevel', 'setupComplete', 'notes', 'updatedAt'])),
-    section('Recorded personal perk tiers', ['ID', 'Name', 'Recorded tier'], Object.entries(recorded.perks).map(([id, tier]) => [id, perkNames[id], tier])),
-    section('Recorded inventory quantities', ['ID', 'Name', 'Map', 'Recorded quantity'], ['items', 'addons'].flatMap(map =>
-      Object.entries(recorded.inventory[map]).map(([id, quantity]) => [id, inventoryNames[id] ?? 'Unknown inventory record', map, quantity]))),
-    fieldSection('Character planning references', recorded.planning),
-    fieldSection('Account-wide rules', pick(accountRules, ['accountRulesVersion', 'inventoryPolicy', 'explanation'])),
-    section('Account-wide perk unlocks', ['ID', 'Name', 'Tier', 'Source'], accountRules.perkUnlocks.map(row => [row.id, perkNames[row.id], row.tier, row.source])),
-    section('Derived perk display', ['ID', 'Name', 'Native', 'Available', 'Automatic minimum', 'Effective tier', 'Owned source', 'Next Bloodweb tier'],
-      derived.perks.map(row => [row.id, perkNames[row.id], row.native, row.available, row.automaticMinimum, row.effectiveTier, row.ownedSource, row.nextBloodwebTier])),
-    fieldSection('Catalog context', { ...reference.catalog, nativePerkIds: reference.nativePerkIds }),
-    section('Perk reference descriptions', ['ID', 'Name', 'Field', 'Value'], reference.perks.flatMap(row =>
-      fields(pick(row, ['canonicalName', 'general', 'sourceCharacterName', 'description', 'summary', 'historicalAvailability']))
-        .map(([key, value]) => [row.id, row.name, label(key), value]))),
-    ...(reference.power ? [fieldSection('Killer power reference', reference.power)] : []),
-    section(character.role === 'killer' ? 'Killer add-on reference' : 'Survivor item and add-on reference', ['ID', 'Name', 'Field', 'Value'],
-      reference.inventory.flatMap(row => fields(pick(row, ['kind', 'map', 'rarity', 'description', 'familyId', 'itemTypeId', 'compatibleItemIds', 'status', 'event', 'notes', 'needsVerification']))
-        .map(([key, value]) => [row.id, row.name, label(key), value]))),
-  ];
+function inventorySections(snapshot) {
+  return [['items', 'Item Inventory', 'Item'], ['addons', snapshot.character.role === 'killer' ? 'Add-on Inventory' : 'Item Add-on Inventory', 'Add-on']]
+    .filter(([map]) => snapshot.inventory[map]?.length);
 }
-
 function markdown(value) {
-  return display(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
-    .replace(/([\\`*_{}\[\]()#+.!~>-])/g, '\\$1').replaceAll('|', '&#124;').replace(/\r\n|\r|\n/g, '<br>');
+  return String(value).replace(/[\\`*_\[\]<>|]/g, '\\$&')
+    .replace(/&(?=(?:#\d+|#x[0-9a-f]+|[a-z][a-z0-9]+);)/gi, '\\&').replace(/\r\n|\r|\n/g, '<br>');
+}
+function markdownNotes(notes) {
+  // A fence longer than any run in the note preserves its literal content,
+  // including newlines/HTML/headings, without allowing it to escape the section.
+  let length = 3;
+  for (const match of notes.matchAll(/`+/g)) length = Math.max(length, match[0].length + 1);
+  const fence = '`'.repeat(length);
+  return fence + '\n' + notes + (notes.endsWith('\n') ? '' : '\n') + fence;
+}
+function markdownTable(columns, rows) {
+  return '| ' + columns.join(' | ') + ' |\n| ' + columns.map(() => '---').join(' | ') + ' |\n'
+    + rows.map(row => '| ' + row.map(markdown).join(' | ') + ' |').join('\n');
+}
+function textRows(rows) {
+  const width = Math.max(...rows.map(([name]) => name.length));
+  return rows.map(([name, value]) => name.padEnd(width + 2) + value).join('\n');
 }
 function csvCell(value) {
-  let text = value === null || value === undefined ? '' : String(value);
-  // Quote all cells, and neutralize formulas even after whitespace/control/BOM prefixes.
+  let text = String(value);
   if (/^[\s\u0000-\u001f\u007f]*[=+\-@]/u.test(text) || /^[\t\r\n]/.test(text)) text = "'" + text;
   return '"' + text.replaceAll('"', '""') + '"';
 }
@@ -133,25 +103,30 @@ function csvCell(value) {
 export function formatCharacterExport(snapshot, format) {
   characterExportMime(format);
   if (format === 'json') return JSON.stringify(snapshot, null, 2) + '\n';
-  const sections = reportSections(snapshot);
-  if (format === 'md') return '# ' + markdown(snapshot.character.name) + ' — Character export\n\n' + markdown(snapshot.notice) + '\n\n'
-    + sections.map(({ title, columns, rows }) => '## ' + title + '\n\n' + (rows.length
-      ? '| ' + columns.join(' | ') + ' |\n| ' + columns.map(() => '---').join(' | ') + ' |\n'
-        + rows.map(row => '| ' + row.map(markdown).join(' | ') + ' |').join('\n') : 'None recorded.') + '\n').join('\n');
-  if (format === 'txt') return snapshot.character.name + ' — Character export\n\n' + snapshot.notice + '\n\n'
-    + sections.map(({ title, columns, rows }) => title.toUpperCase() + '\n' + (rows.length
-      ? rows.map(row => row.map((value, index) => '  ' + columns[index] + ': ' + display(value).replace(/\r\n|\r|\n/g, '\n    ')).join('\n')).join('\n\n')
-      : '  None recorded.') + '\n').join('\n');
-  const records = [['category', 'record_id', 'record_name', 'field', 'value'], ['Export', snapshot.character.id, snapshot.character.name, 'Notice', snapshot.notice]];
-  for (const { title, columns, rows } of sections) {
-    if (!rows.length) records.push([title, '', '', 'Records', 'None recorded']);
-    for (const row of rows) {
-      const identified = columns[0] === 'ID';
-      if (columns.at(-2) === 'Field') records.push([title, identified ? row[0] : '', identified ? row[1] : '', row.at(-2), row.at(-1)]);
-      else for (let index = identified ? 2 : 0; index < columns.length; index++) records.push([title, identified ? row[0] : '', identified ? row[1] : '', columns[index], row[index]]);
-    }
+  const summary = summaryFields(snapshot), planning = planningFields(snapshot), inventories = inventorySections(snapshot);
+  if (format === 'md') {
+    const sections = ['# ' + markdown(snapshot.character.name), summary.map(([key, value]) => '- **' + key + ':** ' + markdown(value)).join('\n')];
+    if (snapshot.perks.length) sections.push('## Recorded Perks\n\n' + markdownTable(['Perk', 'Tier'], snapshot.perks.map(row => [row.name, romanTier(row.tier)])));
+    for (const [map, title, noun] of inventories) sections.push('## ' + title + '\n\n' + markdownTable([noun, 'Quantity'], snapshot.inventory[map].map(row => [row.name, row.quantity])));
+    if (snapshot.notes !== undefined) sections.push('## Notes\n\n' + markdownNotes(snapshot.notes));
+    if (planning.length) sections.push('## Planning\n\n' + planning.map(([key, value]) => '- ' + key + ': ' + markdown(value)).join('\n'));
+    return sections.join('\n\n') + '\n';
   }
-  return records.map(row => row.map(csvCell).join(',')).join('\r\n') + '\r\n';
+  if (format === 'txt') {
+    const sections = [snapshot.character.name, summary.map(([key, value]) => key + ': ' + value).join('\n')];
+    if (snapshot.perks.length) sections.push('RECORDED PERKS\n' + textRows(snapshot.perks.map(row => [row.name, romanTier(row.tier)])));
+    for (const [map, title] of inventories) sections.push(title.toUpperCase() + '\n' + textRows(snapshot.inventory[map].map(row => [row.name, row.quantity])));
+    if (snapshot.notes !== undefined) sections.push('NOTES\n' + snapshot.notes);
+    if (planning.length) sections.push('PLANNING\n' + planning.map(([key, value]) => key + ': ' + value).join('\n'));
+    return sections.join('\n\n') + '\n';
+  }
+  const rows = [['Section', 'Name', 'Value', 'Tier', 'Quantity', 'ID'], ['Summary', 'Character', snapshot.character.name, '', '', snapshot.character.id],
+    ...summary.map(([key, value]) => ['Summary', key, value, '', '', '']),
+    ...snapshot.perks.map(row => ['Perks', row.name, '', row.tier, '', row.id])];
+  for (const [map] of inventories) rows.push(...snapshot.inventory[map].map(row => [map === 'items' ? 'Items' : 'Add-ons', row.name, '', '', row.quantity, row.id]));
+  if (snapshot.notes !== undefined) rows.push(['Notes', 'Notes', snapshot.notes, '', '', '']);
+  rows.push(...planning.map(([key, value]) => ['Planning', key, value, '', '', '']));
+  return rows.map(row => row.map(csvCell).join(',')).join('\r\n') + '\r\n';
 }
 
 export function characterExportFilename(snapshot, format) {

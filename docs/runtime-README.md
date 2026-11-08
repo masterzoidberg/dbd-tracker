@@ -2,10 +2,12 @@
 
 Each Killer and Survivor workspace has **Export Character** beside Favorite.
 Download JSON, Markdown, text or long-form CSV, or copy the Markdown summary.
-Exports contain only that character's recorded progress, notes, perk tiers,
-inventory quantities and planning references, with separately labeled account
-unlock rules, catalog descriptions and derived tiers. Unrecorded quantities
-display as zero in the tracker; missing records are not invented in the export.
+Exports contain only that character's recorded progression, positive personal
+perk tiers, positive item/add-on quantities, and populated notes/planning entries.
+Names come from catalog lookups; account unlocks, effective tiers, descriptions,
+Power mechanics and unrecorded inventory are excluded. Empty report sections are
+omitted. [Character export schema v2](https://github.com/masterzoidberg/dbd-tracker/blob/main/docs/character-export.md)
+documents the informational JSON and CSV layouts; account saves remain schema v3.
 Character JSON is informational and cannot restore an account. Use Data & backups
 for full-account export/import. Save or discard pending edits before exporting.
 Downloads work offline and from direct files. If copying is unavailable or denied,

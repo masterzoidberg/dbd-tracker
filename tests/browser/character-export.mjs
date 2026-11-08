@@ -28,10 +28,12 @@ export async function characterExportRegression(page, origin) {
   const save = freshSave();
   const addon = Object.values(inventoryEntityById).find(row => row.characterId === 'the-artist');
   const item = Object.values(inventoryEntityById).find(row => row.map === 'items');
+  const survivorAddon = Object.values(inventoryEntityById).find(row => row.role === 'survivor' && row.map === 'addons');
   Object.assign(save.characters['the-artist'], { owned: true, prestige: 4, bloodwebLevel: 37, notes: 'Export <safe> | notes\nSecond line' });
   save.characters['the-artist'].inventory.addons[addon.id] = 8;
   save.characters['the-artist'].perks['grim-embrace'] = 2;
   save.characters['meg-thomas'].inventory.items[item.id] = 6;
+  save.characters['meg-thomas'].inventory.addons[survivorAddon.id] = 4;
   save.characters['the-trapper'].notes = 'Unrelated private character note';
   await page.goto(origin + '/#character/the-artist/overview');
   await page.evaluate(value => localStorage.setItem('dbdTrackerData', JSON.stringify(value)), save);
@@ -68,11 +70,20 @@ export async function characterExportRegression(page, origin) {
     assert.match(output.filename, new RegExp('^the-artist-character-\\d{4}-\\d{2}-\\d{2}\\.' + format + '$'));
     assert.match(output.text, /The Artist/);
     assert.doesNotMatch(output.text, /Unrelated private character note/);
+    assert.doesNotMatch(output.text, /accountRules|reference|effectiveTier|automaticMinimum|Birds of Torment|Perk reference descriptions|Not recorded \/ unavailable/);
+    assert.ok(output.text.length < 2000, 'Compact character report, not a catalog dump');
     if (format === 'json') {
       const data = JSON.parse(output.text);
-      assert.equal(data.recorded.inventory.addons[addon.id], 8);
-      assert.equal(data.recorded.prestige, 4);
-      assert.equal(data.recorded.bloodwebLevel, 37);
+      assert.equal(data.exportSchemaVersion, 2);
+      assert.equal(data.inventory.addons.find(row => row.id === addon.id).quantity, 8);
+      assert.equal(data.progression.prestige, 4);
+      assert.equal(data.progression.bloodwebLevel, 37);
+      assert.deepEqual(data.perks, [{ id: 'grim-embrace', name: 'Grim Embrace', tier: 2 }]);
+    } else if (format === 'md') {
+      assert.match(output.text, /\| Grim Embrace \| II \|/);
+      assert.doesNotMatch(output.text, /\| Grim Embrace \| III \|/);
+    } else if (format === 'csv') {
+      assert.match(output.text, /"Perks","Grim Embrace","","2","","grim-embrace"/);
     }
     assert.equal(await page.locator('#character-export-menu:popover-open').count(), 0);
     assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before);
@@ -83,6 +94,10 @@ export async function characterExportRegression(page, origin) {
   await openMenu(page);
   await page.getByRole('button', { name: 'Copy Summary', exact: true }).click();
   assert.match(await page.locator('html').getAttribute('data-copied-character'), /^# The Artist/);
+  const copied = await page.locator('html').getAttribute('data-copied-character');
+  assert.match(copied, /\| Grim Embrace \| II \|/);
+  assert.doesNotMatch(copied, /reference|accountRules|Birds of Torment/);
+  assert.ok(copied.length < 1000);
   assert.equal(await page.locator('#message').textContent(), 'Character summary copied.');
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before);
   await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined }));
@@ -100,7 +115,7 @@ export async function characterExportRegression(page, origin) {
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before);
   await page.getByRole('button', { name: 'Save progression', exact: true }).click();
   await openMenu(page);
-  assert.equal(JSON.parse((await downloadText(page, 'Export JSON')).text).recorded.bloodwebLevel, 41);
+  assert.equal(JSON.parse((await downloadText(page, 'Export JSON')).text).progression.bloodwebLevel, 41);
 
   await page.goto(origin + '/#character/the-artist/power-addons');
   const quantity = page.locator('[data-killer-quantity]').first();
@@ -111,15 +126,36 @@ export async function characterExportRegression(page, origin) {
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), quantityBefore, 'Export cannot trigger a quantity blur save');
   await quantity.press('Enter');
   await openMenu(page);
-  assert.ok(Object.values(JSON.parse((await downloadText(page, 'Export JSON')).text).recorded.inventory.addons).includes(19));
+  assert.ok(JSON.parse((await downloadText(page, 'Export JSON')).text).inventory.addons.some(row => row.quantity === 19));
 
   await page.goto(origin + '/#character/meg-thomas/overview');
   const survivorBefore = await page.evaluate(() => localStorage.getItem('dbdTrackerData'));
   await openMenu(page);
   const survivor = JSON.parse((await downloadText(page, 'Export JSON')).text);
   assert.equal(survivor.character.id, 'meg-thomas');
-  assert.equal(survivor.recorded.inventory.items[item.id], 6);
-  assert.equal(survivor.reference.power, null);
+  assert.equal(survivor.inventory.items.find(row => row.id === item.id).quantity, 6);
+  assert.equal(survivor.inventory.addons.find(row => row.id === survivorAddon.id).quantity, 4);
+  assert.deepEqual(survivor.perks, []);
+  assert.ok(!Object.hasOwn(survivor, 'reference'));
+  for (const name of ['Export Markdown (.md)', 'Export Text (.txt)', 'Export CSV (.csv)']) {
+    await openMenu(page);
+    const output = await downloadText(page, name);
+    assert.ok(output.text.includes(item.name) && output.text.includes(survivorAddon.name));
+    assert.doesNotMatch(output.text, /reference|accountRules|effectiveTier/);
+    if (name === 'Export Markdown (.md)') {
+      assert.match(output.text, /## Item Inventory/);
+      assert.match(output.text, /## Item Add-on Inventory/);
+      assert.doesNotMatch(output.text, /## Notes|## Planning|## Recorded Perks/);
+    }
+  }
+  await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: {
+    async writeText(text) { document.documentElement.dataset.copiedCharacter = text; },
+  } }));
+  await openMenu(page);
+  await page.getByRole('button', { name: 'Copy Summary', exact: true }).click();
+  const survivorCopy = await page.locator('html').getAttribute('data-copied-character');
+  assert.match(survivorCopy, /^# Meg Thomas/);
+  assert.ok(survivorCopy.includes(item.name) && survivorCopy.includes(survivorAddon.name));
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), survivorBefore);
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
