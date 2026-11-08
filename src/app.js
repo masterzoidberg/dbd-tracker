@@ -1291,7 +1291,15 @@ async function resolveWorkspaceDraftTransition(intent) {
     catch (error) { message(error.message, true); return 'stay'; }
   }
   if (focused?.closest('#global-nav') && $('#menu-toggle').getClientRects().length
-    && $('#menu-toggle').getAttribute('aria-expanded') !== 'true') $('#menu-toggle').focus({ preventScroll: true });
+    && $('#menu-toggle').getAttribute('aria-expanded') !== 'true') {
+    // Native dialog restoration can otherwise overwrite focus with BODY after
+    // its original navigation link was hidden by closing the compact Menu.
+    requestAnimationFrame(() => {
+      if (!dialog.open && route() === sourceRoute && $('#menu-toggle').getAttribute('aria-expanded') !== 'true') {
+        $('#menu-toggle').focus({ preventScroll: true });
+      }
+    });
+  }
   else if (focused?.isConnected) focused.focus();
   return 'stay';
 }

@@ -380,6 +380,11 @@ export async function shellNavigationRegression(page, origin) {
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), taskBytes);
   await page.keyboard.press('Enter');
   await page.getByRole('button', { name: 'Stay', exact: true }).waitFor();
+  // Reproduce the runner's late native restoration to BODY after the opener
+  // becomes hidden, so the recovery is also exercised on newer local browsers.
+  await page.evaluate(() => document.querySelector('#dirty-navigation').addEventListener('close', () => {
+    requestAnimationFrame(() => document.activeElement.blur());
+  }, { capture: true, once: true }));
   // Target Stay explicitly when reopening the native dialog; a visible button
   // alone does not establish which element receives a page-level Enter.
   await page.getByRole('button', { name: 'Stay', exact: true }).press('Enter');
