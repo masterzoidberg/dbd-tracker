@@ -19,6 +19,9 @@ async function downloadText(page, name) {
 async function openMenu(page) {
   await page.locator('#character-export-trigger').click();
   await page.locator('#character-export-menu:popover-open').waitFor();
+  // Native toggle is queued: positioning and first-button focus complete there.
+  await page.waitForFunction(() => document.querySelector('#character-export-trigger').getAttribute('aria-expanded') === 'true'
+    && document.activeElement === document.querySelector('#character-export-menu button'));
 }
 
 export async function characterExportRegression(page, origin) {
