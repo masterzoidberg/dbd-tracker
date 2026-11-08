@@ -63,6 +63,8 @@ export async function smokeStage(stage, { channel = 'msedge', regression, manife
     assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), saved);
     if (regression) await regression(page, origin, manifest);
     else {
+      const { characterExportRegression } = await import('./character-export.mjs');
+      await characterExportRegression(page, origin);
       const {dashboardRegression}=await import('./dashboard.mjs');
       await dashboardRegression(page,origin);
       const {characterWorkspaceRegression}=await import('./character-workspace.mjs');

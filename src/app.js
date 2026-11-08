@@ -2,6 +2,7 @@ import { characters, characterById, perkById, catalogInfo, perkName } from '../d
 import { freshSave, globalTier, isAvailable, unlockSource, inventoryTier, roleCharacters, rolePerks, characterStats, perkStats, parseSave, exportSave, setGlobalPerkUnlocked, syncGlobalInventories, completeCharacterSetup, automaticTier, recordedTier, ownedUnlockSource, bloodwebNextTier, bloodwebEligible, setHistoricalPerkTier } from './model.js';
 import { TrackerStorage } from './storage.js';
 import { createGoogleDrive } from './google-drive.js';
+import { characterExportSnapshot, formatCharacterExport, characterExportFilename, characterExportMime } from './character-export.js';
 import { parseCharacterWorkspaceRoute, characterWorkspaceHref, characterWorkspaceNeighbors } from './character-workspace.js';
 import {inventoryEntities,inventoryEntityById,inventoryCatalogStatus,survivorInventorySource,killerPowerByCharacterId} from '../data/inventory-catalog.js';
 import {inventoryIconPath,killerPowerIconPath} from './assets.js';
@@ -738,7 +739,8 @@ function characterWorkspaceHeader(character, descriptor) {
     + (canStartProgression ? '<span class="character-progress-edit-cue" aria-hidden="true">Edit</span>' : '')
     + '</' + (canStartProgression ? 'button' : 'div') + '>'
     + progressionEditor + '</div></div>'
-    + '<button type="button" class="character-workspace-favorite" data-action="favorite" data-id="' + character.id + '" aria-pressed="' + progress.favorite + '" aria-label="Favorite ' + esc(character.name) + '">' + (progress.favorite ? '★ Favorite' : '☆ Favorite') + '</button>'
+    + '<div class="character-workspace-actions"><button type="button" class="character-workspace-favorite" data-action="favorite" data-id="' + character.id + '" aria-pressed="' + progress.favorite + '" aria-label="Favorite ' + esc(character.name) + '">' + (progress.favorite ? '★ Favorite' : '☆ Favorite') + '</button>'
+    + '<button type="button" id="character-export-trigger" data-character-export-controls data-action="character-export-open" aria-haspopup="dialog" aria-controls="character-export-menu" aria-expanded="false"><span aria-hidden="true">↓</span> Export Character</button></div>'
     + '</div>'
     + '<nav class="character-workspace-nav" aria-label="Character workspace">' + sections.map(([section, label]) =>
       '<a data-workspace-section="' + section + '" href="' + characterWorkspaceHref(character.id, section) + '"'
@@ -1357,6 +1359,7 @@ async function requestWorkspaceNavigation(destination, { source = 'link' } = {})
   return true;
 }
 function render({ workspaceContextCaptured = false } = {}) {
+  closeCharacterExport();
   if (!initialized) { $('#main').innerHTML = '<section class="panel"><h1>Loading tracker…</h1></section>'; editorPresentation(); return; }
   const current = route(), workspaceRoute = parseCharacterWorkspaceRoute(current), characterRoute = parseCharacterInventoryRoute(current),
     section = workspaceRoute?.status === 'valid' ? characterById[workspaceRoute.characterId].role + 's' : current;
@@ -1538,6 +1541,47 @@ function download(content, filename, type = 'application/json;charset=utf-8') {
   const url = URL.createObjectURL(new Blob([content], { type }));
   const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function closeCharacterExport(restoreFocus = false) {
+  const menu = $('#character-export-menu');
+  if (menu?.matches(':popover-open')) menu.hidePopover();
+  if (restoreFocus) $('#character-export-trigger')?.focus({ preventScroll: true });
+}
+function assertCharacterExportReady() {
+  if (!initialized || storageBlocked) throw new Error('Recorded progress is unavailable. Recover your save before exporting.');
+  if (migrationPending) throw new Error('Save compatibility updates before exporting character information.');
+  const pendingQuantity = session => session && (Object.values(session.pending).some(Boolean) || Object.values(session.errors).some(Boolean));
+  if (hasDirtyWorkspaceDraft() || characterInventorySession.failedSelection || pendingQuantity(stockSession) || pendingQuantity(killerSession)) {
+    throw new Error('Save or discard pending edits before exporting this character.');
+  }
+  const descriptor = parseCharacterWorkspaceRoute(route());
+  if (descriptor?.status !== 'valid') throw new Error('Open a character workspace before exporting.');
+  return descriptor.characterId;
+}
+function openCharacterExport() {
+  assertCharacterExportReady();
+  const menu = $('#character-export-menu'), trigger = $('#character-export-trigger');
+  if (menu.matches(':popover-open')) { closeCharacterExport(true); return; }
+  menu.showPopover();
+  const bounds = trigger.getBoundingClientRect(), box = menu.getBoundingClientRect();
+  menu.style.left = Math.max(8, Math.min(bounds.right - box.width, innerWidth - box.width - 8)) + 'px';
+  menu.style.top = Math.max(8, Math.min(bounds.bottom + 6, innerHeight - box.height - 8)) + 'px';
+  menu.querySelector('button').focus({ preventScroll: true });
+}
+async function exportCharacter(format) {
+  const id = assertCharacterExportReady();
+  const snapshot = characterExportSnapshot(save, id);
+  if (format === 'copy') {
+    if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable. Download Markdown instead.');
+    try { await navigator.clipboard.writeText(formatCharacterExport(snapshot, 'md')); }
+    catch { throw new Error('Could not copy. Download Markdown instead.'); }
+    message('Character summary copied.');
+  } else {
+    download(formatCharacterExport(snapshot, format), characterExportFilename(snapshot, format), characterExportMime(format));
+    message('Character ' + format.toUpperCase() + ' download started.');
+  }
+  closeCharacterExport(true);
 }
 function googleDriveView() {
   const state = drive.status();
@@ -1972,6 +2016,8 @@ async function handleClick(event) {
   const button = event.target.closest('[data-action]');
   if (!button) return;
   const { action, id, character, perk, mode, family } = button.dataset;
+  if (action === 'character-export-open') { openCharacterExport(); return; }
+  if (action === 'character-export') { await exportCharacter(button.dataset.format); return; }
   if(action==='stock-step'){stepStock(button);return;}
   if(action==='killer-stock-step'){stepKillerQuantity(button);return;}
   if(action==='killer-addon-filter-reset'){resetKillerAddonFilters();return;}
@@ -2513,6 +2559,8 @@ document.addEventListener('focusin',event=>{
 });
 document.addEventListener('focusout',event=>{
   if(stockRendering)return;
+  // Export is a read action: do not let leaving a quantity input implicitly save it.
+  if (event.relatedTarget?.closest('[data-character-export-controls]')) return;
   if(event.target.hasAttribute('data-killer-quantity')||event.target.hasAttribute('data-killer-stock-step')){
     const id=event.target.dataset.killerQuantity||event.target.dataset.id, key=killerSessionKey, related=event.relatedTarget;
     if(event.target.hasAttribute('data-killer-quantity'))normalizeKillerQuantityOnBlur(event.target,id);
@@ -2652,6 +2700,17 @@ window.addEventListener('storage', event => {
   if (event.key === 'dbdTrackerBackups' && route() === 'data') render();
 });
 $('#perk-filter-panel').addEventListener('toggle', () => $('#filters-trigger')?.setAttribute('aria-expanded', String($('#perk-filter-panel').matches(':popover-open'))));
+$('#character-export-menu').addEventListener('toggle', () => $('#character-export-trigger')?.setAttribute('aria-expanded', String($('#character-export-menu').matches(':popover-open'))));
+$('#character-export-menu').addEventListener('keydown', event => {
+  if (event.key === 'Escape') { event.preventDefault(); closeCharacterExport(true); return; }
+  const buttons = [...$('#character-export-menu').querySelectorAll('button')];
+  const index = buttons.indexOf(document.activeElement);
+  if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+    event.preventDefault();
+    buttons[event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : (index + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length].focus();
+  }
+});
+window.addEventListener('resize', () => closeCharacterExport());
 document.addEventListener('error', event => {
   const image = event.target;
   if (image instanceof HTMLImageElement && image.hasAttribute('data-collection-hero-art')

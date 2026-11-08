@@ -92,6 +92,15 @@ npm run build</code></pre>
     <footer>THE LEDGER <span>Personal progression tracker · No account required</span></footer>
   </div>
   <div id="perk-filter-panel" popover="auto" aria-label="Advanced perk filters"></div>
+  <div id="character-export-menu" class="character-export-menu" data-character-export-controls popover="auto" role="dialog" aria-labelledby="character-export-title">
+    <strong id="character-export-title">Export character</strong>
+    <p>Saved progress only. Character JSON cannot restore an account.</p>
+    <button type="button" data-action="character-export" data-format="json">Export JSON</button>
+    <button type="button" data-action="character-export" data-format="md">Export Markdown (.md)</button>
+    <button type="button" data-action="character-export" data-format="txt">Export Text (.txt)</button>
+    <button type="button" data-action="character-export" data-format="csv">Export CSV (.csv)</button>
+    <button type="button" data-action="character-export" data-format="copy">Copy Summary</button>
+  </div>
   <div id="filter-status" class="visually-hidden" role="status" aria-live="polite"></div>
   <dialog id="detail" aria-labelledby="detail-title"><p id="detail-message" class="error" role="alert" hidden></p><div id="detail-content"></div></dialog>
   <dialog id="confirmation" aria-labelledby="confirm-title"><form method="dialog"><h2 id="confirm-title"></h2><p id="confirm-text"></p><div class="dialog-actions"><button value="cancel" autofocus>Cancel</button><button id="confirm-accept" class="primary" value="accept">Confirm</button></div></form></dialog>

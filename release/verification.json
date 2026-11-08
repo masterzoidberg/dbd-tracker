@@ -1,12 +1,12 @@
 {
-  "status": "PASS",
-  "stage": "C:\\Users\\nicol\\.codex\\worktrees\\ledger-hosted-foundation\\dbd-tracker\\release\\runtime",
+  "status": "AWAITING_MANUAL_ACCEPTANCE",
+  "stage": "C:\\Users\\nicol\\.codex\\worktrees\\character-detail-export\\dbd-tracker\\release\\runtime",
   "catalog": {
     "patch": "10.1.2a",
     "date": "2026-10-05"
   },
   "localhost": "AUTOMATED PASS",
-  "browser": "msedge 156.0.4314.58",
+  "browser": "msedge 157.0.4341.42",
   "checks": [
     "startup",
     "contextual Bloodweb/Favorite save",
@@ -44,13 +44,6 @@
     "killerPowers": 37,
     "fallbackKillerPowers": 7
   },
-  "directFile": "MANUAL PASS",
-  "directFileAcceptance": {
-    "acceptedDate": "2026-11-01",
-    "browser": "msedge 156.0.4314.58",
-    "bundleSha256": "0edd12af17497240e65f25cae6ebf81d9647f30fabb5c825a207d6d80a8bf2a5",
-    "visualKeyboard200PercentZoomChecks": "PASS",
-    "persistenceThroughReloadAndReopen": "PASS"
-  },
-  "bundleSha256": "0edd12af17497240e65f25cae6ebf81d9647f30fabb5c825a207d6d80a8bf2a5"
+  "directFile": "MANUAL ACCEPTANCE REQUIRED",
+  "bundleSha256": "85bbb75646a5a6d59dfe6813f55f62f92adc0ce183afb5ea93d98401a6589da7"
 }

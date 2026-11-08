@@ -2345,6 +2345,13 @@ footer span {
 .status-chip.is-owned { color:var(--text); border-color:#535056; background:#242427; }
 .status-chip.is-favorite { color:var(--gold); border-color:#58492f; background:#211d16; }
 .character-workspace-favorite { min-height:44px; }
+.character-workspace-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; flex-shrink:0; max-width:100%; }
+.character-workspace-actions button { min-height:44px; }
+.character-workspace-actions button:focus-visible, .character-export-menu button:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+.character-export-menu { position:fixed; inset:auto; box-sizing:border-box; width:248px; max-width:calc(100vw - 16px); max-height:calc(100dvh - 16px); overflow:auto; margin:0; padding:12px; border:1px solid #51432d; border-radius:6px; background:#1c1b1b; color:var(--text); box-shadow:0 12px 32px #0009; }
+.character-export-menu strong { display:block; font-size:13px; }
+.character-export-menu p { margin:6px 0 10px; font-size:11px; line-height:1.5; color:var(--muted); }
+.character-export-menu button { display:block; width:100%; min-height:44px; margin-top:4px; text-align:left; }
 .character-workspace-progress-shell { position:relative; width:max-content; max-width:100%; margin:16px 0 0 98px; }
 .character-workspace-progress { display:flex; gap:34px; min-height:44px; padding:0; border:0; background:transparent; color:inherit; font:inherit; text-align:left; }
 .character-workspace-progress.is-editable { cursor:pointer; }
@@ -2438,7 +2445,8 @@ footer span {
   .character-workspace-progress.is-editable{width:100%;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;}
   .character-overview-section{padding:16px;}
 }
-@media(min-width:601px){.character-workspace-favorite{align-self:flex-start;margin-top:48px;}}
+@media(min-width:601px){.character-workspace-actions{align-self:flex-start;margin-top:48px;}}
+@media(max-width:1000px) and (min-width:601px){.character-workspace-hero{flex-wrap:wrap;}.character-workspace-actions{margin-top:0;}}
 
 
 /* Character Workspace visual redesign: family-first stock */

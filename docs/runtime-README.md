@@ -1,5 +1,16 @@
 # The Ledger · Dead by Daylight tracker
 
+Each Killer and Survivor workspace has **Export Character** beside Favorite.
+Download JSON, Markdown, text or long-form CSV, or copy the Markdown summary.
+Exports contain only that character's recorded progress, notes, perk tiers,
+inventory quantities and planning references, with separately labeled account
+unlock rules, catalog descriptions and derived tiers. Unrecorded quantities
+display as zero in the tracker; missing records are not invented in the export.
+Character JSON is informational and cannot restore an account. Use Data & backups
+for full-account export/import. Save or discard pending edits before exporting.
+Downloads work offline and from direct files. If copying is unavailable or denied,
+download Markdown instead. Exporting does not save, synchronize or upload progress.
+
 Google Drive is an optional online JSON backup transport on HTTP/HTTPS builds
 configured by the publisher. It is unavailable when opened directly from disk.
 Browser-local data remains the primary save; local import/export and recovery
