@@ -6,6 +6,7 @@ import { chromium } from 'playwright-core';
 import { freshSave } from '../../src/model.js';
 import { inventoryEntityById } from '../../data/inventory-catalog.js';
 import { smokeStage } from './smoke.mjs';
+import { dredgeExportFixture } from '../fixtures/character-export.js';
 
 async function downloadText(page, name) {
   const pending = page.waitForEvent('download');
@@ -80,8 +81,8 @@ export async function characterExportRegression(page, origin) {
       assert.equal(data.progression.bloodwebLevel, 37);
       assert.deepEqual(data.perks, [{ id: 'grim-embrace', name: 'Grim Embrace', tier: 2 }]);
     } else if (format === 'md') {
-      assert.match(output.text, /\| Grim Embrace \| II \|/);
-      assert.doesNotMatch(output.text, /\| Grim Embrace \| III \|/);
+      assert.match(output.text, /### Grim Embrace \| Tier 2/);
+      assert.doesNotMatch(output.text, /### Grim Embrace \| Tier 3/);
     } else if (format === 'csv') {
       assert.match(output.text, /"Perks","Grim Embrace","","2","","grim-embrace"/);
     }
@@ -95,9 +96,9 @@ export async function characterExportRegression(page, origin) {
   await page.getByRole('button', { name: 'Copy Summary', exact: true }).click();
   assert.match(await page.locator('html').getAttribute('data-copied-character'), /^# The Artist/);
   const copied = await page.locator('html').getAttribute('data-copied-character');
-  assert.match(copied, /\| Grim Embrace \| II \|/);
+  assert.match(copied, /### Grim Embrace \| Tier 2/);
   assert.doesNotMatch(copied, /reference|accountRules|Birds of Torment/);
-  assert.ok(copied.length < 1000);
+  assert.ok(copied.length < 2000);
   assert.equal(await page.locator('#message').textContent(), 'Character summary copied.');
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerData')), before);
   await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined }));
@@ -143,9 +144,9 @@ export async function characterExportRegression(page, origin) {
     assert.ok(output.text.includes(item.name) && output.text.includes(survivorAddon.name));
     assert.doesNotMatch(output.text, /reference|accountRules|effectiveTier/);
     if (name === 'Export Markdown (.md)') {
-      assert.match(output.text, /## Item Inventory/);
-      assert.match(output.text, /## Item Add-on Inventory/);
-      assert.doesNotMatch(output.text, /## Notes|## Planning|## Recorded Perks/);
+      assert.match(output.text, /## Items/);
+      assert.match(output.text, /## Add-ons/);
+      assert.doesNotMatch(output.text, /## Notes|## Planning|## Perks/);
     }
   }
   await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: {
@@ -173,6 +174,42 @@ export async function characterExportRegression(page, origin) {
   await page.setViewportSize({ width: 1440, height: 900 });
 }
 
+export async function characterSummaryRegression(page, origin) {
+  const save = dredgeExportFixture();
+  save.characters['the-dredge'].perks['hex-plaything'] = 2;
+  await page.goto(origin + '/#character/the-dredge/overview');
+  await page.evaluate(value => localStorage.setItem('dbdTrackerData', JSON.stringify(value)), save);
+  await page.reload();
+  await page.locator('#character-export-trigger').waitFor();
+  const before = await page.evaluate(() => [localStorage.getItem('dbdTrackerData'), localStorage.getItem('dbdTrackerBackups')]);
+  await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: {
+    async writeText(text) { document.documentElement.dataset.copiedCharacter = text; },
+  } }));
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await openMenu(page);
+    await page.getByRole('button', { name: 'Copy Summary', exact: true }).click();
+    const copy = await page.locator('html').getAttribute('data-copied-character');
+    assert.ok(copy.startsWith('# The Dredge\n\nPrestige: 1\nBloodweb: 33\n'));
+    assert.match(copy, /### Hex: Plaything \| Tier 2/);
+    assert.match(copy, /within 20 metres/);
+    assert.match(copy, /90 seconds/);
+    assert.match(copy, /### Caffeine Tablets \| Common Add-On\n\nQuantity: 46/);
+    assert.equal(copy.split('Caffeine Tablets').length - 1, 1);
+    assert.doesNotMatch(copy, /Exported At|## Planning|24\/20\/16|&amp;|\| ---/);
+    await openMenu(page);
+    assert.equal((await downloadText(page, 'Export Markdown (.md)')).text, copy);
+    await openMenu(page);
+    const txt = (await downloadText(page, 'Export Text (.txt)')).text;
+    assert.match(txt, /^The Dredge\n\nPrestige: 1\nBloodweb: 33/);
+    assert.match(txt, /Hex: Plaything \| Tier 2/);
+    assert.match(txt, /within 20 metres/);
+    assert.doesNotMatch(txt, /^#+ /m);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  }
+  assert.deepEqual(await page.evaluate(() => [localStorage.getItem('dbdTrackerData'), localStorage.getItem('dbdTrackerBackups')]), before);
+}
+
 async function directFileRegression() {
   const browser = await chromium.launch({ channel: 'msedge', headless: true });
   try {
@@ -192,7 +229,10 @@ async function directFileRegression() {
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
-    console.log(await smokeStage(process.cwd(), { regression: characterExportRegression }));
+    console.log(await smokeStage(process.cwd(), { regression: async (page, origin) => {
+      await characterExportRegression(page, origin);
+      await characterSummaryRegression(page, origin);
+    } }));
     await directFileRegression();
     console.log('PASS: Character Export downloads, copy/fallback, saved-state safety, responsive UI and direct-file use.');
   } catch (error) { console.error(error.stack); process.exitCode = 1; }

@@ -1,4 +1,4 @@
-import { characterById, perkById, perkName } from '../data/catalog.js';
+import { characterById, perkById, perkName, perkTierValuesById } from '../data/catalog.js';
 import { inventoryEntityById } from '../data/inventory-catalog.js';
 
 const formats = { json: 'application/json', md: 'text/markdown', txt: 'text/plain', csv: 'text/csv' };
@@ -52,7 +52,6 @@ export function characterExportSnapshot(save, characterId, exportedAt = new Date
 
 const roleName = role => role === 'killer' ? 'Killer' : 'Survivor';
 const humanValue = value => typeof value === 'boolean' ? value ? 'Yes' : 'No' : String(value);
-const romanTier = tier => ['0', 'I', 'II', 'III'][tier];
 function summaryFields(snapshot) {
   const labels = { owned: 'Owned', favorite: 'Favorite', prestige: 'Prestige', bloodwebLevel: 'Bloodweb Level', setupComplete: 'Setup Complete' };
   return [['Role', roleName(snapshot.character.role)], ...Object.entries(snapshot.progression).map(([key, value]) => [labels[key], humanValue(value)]), ['Exported At', snapshot.exportedAt]];
@@ -86,13 +85,57 @@ function markdownNotes(notes) {
   const fence = '`'.repeat(length);
   return fence + '\n' + notes + (notes.endsWith('\n') ? '' : '\n') + fence;
 }
-function markdownTable(columns, rows) {
-  return '| ' + columns.join(' | ') + ' |\n| ' + columns.map(() => '---').join(' | ') + ' |\n'
-    + rows.map(row => '| ' + row.map(markdown).join(' | ') + ' |').join('\n');
+function readable(value = '') {
+  return String(value).replace(/&(?:amp|quot|apos|lt|gt|nbsp|#\d+|#x[0-9a-f]+);/gi, entity => {
+    const named = { '&amp;': '&', '&quot;': '"', '&apos;': "'", '&lt;': '<', '&gt;': '>', '&nbsp;': ' ' };
+    if (named[entity.toLowerCase()]) return named[entity.toLowerCase()];
+    const code = entity.slice(2, -1);
+    const number = code[0].toLowerCase() === 'x' ? parseInt(code.slice(1), 16) : Number(code);
+    return number > 0 && number <= 0x10ffff ? String.fromCodePoint(number) : entity;
+  });
 }
-function textRows(rows) {
-  const width = Math.max(...rows.map(([name]) => name.length));
-  return rows.map(([name, value]) => name.padEnd(width + 2) + value).join('\n');
+function perkDescription(id, tier) {
+  const description = Object.hasOwn(perkById, id) ? perkById[id].description : '';
+  const values = Object.hasOwn(perkTierValuesById, id) ? perkTierValuesById[id] : [];
+  // Only a sequence corroborated by the same numeric catalog field at all
+  // three tiers is selectable. Conflicting/unknown sequences remain verbatim.
+  const selected = description.replace(/(?<![\d./])\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?){2,}(?![\d./])/g, sequence => {
+    const numbers = sequence.split('/').map(Number);
+    const verified = numbers.length === 3 && Object.keys(values[0] ?? {}).some(key =>
+      numbers.every((number, index) => typeof values[index]?.[key] === 'number' && values[index][key] === number));
+    return verified && [1, 2, 3].includes(tier) ? String(numbers[tier - 1]) : sequence;
+  });
+  return readable(selected);
+}
+function humanSummary(snapshot, format) {
+  const md = format === 'md';
+  const heading = (level, text) => (md ? '#'.repeat(level) + ' ' : '') + text;
+  const name = value => md ? markdown(readable(value)) : readable(value);
+  // Description sentences become short paragraphs without changing mechanics.
+  const description = value => value.replace(/(?<=[.!?]) +(?=[A-Z])/g, '\n\n');
+  const sections = [heading(1, name(snapshot.character.name)),
+    [['prestige', 'Prestige'], ['bloodwebLevel', 'Bloodweb']]
+      .filter(([key]) => snapshot.progression[key] !== undefined)
+      .map(([key, label]) => label + ': ' + snapshot.progression[key]).join('\n')];
+  if (snapshot.perks.length) {
+    sections.push(heading(2, 'Perks'));
+    for (const perk of snapshot.perks) sections.push([
+      heading(3, name(perk.name) + ' | Tier ' + perk.tier),
+      description(perkDescription(perk.id, perk.tier)),
+    ].filter(Boolean).join('\n\n'));
+  }
+  for (const [map, title, category] of [['items', 'Items', 'Item'], ['addons', 'Add-ons', 'Add-On']]) {
+    if (!snapshot.inventory[map]?.length) continue;
+    sections.push(heading(2, title));
+    for (const entry of snapshot.inventory[map]) {
+      const entity = Object.hasOwn(inventoryEntityById, entry.id) ? inventoryEntityById[entry.id] : null;
+      const rarity = entity?.rarity?.replace(/[-_]/g, ' ').replace(/\b\w/g, letter => letter.toUpperCase());
+      sections.push([heading(3, name(entry.name) + ' | ' + [rarity, category].filter(Boolean).join(' ')),
+        'Quantity: ' + entry.quantity, description(readable(entity?.effect))].filter(Boolean).join('\n\n'));
+    }
+  }
+  if (snapshot.notes?.trim()) sections.push(heading(2, 'Notes') + '\n\n' + (md ? markdownNotes(snapshot.notes) : snapshot.notes));
+  return sections.filter(Boolean).join('\n\n') + '\n';
 }
 function csvCell(value) {
   let text = String(value);
@@ -103,23 +146,8 @@ function csvCell(value) {
 export function formatCharacterExport(snapshot, format) {
   characterExportMime(format);
   if (format === 'json') return JSON.stringify(snapshot, null, 2) + '\n';
+  if (format === 'md' || format === 'txt') return humanSummary(snapshot, format);
   const summary = summaryFields(snapshot), planning = planningFields(snapshot), inventories = inventorySections(snapshot);
-  if (format === 'md') {
-    const sections = ['# ' + markdown(snapshot.character.name), summary.map(([key, value]) => '- **' + key + ':** ' + markdown(value)).join('\n')];
-    if (snapshot.perks.length) sections.push('## Recorded Perks\n\n' + markdownTable(['Perk', 'Tier'], snapshot.perks.map(row => [row.name, romanTier(row.tier)])));
-    for (const [map, title, noun] of inventories) sections.push('## ' + title + '\n\n' + markdownTable([noun, 'Quantity'], snapshot.inventory[map].map(row => [row.name, row.quantity])));
-    if (snapshot.notes !== undefined) sections.push('## Notes\n\n' + markdownNotes(snapshot.notes));
-    if (planning.length) sections.push('## Planning\n\n' + planning.map(([key, value]) => '- ' + key + ': ' + markdown(value)).join('\n'));
-    return sections.join('\n\n') + '\n';
-  }
-  if (format === 'txt') {
-    const sections = [snapshot.character.name, summary.map(([key, value]) => key + ': ' + value).join('\n')];
-    if (snapshot.perks.length) sections.push('RECORDED PERKS\n' + textRows(snapshot.perks.map(row => [row.name, romanTier(row.tier)])));
-    for (const [map, title] of inventories) sections.push(title.toUpperCase() + '\n' + textRows(snapshot.inventory[map].map(row => [row.name, row.quantity])));
-    if (snapshot.notes !== undefined) sections.push('NOTES\n' + snapshot.notes);
-    if (planning.length) sections.push('PLANNING\n' + planning.map(([key, value]) => key + ': ' + value).join('\n'));
-    return sections.join('\n\n') + '\n';
-  }
   const rows = [['Section', 'Name', 'Value', 'Tier', 'Quantity', 'ID'], ['Summary', 'Character', snapshot.character.name, '', '', snapshot.character.id],
     ...summary.map(([key, value]) => ['Summary', key, value, '', '', '']),
     ...snapshot.perks.map(row => ['Perks', row.name, '', row.tier, '', row.id])];

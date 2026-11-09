@@ -1,6 +1,6 @@
 {
   "status": "AWAITING_MANUAL_ACCEPTANCE",
-  "stage": "C:\\Users\\nicol\\.codex\\worktrees\\character-detail-export\\dbd-tracker\\release\\runtime",
+  "stage": "G:\\Projects\\dbd-tracker-summary\\release\\runtime",
   "catalog": {
     "patch": "10.1.2a",
     "date": "2026-10-05"
@@ -45,5 +45,5 @@
     "fallbackKillerPowers": 7
   },
   "directFile": "MANUAL ACCEPTANCE REQUIRED",
-  "bundleSha256": "17b47aa6950041b635e587c1425576b0a02408f8c6e777814927fc8c5d7378f5"
+  "bundleSha256": "9b90062cc50f2ffcb774dd1f8b411ddb876ab0ed28fafd53f710e9d40b15b2f5"
 }

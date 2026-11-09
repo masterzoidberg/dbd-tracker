@@ -57,6 +57,7 @@ const perkIds = {
 
 export const characters = [];
 export const perks = [];
+export const perkTierValuesById = {};
 const formerConsoleGeneral = {
   type: 'former_console_general',
   label: 'Legacy General Perk',
@@ -82,6 +83,7 @@ for (const [role, data] of [['survivor', survivorData], ['killer', killerData]])
     const name = characterNames[sourceName] ?? sourceName;
     const sourceId = row.is_general_perk ? null : characterIds[sourceName] ?? slug(sourceName);
     const id = perkIds[row.slug] ?? row.slug;
+    perkTierValuesById[id] = [row.tier_1_values, row.tier_2_values, row.tier_3_values];
     perks.push({
       id, name: row.name, role, general: row.is_general_perk || !!halloweenNames[id] || !!hellraiserNames[id],
       sourceCharacterId: sourceId, sourceCharacterName: row.is_general_perk ? 'General' : name,
@@ -107,7 +109,10 @@ for (const id of characters.find(c => c.id === 'laurie-strode').nativePerkIds) {
 characters.sort((a, b) => a.name.localeCompare(b.name));
 export const characterById = Object.fromEntries(characters.map(c => [c.id, c]));
 export const perkById = Object.fromEntries(perks.map(p => [p.id, p]));
-for (const [alias, id] of Object.entries(perkAliases)) perkById[alias] = perkById[id];
+for (const [alias, id] of Object.entries(perkAliases)) {
+  perkById[alias] = perkById[id];
+  perkTierValuesById[alias] = perkTierValuesById[id];
+}
 export const catalogInfo = {
   label: 'JSON catalog',
   patch: survivorData.verified_live_patch,

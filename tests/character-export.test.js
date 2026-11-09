@@ -113,22 +113,23 @@ test('every format excludes account rules, derived calculations, reference data 
   save.planning.playingQueues.killer[0].token = 'SECRET_QUEUE_TOKEN';
   const before = JSON.stringify(save), data = snapshot(save);
   const forbidden = /accountRules|reference|derived|automaticMinimum|effectiveTier|nextBloodwebTier|inventoryPolicy|accountRulesVersion|nativePerkIds|description|"summary"\s*:|sourceCharacter|powerName|mechanics|rarity|compatib|UNRELATED_|SECRET_|Nightfall|Prestige\/Shrine/i;
-  for (const format of formats) assert.doesNotMatch(formatCharacterExport(data, format), forbidden);
+  for (const format of ['json', 'csv']) assert.doesNotMatch(formatCharacterExport(data, format), forbidden);
+  for (const format of ['md', 'txt']) assert.doesNotMatch(formatCharacterExport(data, format), /accountRules|effectiveTier|UNRELATED_|SECRET_|## Planning/);
   data.inventory.addons[0].quantity = 999;
   data.planning.prestige.targetPrestige = 999;
   assert.equal(JSON.stringify(save), before);
 });
 
-test('all formats contain the same personal entries; human tiers are Roman and CSV uses one row per entry', () => {
+test('all formats contain the same personal entries; human summaries consolidate descriptions and CSV retains rows', () => {
   const data = snapshot(dredgeExportFixture());
   assert.deepEqual(JSON.parse(formatCharacterExport(data, 'json')), data);
   const md = formatCharacterExport(data, 'md'), txt = formatCharacterExport(data, 'txt');
-  assert.match(md, /\| Dark Devotion \| II \|/);
-  assert.match(md, /\| Monitor & Abuse \| I \|/);
-  assert.match(txt, /Dark Devotion\s+II/);
-  assert.match(txt, /Monitor & Abuse\s+I\b/);
-  assert.match(md, /\| Caffeine Tablets \| 46 \|/);
-  assert.match(txt, /Caffeine Tablets\s+46/);
+  assert.match(md, /### Dark Devotion \| Tier 2/);
+  assert.match(md, /### Monitor & Abuse \| Tier 1/);
+  assert.match(txt, /Dark Devotion \| Tier 2/);
+  assert.match(txt, /Monitor & Abuse \| Tier 1/);
+  assert.match(md, /### Caffeine Tablets \| Common Add-On\n\nQuantity: 46/);
+  assert.match(txt, /Caffeine Tablets \| Common Add-On\n\nQuantity: 46/);
   assert.doesNotMatch(txt, /Recorded tier:|ID:|Name:|Value:|<br>|^## |^\|/m);
   const [header, ...rows] = csvRecords(formatCharacterExport(data, 'csv'));
   assert.deepEqual(header, ['Section', 'Name', 'Value', 'Tier', 'Quantity', 'ID']);
@@ -142,7 +143,10 @@ test('all formats contain the same personal entries; human tiers are Roman and C
   for (const entry of data.inventory.addons) assert.deepEqual(rows.find(row => row[5] === entry.id), ['Add-ons', entry.name, '', '', String(entry.quantity), entry.id]);
   assert.ok(rows.some(row => row[0] === 'Notes' && row[2] === data.notes));
   assert.ok(md.includes(data.notes) && txt.includes(data.notes));
-  for (const text of [md, txt]) for (const value of ['Prestige', 'Bloodweb', 'Setup', 'Owned', 'Favorite', time]) assert.ok(text.includes(value), value);
+  for (const text of [md, txt]) {
+    for (const value of ['Prestige: 1', 'Bloodweb: 33']) assert.ok(text.includes(value), value);
+    assert.doesNotMatch(text, /Setup Complete|Owned:|Favorite:|Exported At|## Planning/);
+  }
   assert.throws(() => formatCharacterExport(data, 'html'), /Unsupported/);
 });
 
