@@ -1292,12 +1292,18 @@ async function resolveWorkspaceDraftTransition(intent) {
   }
   if (focused?.closest('#global-nav') && $('#menu-toggle').getClientRects().length
     && $('#menu-toggle').getAttribute('aria-expanded') !== 'true') {
-    // Native dialog restoration can otherwise overwrite focus with BODY after
-    // its original navigation link was hidden by closing the compact Menu.
+    // Close listeners can schedule native focus restoration in this frame.
+    // Repair the hidden opener only after those callbacks have finished, and
+    // never replace a newer user destination or a newer transition/dialog.
     requestAnimationFrame(() => {
-      if (!dialog.open && route() === sourceRoute && $('#menu-toggle').getAttribute('aria-expanded') !== 'true') {
-        $('#menu-toggle').focus({ preventScroll: true });
-      }
+      requestAnimationFrame(() => {
+        const trigger = $('#menu-toggle'), active = document.activeElement;
+        if (transitionToken === workspaceTransitionToken && !$('dialog[open]') && route() === sourceRoute
+          && trigger.getClientRects().length && trigger.getAttribute('aria-expanded') !== 'true'
+          && (active === document.body || active === document.documentElement || active === focused || dialog.contains(active))) {
+          trigger.focus({ preventScroll: true });
+        }
+      });
     });
   }
   else if (focused?.isConnected) focused.focus();

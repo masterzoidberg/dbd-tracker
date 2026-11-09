@@ -370,7 +370,12 @@ export async function shellNavigationRegression(page, origin) {
   assert.equal(await navigation.getByRole('link').first().evaluate(node => node === document.activeElement), true);
   await page.keyboard.press('Enter');
   await page.getByRole('button', { name: 'Stay', exact: true }).waitFor();
+  await page.evaluate(() => {
+    window.__escapeCloseFinished = false;
+    document.querySelector('#dirty-navigation').addEventListener('close', () => { window.__escapeCloseFinished = true; }, { once: true });
+  });
   await page.keyboard.press('Escape');
+  await page.waitForFunction(() => window.__escapeCloseFinished);
   assert.equal(await page.locator('#dirty-navigation').evaluate(dialog => dialog.open), false, 'Escape closes the dirty-edit dialog');
   assert.equal(await menu.getAttribute('aria-expanded'), 'true', 'Dialog Escape leaves the expanded Menu behind the dialog alone');
   await page.waitForFunction(() => document.activeElement.matches('#global-nav a'));
@@ -382,13 +387,20 @@ export async function shellNavigationRegression(page, origin) {
   await page.getByRole('button', { name: 'Stay', exact: true }).waitFor();
   // Reproduce the runner's late native restoration to BODY after the opener
   // becomes hidden, so the recovery is also exercised on newer local browsers.
-  await page.evaluate(() => document.querySelector('#dirty-navigation').addEventListener('close', () => {
-    requestAnimationFrame(() => document.activeElement.blur());
-  }, { capture: true, once: true }));
+  await page.evaluate(() => {
+    window.__lateMenuFocusRestorationFinished = false;
+    document.querySelector('#dirty-navigation').addEventListener('close', () => {
+      requestAnimationFrame(() => {
+        document.activeElement.blur();
+        window.__lateMenuFocusRestorationFinished = true;
+      });
+    }, { capture: true, once: true });
+  });
   // Target Stay explicitly when reopening the native dialog; a visible button
   // alone does not establish which element receives a page-level Enter.
   await page.getByRole('button', { name: 'Stay', exact: true }).press('Enter');
   await page.waitForFunction(() => !document.querySelector('#dirty-navigation').open);
+  await page.waitForFunction(() => window.__lateMenuFocusRestorationFinished);
   assert.equal(await menu.getAttribute('aria-expanded'), 'false', 'Stay dismisses compact Menu');
   await page.waitForFunction(() => document.activeElement.id === 'menu-toggle').catch(async error => {
     const state = await page.evaluate(() => ({ activeTag: document.activeElement.tagName, activeId: document.activeElement.id,

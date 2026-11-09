@@ -83,6 +83,8 @@ export async function smokeStage(stage, { channel = 'msedge', regression, manife
       await filteringRegression(page, origin);
       await focusAndLayouts(page, origin);
       await shellNavigationRegression(page, origin);
+      const { compactNavigationRegression } = await import('./compact-navigation.mjs');
+      await compactNavigationRegression(page, origin);
       const { artworkRegression } = await import('./artwork.mjs');
       await artworkRegression(page, origin, manifest);
       const { dataFlowsRegression, personalCorrectionRegression } = await import('./data-flows.mjs');
