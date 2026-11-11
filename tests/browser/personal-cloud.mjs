@@ -62,6 +62,10 @@ try {
   assert.equal(remote, null);
   await first.page.locator('#ledger-use-local').click(); await waitSaved(first.page);
   assert.deepEqual(await current(first.page), remote.data);
+  await first.page.locator('#ledger-recovery summary').click();
+  const download = first.page.waitForEvent('download');
+  await first.page.getByRole('button', { name: /Download preserved copy 1/ }).click();
+  assert.match((await download).suggestedFilename(), /ledger-preserved-1\.json/);
   await first.page.locator('#ledger-account-close').click();
   const second = await device({ width: 390, height: 844 });
   await second.page.locator('#ledger-use-cloud').click(); await waitSaved(second.page);
@@ -91,6 +95,9 @@ try {
   await first.page.keyboard.press('Escape');
   assert.equal(await first.page.locator('#ledger-account').evaluate(dialog => dialog.open), false);
   assert.equal(await second.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  await second.page.setViewportSize({ width: 320, height: 700 });
+  await second.page.getByRole('button', { name: /^Account ·/ }).click();
+  assert.equal(await second.page.locator('#ledger-account').evaluate(dialog => dialog.getBoundingClientRect().width <= innerWidth - 16), true);
   assert.deepEqual(errors, []);
   console.log('PASS: two device contexts, sign-in, explicit linking, UI edit sync, writer lock, preserved copies, mobile width and keyboard close (mocked APIs).');
 } finally { await browser.close(); await new Promise(resolve => server.close(resolve)); }

@@ -10,9 +10,15 @@ export function mountAccount({ document, storage, getSave, replaceSave, assertWr
   document.querySelector('.topbar > div').append(entry);
   const dialog = document.createElement('dialog');
   dialog.id = 'ledger-account'; dialog.setAttribute('aria-labelledby', 'ledger-account-title');
-  dialog.innerHTML = `<h2 id="ledger-account-title">Personal cloud save</h2>
-    <p id="ledger-account-identity"></p>
-    <p id="ledger-account-status" role="status" aria-live="polite"></p>
+  dialog.innerHTML = `<header class="ledger-account-header">
+      <div><span class="ledger-account-eyebrow">YOUR ACCOUNT</span><h2 id="ledger-account-title">Cloud save</h2>
+        <p id="ledger-account-identity"></p></div>
+      <button type="button" id="ledger-account-close" aria-label="Close account dialog">×</button>
+    </header>
+    <div class="ledger-account-body">
+    <div class="ledger-account-state" data-status="signed-out"><span class="ledger-account-state-icon" aria-hidden="true">✓</span>
+      <div><strong id="ledger-account-status-title">Saved on this device</strong>
+        <p id="ledger-account-status" role="status" aria-live="polite"></p></div></div>
     <form id="ledger-account-form">
       <label for="ledger-account-email">Email</label><input id="ledger-account-email" type="email" autocomplete="username" required>
       <label for="ledger-account-password">Password</label><input id="ledger-account-password" type="password" autocomplete="current-password" required>
@@ -20,17 +26,17 @@ export function mountAccount({ document, storage, getSave, replaceSave, assertWr
       <p class="muted">This is a private account. Password recovery uses the local administrative setup; no email is sent.</p>
     </form>
     <div id="ledger-cloud-actions" hidden>
-      <p id="ledger-cloud-dates"></p>
+      <div class="ledger-account-versions"><div><span>CLOUD SAVE</span><strong id="ledger-cloud-date">No cloud save yet</strong></div>
+        <div><span>THIS DEVICE</span><strong id="ledger-device-date">—</strong></div></div>
       <div id="ledger-cloud-choice" hidden><p>Your current save will be preserved before either choice.</p>
         <button type="button" id="ledger-use-local">Use this device’s save</button>
         <button type="button" id="ledger-use-cloud">Use cloud save</button>
       </div>
-      <button type="button" id="ledger-cloud-refresh">Refresh / retry</button>
-      <button type="button" id="ledger-account-signout">Sign out</button>
+      <div class="ledger-account-actions"><button type="button" id="ledger-cloud-refresh">Refresh save</button>
+        <button type="button" id="ledger-account-signout">Sign out</button></div>
     </div>
-    <div id="ledger-preserved"></div>
-    <p class="muted">JSON export and import remain available in Data &amp; backups.</p>
-    <button type="button" id="ledger-account-close">Close</button>`;
+    <details id="ledger-recovery" hidden><summary id="ledger-recovery-label">Preserved copies</summary><div id="ledger-preserved"></div></details>
+    </div><footer class="ledger-account-footer">JSON export and import are available in Data &amp; backups.</footer>`;
   document.body.append(dialog);
   const $ = selector => dialog.querySelector(selector);
   let user = null, authBusy = false, authMessage = '', timer;
@@ -49,6 +55,11 @@ export function mountAccount({ document, storage, getSave, replaceSave, assertWr
     const busy = authBusy || state.busy;
     entry.textContent = user ? `Account · ${({ saved: 'Saved', pending: 'Saving…', conflict: 'Conflict', error: 'Needs attention', unlinked: 'Choose save' })[state.status] || 'Local'}` : 'Account · Sign in';
     $('#ledger-account-identity').textContent = user ? `Signed in as ${user.email}` : 'Sign in to use the same save on your devices.';
+    const stateTitle = { saved: 'Everything is in sync', pending: 'Saving changes', conflict: 'Choose a save to keep',
+      error: 'Cloud save needs attention', unlinked: 'Choose your starting save', 'signed-out': 'Saved on this device' };
+    $('#ledger-account-status-title').textContent = stateTitle[state.status] || 'Cloud save';
+    $('.ledger-account-state').dataset.status = state.status;
+    $('.ledger-account-state-icon').textContent = ['conflict', 'error'].includes(state.status) ? '!' : state.status === 'pending' ? '…' : state.status === 'unlinked' ? '↗' : '✓';
     $('#ledger-account-status').textContent = authMessage || state.message;
     $('#ledger-account-form').hidden = Boolean(user);
     $('#ledger-cloud-actions').hidden = !user;
@@ -56,23 +67,30 @@ export function mountAccount({ document, storage, getSave, replaceSave, assertWr
     for (const button of dialog.querySelectorAll('button:not(#ledger-account-close)')) button.disabled = busy;
     $('#ledger-use-cloud').disabled = busy || !state.remote;
     try {
-      $('#ledger-cloud-dates').textContent = state.remote
-        ? `Cloud save: ${new Date(state.remote.data.updatedAt).toLocaleString()}. Device save: ${new Date(getSave().updatedAt).toLocaleString()}.`
-        : 'No cloud save found.';
-    } catch { $('#ledger-cloud-dates').textContent = 'Local save is not available for syncing in this window.'; }
+      $('#ledger-cloud-date').textContent = state.remote ? new Date(state.remote.data.updatedAt).toLocaleString() : 'No cloud save yet';
+      $('#ledger-device-date').textContent = new Date(getSave().updatedAt).toLocaleString();
+    } catch { $('#ledger-device-date').textContent = 'Unavailable in this window'; }
     const preserved = $('#ledger-preserved'); preserved.replaceChildren();
     try {
-      for (const [index, copy] of recovery().entries()) {
+      const copies = recovery();
+      $('#ledger-recovery').hidden = copies.length === 0;
+      $('#ledger-recovery-label').textContent = `Preserved copies (${copies.length})`;
+      for (const [index, copy] of copies.entries()) {
         const button = document.createElement('button'); button.type = 'button';
-        button.textContent = `Download preserved copy: ${copy.reason} (${new Date(copy.createdAt).toLocaleString()})`;
+        button.textContent = `Download copy ${index + 1}`;
+        button.setAttribute('aria-label', `Download preserved copy ${index + 1}: ${copy.reason}`);
         button.addEventListener('click', () => {
           const url = URL.createObjectURL(new Blob([JSON.stringify(copy.data, null, 2)], { type: 'application/json' }));
           const anchor = document.createElement('a'); anchor.href = url; anchor.download = `ledger-preserved-${index + 1}.json`; anchor.click();
           setTimeout(() => URL.revokeObjectURL(url), 1000);
         });
-        preserved.append(button);
+        const row = document.createElement('div'); row.className = 'ledger-recovery-row';
+        const detail = document.createElement('div');
+        const title = document.createElement('strong'); title.textContent = copy.reason;
+        const time = document.createElement('small'); time.textContent = new Date(copy.createdAt).toLocaleString();
+        detail.append(title, time); row.append(detail, button); preserved.append(row);
       }
-    } catch { preserved.textContent = 'Preserved copies could not be read. Existing data has not been changed.'; }
+    } catch { $('#ledger-recovery').hidden = false; preserved.textContent = 'Preserved copies could not be read. Existing data has not been changed.'; }
   }
   async function request(path, body) {
     const response = await fetch(`/api/auth/${path}`, { method: body ? 'POST' : 'GET', credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(15000),
