@@ -48,10 +48,10 @@ export async function characterWorkspaceRegression(page, origin) {
   for (const section of ['native-perks','setup','perks','inventory','notes'])
     assert.equal(await workspace.locator('[data-overview-section="'+section+'"]').count(), 1, section);
   assert.equal(await workspace.locator('[data-overview-section="progress"]').count(), 0, 'Overview has no generic Progress / setup card');
-  const ownershipAction = workspace.locator('[data-character-header] .character-workspace-status [data-action="overview-ownership-toggle"]');
-  assert.equal(await ownershipAction.count(), 1, 'Ownership action stays beside Owned/Locked');
-  assert.equal(await workspace.locator('.character-overview-grid [data-action="overview-ownership-toggle"]').count(), 0,
-    'Ownership is not separated from character identity');
+  const ownershipAction = workspace.locator('[data-overview-section="setup"] [data-action="overview-ownership-toggle"]');
+  assert.equal(await ownershipAction.count(), 1, 'Ownership can be changed from the Overview content');
+  assert.equal(await ownershipAction.textContent(), 'Mark Owned');
+  assert.equal(await workspace.locator('[data-character-header] [data-action="overview-ownership-toggle"]').count(), 0);
   assert.equal(await workspace.locator('[data-character-progress-trigger]').count(), 1, 'Prestige and Bloodweb share one direct trigger');
   assert.equal(await workspace.locator('[data-character-progress-trigger] .character-progress-edit-cue').isVisible(), true,
     'The single direct trigger shows an at-rest edit cue');

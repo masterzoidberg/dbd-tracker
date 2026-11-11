@@ -736,7 +736,6 @@ function characterWorkspaceHeader(character, descriptor) {
     + '<div class="character-workspace-hero"><div class="character-workspace-summary"><div class="character-workspace-identity">' + workspaceCharacterArtwork(character, 80)
     + '<div class="character-workspace-title"><div class="eyebrow">' + roleLabel.toUpperCase() + '</div><h1>' + esc(character.name) + '</h1>'
     + '<div class="character-workspace-status"><span class="status-chip ' + (progress.owned ? 'is-owned' : 'is-unowned') + '">' + (progress.owned ? 'Owned' : 'Locked') + '</span>'
-    + (isOverview ? '<button type="button" class="status-chip ownership-action" data-action="overview-ownership-toggle" data-id="' + character.id + '">' + (progress.owned ? 'Mark Locked' : 'Mark Owned') + '</button>' : '')
     + '<span class="status-chip ' + (progress.favorite ? 'is-favorite' : '') + '">' + (progress.favorite ? 'Favorite ★' : 'Not favorite') + '</span></div></div></div>'
     + '<div class="character-workspace-progress-shell"><' + (canStartProgression ? 'button type="button" data-action="character-task-start" data-task="progression" data-character-progress-trigger aria-label="Edit Prestige and Bloodweb progress"' : 'div role="group" aria-label="Character progression"')
     + ' class="character-workspace-progress' + (canStartProgression ? ' is-editable' : '') + '"><span data-character-progress="prestige"><span>PRESTIGE</span><strong>P' + progress.prestige + '</strong></span>'
@@ -779,11 +778,13 @@ function characterOverview(id) {
   }).join('');
   const task = characterTaskSession?.characterId === id ? characterTaskSession : null;
   const notesEditor = task?.task === 'notes' ? characterOverviewTaskEditor(id, task) : '';
+  const ownershipControl = '<div class="overview-ownership"><span>OWNERSHIP · ' + (progress.owned ? 'Owned' : 'Not owned') + '</span>'
+    + '<button type="button" class="ownership-action" data-action="overview-ownership-toggle" data-id="' + id + '">' + (progress.owned ? 'Mark Locked' : 'Mark Owned') + '</button></div>';
   const setup = progress.owned
-    ? '<section class="overview-setup ' + (progress.setupComplete ? 'is-complete' : 'needs-attention') + '" data-overview-section="setup"><strong>' + (progress.setupComplete ? 'Initial setup complete' : 'Initial setup incomplete') + '</strong>'
+    ? '<section class="overview-setup ' + (progress.setupComplete ? 'is-complete' : 'needs-attention') + '" data-overview-section="setup">' + ownershipControl + '<strong>' + (progress.setupComplete ? 'Initial setup complete' : 'Initial setup incomplete') + '</strong>'
       + '<p>' + (progress.setupComplete ? 'Review the saved Bloodweb setup when you need to reconcile older progress.' : 'Record the starting Bloodweb context before relying on setup-specific progression details.') + '</p>'
       + '<a href="' + characterWorkspaceHref(id, 'setup') + '">' + (progress.setupComplete ? 'Review initial setup' : 'Start initial setup') + '</a></section>'
-    : '<section class="overview-setup is-unowned" data-overview-section="setup"><strong>Initial setup unavailable</strong><p class="muted">This character is not marked Owned. Initial setup remains optional until ownership changes.</p></section>';
+    : '<section class="overview-setup is-unowned" data-overview-section="setup">' + ownershipControl + '<strong>Initial setup unavailable</strong><p class="muted">This character is not marked Owned. Initial setup remains optional until ownership changes.</p></section>';
   const inventorySummary = character.role === 'survivor' && inventoryCatalogStatus.survivor === 'ready'
     ? '<p><strong>Catalog</strong> · ' + inventoryEntities.filter(entity => entity.role === 'survivor' && entity.map === 'items').length + ' Items · '
       + inventoryEntities.filter(entity => entity.role === 'survivor' && entity.map === 'addons').length + ' Add-ons</p>'

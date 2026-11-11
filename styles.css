@@ -2397,6 +2397,9 @@ footer span {
 .overview-context a { color:var(--gold); font-size:12px; }
 .overview-helper { margin-top:14px; line-height:1.6; }
 .overview-setup { align-self:start; display:grid; justify-items:start; gap:7px; min-width:0; padding:4px 0 14px; border-bottom:1px solid var(--border); }
+.overview-ownership { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:8px; }
+.overview-ownership span { color:var(--muted); font-size:11px; letter-spacing:.08em; }
+.overview-ownership .ownership-action { min-height:44px; padding:8px 14px; border:1px solid var(--gold); border-radius:6px; color:var(--text); background:#2b241a; }
 .overview-setup strong { font-size:12px; font-weight:600; }
 .overview-setup p { max-width:48ch; margin:0; color:var(--muted); font-size:11px; line-height:1.5; }
 .overview-setup a { color:var(--gold); font-size:11px; }
