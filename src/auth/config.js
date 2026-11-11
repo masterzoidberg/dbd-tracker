@@ -5,7 +5,8 @@ export function createAuthConfig({ env, database, rateLimitStorage }) {
     database,
     secret: env.BETTER_AUTH_SECRET,
     baseURL: {
-      allowedHosts: [...new Set([env.VERCEL_URL, env.VERCEL_BRANCH_URL]
+      allowedHosts: [...new Set([env.VERCEL_URL, env.VERCEL_BRANCH_URL,
+        ...(env.VERCEL_ENV === 'production' ? [env.VERCEL_PROJECT_PRODUCTION_URL] : [])]
         .filter(host => typeof host === 'string' && vercelHost.test(host)))],
       protocol: 'https',
     },

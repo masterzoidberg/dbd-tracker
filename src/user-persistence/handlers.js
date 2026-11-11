@@ -21,14 +21,15 @@ function validObject(value) {
 }
 
 function sameOrigin(req, env) {
-  const host = env?.VERCEL_URL;
-  if (typeof host !== 'string' || !/^[a-z0-9.-]+$/i.test(host)) return false;
-  return req.headers?.origin === `https://${host}`;
+  const hosts = [env?.VERCEL_URL, env?.VERCEL_BRANCH_URL,
+    ...(env?.VERCEL_ENV === 'production' ? [env.VERCEL_PROJECT_PRODUCTION_URL] : [])];
+  return hosts.some(host => typeof host === 'string' && /^[a-z0-9.-]+$/i.test(host)
+    && req.headers?.origin === `https://${host}`);
 }
 
 export function createUserPersistenceHandlers({ env = process.env, resolveSession, getRepository, validateSave }) {
   function outsidePreview(res) {
-    return env?.VERCEL_ENV !== 'preview' ? send(res, 404, { error: 'Not found.' }) : null;
+    return !['preview', 'production'].includes(env?.VERCEL_ENV) ? send(res, 404, { error: 'Not found.' }) : null;
   }
 
   async function requireUserId(req, res) {

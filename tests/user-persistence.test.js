@@ -141,10 +141,10 @@ function sameOriginHeaders(cookie = 'better-auth.session_token=session-a') {
   return { cookie, origin: previewOrigin, host: previewEnv.VERCEL_URL };
 }
 
-test('non-Preview requests return 404 before resolving a session or constructing the repository', async () => {
+test('non-hosted requests return 404 before resolving a session or constructing the repository', async () => {
   let sessionLookups = 0;
   const harness = createHarness({
-    env: { VERCEL_ENV: 'production' },
+    env: { VERCEL_ENV: 'development' },
     resolveSession: async () => { sessionLookups += 1; return null; },
   });
   const handlers = requireHandlers(harness);
@@ -155,6 +155,21 @@ test('non-Preview requests return 404 before resolving a session or constructing
   assert.deepEqual(result.body, { error: 'Not found.' });
   assert.equal(sessionLookups, 0);
   assert.equal(harness.repositoryLookups, 0);
+});
+
+test('Production state still requires an authenticated session', async () => {
+  const harness = createHarness({ env: { ...previewEnv, VERCEL_ENV: 'production' } });
+  const result = await invoke(requireHandlers(harness).state, { method: 'GET', headers: {} });
+  assert.equal(result.statusCode, 401);
+});
+
+test('Production writes accept the stable production origin but reject unrelated origins', async () => {
+  const harness = createHarness({ env: { ...previewEnv, VERCEL_ENV: 'production', VERCEL_PROJECT_PRODUCTION_URL: 'dbd-tracker-opal.vercel.app' } });
+  const handlers = requireHandlers(harness);
+  for (const [origin, expected] of [['https://dbd-tracker-opal.vercel.app', 401], ['https://attacker.invalid', 403]]) {
+    const result = await invoke(handlers.backups, { method: 'POST', headers: { origin } });
+    assert.equal(result.statusCode, expected);
+  }
 });
 
 test('missing or expired sessions return 401 without constructing the user repository', async t => {
@@ -441,13 +456,13 @@ test('a request without an auth cookie returns 401 without constructing the auth
   }
 });
 
-test('root ledger API route modules exist and return 404 outside Preview before auth runtime construction', async () => {
+test('root ledger API route modules exist and return 404 outside hosted environments before auth runtime construction', async () => {
   for (const name of ['state', 'backups', 'backup']) {
     assert.equal(typeof ledgerRoutes[name], 'function', `${name} route must be deployed as a root API Function`);
   }
 
   const previousVercelEnv = process.env.VERCEL_ENV;
-  process.env.VERCEL_ENV = 'production';
+  process.env.VERCEL_ENV = 'development';
   try {
     assert.equal((await invoke(ledgerRoutes.state, { method: 'GET' })).statusCode, 404);
     assert.equal((await invoke(ledgerRoutes.backups, { method: 'POST' })).statusCode, 404);

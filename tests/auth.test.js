@@ -12,6 +12,14 @@ const previewEnv = () => ({
   BETTER_AUTH_SECRET: randomBytes(32).toString('base64url'),
 });
 
+test('Production auth accepts the stable Vercel production domain', () => {
+  let options;
+  const env = { ...previewEnv(), VERCEL_ENV: 'production', VERCEL_PROJECT_PRODUCTION_URL: 'dbd-tracker-opal.vercel.app' };
+  createAuthRuntime({ env, createPool: () => ({}), attachPool() {}, createRateLimitStorage: () => ({}),
+    createAuth: config => { options = config; return { handler() {} }; }, createNodeHandler: handler => handler });
+  assert.ok(options.baseURL.allowedHosts.includes('dbd-tracker-opal.vercel.app'));
+});
+
 function response() {
   return {
     statusCode: 200,
@@ -21,10 +29,10 @@ function response() {
   };
 }
 
-test('auth route returns 404 outside Preview before loading auth runtime', async () => {
+test('auth route returns 404 outside hosted environments before loading auth runtime', async () => {
   let loaded = false;
   const route = createAuthRoute({
-    env: { VERCEL_ENV: 'production' },
+    env: { VERCEL_ENV: 'development' },
     getRuntime: async () => { loaded = true; throw Error('must not load'); },
   });
   const res = response();
@@ -34,6 +42,12 @@ test('auth route returns 404 outside Preview before loading auth runtime', async
   assert.equal(res.statusCode, 404);
   assert.deepEqual(res.body, { error: 'Not found.' });
   assert.equal(loaded, false);
+});
+
+test('Production auth reaches the configured provider', async () => {
+  const route = createAuthRoute({ env: { VERCEL_ENV: 'production' }, getRuntime: async () => ({ handle: (_req, res) => res.status(200).json(null) }) });
+  const res = response(); await route({ method: 'GET' }, res);
+  assert.equal(res.statusCode, 200);
 });
 
 test('auth splat route restores nested Better Auth paths after Vercel routing', async () => {

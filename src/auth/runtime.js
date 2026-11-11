@@ -16,7 +16,7 @@ export function createAuthRuntime({
   convertHeaders = fromNodeHeaders,
   createRateLimitStorage = createAuthRateLimitStorage,
 } = {}) {
-  if (env?.VERCEL_ENV !== 'preview') throw unavailable();
+  if (!['preview', 'production'].includes(env?.VERCEL_ENV)) throw unavailable();
 
   const databaseUrl = env.DATABASE_URL;
   const secret = env.BETTER_AUTH_SECRET;
@@ -62,6 +62,6 @@ export function createAuthRuntime({
 let runtime;
 
 export function getAuthRuntime() {
-  if (process.env.VERCEL_ENV !== 'preview') throw unavailable();
+  if (!['preview', 'production'].includes(process.env.VERCEL_ENV)) throw unavailable();
   return runtime ??= createAuthRuntime();
 }

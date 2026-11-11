@@ -29,7 +29,7 @@ The command displays the database hostname, asks for the action and email, and r
 
 Use existing migrations 002 and 003 for auth, persistence, rate limits and access restrictions. Do not enable Neon-managed Auth or introduce another auth provider. Existing Mailtrap code and historical migration tables are not used by this flow; they are retained to avoid unrelated cleanup.
 
-The browser Account entry is included only in configured Vercel Preview/Production builds with `DATABASE_URL` and `BETTER_AUTH_SECRET`; ordinary static builds stay local-only. Runtime endpoints currently remain Preview-only pending live acceptance and deliberate Production enablement. Keep Vercel SSO protection enabled.
+The browser Account entry is included only in configured Vercel Preview/Production builds with `DATABASE_URL` and `BETTER_AUTH_SECRET`; ordinary static builds stay local-only. Auth and save endpoints support those hosted environments; other environments return 404. Production accepts its exact stable Vercel production domain as well as the deployment host. Keep Vercel SSO protection enabled.
 
 Preview acceptance uses a dedicated synthetic owner on Neon branch `codex/personal-cloud-save`. Production must use its own database credentials and session secret, and an administratively provisioned real owner. No Preview saves or credentials should be copied to Production.
 
@@ -41,3 +41,12 @@ Preview acceptance uses a dedicated synthetic owner on Neon branch `codex/person
 - Live protected Preview and real-device Production acceptance are separate checks; mocked browser tests do not establish either.
 
 The earlier Mailtrap blocker in `personal-preview-baseline.md` belongs to the superseded email-based design.
+
+## Acceptance recorded 2026-11-11
+
+- 506 Node tests passed after enabling Production support.
+- Full existing Edge browser regression passed, including JSON export/import/restore and local-only behavior.
+- Two-context browser cloud tests passed with simulated APIs.
+- Live protected Preview `dpl_AQuPH5UYF6FY93eSoyHX2nsh47tk`, commit `4f3c4d6`, passed real sign-in without email, cross-device UI edit synchronization, registration rejection, revision conflict rejection, secure HttpOnly session cookie and sign-out access revocation.
+- Preview uses Neon `br-nameless-wave-b8qvltb8`; Production uses `br-red-violet-b864mmsn`. Both have migrations 002/003 and separate restricted `ledger_personal_runtime` passwords. Production has independent session signing credentials.
+- Real owner password entry and actual second-device acceptance remain user steps. The local `.env.personal-admin` file is ignored and must never be committed or uploaded.
