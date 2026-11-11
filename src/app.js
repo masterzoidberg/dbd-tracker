@@ -1,6 +1,7 @@
 import { characters, characterById, perkById, catalogInfo, perkName } from '../data/catalog.js';
 import { freshSave, globalTier, isAvailable, unlockSource, inventoryTier, roleCharacters, rolePerks, characterStats, perkStats, parseSave, exportSave, setGlobalPerkUnlocked, syncGlobalInventories, completeCharacterSetup, automaticTier, recordedTier, ownedUnlockSource, bloodwebNextTier, bloodwebEligible, setHistoricalPerkTier } from './model.js';
 import { TrackerStorage } from './storage.js';
+import { mountAccount } from './account.js';
 import { createGoogleDrive } from './google-drive.js';
 import { characterExportSnapshot, formatCharacterExport, characterExportFilename, characterExportMime } from './character-export.js';
 import { parseCharacterWorkspaceRoute, characterWorkspaceHref, characterWorkspaceNeighbors } from './character-workspace.js';
@@ -31,7 +32,11 @@ const esc = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<'
 const roman = ['—', 'I', 'II', 'III'];
 const date = value => value ? new Date(value).toLocaleString() : 'Not updated yet';
 const editor = new EditorGuard(navigator.locks);
-const store = new TrackerStorage({ getItem: key => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value) }, () => editor.assertWriter());
+let cloudAccount = null, applyingCloudSave = false;
+const store = new TrackerStorage({ getItem: key => localStorage.getItem(key), setItem: (key, value) => {
+  localStorage.setItem(key, value);
+  if (key === 'dbdTrackerData' && !applyingCloudSave) cloudAccount?.changed();
+} }, () => editor.assertWriter());
 const drive = createGoogleDrive(typeof __LEDGER_GOOGLE_CONFIG__ === 'undefined' ? {} : __LEDGER_GOOGLE_CONFIG__);
 let driveBusy = false, driveBusyAction = '', driveChoosingFolder = false, drivePreparation = null, driveLoadError = '', lastDriveExport = '', driveDestinationUnavailable = false, drivePanelError = null;
 let importInProgress = false;
@@ -2755,5 +2760,31 @@ window.addEventListener('scroll', positionFilters, true);
 window.addEventListener('resize', positionCharacterInventoryQuickPicker);
 window.addEventListener('scroll', positionCharacterInventoryQuickPicker, true);
 render();
-void enableEditing();
+void enableEditing().then(() => {
+  if (typeof __LEDGER_ACCOUNT_ENABLED__ !== 'undefined' && __LEDGER_ACCOUNT_ENABLED__) {
+    cloudAccount = mountAccount({ document, storage: localStorage,
+      assertWriter: () => store.assertWriter(),
+      getSave: () => {
+        store.assertWriter();
+        if (storageBlocked) throw Error('Recover local data in Data & backups before connecting cloud saves.');
+        return structuredClone(save);
+      },
+      replaceSave: incoming => {
+        store.assertWriter();
+        const pendingQuantity = session => session && (Object.values(session.pending).some(Boolean) || Object.values(session.errors).some(Boolean));
+        if (hasDirtyWorkspaceDraft() || characterInventorySession.failedSelection || pendingQuantity(stockSession) || pendingQuantity(killerSession) || importInProgress) {
+          throw Error('Finish or cancel your current edit, then refresh the cloud save.');
+        }
+        applyingCloudSave = true;
+        try {
+          save = store.replace(save, incoming, 'Before loading cloud save');
+          clearContinue(localStorage);
+          $('#detail').close(); modal = null; characterSetup = null; setupQueue = null; setupOpen = false;
+          characterTaskSession = null; stockSession = null; killerSession = null;
+          render();
+        } finally { applyingCloudSave = false; }
+      },
+    });
+  }
+});
 

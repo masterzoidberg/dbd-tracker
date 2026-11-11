@@ -3250,3 +3250,9 @@ footer span {
     flex:1 1 140px
   }
 }
+/* Personal account dialog shares the existing form and button styles. */
+#ledger-account{width:min(560px,calc(100vw - 32px));max-height:85vh;overflow:auto}
+#ledger-account-form{display:grid;gap:10px}
+#ledger-account [hidden]{display:none!important}
+#ledger-cloud-actions button,#ledger-preserved button{margin:6px 6px 6px 0}
+#ledger-preserved button{display:block;text-align:left;white-space:normal}

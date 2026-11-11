@@ -4,8 +4,6 @@ import { attachDatabasePool } from '@vercel/functions';
 import { Pool } from 'pg';
 import { createAuthConfig } from './config.js';
 import { createAuthRateLimitStorage } from './rate-limit-storage.js';
-import { createEmailVerificationTokenGuard } from './verification-token-guard.js';
-import { createMailtrapPreviewDelivery } from './mailtrap-preview.js';
 
 const unavailable = () => new Error('Authentication is unavailable.');
 
@@ -16,9 +14,7 @@ export function createAuthRuntime({
   createAuth = betterAuth,
   createNodeHandler = toNodeHandler,
   convertHeaders = fromNodeHeaders,
-  emailDelivery = createMailtrapPreviewDelivery({ env }),
   createRateLimitStorage = createAuthRateLimitStorage,
-  createVerificationTokenGuard = createEmailVerificationTokenGuard,
 } = {}) {
   if (env?.VERCEL_ENV !== 'preview') throw unavailable();
 
@@ -37,9 +33,7 @@ export function createAuthRuntime({
   const auth = createAuth(createAuthConfig({
     env,
     database: pool,
-    emailDelivery,
     rateLimitStorage,
-    verificationTokenGuard: createVerificationTokenGuard({ pool, secret }),
   }));
 
   return {

@@ -1,8 +1,6 @@
-import { createAuthMiddleware } from 'better-auth/api';
-
 const vercelHost = /^[a-z0-9.-]+(?::\d+)?$/i;
 
-export function createAuthConfig({ env, database, emailDelivery, rateLimitStorage, verificationTokenGuard }) {
+export function createAuthConfig({ env, database, rateLimitStorage }) {
   return {
     database,
     secret: env.BETTER_AUTH_SECRET,
@@ -12,28 +10,12 @@ export function createAuthConfig({ env, database, emailDelivery, rateLimitStorag
       protocol: 'https',
     },
     basePath: '/api/auth',
+    disabledPaths: ['/sign-up/email', '/send-verification-email', '/verify-email', '/request-password-reset', '/reset-password'],
     emailAndPassword: {
       enabled: true,
-      requireEmailVerification: true,
+      disableSignUp: true,
+      requireEmailVerification: false,
       autoSignIn: false,
-      resetPasswordTokenExpiresIn: 3600,
-      revokeSessionsOnPasswordReset: true,
-      sendResetPassword: async ({ user, url }) => emailDelivery({
-        kind: 'password-reset',
-        to: user.email,
-        url,
-      }),
-    },
-    emailVerification: {
-      expiresIn: 3600,
-      sendOnSignUp: true,
-      sendOnSignIn: true,
-      autoSignInAfterVerification: false,
-      sendVerificationEmail: async ({ user, url }) => emailDelivery({
-        kind: 'verification',
-        to: user.email,
-        url,
-      }),
     },
     rateLimit: {
       enabled: true,
@@ -61,11 +43,6 @@ export function createAuthConfig({ env, database, emailDelivery, rateLimitStorag
     },
     user: {
       deleteUser: { enabled: false },
-    },
-    hooks: {
-      before: createAuthMiddleware(async context => {
-        if (context.path === '/verify-email') await verificationTokenGuard(context);
-      }),
     },
   };
 }

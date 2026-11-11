@@ -14,7 +14,11 @@ export async function buildProject(root = resolve(import.meta.dirname, '..'), {
   const generateManifest = writeManifest ?? (await import('./generate-assets.mjs')).writeAssetManifest;
   const manifest = await generateManifest(root);
   await bundle({ absWorkingDir: root, entryPoints: ['src/app.js'], bundle: true, format: 'iife', target: 'es2022', minify: true, outfile: 'dist/app.js', logLevel: 'info',
-    define: { __LEDGER_GOOGLE_CONFIG__: JSON.stringify(googleDriveConfig(process.env)) } });
+    define: {
+      __LEDGER_GOOGLE_CONFIG__: JSON.stringify(googleDriveConfig(process.env)),
+      __LEDGER_ACCOUNT_ENABLED__: JSON.stringify(['preview', 'production'].includes(process.env.VERCEL_ENV)
+        && Boolean(process.env.DATABASE_URL && process.env.BETTER_AUTH_SECRET)),
+    } });
   return manifest;
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

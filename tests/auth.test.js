@@ -98,18 +98,15 @@ test('auth runtime configures an exact Preview host and secure cookie protection
   assert.notEqual(options.advanced.disableCSRFCheck, true);
   assert.notEqual(options.advanced.disableOriginCheck, true);
   assert.equal(options.emailAndPassword.enabled, true);
-  assert.equal(options.emailAndPassword.requireEmailVerification, true);
-  assert.equal(options.emailAndPassword.revokeSessionsOnPasswordReset, true);
-  assert.equal(options.emailAndPassword.resetPasswordTokenExpiresIn, 3600);
-  assert.equal(options.emailVerification.expiresIn, 3600);
-  assert.equal(options.emailVerification.sendOnSignUp, true);
-  assert.equal(options.emailVerification.sendOnSignIn, true);
-  assert.equal(options.emailVerification.autoSignInAfterVerification, false);
+  assert.equal(options.emailAndPassword.requireEmailVerification, false);
+  assert.equal(options.emailAndPassword.disableSignUp, true);
+  assert.equal(options.emailAndPassword.sendResetPassword, undefined);
+  assert.equal(options.emailVerification, undefined);
   assert.notEqual(options.user?.deleteUser?.enabled, true);
   assert.equal(runtime.pool.connectionString, env.DATABASE_URL);
 });
 
-test('auth runtime defaults email callbacks to the Preview Mailtrap transport and fails closed without credentials', async () => {
+test('auth runtime needs no email transport', () => {
   const env = previewEnv();
   let options;
   createAuthRuntime({
@@ -122,10 +119,8 @@ test('auth runtime defaults email callbacks to the Preview Mailtrap transport an
     createNodeHandler: handler => handler,
   });
 
-  await assert.rejects(options.emailVerification.sendVerificationEmail({
-    user: { email: 'synthetic@example.invalid' },
-    url: `https://${env.VERCEL_URL}/api/auth/verify-email?token=synthetic`,
-  }), error => error.message === 'Email delivery is unavailable.');
+  assert.equal(options.emailVerification, undefined);
+  assert.equal(options.emailAndPassword.sendResetPassword, undefined);
 });
 
 test('session resolution uses the verified Better Auth session, not request-body identity', async () => {
