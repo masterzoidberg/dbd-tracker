@@ -2,14 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createQuantityInteraction, updateQuantityInput, acceptQuantityInput, visibleQuantityEntries, regroupQuantityEntries, quantityFocusAfterCommit, groupQuantityEntries, groupQuantityEntriesByItem, sortQuantityEntriesByRarity, stepQuantityInput } from '../src/inventory-interaction.js';
 const entities = [{id:'b',order:1,name:'Beta',familyId:'key'}, {id:'a',order:0,name:'Alpha',familyId:'key'}, {id:'c',order:2,name:'Gamma',familyId:'map'}];
-test('snapshot positive first canonical order stays frozen until successful regroup', () => {
+test('quantity changes never change canonical order', () => {
  const base=createQuantityInteraction(entities,{b:2});
- assert.deepEqual(visibleQuantityEntries(base,{}).map(e=>e.id),['b','a','c']);
+ assert.deepEqual(visibleQuantityEntries(base,{}).map(e=>e.id),['a','b','c']);
  const typed=updateQuantityInput(base,'a','5');
  const accepted=acceptQuantityInput(typed,'a');
  assert.equal(accepted.quantity,5); assert.equal(accepted.error,null);
- assert.deepEqual(visibleQuantityEntries(accepted.state,{}).map(e=>e.id),['b','a','c']);
+ assert.deepEqual(visibleQuantityEntries(accepted.state,{}).map(e=>e.id),['a','b','c']);
  assert.deepEqual(visibleQuantityEntries(regroupQuantityEntries(accepted.state,{a:5,b:2}),{}).map(e=>e.id),['a','b','c']);
+ assert.deepEqual(visibleQuantityEntries(regroupQuantityEntries(accepted.state,{b:2}),{}).map(e=>e.id),['a','b','c']);
  assert.equal(base.raw.a,'0'); assert.deepEqual(entities.map(e=>e.id),['b','a','c']);
 });
 test('invalid text and pending stock remain discoverable and draft filters retain edits', () => {
@@ -86,20 +87,18 @@ test('Survivor Add-ons stay beneath only compatible Items in existing Item order
     'Add-on association does not reorder Items');
 });
 
-test('rarity sorting uses normalized rarity and preserves source order for equal rarities', () => {
+test('rarity sorting uses normalized rarity then name, independent of source order', () => {
   const rows = [
-    { id:'ultra-rare', order:5, rarity:'Ultra Rare', sourceRarity:'Common' },
-    { id:'rare-first', order:4, rarity:'Rare', sourceRarity:'Common' },
-    { id:'rare-second', order:2, rarity:'Rare', sourceRarity:'Ultra Rare' },
-    { id:'very-rare', order:3, rarity:'Very Rare', sourceRarity:'Common' },
-    { id:'common-first', order:0, rarity:'Common', sourceRarity:'Ultra Rare' },
+    { id:'ultra-rare', name:'Zeta', order:5, rarity:'Ultra Rare', sourceRarity:'Common' },
+    { id:'rare-first', name:'Zeta', order:4, rarity:'Rare', sourceRarity:'Common' },
+    { id:'rare-second', name:'Alpha', order:2, rarity:'Rare', sourceRarity:'Ultra Rare' },
+    { id:'very-rare', name:'Delta', order:3, rarity:'Very Rare', sourceRarity:'Common' },
+    { id:'common-first', name:'Beta', order:0, rarity:'Common', sourceRarity:'Ultra Rare' },
   ];
   const original = structuredClone(rows);
   const order = ['Ultra Rare','Very Rare','Rare','Uncommon','Common'];
   assert.deepEqual(sortQuantityEntriesByRarity(rows, order).map(addon => addon.id),
-    ['ultra-rare','very-rare','rare-first','rare-second','common-first']);
-  assert.deepEqual(sortQuantityEntriesByRarity(rows, order, 'lowest-to-highest').map(addon => addon.id),
-    ['common-first','rare-first','rare-second','very-rare','ultra-rare']);
+    ['ultra-rare','very-rare','rare-second','rare-first','common-first']);
   assert.deepEqual(rows, original, 'Display ordering never mutates catalog rows');
 });
 

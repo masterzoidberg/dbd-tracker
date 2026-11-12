@@ -416,7 +416,6 @@ export async function workspaceContextRegression(page, origin) {
   await page.locator('#inventory-map').selectOption('addons');
   await page.locator('#inventory-filters-toggle').click();
   await page.locator('#inventory-rarity').selectOption(addon.rarity);
-  await page.locator('#addon-rarity-order').selectOption('lowest-to-highest');
   await page.locator('[data-roster-neighbor="next"]').click();
   await page.waitForURL('**/#character/' + survivors[megIndex + 1].id + '/items-addons');
   assert.equal(await page.locator('[data-action="stock-family-select"][aria-pressed="true"]').getAttribute('data-family'), family.id);
@@ -425,15 +424,14 @@ export async function workspaceContextRegression(page, origin) {
   assert.equal(await page.locator('#inventory-in-stock').isChecked(), true);
   assert.equal(await page.locator('#inventory-map').inputValue(), 'addons');
   assert.equal(await page.locator('#inventory-rarity').inputValue(), addon.rarity);
-  assert.equal(await page.locator('#addon-rarity-order').inputValue(), 'lowest-to-highest');
+  assert.equal(await page.locator('#addon-rarity-order').count(), 0);
 
   await page.goto(origin + '/#character/the-shape/power-addons');
-  await page.locator('#addon-rarity-order').selectOption('highest-to-lowest');
   await page.locator('[data-roster-neighbor="next"]').click();
   await page.waitForURL('**/#character/' + killers[killerIndex + 1].id + '/power-addons');
-  assert.equal(await page.locator('#addon-rarity-order').inputValue(), 'highest-to-lowest');
+  assert.equal(await page.locator('#addon-rarity-order').count(), 0);
   await page.goto(origin + '/#character/' + survivors[megIndex + 1].id + '/items-addons');
-  assert.equal(await page.locator('#addon-rarity-order').inputValue(), 'lowest-to-highest', 'Killer inventory context does not overwrite Survivor preferences');
+  assert.equal(await page.locator('#addon-rarity-order').count(), 0);
 
   await page.goto(origin + '/#character/meg-thomas/perks');
   await page.locator('#character-inventory-search').fill('Kindred');

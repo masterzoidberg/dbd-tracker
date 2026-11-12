@@ -7,7 +7,7 @@ import { characterExportSnapshot, formatCharacterExport, characterExportFilename
 import { parseCharacterWorkspaceRoute, characterWorkspaceHref, characterWorkspaceNeighbors } from './character-workspace.js';
 import {inventoryEntities,inventoryEntityById,inventoryCatalogStatus,survivorInventorySource,killerPowerByCharacterId} from '../data/inventory-catalog.js';
 import {inventoryIconPath,killerPowerIconPath} from './assets.js';
-import {createQuantityInteraction,updateQuantityInput,acceptQuantityInput,visibleQuantityEntries,regroupQuantityEntries,quantityFocusAfterCommit,groupQuantityEntries,groupQuantityEntriesByItem,sortQuantityEntriesByRarity,stepQuantityInput} from './inventory-interaction.js';
+import {createQuantityInteraction,updateQuantityInput,acceptQuantityInput,visibleQuantityEntries,regroupQuantityEntries,quantityFocusAfterCommit,groupQuantityEntries,groupQuantityEntriesByItem,sortQuantityEntriesByRarity,stepQuantityInput,inventoryRarityOrder} from './inventory-interaction.js';
 import { createCharacterTaskSession, updateCharacterTaskSession, buildCharacterTaskCandidate } from './character-edit.js';
 import { EditorGuard } from './editor.js';
 import { setupView } from './setup.js';
@@ -77,7 +77,6 @@ let killerSession = null;
 let killerSessionKey = '';
 let killerBlurPending = null;
 let killerFilters = { search: '', rarity: '', inStock: false };
-let addonRarityDirection = 'highest-to-lowest';
 let workspaceHistoryIndex = 0;
 let committedWorkspaceHash = location.hash || '#dashboard';
 let restoringWorkspaceHistory = null;
@@ -512,12 +511,10 @@ function captureWorkspaceContext(path) {
         ...stockFilters,
         familyId: selectedFamilyId,
         selectedItemId,
-        rarityDirection: addonRarityDirection,
       },
     } : {
       killerInventory: {
         ...killerFilters,
-        rarityDirection: addonRarityDirection,
       },
     }),
   });
@@ -539,10 +536,8 @@ function restoreWorkspaceContext(descriptor) {
     stockFilters = { map: inventory.map, rarity: inventory.rarity, search: inventory.search, inStock: inventory.inStock };
     selectedFamilyId = inventory.familyId;
     selectedItemId = inventory.selectedItemId;
-    addonRarityDirection = inventory.rarityDirection;
   } else {
     killerFilters = { search: context.killerInventory.search, rarity: context.killerInventory.rarity, inStock: context.killerInventory.inStock };
-    addonRarityDirection = context.killerInventory.rarityDirection;
   }
 }
 
@@ -873,7 +868,6 @@ function stockView(id) {
     stockFilters={map:context.map,rarity:context.rarity,search:context.search,inStock:context.inStock};
     selectedFamilyId=context.familyId;
     selectedItemId=context.selectedItemId;
-    addonRarityDirection=context.rarityDirection;
   }
   const select=(id,label,options,value)=>'<label>'+label+'<select id="'+id+'">'+options.map(([v,n])=>'<option value="'+esc(v)+'"'+(value===v?' selected':'')+'>'+esc(n)+'</option>').join('')+'</select></label>';
   const unresolved=Object.entries({...inventory.items,...inventory.addons}).filter(([entityId])=>!Object.hasOwn(inventoryEntityById,entityId));
@@ -912,7 +906,7 @@ function stockView(id) {
     const selectedItemAddons=selectedItem
       ?groupQuantityEntriesByItem([selectedItem],group.addons)[0].addons:[];
     const addonMarkup=selectedItemAddons.length
-      ?'<div class="stock-grid">'+sortQuantityEntriesByRarity(selectedItemAddons,killerRarityOrder,addonRarityDirection).map(renderCard).join('')+'</div>'
+      ?'<div class="stock-grid">'+sortQuantityEntriesByRarity(selectedItemAddons).map(renderCard).join('')+'</div>'
       :(!selectedItemCatalogAddons.length?'<p class="stock-empty-line">This item does not use Add-ons.</p>':'<p class="stock-empty-line">No matching Add-ons for this Item.</p>');
     const selectedItemHidden=selectedItem&&!group.items.some(item=>item.id===selectedItem.id);
     return '<section class="stock-family" data-stock-family="'+esc(group.family.id)+'"><div class="stock-family-heading"><h3>'+esc(group.family.displayName)+'</h3><p>'+catalogItemCount+' Items · '+catalogAddonCount+' Add-ons <span class="muted">(catalog totals)</span></p></div>'
@@ -927,18 +921,11 @@ function stockView(id) {
   const hasStockFilters=Boolean(stockFilters.map||stockFilters.rarity||stockFilters.search||stockFilters.inStock);
   return '<section data-stock-workspace><div class="stock-page-heading"><div><h2>Survivor Items &amp; Add-ons</h2><p>Track the quantities currently recorded for this Survivor. Quantities save on Enter or leaving the field.</p></div><p class="muted">Survivor inventory '+esc(survivorInventorySource.patch)+' · research '+esc(survivorInventorySource.verifiedAt)+'.</p></div>'
     +'<div class="stock-toolbar"><div class="stock-primary-controls"><label class="stock-search">Search '+esc(visibleGroups[0].family.displayName)+'<input id="inventory-search" type="search" value="'+esc(stockFilters.search)+'"></label><label class="stock-in-stock"><input id="inventory-in-stock" type="checkbox"'+(stockFilters.inStock?' checked':'')+'> In Stock</label>'
-    +'<details id="inventory-filters"><summary id="inventory-filters-toggle">Filters'+(secondaryCount?' ('+secondaryCount+')':'')+'</summary><div class="stock-secondary-filters">'+select('inventory-map','Type',[['','All'],['items','Items'],['addons','Add-ons']],stockFilters.map)+select('inventory-rarity','Rarity',[['','All rarities'],...[...new Set(inventoryEntities.map(e=>e.rarity))].map(r=>[r,r])],stockFilters.rarity)+'</div></details>'+(stockFilters.map==='items'?'':renderAddonRarityOrderControl())+(hasStockFilters?'<button type="button" data-action="stock-filter-reset">Reset filters</button>':'')+'</div>'
+    +'<details id="inventory-filters"><summary id="inventory-filters-toggle">Filters'+(secondaryCount?' ('+secondaryCount+')':'')+'</summary><div class="stock-secondary-filters">'+select('inventory-map','Type',[['','All'],['items','Items'],['addons','Add-ons']],stockFilters.map)+select('inventory-rarity','Rarity',[['','All rarities'],...[...new Set(inventoryEntities.map(e=>e.rarity))].map(r=>[r,r])],stockFilters.rarity)+'</div></details>'+(hasStockFilters?'<button type="button" data-action="stock-filter-reset">Reset filters</button>':'')+'</div>'
     +'</div><nav class="stock-family-nav" aria-label="Item families">'+survivorInventorySource.itemFamilies.map(family=>'<button type="button" id="stock-family-nav-'+esc(family.id)+'" data-action="stock-family-select" data-family="'+esc(family.id)+'" aria-pressed="'+(family.id===selectedFamilyId)+'">'+esc(family.displayName)+'</button>').join('')+'</nav>'
     +(Object.keys(stockSession.errors).length?'<div role="alert" data-stock-error-summary>'+Object.entries(stockSession.errors).map(([entityId,error])=>'<p><button type="button" data-action="stock-error-focus" data-id="'+entityId+'">Fix quantity of '+esc(inventoryEntityById[entityId].name)+'</button>: '+esc(error)+'</p>').join('')+'</div>':'')
     +'<div class="stock-families">'+familyMarkup+'</div>'+(visibleGroups.every(group=>!group.items.length&&!group.addons.length)?'<p class="empty">No matches in '+esc(visibleGroups[0].family.displayName)+'.</p>':'')
     +(unresolved.length?'<section class="unresolved-stock" data-unresolved-stock><h2 id="inventory-unresolved">Imported records not in current catalog</h2><p class="muted">Preserved exactly and read-only until the runtime catalog can resolve them.</p><ul>'+unresolved.map(([unknown,quantity])=>'<li><code>'+esc(unknown)+'</code><span>Quantity '+quantity+'</span><small>Read-only</small></li>').join('')+'</ul></section>':'')+'</section>';
-}
-const killerRarityOrder = ['Ultra Rare','Very Rare','Rare','Uncommon','Common'];
-function renderAddonRarityOrderControl() {
-  return '<label class="addon-rarity-order-control"><span>Rarity order</span><select id="addon-rarity-order">'
-    +'<option value="highest-to-lowest"'+(addonRarityDirection==='highest-to-lowest'?' selected':'')+'>Highest → Lowest</option>'
-    +'<option value="lowest-to-highest"'+(addonRarityDirection==='lowest-to-highest'?' selected':'')+'>Lowest → Highest</option>'
-    +'</select></label>';
 }
 function killerPowerAddonsView(characterId) {
   const power=killerPowerByCharacterId[characterId];
@@ -954,7 +941,7 @@ function killerPowerAddonsView(characterId) {
   const matchingAddons=addons.filter(addon=>(!search||(addon.name+' '+addon.effect).toLocaleLowerCase().includes(search))
     &&(!killerFilters.rarity||addon.rarity===killerFilters.rarity)
     &&(!killerFilters.inStock||(killerSession.baseline[addon.id]||0)>0));
-  const rarities=[...new Set(addons.map(addon=>addon.rarity))].sort((a,b)=>killerRarityOrder.indexOf(a)-killerRarityOrder.indexOf(b));
+  const rarities=[...new Set(addons.map(addon=>addon.rarity))].sort((a,b)=>inventoryRarityOrder.indexOf(a)-inventoryRarityOrder.indexOf(b));
   const filtersActive=Boolean(killerFilters.search||killerFilters.rarity||killerFilters.inStock);
   const art=powerArt?'<img src="'+esc(artworkUrl(powerArt))+'" alt="" data-power-art>':'<span class="stock-art-fallback" role="img" aria-label="Power artwork unavailable" data-power-art-fallback>◇</span>';
   const unknownMarkup=unknownAddons.length?'<section class="unresolved-stock" data-killer-unresolved-addons><h4>Imported Add-ons not in this Killer catalog</h4><p class="muted">These records are preserved and read-only until resolved.</p><ul>'+unknownAddons.map(([unknown,quantity])=>'<li><code>'+esc(unknown)+'</code><span>Quantity '+quantity+'</span><small>Read-only</small></li>').join('')+'</ul></section>':'';
@@ -964,8 +951,8 @@ function killerPowerAddonsView(characterId) {
     +'<div class="killer-addon-toolbar"><label class="killer-addon-search">Search Add-ons<input id="killer-addon-search" type="search" value="'+esc(killerFilters.search)+'"></label>'
     +'<label class="killer-addon-in-stock"><input id="killer-addon-in-stock" type="checkbox"'+(killerFilters.inStock?' checked':'')+'> In Stock</label>'
     +'<label class="killer-addon-rarity"><span>Rarity</span><select id="killer-addon-rarity"><option value="">All rarities</option>'+rarities.map(value=>'<option value="'+esc(value)+'"'+(killerFilters.rarity===value?' selected':'')+'>'+esc(value)+'</option>').join('')+'</select></label>'
-    +renderAddonRarityOrderControl()+(filtersActive?'<button type="button" data-action="killer-addon-filter-reset">Reset filters</button>':'')+'</div>'
-    +'<div class="stock-grid">'+sortQuantityEntriesByRarity(matchingAddons,killerRarityOrder,addonRarityDirection).map(killerAddonCard).join('')+'</div>'
+    +(filtersActive?'<button type="button" data-action="killer-addon-filter-reset">Reset filters</button>':'')+'</div>'
+    +'<div class="stock-grid">'+sortQuantityEntriesByRarity(matchingAddons).map(killerAddonCard).join('')+'</div>'
     +(matchingAddons.length?'':'<p class="stock-empty-line" data-killer-addon-empty>No Add-ons match these filters.</p>')
     +unknownMarkup
     +'</section></section>';
@@ -1032,7 +1019,7 @@ function acceptKillerQuantity(id,trigger,nextTargetId=null) {
       killerSession.raw[other]=previous.raw[other];killerSession.pending[other]=true;
       if(previous.errors[other])killerSession.errors[other]=previous.errors[other];
     }
-    const order=sortQuantityEntriesByRarity(killerSession.entities,killerRarityOrder,addonRarityDirection).map(entity=>entity.id);
+    const order=killerSession.order;
     const search=killerFilters.search.trim().toLocaleLowerCase();
     const visibleIds=order.filter(addonId=>{
       const addon=inventoryEntityById[addonId];
@@ -1091,7 +1078,7 @@ function stockFocusOrder() {
     .filter(group=>group.family.id===selectedFamilyId)
     .flatMap(group=>{
       const compatibleAddons=group.addons.filter(addon=>addon.compatibleItemIds?.includes(selectedItemId));
-      const visibleAddons=sortQuantityEntriesByRarity(compatibleAddons,killerRarityOrder,addonRarityDirection);
+      const visibleAddons=sortQuantityEntriesByRarity(compatibleAddons);
       return [...group.items,...visibleAddons].map(entity=>entity.id);
     });
 }
@@ -2454,10 +2441,6 @@ document.addEventListener('change', async event => {
       return;
     }
     if(target.id==='killer-addon-in-stock'){setKillerAddonFilter('inStock',target.checked);return;}
-    if(target.id==='addon-rarity-order'){
-      if(['highest-to-lowest','lowest-to-highest'].includes(target.value))addonRarityDirection=target.value;
-      render();return;
-    }
     if (target.id === 'ownership-filter' && ['all', 'owned', 'locked'].includes(target.value)) { collectionFiltersOpen = $('#collection-filters')?.open ?? false; filters.status = target.value; render(); return; }
     if(target.id==='inventory-item'){selectStockItem(target.value);return;}
     if(['inventory-map','inventory-rarity','inventory-in-stock'].includes(target.id)){

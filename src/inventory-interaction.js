@@ -1,7 +1,9 @@
 import { parseQuantityInput } from './inventory-quantities.js';
 
+export const inventoryRarityOrder = ['Ultra Rare','Very Rare','Rare','Uncommon','Common'];
+
 export function createQuantityInteraction(entities, inventory, {mode='detail',inStock=false}={}) {
-  const order=[...entities].sort((a,b)=>Number((inventory[b.id]||0)>0)-Number((inventory[a.id]||0)>0)||a.order-b.order||a.id.localeCompare(b.id));
+  const order=sortQuantityEntriesByRarity(entities,inventoryRarityOrder);
   return {entities:structuredClone(entities),order:order.map(e=>e.id),baseline:{...inventory},
     raw:Object.fromEntries(entities.map(e=>[e.id,String(inventory[e.id]||0)])),pending:{},errors:{},mode,inStock};
 }
@@ -51,13 +53,11 @@ export function groupQuantityEntriesByItem(items, addons) {
   }));
 }
 
-export function sortQuantityEntriesByRarity(entities, highestToLowestOrder, direction='highest-to-lowest') {
-  const standardOrder=direction==='lowest-to-highest'?[...highestToLowestOrder].reverse():[...highestToLowestOrder];
-  const additionalRarities=[...new Set(entities.map(entity=>entity.rarity).filter(rarity=>!highestToLowestOrder.includes(rarity)))];
-  const rank=new Map([...standardOrder,...additionalRarities].map((rarity,index)=>[rarity,index]));
-  return entities.map((entity,index)=>({entity,index}))
-    .sort((a,b)=>rank.get(a.entity.rarity)-rank.get(b.entity.rarity)||a.index-b.index)
-    .map(({entity})=>entity);
+export function sortQuantityEntriesByRarity(entities, highestToLowestOrder=inventoryRarityOrder) {
+  const rank=new Map(highestToLowestOrder.map((rarity,index)=>[rarity,index]));
+  return [...entities].sort((a,b)=>(rank.get(a.rarity)??Infinity)-(rank.get(b.rarity)??Infinity)
+    ||(rank.has(a.rarity)?0:String(a.rarity||'').localeCompare(String(b.rarity||'')))
+    ||String(a.name||'').localeCompare(String(b.name||''))||a.id.localeCompare(b.id));
 }
 
 export function stepQuantityInput(state, id, delta) {
