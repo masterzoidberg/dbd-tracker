@@ -1,6 +1,6 @@
 # Personal cloud save
 
-Scope: one owner, cross-device saves, offline local edits, explicit conflict resolution and JSON recovery. No registration, email delivery, verification, emailed password resets, custom domain, or cloud-backup management UI.
+Scope: one owner, cross-device saves, offline local edits, explicit conflict resolution, dated cloud save points and JSON recovery. No registration, email delivery, verification, emailed password resets, or custom domain.
 
 ## Behavior
 
@@ -10,6 +10,7 @@ Scope: one owner, cross-device saves, offline local edits, explicit conflict res
 - Cloud writes use the existing revision check. Concurrent edits require a choice; no automatic merging or last-write-wins overwrite.
 - Pending edits and read-only tabs block cloud replacement. Offline edits survive reload through the saved link baseline.
 - Exported JSON is the independent backup. Preserved copies are browser-local and are not a substitute for downloading backups.
+- Account can create, list, download and restore immutable cloud save points. Restoring first creates a save point of the current cloud state; a concurrent cloud edit becomes a visible conflict instead of being overwritten.
 
 ## Administrative account setup / recovery
 

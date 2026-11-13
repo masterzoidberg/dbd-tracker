@@ -3285,6 +3285,17 @@ footer span {
 #ledger-cloud-choice[hidden],.ledger-account-versions button[hidden]{display:none}
 .ledger-account-actions{display:flex;align-items:center;gap:9px}
 .ledger-account-actions button{min-height:40px}
+.ledger-save-points-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ledger-save-points-heading h3{margin:0;font-size:14px}
+.ledger-save-points-heading button{min-height:40px}
+#ledger-save-points{display:grid;gap:10px;padding-top:17px;border-top:1px solid var(--border)}
+#ledger-save-points[hidden]{display:none}
+#ledger-point-message{margin:0;color:var(--muted);font-size:12px}
+#ledger-point-list{display:grid;gap:8px}
+.ledger-save-point{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--raised)}
+.ledger-save-point strong{font-size:12px;overflow-wrap:anywhere}
+.ledger-save-point button{min-height:40px;font-size:11px}
+@media(max-width:520px){.ledger-save-points-heading{align-items:flex-start;flex-direction:column}.ledger-save-point{grid-template-columns:1fr 1fr}.ledger-save-point strong{grid-column:1/-1}.ledger-save-point button{width:100%}}
 #ledger-account-signout{margin-left:auto;border-color:transparent;background:transparent;color:var(--muted)}
 #ledger-account-signout:hover{color:var(--text);background:var(--raised)}
 #ledger-recovery{padding-top:17px;border-top:1px solid var(--border)}

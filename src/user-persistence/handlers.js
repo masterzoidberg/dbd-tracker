@@ -89,9 +89,9 @@ export function createUserPersistenceHandlers({ env = process.env, resolveSessio
 
   async function backups(req, res) {
     if (outsidePreview(res)) return;
-    if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed.' });
-    if (!sameOrigin(req, env)) return send(res, 403, { error: 'Same-origin request required.' });
-    if (req.body !== undefined && req.body !== null && req.body !== '') {
+    if (req.method !== 'GET' && req.method !== 'POST') return send(res, 405, { error: 'Method not allowed.' });
+    if (req.method === 'POST' && !sameOrigin(req, env)) return send(res, 403, { error: 'Same-origin request required.' });
+    if (Object.keys(req.query ?? {}).length || req.method === 'POST' && req.body !== undefined && req.body !== null && req.body !== '') {
       return send(res, 400, { error: 'Invalid request.' });
     }
 
@@ -99,6 +99,10 @@ export function createUserPersistenceHandlers({ env = process.env, resolveSessio
     if (!userId) return;
 
     try {
+      if (req.method === 'GET') {
+        const list = await getRepository().withUser(userId, user => user.listBackups());
+        return send(res, 200, list);
+      }
       const backup = await getRepository().withUser(userId, user => user.createBackup());
       return backup ? send(res, 201, backup) : send(res, 404, { error: 'State not found.' });
     } catch {

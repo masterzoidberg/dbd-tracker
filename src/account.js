@@ -33,12 +33,15 @@ export function mountAccount({ document, storage, getSave, replaceSave, assertWr
         <button type="button" id="ledger-use-cloud" hidden>Use cloud save</button></div></div>
       <div class="ledger-account-actions"><button type="button" id="ledger-cloud-refresh">Refresh save</button>
         <button type="button" id="ledger-account-signout">Sign out</button></div>
+      <section id="ledger-save-points" hidden><div class="ledger-save-points-heading"><h3>Cloud save points</h3>
+        <button type="button" id="ledger-point-create">Create save point</button></div>
+        <p id="ledger-point-message" role="status"></p><div id="ledger-point-list"></div></section>
     </div>
     <details id="ledger-recovery" hidden><summary id="ledger-recovery-label">Preserved copies</summary><div id="ledger-preserved"></div></details>
     </div><footer class="ledger-account-footer">JSON export and import are available in Data &amp; backups.</footer>`;
   document.body.append(dialog);
   const $ = selector => dialog.querySelector(selector);
-  let user = null, authBusy = false, authMessage = '', timer;
+  let user = null, authBusy = false, authMessage = '', timer, points = [], pointsMessage = '';
   const recovery = () => JSON.parse(storage.getItem(RECOVERY_KEY) || '[]');
   const cloud = createCloudSave({ storage, getSave, replaceSave, onChange: render,
     preserve(data, reason) {
@@ -62,12 +65,45 @@ export function mountAccount({ document, storage, getSave, replaceSave, assertWr
     $('#ledger-account-status').textContent = authMessage || state.message;
     $('#ledger-account-form').hidden = Boolean(user);
     $('#ledger-cloud-actions').hidden = !user;
+    $('#ledger-save-points').hidden = !user;
     const choosing = ['unlinked', 'conflict'].includes(state.status);
     $('#ledger-cloud-choice').hidden = !choosing;
     $('#ledger-use-local').hidden = !choosing;
     $('#ledger-use-cloud').hidden = !choosing;
     for (const button of dialog.querySelectorAll('button:not(#ledger-account-close)')) button.disabled = busy;
     $('#ledger-use-cloud').disabled = busy || !state.remote;
+    $('#ledger-point-create').disabled = busy || state.status !== 'saved';
+    $('#ledger-point-message').textContent = pointsMessage || (points.length ? '' : 'No cloud save points yet.');
+    const pointList = $('#ledger-point-list'); pointList.replaceChildren();
+    for (const point of points) {
+      const row = document.createElement('div'); row.className = 'ledger-save-point';
+      const date = document.createElement('strong'); date.textContent = new Date(point.createdAt).toLocaleString();
+      const download = document.createElement('button'); download.type = 'button'; download.textContent = 'Download';
+      download.setAttribute('aria-label', `Download save point from ${date.textContent}`);
+      download.disabled = busy;
+      download.addEventListener('click', () => void run(async () => {
+        const snapshot = await backupRequest(`/api/ledger/backups/${encodeURIComponent(point.id)}`);
+        const url = URL.createObjectURL(new Blob([JSON.stringify(snapshot.data, null, 2)], { type: 'application/json' }));
+        const anchor = document.createElement('a'); anchor.href = url;
+        anchor.download = `ledger-cloud-save-${point.createdAt.slice(0, 10)}.json`; anchor.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }));
+      const restore = document.createElement('button'); restore.type = 'button'; restore.textContent = 'Restore';
+      restore.setAttribute('aria-label', `Restore save point from ${date.textContent}`);
+      restore.disabled = busy || state.status !== 'saved';
+      restore.addEventListener('click', () => void run(async () => {
+        if (!document.defaultView.confirm(`Restore the cloud save point from ${date.textContent}? Your current cloud save will become a new save point first.`)) return;
+        await cloud.sync();
+        if (cloud.state.status !== 'saved') throw Error('Resolve the cloud save status before restoring a save point.');
+        const snapshot = await backupRequest(`/api/ledger/backups/${encodeURIComponent(point.id)}`);
+        await backupRequest('/api/ledger/backups', 'POST');
+        await replaceSave(snapshot.data);
+        await cloud.sync();
+        await loadPoints();
+        if (cloud.state.status === 'saved') pointsMessage = 'Save point restored to this device and your account.';
+      }));
+      row.append(date, download, restore); pointList.append(row);
+    }
     try {
       $('#ledger-cloud-date').textContent = state.remote ? new Date(state.remote.data.updatedAt).toLocaleString() : 'No cloud save yet';
       $('#ledger-device-date').textContent = new Date(getSave().updatedAt).toLocaleString();
@@ -102,6 +138,20 @@ export function mountAccount({ document, storage, getSave, replaceSave, assertWr
       ? 'Sign-in failed. Check your email and password.' : response.status === 429 ? 'Too many attempts. Wait a minute and retry.' : 'Account unavailable. Your local save is preserved.');
     return response.json();
   }
+  async function backupRequest(path, method = 'GET') {
+    const response = await fetch(path, { method, credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(15000) });
+    if (!response.ok) throw Error('Cloud save points are unavailable. Your saves have not been deleted.');
+    return response.json();
+  }
+  async function loadPoints() {
+    try {
+      const list = await backupRequest('/api/ledger/backups');
+      if (!Array.isArray(list)) throw Error('Invalid save point list.');
+      points = list;
+      pointsMessage = '';
+    } catch { pointsMessage = 'Could not load cloud save points. Try Refresh save.'; }
+    render();
+  }
   async function run(action) {
     if (authBusy) return;
     authBusy = true; authMessage = ''; render();
@@ -110,8 +160,13 @@ export function mountAccount({ document, storage, getSave, replaceSave, assertWr
   }
   async function recognize() {
     const session = await request('get-session');
+    const previousUserId = user?.id;
     user = session?.user?.id ? session.user : null;
-    if (user) await cloud.connect(user.id); else await cloud.disconnect();
+    if (user) {
+      if (user.id !== previousUserId) { points = []; pointsMessage = ''; }
+      await cloud.connect(user.id); await loadPoints();
+    }
+    else { points = []; pointsMessage = ''; await cloud.disconnect(); }
   }
   entry.addEventListener('click', () => { render(); dialog.showModal(); });
   dialog.addEventListener('close', () => { $('#ledger-account-password').value = ''; entry.focus(); });
@@ -123,9 +178,16 @@ export function mountAccount({ document, storage, getSave, replaceSave, assertWr
     void run(async () => { await request('sign-in/email', { email, password }); await recognize(); });
   });
   $('#ledger-account-signout').addEventListener('click', () => void run(async () => {
-    await cloud.disconnect(); await request('sign-out', {}); user = null;
+    await cloud.disconnect(); await request('sign-out', {}); user = null; points = []; pointsMessage = '';
   }));
   $('#ledger-cloud-refresh').addEventListener('click', () => void run(recognize));
+  $('#ledger-point-create').addEventListener('click', () => void run(async () => {
+    await cloud.sync();
+    if (cloud.state.status !== 'saved') throw Error('Resolve the cloud save status before creating a save point.');
+    await backupRequest('/api/ledger/backups', 'POST');
+    await loadPoints();
+    pointsMessage = 'Cloud save point created.';
+  }));
   $('#ledger-use-local').addEventListener('click', () => void cloud.choose('local'));
   $('#ledger-use-cloud').addEventListener('click', () => void cloud.choose('cloud'));
   document.addEventListener('visibilitychange', () => { if (!document.hidden && user) void run(recognize); });

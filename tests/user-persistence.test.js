@@ -79,6 +79,9 @@ function createMemoryRepository() {
           owner.backups.set(id, backup);
           return clone(backup);
         },
+        async listBackups() {
+          return [...owner.backups.values()].reverse().map(({ id, sourceRevision, createdAt }) => ({ id, sourceRevision, createdAt }));
+        },
         async readBackup(id) {
           return clone(owner.backups.get(id) ?? null);
         },
@@ -323,6 +326,8 @@ test('authenticated users have independent state and backups; a foreign backup i
     headers: sameOriginHeaders('better-auth.session_token=session-b'),
   });
   const backupA = await invoke(handlers.backups, { method: 'POST', headers: sameOriginHeaders() });
+  const listA = await invoke(handlers.backups, { method: 'GET', headers: sameOriginHeaders() });
+  const listB = await invoke(handlers.backups, { method: 'GET', headers: sameOriginHeaders('better-auth.session_token=session-b') });
   const foreignRead = await invoke(handlers.backup, {
     method: 'GET', query: { id: backupA.body.id },
     headers: sameOriginHeaders('better-auth.session_token=session-b'),
@@ -336,6 +341,8 @@ test('authenticated users have independent state and backups; a foreign backup i
   assert.equal(writeB.body.revision, 1);
   assert.notDeepEqual(harness.repository.snapshot('synthetic-user-a'), harness.repository.snapshot('synthetic-user-b'));
   assert.equal(backupA.statusCode, 201);
+  assert.deepEqual(listA.body, [{ id: backupA.body.id, sourceRevision: 1, createdAt: backupA.body.createdAt }]);
+  assert.deepEqual(listB.body, []);
   assert.equal(foreignRead.statusCode, 404);
   assert.deepEqual(foreignRead.body, missingRead.body);
 });
@@ -355,6 +362,15 @@ test('state reads reject client-supplied owner query parameters', async () => {
     assert.equal(read.statusCode, 400);
     assert.deepEqual(read.body, { error: 'Invalid request.' });
   }
+});
+
+test('backup listing rejects client-supplied owner query parameters', async () => {
+  const harness = createHarness();
+  const result = await invoke(requireHandlers(harness).backups, {
+    method: 'GET', query: { ownerId: 'synthetic-user-b' }, headers: sameOriginHeaders(),
+  });
+  assert.equal(result.statusCode, 400);
+  assert.equal(harness.repositoryLookups, 0);
 });
 
 test('stale same-user revisions return 409 without changing the stored document', async () => {

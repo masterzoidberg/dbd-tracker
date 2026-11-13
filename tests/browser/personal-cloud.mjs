@@ -21,7 +21,7 @@ const server = createServer(async (req, res) => {
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const origin = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
-let remote = null;
+let remote = null, backups = [], backupCreationFails = false;
 const errors = [];
 async function device(viewport) {
   const context = await browser.newContext({ viewport });
@@ -40,6 +40,20 @@ async function device(viewport) {
         remote = { data, revision: expectedRevision + 1 };
       }
       return remote ? json(remote) : json({}, 404);
+    }
+    if (path === '/api/ledger/backups') {
+      if (!signedIn) return json({}, 401);
+      if (request.method() === 'GET') return json(backups.map(({ id, sourceRevision, createdAt }) => ({ id, sourceRevision, createdAt })).reverse());
+      if (backupCreationFails) return json({}, 500);
+      if (!remote) return json({}, 404);
+      const point = { id: `00000000-0000-4000-8000-${String(backups.length + 1).padStart(12, '0')}`,
+        sourceRevision: remote.revision, data: structuredClone(remote.data), createdAt: new Date().toISOString() };
+      backups.push(point); return json(point, 201);
+    }
+    if (path.startsWith('/api/ledger/backups/')) {
+      if (!signedIn) return json({}, 401);
+      const point = backups.find(point => point.id === path.split('/').at(-1));
+      return point ? json(point) : json({}, 404);
     }
     return json({}, 404);
   });
@@ -67,6 +81,12 @@ try {
   await first.page.locator('#ledger-use-local').click(); await waitSaved(first.page);
   assert.equal(await first.page.locator('.ledger-account-versions button:visible').count(), 0);
   assert.deepEqual(await current(first.page), remote.data);
+  await first.page.locator('#ledger-point-create').click();
+  await first.page.locator('.ledger-save-point').waitFor();
+  assert.equal(backups[0].sourceRevision, 1);
+  const pointDownload = first.page.waitForEvent('download');
+  await first.page.getByRole('button', { name: /^Download save point/ }).click();
+  assert.match((await pointDownload).suggestedFilename(), /ledger-cloud-save-\d{4}-\d{2}-\d{2}\.json/);
   await first.page.locator('#ledger-recovery summary').click();
   const download = first.page.waitForEvent('download');
   await first.page.getByRole('button', { name: /Download preserved copy 1/ }).click();
@@ -89,6 +109,21 @@ try {
   await first.page.getByRole('button', { name: /^Account ·/ }).click();
   await first.page.locator('#ledger-cloud-refresh').click(); await waitSaved(first.page);
   assert.equal((await current(first.page)).characters['meg-thomas'].favorite, true);
+  first.page.once('dialog', dialog => dialog.dismiss());
+  await first.page.getByRole('button', { name: /^Restore save point/ }).click();
+  assert.equal(remote.revision, 2, 'Canceling restore leaves the cloud save unchanged');
+  backupCreationFails = true;
+  first.page.once('dialog', dialog => dialog.accept());
+  await first.page.getByRole('button', { name: /^Restore save point/ }).click();
+  await first.page.waitForFunction(() => document.querySelector('#ledger-account-status').textContent.includes('Cloud save points are unavailable'));
+  assert.equal(remote.revision, 2, 'A failed safety backup prevents restore');
+  assert.equal((await current(first.page)).characters['meg-thomas'].favorite, true);
+  backupCreationFails = false;
+  first.page.once('dialog', dialog => dialog.accept());
+  await first.page.getByRole('button', { name: /^Restore save point/ }).click(); await waitSaved(first.page);
+  assert.equal(remote.revision, 3);
+  assert.equal(remote.data.characters['meg-thomas'].favorite, false);
+  assert.equal(backups[1].data.characters['meg-thomas'].favorite, true, 'The current cloud save becomes a new save point before restore');
   // A second tab on the same device cannot write or replace the save.
   const readonly = await first.context.newPage();
   readonly.on('pageerror', error => errors.push(error.message));
@@ -104,5 +139,5 @@ try {
   await second.page.getByRole('button', { name: /^Account ·/ }).click();
   assert.equal(await second.page.locator('#ledger-account').evaluate(dialog => dialog.getBoundingClientRect().width <= innerWidth - 16), true);
   assert.deepEqual(errors, []);
-  console.log('PASS: two device contexts, sign-in, explicit linking, UI edit sync, writer lock, preserved copies, mobile width and keyboard close (mocked APIs).');
+  console.log('PASS: two device contexts, sign-in, explicit linking, UI edit sync, save point restore, writer lock, mobile width and keyboard close (mocked APIs).');
 } finally { await browser.close(); await new Promise(resolve => server.close(resolve)); }
