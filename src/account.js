@@ -26,12 +26,11 @@ export function mountAccount({ document, storage, getSave, replaceSave, assertWr
       <p class="muted">This is a private account. Password recovery uses the local administrative setup; no email is sent.</p>
     </form>
     <div id="ledger-cloud-actions" hidden>
-      <div class="ledger-account-versions"><div><span>CLOUD SAVE</span><strong id="ledger-cloud-date">No cloud save yet</strong></div>
-        <div><span>THIS DEVICE</span><strong id="ledger-device-date">—</strong></div></div>
-      <div id="ledger-cloud-choice" hidden><p>Your current save will be preserved before either choice.</p>
-        <button type="button" id="ledger-use-local">Use this device’s save</button>
-        <button type="button" id="ledger-use-cloud">Use cloud save</button>
-      </div>
+      <p id="ledger-cloud-choice" hidden>Your current save will be preserved before either choice.</p>
+      <div class="ledger-account-versions"><div><span>THIS DEVICE</span><strong id="ledger-device-date">—</strong>
+        <button type="button" id="ledger-use-local" hidden>Use this device’s save</button></div>
+        <div><span>CLOUD SAVE</span><strong id="ledger-cloud-date">No cloud save yet</strong>
+        <button type="button" id="ledger-use-cloud" hidden>Use cloud save</button></div></div>
       <div class="ledger-account-actions"><button type="button" id="ledger-cloud-refresh">Refresh save</button>
         <button type="button" id="ledger-account-signout">Sign out</button></div>
     </div>
@@ -63,7 +62,10 @@ export function mountAccount({ document, storage, getSave, replaceSave, assertWr
     $('#ledger-account-status').textContent = authMessage || state.message;
     $('#ledger-account-form').hidden = Boolean(user);
     $('#ledger-cloud-actions').hidden = !user;
-    $('#ledger-cloud-choice').hidden = !['unlinked', 'conflict'].includes(state.status);
+    const choosing = ['unlinked', 'conflict'].includes(state.status);
+    $('#ledger-cloud-choice').hidden = !choosing;
+    $('#ledger-use-local').hidden = !choosing;
+    $('#ledger-use-cloud').hidden = !choosing;
     for (const button of dialog.querySelectorAll('button:not(#ledger-account-close)')) button.disabled = busy;
     $('#ledger-use-cloud').disabled = busy || !state.remote;
     try {

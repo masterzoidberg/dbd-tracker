@@ -50,6 +50,10 @@ async function device(viewport) {
   await page.getByLabel('Password', { exact: true }).fill('Synthetic-Passphrase-1');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await page.locator('#ledger-use-local:enabled').waitFor();
+  assert.match(await page.locator('#ledger-use-local').locator('..').textContent(), /THIS DEVICE/);
+  assert.match(await page.locator('#ledger-use-cloud').locator('..').textContent(), /CLOUD SAVE/);
+  assert.deepEqual(await page.locator('.ledger-account-versions button').evaluateAll(buttons => buttons.map(button => button.id)),
+    ['ledger-use-local', 'ledger-use-cloud']);
   return { page, context };
 }
 async function waitSaved(page) {
@@ -61,6 +65,7 @@ try {
   const first = await device({ width: 1440, height: 900 });
   assert.equal(remote, null);
   await first.page.locator('#ledger-use-local').click(); await waitSaved(first.page);
+  assert.equal(await first.page.locator('.ledger-account-versions button:visible').count(), 0);
   assert.deepEqual(await current(first.page), remote.data);
   await first.page.locator('#ledger-recovery summary').click();
   const download = first.page.waitForEvent('download');
