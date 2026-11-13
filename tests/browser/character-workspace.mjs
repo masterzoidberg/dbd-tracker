@@ -96,11 +96,10 @@ export async function characterWorkspaceRegression(page, origin) {
   assert.equal(await page.locator('[data-character-header] img[data-character-portrait]').getAttribute('src'), collectionPortraitPath('the-shape', assetManifest),
     'Killer workspace identity uses the approved Lore portrait');
   const slasher = characters.find(character => character.name === 'The Slasher');
-  assert.ok(characterPortraitPath(slasher.id, assetManifest), 'The Slasher has a legacy square portrait that must not be substituted');
+  assert.ok(characterPortraitPath(slasher.id, assetManifest), 'The Slasher retains its legacy square portrait');
   await page.goto(origin + '/#character/' + slasher.id + '/overview');
-  assert.equal(await page.locator('[data-character-header] img[data-character-portrait]').count(), 0,
-    'The Slasher uses a named neutral fallback instead of a square portrait');
-  assert.match(await page.locator('[data-character-header] .character-portrait').textContent(), /The Slasher/);
+  assert.equal(await page.locator('[data-character-header] img[data-character-portrait]').getAttribute('src'),
+    collectionPortraitPath(slasher.id, assetManifest), 'The Slasher uses its Lore portrait in the workspace');
   // Popup capability parity: normal identity and Prestige are real Overview links.
   await page.goto(origin + '/#survivors');
   await page.locator('#search').fill('Meg');

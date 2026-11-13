@@ -361,11 +361,10 @@ export async function collectionCardsRegression(page, origin, manifest) {
   await page.getByRole('heading', { name: 'Killers', exact: true }).waitFor();
   await page.locator('#search').fill('The Slasher');
   const slasher = byCharacterId(page, 'the-slasher');
-  assert.equal(await slasher.locator('[data-collection-hero-art]').count(), 0, 'Missing Lore art never uses the square workspace portrait');
-  assert.equal(await slasher.locator('img').count(), 0, 'Missing Lore art does not substitute a Power or portrait-domain image');
-  assert.equal(await slasher.locator('.collection-art-fallback').count(), 1, 'The Slasher renders the named fallback element');
-  assert.equal(await slasher.locator('.collection-art-fallback').textContent(), 'Portrait unavailable', 'The Slasher has a neutral named-art fallback');
-  assert.equal(await slasher.locator('[data-open-workspace]').getAttribute('href'), '#character/the-slasher/overview', 'Missing Lore art keeps the Killer workspace link');
+  assert.equal(await slasher.locator('[data-collection-hero-art]').getAttribute('src'), manifest.collectionPortraits['the-slasher'].path,
+    'The Slasher card uses its Lore portrait');
+  assert.equal(await slasher.locator('.collection-art-fallback').count(), 0);
+  assert.equal(await slasher.locator('[data-open-workspace]').getAttribute('href'), '#character/the-slasher/overview');
   assert.equal(killerPowerByCharacterId['the-slasher'].artwork.confidence, 'REVIEW');
   assert.equal(await slasher.locator('[data-killer-power]').count(), 1, 'Killer cards show a Power identity row');
   assert.equal(await slasher.locator('[data-killer-power] [data-power-name]').textContent(), 'Omnipresent Evil', 'A qualified Power icon does not hide its supplied name');
@@ -418,7 +417,7 @@ export async function collectionCardsRegression(page, origin, manifest) {
     try { await image.decode(); return [image.naturalWidth, image.naturalHeight]; }
     catch { return [0, 0]; }
   })), manifestAssets);
-  assert.equal(decoded.length, 97);
+  assert.equal(decoded.length, 98);
   for (const [index, asset] of manifestAssets.entries()) assert.deepEqual(decoded[index], [asset.width, asset.height], asset.path);
 
   await page.evaluate(() => window.scrollTo(0, 0));
@@ -701,8 +700,8 @@ export async function collectionCardsRegression(page, origin, manifest) {
       assert.equal(await card.locator('.prestige').textContent(), 'P100', 'Killer cards accommodate P100');
     }
     if (id === 'the-slasher') {
-      assert.equal(await card.locator('[data-collection-hero-art]').count(), 0);
-      assert.equal(await card.locator('.collection-art-fallback').count(), 1);
+      assert.equal(await card.locator('[data-collection-hero-art]').getAttribute('src'), manifest.collectionPortraits[id].path);
+      assert.equal(await card.locator('.collection-art-fallback').count(), 0);
     }
     await page.setViewportSize({ width: 390, height: 844 });
     await page.evaluate(() => window.scrollTo(0, 0));

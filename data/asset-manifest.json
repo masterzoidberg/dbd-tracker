@@ -3378,7 +3378,14 @@
       "format": "png",
       "sha256": "248ae82f6350ed9537bf3e803b650b53322a0d68a25997dcd3f7f03af08556a2"
     },
-    "the-slasher": null,
+    "the-slasher": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Slasher.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Slasher.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "64741e6c68cbc21512a907de703d94687c5d0a674295ce5b6d141e863a205add"
+    },
     "the-spirit": {
       "path": "images/updated-images/Character Portraits/Killers/Lore/Spirit.png",
       "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Spirit.png",
