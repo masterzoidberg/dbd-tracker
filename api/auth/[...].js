@@ -61,7 +61,7 @@ export function createAuthRoute({
   getRuntime = async () => (await import('../../src/auth/runtime.js')).getAuthRuntime(),
 } = {}) {
   return async function authRoute(req, res) {
-    if (env?.VERCEL_ENV !== 'preview') return res.status(404).json({ error: 'Not found.' });
+    if (!['preview', 'production'].includes(env?.VERCEL_ENV)) return res.status(404).json({ error: 'Not found.' });
 
     restoreAuthPath(req);
     try {

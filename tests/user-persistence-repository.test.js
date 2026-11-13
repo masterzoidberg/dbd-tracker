@@ -145,6 +145,22 @@ test('backup creation snapshots only the current user state and backup reads inc
   assert.deepEqual(calls[3].values, [userBackup.id]);
 });
 
+test('backup listing returns dated metadata for the current user without save data', async () => {
+  const pool = createPoolHarness([
+    { rows: [] },
+    { rows: [{ set_config: 'synthetic-user-a' }] },
+    { rows: [userBackup] },
+    { rows: [] },
+  ]);
+  const list = await repository(pool).withUser('synthetic-user-a', user => user.listBackups());
+  assert.deepEqual(list, [{ id: userBackup.id, sourceRevision: 4, createdAt: timestamp }]);
+  const query = pool.clients[0].calls[2].text;
+  assert.match(query, /FROM\s+ledger_user_backups/i);
+  assert.match(query, /user_id\s*=\s*current_setting\s*\(\s*'app\.user_id'\s*,\s*true\s*\)/i);
+  assert.match(query, /ORDER BY created_at DESC/i);
+  assert.doesNotMatch(query, /SELECT[^;]*\bdata\b/i);
+});
+
 test('withUser rolls back and releases the connection when an operation fails', async () => {
   const pool = createPoolHarness([
     { rows: [] },

@@ -12,6 +12,14 @@ const previewEnv = () => ({
   BETTER_AUTH_SECRET: randomBytes(32).toString('base64url'),
 });
 
+test('Production auth accepts the stable Vercel production domain', () => {
+  let options;
+  const env = { ...previewEnv(), VERCEL_ENV: 'production', VERCEL_PROJECT_PRODUCTION_URL: 'dbd-tracker-opal.vercel.app' };
+  createAuthRuntime({ env, createPool: () => ({}), attachPool() {}, createRateLimitStorage: () => ({}),
+    createAuth: config => { options = config; return { handler() {} }; }, createNodeHandler: handler => handler });
+  assert.ok(options.baseURL.allowedHosts.includes('dbd-tracker-opal.vercel.app'));
+});
+
 function response() {
   return {
     statusCode: 200,
@@ -21,10 +29,10 @@ function response() {
   };
 }
 
-test('auth route returns 404 outside Preview before loading auth runtime', async () => {
+test('auth route returns 404 outside hosted environments before loading auth runtime', async () => {
   let loaded = false;
   const route = createAuthRoute({
-    env: { VERCEL_ENV: 'production' },
+    env: { VERCEL_ENV: 'development' },
     getRuntime: async () => { loaded = true; throw Error('must not load'); },
   });
   const res = response();
@@ -34,6 +42,12 @@ test('auth route returns 404 outside Preview before loading auth runtime', async
   assert.equal(res.statusCode, 404);
   assert.deepEqual(res.body, { error: 'Not found.' });
   assert.equal(loaded, false);
+});
+
+test('Production auth reaches the configured provider', async () => {
+  const route = createAuthRoute({ env: { VERCEL_ENV: 'production' }, getRuntime: async () => ({ handle: (_req, res) => res.status(200).json(null) }) });
+  const res = response(); await route({ method: 'GET' }, res);
+  assert.equal(res.statusCode, 200);
 });
 
 test('auth splat route restores nested Better Auth paths after Vercel routing', async () => {
@@ -98,18 +112,15 @@ test('auth runtime configures an exact Preview host and secure cookie protection
   assert.notEqual(options.advanced.disableCSRFCheck, true);
   assert.notEqual(options.advanced.disableOriginCheck, true);
   assert.equal(options.emailAndPassword.enabled, true);
-  assert.equal(options.emailAndPassword.requireEmailVerification, true);
-  assert.equal(options.emailAndPassword.revokeSessionsOnPasswordReset, true);
-  assert.equal(options.emailAndPassword.resetPasswordTokenExpiresIn, 3600);
-  assert.equal(options.emailVerification.expiresIn, 3600);
-  assert.equal(options.emailVerification.sendOnSignUp, true);
-  assert.equal(options.emailVerification.sendOnSignIn, true);
-  assert.equal(options.emailVerification.autoSignInAfterVerification, false);
+  assert.equal(options.emailAndPassword.requireEmailVerification, false);
+  assert.equal(options.emailAndPassword.disableSignUp, true);
+  assert.equal(options.emailAndPassword.sendResetPassword, undefined);
+  assert.equal(options.emailVerification, undefined);
   assert.notEqual(options.user?.deleteUser?.enabled, true);
   assert.equal(runtime.pool.connectionString, env.DATABASE_URL);
 });
 
-test('auth runtime defaults email callbacks to the Preview Mailtrap transport and fails closed without credentials', async () => {
+test('auth runtime needs no email transport', () => {
   const env = previewEnv();
   let options;
   createAuthRuntime({
@@ -122,10 +133,8 @@ test('auth runtime defaults email callbacks to the Preview Mailtrap transport an
     createNodeHandler: handler => handler,
   });
 
-  await assert.rejects(options.emailVerification.sendVerificationEmail({
-    user: { email: 'synthetic@example.invalid' },
-    url: `https://${env.VERCEL_URL}/api/auth/verify-email?token=synthetic`,
-  }), error => error.message === 'Email delivery is unavailable.');
+  assert.equal(options.emailVerification, undefined);
+  assert.equal(options.emailAndPassword.sendResetPassword, undefined);
 });
 
 test('session resolution uses the verified Better Auth session, not request-body identity', async () => {

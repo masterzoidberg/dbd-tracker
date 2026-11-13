@@ -8,7 +8,7 @@ const env = process.env;
 let repository;
 
 function getRepository() {
-  if (env.VERCEL_ENV !== 'preview') throw new Error('User persistence is available only in Vercel Preview.');
+  if (!['preview', 'production'].includes(env.VERCEL_ENV)) throw new Error('User persistence requires a hosted environment.');
   if (repository) return repository;
   repository = createUserPersistenceRepository(getAuthRuntime().pool);
   return repository;
