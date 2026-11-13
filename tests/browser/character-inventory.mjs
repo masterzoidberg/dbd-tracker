@@ -249,10 +249,14 @@ export async function characterInventoryRegression(page, origin) {
   await page.locator('#character-inventory-search').waitFor();
   const grid = page.locator('.character-inventory-card-grid');
   const sizeControl = size => page.locator(`[data-action="character-inventory-card-size"][data-size="${size}"]`);
+  await page.setViewportSize({ width: 1440, height: 900 });
   for (const [size, minimum] of [['small', '160px'], ['medium', '190px'], ['large', '220px']]) {
     await sizeControl(size).click();
     assert.equal(await grid.getAttribute('class').then(value => value.includes(`card-size-${size}`)), true);
     assert.equal(await grid.evaluate(node => getComputedStyle(node).getPropertyValue('--character-inventory-card-min').trim()), minimum);
+    const columns = await grid.evaluate(node => getComputedStyle(node).gridTemplateColumns.split(' ').length);
+    assert.ok(columns <= 5, `Desktop Perks stays within five columns at ${size} card size`);
+    if (size === 'small') assert.equal(columns, 5, 'Desktop Small cards use five columns');
     assert.equal(await page.locator('.character-inventory-editor').count(), 0, 'Update has no persistent selected-perk editor at any card size');
   }
   assert.equal(await page.evaluate(() => localStorage.getItem('dbdTrackerUi.characterCardSize')), 'large');

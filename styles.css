@@ -2062,6 +2062,9 @@ footer span {
   gap:var(--character-inventory-card-gap);
   align-items:stretch;
 }
+.character-inventory-card-grid {
+  grid-template-columns:repeat(auto-fill,minmax(max(var(--character-inventory-card-min),calc((100% - 4 * var(--character-inventory-card-gap)) / 5)),1fr));
+}
 @media (min-width:761px) {
   .character-inventory-card-grid.card-size-small,
   .character-inventory-grid.card-size-small {
@@ -2259,7 +2262,6 @@ footer span {
 .character-inventory-correction-actions button { min-height:40px; }
 
 @media (max-width:1100px) {
-  .character-inventory-card-grid,
   .character-inventory-grid { grid-template-columns:repeat(auto-fill,minmax(var(--character-inventory-card-min),1fr)); }
 }
 @media (max-width:760px) {
