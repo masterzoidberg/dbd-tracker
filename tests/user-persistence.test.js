@@ -371,6 +371,10 @@ test('backup listing rejects client-supplied owner query parameters', async () =
   });
   assert.equal(result.statusCode, 400);
   assert.equal(harness.repositoryLookups, 0);
+  const protectedFetch = await invoke(requireHandlers(harness).backups, {
+    method: 'GET', query: { __vercel_protection_bypass: 'synthetic' }, headers: sameOriginHeaders(),
+  });
+  assert.equal(protectedFetch.statusCode, 200);
 });
 
 test('stale same-user revisions return 409 without changing the stored document', async () => {

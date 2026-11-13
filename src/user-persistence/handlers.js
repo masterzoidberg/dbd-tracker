@@ -91,7 +91,8 @@ export function createUserPersistenceHandlers({ env = process.env, resolveSessio
     if (outsidePreview(res)) return;
     if (req.method !== 'GET' && req.method !== 'POST') return send(res, 405, { error: 'Method not allowed.' });
     if (req.method === 'POST' && !sameOrigin(req, env)) return send(res, 403, { error: 'Same-origin request required.' });
-    if (Object.keys(req.query ?? {}).length || req.method === 'POST' && req.body !== undefined && req.body !== null && req.body !== '') {
+    if (['userId', 'ownerId'].some(key => Object.hasOwn(req.query ?? {}, key)) ||
+        req.method === 'POST' && req.body !== undefined && req.body !== null && req.body !== '') {
       return send(res, 400, { error: 'Invalid request.' });
     }
 
