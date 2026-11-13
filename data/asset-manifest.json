@@ -4564,9 +4564,9 @@
     },
     "killer-addon-shape-fragrant-tuft-of-hair": {
       "path": "images/Powers and Add-ons/Shape/With Background/Fragrant Tuft of Hair.png",
-      "width": 300,
-      "height": 300,
-      "sha256": "938bce4c4cfbdf6d6d501838c5a65d9f567f503e2f645473e9644a254c28f332"
+      "width": 256,
+      "height": 256,
+      "sha256": "d2bfd0e104ff4fe399472957edd89cc721f27494563ac3a071755f8508c700db"
     },
     "killer-addon-shape-glass-fragment": {
       "path": "images/Powers and Add-ons/Shape/With Background/Glass Fragment.png",
@@ -4624,9 +4624,9 @@
     },
     "killer-addon-shape-reflective-fragment": {
       "path": "images/Powers and Add-ons/Shape/With Background/Reflective Fragment.png",
-      "width": 300,
-      "height": 300,
-      "sha256": "3d56c5389d313cf8dde7997689081e29821933997cfb2116ad932d59dd3fa64f"
+      "width": 256,
+      "height": 256,
+      "sha256": "cd9d2d82d8a46ab30268eb2c184bcff30c15f343d9bbe54d9b7ae41204a72f58"
     },
     "killer-addon-shape-tombstone-piece": {
       "path": "images/Powers and Add-ons/Shape/With Background/Tombstone Piece.png",
