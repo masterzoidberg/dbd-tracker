@@ -188,7 +188,7 @@ export function mountAccount({ document, storage, getSave, replaceSave, assertWr
     await loadPoints();
     pointsMessage = 'Cloud save point created.';
   }));
-  $('#ledger-use-local').addEventListener('click', () => void cloud.choose('local'));
+  $('#ledger-use-local').addEventListener('click', () => void cloud.choose('local').then(loadPoints));
   $('#ledger-use-cloud').addEventListener('click', () => void cloud.choose('cloud'));
   document.addEventListener('visibilitychange', () => { if (!document.hidden && user) void run(recognize); });
   document.defaultView.addEventListener('online', () => { if (user) void run(recognize); });

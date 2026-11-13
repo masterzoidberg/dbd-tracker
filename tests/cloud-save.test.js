@@ -4,14 +4,19 @@ import { freshSave } from '../src/model.js';
 import { createCloudSave } from '../src/cloud-save.js';
 
 function harness() {
-  let local = freshSave(), remote = null, online = true, beforePut = () => {}, preserveFails = false;
-  const values = new Map(), backups = [];
+  let local = freshSave(), remote = null, online = true, beforePut = () => {}, preserveFails = false, pointFails = false;
+  const values = new Map(), backups = [], cloudPoints = [];
   const storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) };
   const options = { storage, getSave: () => structuredClone(local),
     replaceSave: data => { backups.push(structuredClone(local)); local = structuredClone(data); },
     preserve: (data, reason) => { if (preserveFails) throw Error('Storage full'); backups.push({ data: structuredClone(data), reason }); },
-    fetch: async (_url, options = {}) => {
+    fetch: async (url, options = {}) => {
       if (!online) throw Error('offline');
+      if (url === '/api/ledger/backups' && options.method === 'POST') {
+        if (!remote || pointFails) return Response.json({}, { status: 500 });
+        const point = { sourceRevision: remote.revision, data: structuredClone(remote.data) };
+        cloudPoints.push(point); return Response.json(point, { status: 201 });
+      }
       if (options.method === 'PUT') {
         await beforePut();
         const body = JSON.parse(options.body);
@@ -22,12 +27,13 @@ function harness() {
     },
   };
   let cloud = createCloudSave(options);
-  return { get cloud() { return cloud; }, values, backups,
+  return { get cloud() { return cloud; }, values, backups, cloudPoints,
     get local() { return local; }, set local(value) { local = value; },
     get remote() { return remote; }, set remote(value) { remote = value; },
     set online(value) { online = value; },
     set beforePut(value) { beforePut = value; },
     set preserveFails(value) { preserveFails = value; },
+    set pointFails(value) { pointFails = value; },
     reload() { cloud = createCloudSave(options); },
   };
 }
@@ -42,6 +48,26 @@ test('first connection requires a choice and preserves local data before uploadi
   assert.deepEqual(h.remote.data, h.local);
   assert.ok(h.backups.length > 0);
   assert.equal(h.cloud.state.status, 'saved');
+});
+
+test('choosing a device save preserves the existing cloud save point before overwriting it', async () => {
+  const h = harness();
+  const oldCloud = edited(freshSave(), '2026-11-11T17:00:00.000Z');
+  const device = edited(freshSave(), '2026-11-11T18:00:00.000Z');
+  h.remote = { revision: 1, data: oldCloud }; h.local = device;
+  await h.cloud.connect('owner'); await h.cloud.choose('local');
+  assert.deepEqual(h.cloudPoints, [{ sourceRevision: 1, data: oldCloud }]);
+  assert.deepEqual(h.remote.data, device);
+});
+
+test('a failed cloud save point blocks replacing the existing cloud save', async () => {
+  const h = harness();
+  const oldCloud = edited(freshSave(), '2026-11-11T17:00:00.000Z');
+  h.remote = { revision: 1, data: oldCloud };
+  await h.cloud.connect('owner'); h.pointFails = true;
+  await h.cloud.choose('local');
+  assert.equal(h.cloud.state.status, 'error');
+  assert.deepEqual(h.remote.data, oldCloud);
 });
 
 test('edits arriving during an upload are subsequently uploaded without being lost', async () => {

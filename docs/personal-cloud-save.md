@@ -11,6 +11,7 @@ Scope: one owner, cross-device saves, offline local edits, explicit conflict res
 - Pending edits and read-only tabs block cloud replacement. Offline edits survive reload through the saved link baseline.
 - Exported JSON is the independent backup. Preserved copies are browser-local and are not a substitute for downloading backups.
 - Account can create, list, download and restore immutable cloud save points. Restoring first creates a save point of the current cloud state; a concurrent cloud edit becomes a visible conflict instead of being overwritten.
+- Choosing the device copy when a cloud save already exists creates a cloud save point of the old cloud copy before uploading. If that save point fails, the old cloud save is not overwritten.
 
 ## Administrative account setup / recovery
 

@@ -49,6 +49,12 @@ export function createCloudSave({ storage, getSave, replaceSave, preserve, fetch
     // A local edit may have arrived while the request was in flight.
     if (serialize(getSave()) !== serialize(data)) await synchronize();
   }
+  async function savePointBeforeOverwrite() {
+    const response = await fetch('/api/ledger/backups', {
+      method: 'POST', credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(15000),
+    });
+    if (!response.ok) throw Error('Could not preserve the current cloud save. It has not been replaced.');
+  }
   async function synchronize() {
     if (!userId) return;
     publish('pending', 'Checking cloud save…');
@@ -96,6 +102,7 @@ export function createCloudSave({ storage, getSave, replaceSave, preserve, fetch
         remember(remote);
         await synchronize();
       } else {
+        if (remote) await savePointBeforeOverwrite();
         // Persist a fresh device save too, so reloads retain the exact linked baseline.
         await replaceSave(getSave());
         await upload(remote?.revision ?? 0);
