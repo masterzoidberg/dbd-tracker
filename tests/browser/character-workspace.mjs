@@ -48,10 +48,10 @@ export async function characterWorkspaceRegression(page, origin) {
   for (const section of ['native-perks','setup','perks','inventory','notes'])
     assert.equal(await workspace.locator('[data-overview-section="'+section+'"]').count(), 1, section);
   assert.equal(await workspace.locator('[data-overview-section="progress"]').count(), 0, 'Overview has no generic Progress / setup card');
-  const ownershipAction = workspace.locator('[data-character-header] .character-workspace-status [data-action="overview-ownership-toggle"]');
-  assert.equal(await ownershipAction.count(), 1, 'Ownership action stays beside Owned/Locked');
-  assert.equal(await workspace.locator('.character-overview-grid [data-action="overview-ownership-toggle"]').count(), 0,
-    'Ownership is not separated from character identity');
+  const ownershipAction = workspace.locator('[data-overview-section="setup"] [data-action="overview-ownership-toggle"]');
+  assert.equal(await ownershipAction.count(), 1, 'Ownership can be changed from the Overview content');
+  assert.equal(await ownershipAction.textContent(), 'Mark Owned');
+  assert.equal(await workspace.locator('[data-character-header] [data-action="overview-ownership-toggle"]').count(), 0);
   assert.equal(await workspace.locator('[data-character-progress-trigger]').count(), 1, 'Prestige and Bloodweb share one direct trigger');
   assert.equal(await workspace.locator('[data-character-progress-trigger] .character-progress-edit-cue').isVisible(), true,
     'The single direct trigger shows an at-rest edit cue');
@@ -96,11 +96,10 @@ export async function characterWorkspaceRegression(page, origin) {
   assert.equal(await page.locator('[data-character-header] img[data-character-portrait]').getAttribute('src'), collectionPortraitPath('the-shape', assetManifest),
     'Killer workspace identity uses the approved Lore portrait');
   const slasher = characters.find(character => character.name === 'The Slasher');
-  assert.ok(characterPortraitPath(slasher.id, assetManifest), 'The Slasher has a legacy square portrait that must not be substituted');
+  assert.ok(characterPortraitPath(slasher.id, assetManifest), 'The Slasher retains its legacy square portrait');
   await page.goto(origin + '/#character/' + slasher.id + '/overview');
-  assert.equal(await page.locator('[data-character-header] img[data-character-portrait]').count(), 0,
-    'The Slasher uses a named neutral fallback instead of a square portrait');
-  assert.match(await page.locator('[data-character-header] .character-portrait').textContent(), /The Slasher/);
+  assert.equal(await page.locator('[data-character-header] img[data-character-portrait]').getAttribute('src'),
+    collectionPortraitPath(slasher.id, assetManifest), 'The Slasher uses its Lore portrait in the workspace');
   // Popup capability parity: normal identity and Prestige are real Overview links.
   await page.goto(origin + '/#survivors');
   await page.locator('#search').fill('Meg');
@@ -416,7 +415,6 @@ export async function workspaceContextRegression(page, origin) {
   await page.locator('#inventory-map').selectOption('addons');
   await page.locator('#inventory-filters-toggle').click();
   await page.locator('#inventory-rarity').selectOption(addon.rarity);
-  await page.locator('#addon-rarity-order').selectOption('lowest-to-highest');
   await page.locator('[data-roster-neighbor="next"]').click();
   await page.waitForURL('**/#character/' + survivors[megIndex + 1].id + '/items-addons');
   assert.equal(await page.locator('[data-action="stock-family-select"][aria-pressed="true"]').getAttribute('data-family'), family.id);
@@ -425,15 +423,14 @@ export async function workspaceContextRegression(page, origin) {
   assert.equal(await page.locator('#inventory-in-stock').isChecked(), true);
   assert.equal(await page.locator('#inventory-map').inputValue(), 'addons');
   assert.equal(await page.locator('#inventory-rarity').inputValue(), addon.rarity);
-  assert.equal(await page.locator('#addon-rarity-order').inputValue(), 'lowest-to-highest');
+  assert.equal(await page.locator('#addon-rarity-order').count(), 0);
 
   await page.goto(origin + '/#character/the-shape/power-addons');
-  await page.locator('#addon-rarity-order').selectOption('highest-to-lowest');
   await page.locator('[data-roster-neighbor="next"]').click();
   await page.waitForURL('**/#character/' + killers[killerIndex + 1].id + '/power-addons');
-  assert.equal(await page.locator('#addon-rarity-order').inputValue(), 'highest-to-lowest');
+  assert.equal(await page.locator('#addon-rarity-order').count(), 0);
   await page.goto(origin + '/#character/' + survivors[megIndex + 1].id + '/items-addons');
-  assert.equal(await page.locator('#addon-rarity-order').inputValue(), 'lowest-to-highest', 'Killer inventory context does not overwrite Survivor preferences');
+  assert.equal(await page.locator('#addon-rarity-order').count(), 0);
 
   await page.goto(origin + '/#character/meg-thomas/perks');
   await page.locator('#character-inventory-search').fill('Kindred');

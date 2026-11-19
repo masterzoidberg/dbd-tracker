@@ -203,7 +203,7 @@ test('export module uses no account-calculation or server dependencies; browser 
   const exporter = await build({ entryPoints: ['src/character-export.js'], bundle: true, write: false, metafile: true });
   assert.ok(Object.keys(exporter.metafile.inputs).every(path => !/src\/model.js|node_modules|src\/auth\//.test(path)));
   const browser = await build({ entryPoints: ['src/app.js'], bundle: true, write: false, metafile: true, minify: true,
-    define: { __LEDGER_GOOGLE_CONFIG__: '{}' } });
+    define: { __LEDGER_GOOGLE_CONFIG__: '{}', __LEDGER_ACCOUNT_ENABLED__: 'false' } });
   assert.ok(Object.keys(browser.metafile.inputs).every(path => !/node_modules|src\/auth\//.test(path)));
   assert.doesNotMatch(browser.outputFiles[0].text, /DATABASE_URL|BETTER_AUTH_SECRET|MAILTRAP_|postgres(?:ql)?:\/\/|\/api\/(?:auth|ledger)\//);
 });

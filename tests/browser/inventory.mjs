@@ -3,6 +3,12 @@ import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {freshSave} from '../../src/model.js';
 import {inventoryEntities,inventoryEntityById,inventoryCatalogStatus,survivorInventorySource} from '../../data/inventory-catalog.js';
+const rarityOrder=['Ultra Rare','Very Rare','Rare','Uncommon','Common'];
+const compareInventory=(a,b)=>{
+ const rank=rarity=>{const index=rarityOrder.indexOf(rarity);return index<0?Infinity:index;};
+ return rank(a.rarity)-rank(b.rarity)||a.name.localeCompare(b.name)||a.id.localeCompare(b.id);
+};
+const sortIds=entries=>[...entries].sort(compareInventory).map(entry=>entry.id);
 export async function familyNavigationRegression(page,origin){
  page.setDefaultTimeout(6000);
  const fixture=freshSave();
@@ -12,12 +18,6 @@ export async function familyNavigationRegression(page,origin){
  await page.goto(origin+'/#character/meg-thomas/items-addons');await page.reload();
  await page.locator('[data-stock-workspace]').waitFor();
  const families=survivorInventorySource.itemFamilies;
- const rarityOrder=['Ultra Rare','Very Rare','Rare','Uncommon','Common'];
- const sortIds=(entries,direction)=>{
-  const order=direction==='lowest-to-highest'?[...rarityOrder].reverse():rarityOrder;
-  return [...order.flatMap(rarity=>entries.filter(addon=>addon.rarity===rarity).map(addon=>addon.id)),
-   ...entries.filter(addon=>!rarityOrder.includes(addon.rarity)).map(addon=>addon.id)];
- };
  const nav=page.getByRole('navigation',{name:'Item families',exact:true});
  assert.equal(await nav.count(),1,'A native Item families navigator replaces the all-family document');
  assert.deepEqual(await nav.locator('button').evaluateAll(nodes=>nodes.map(n=>n.dataset.family)),families.map(f=>f.id));
@@ -36,17 +36,17 @@ export async function familyNavigationRegression(page,origin){
   const familyItems=inventoryEntities.filter(e=>e.familyId===family.id&&e.map==='items').length;
   const familyAddons=inventoryEntities.filter(e=>e.familyId===family.id&&e.map==='addons').length;
   assert.equal(await page.locator('.stock-family-heading p').textContent(),familyItems+' Items · '+familyAddons+' Add-ons (catalog totals)');
-  const itemRows=inventoryEntities.filter(entity=>entity.familyId===family.id&&entity.map==='items').sort((a,b)=>a.order-b.order);
+  const itemRows=inventoryEntities.filter(entity=>entity.familyId===family.id&&entity.map==='items').sort(compareInventory);
   const itemSelect=page.locator('#inventory-item');
   assert.equal(await page.locator('[data-stock-subsection="items"] [data-stock-card] [data-action="stock-item-select"]').count(),itemRows.length,
    'Every Item has a separate Select Item action, distinct from quantity and Details');
   assert.deepEqual(await itemSelect.locator('option').evaluateAll(nodes=>nodes.map(node=>node.value)),itemRows.map(item=>item.id),
-   'Each family exposes its Items in catalog order for Add-on compatibility');
+   'Each family exposes its Items in fixed rarity and name order for Add-on compatibility');
   for(const map of ['items','addons']){
    const rows=inventoryEntities.filter(e=>e.familyId===family.id&&e.map===map);
    const selectedItem=inventoryEntityById[await itemSelect.inputValue()];
    const compatible=map==='addons'?rows.filter(entity=>entity.compatibleItemIds.includes(selectedItem.id)):rows;
-   const expected=map==='addons'?sortIds(compatible,'highest-to-lowest'):rows.map(entity=>entity.id);
+   const expected=sortIds(compatible);
    assert.deepEqual(await page.locator('[data-stock-subsection="'+map+'"] [data-stock-card]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockCard)),expected);
   }
   for(const item of itemRows){
@@ -55,7 +55,7 @@ export async function familyNavigationRegression(page,origin){
    assert.equal(await page.locator('[data-stock-card="'+item.id+'"] [data-action="stock-item-select"]').getAttribute('aria-pressed'),'true');
    assert.equal(await page.locator('[data-stock-subsection="addons"]').getAttribute('data-compatible-item-id'),item.id);
    const compatible=inventoryEntities.filter(entity=>entity.familyId===family.id&&entity.map==='addons'&&entity.compatibleItemIds.includes(item.id));
-   assert.deepEqual(await page.locator('[data-stock-subsection="addons"] [data-stock-card]').evaluateAll(nodes=>nodes.map(node=>node.dataset.stockCard)),sortIds(compatible,'highest-to-lowest'),
+   assert.deepEqual(await page.locator('[data-stock-subsection="addons"] [data-stock-card]').evaluateAll(nodes=>nodes.map(node=>node.dataset.stockCard)),sortIds(compatible),
     'Add-ons appear only beneath the selected compatible Item');
   }
   assert.equal(await page.evaluate(()=>localStorage.dbdTrackerData),before,'Family selection cannot persist');
@@ -145,12 +145,12 @@ export async function familyTransitionsRegression(page,origin){
  assert.equal(await page.locator('[data-stock-subsection="addons"] .stock-grid').count(),0);
  assert.deepEqual(await page.locator('[data-stock-subsection]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockSubsection)),['items','addons']);
  await select(first.familyId).click();
- const orderedItems=inventoryEntities.filter(e=>e.familyId===first.familyId&&e.map==='items');
+ const orderedItems=inventoryEntities.filter(e=>e.familyId===first.familyId&&e.map==='items').sort(compareInventory);
  const laterItem=orderedItems.at(-1);
  await field(laterItem.id).fill('2');
  assert.deepEqual(await page.locator('[data-stock-subsection="items"] [data-stock-card]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockCard)),orderedItems.map(e=>e.id),'Pending raw typing cannot reorder cards');
  await field(laterItem.id).press('Enter');
- assert.deepEqual(await page.locator('[data-stock-subsection="items"] [data-stock-card]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockCard)),[laterItem.id,...orderedItems.filter(e=>e.id!==laterItem.id).map(e=>e.id)],'Stable commit uses positive then zero canonical order');
+ assert.deepEqual(await page.locator('[data-stock-subsection="items"] [data-stock-card]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockCard)),orderedItems.map(e=>e.id),'Quantity commit cannot reorder cards');
  await field(laterItem.id).fill('0');await field(laterItem.id).press('Enter');
  await page.evaluate(()=>{window.familyWrites=0;window.familySetItem=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='dbdTrackerData')window.familyWrites++;return window.familySetItem.call(this,k,v);};});
  await field(first.id).fill('3');await select(second.familyId).click();
@@ -290,8 +290,7 @@ export async function quantityStepperRegression(page,origin){
  assert.equal(await increase(max).isDisabled(),true);assert.equal(await field(max).evaluate(n=>n===document.activeElement),true);
  // Tabbing past the stepper without activating it still commits the pending typed edit.
  await field(zero).fill('6');await field(zero).press('Tab');
- const departureWrites=await writes();await increase(zero).press('Tab');await page.keyboard.press('Tab');
- await page.keyboard.press('Tab');await page.keyboard.press('Tab');
+  const departureWrites=await writes();await page.locator('#inventory-search').focus();
  await page.waitForFunction(id=>JSON.parse(localStorage.dbdTrackerData).characters['meg-thomas'].inventory.items[id]===6,zero.id);
  assert.equal(await writes(),departureWrites+1,'Leaving the control resolves deferred blur once');
  await field(zero).fill('0');await field(zero).press('Enter');
@@ -372,12 +371,13 @@ export async function inventoryRegression(page,origin){
   })),inventoryEntities.map(e=>e.imagePath).filter(Boolean));
   assert.equal(decoded.length,92);assert.ok(decoded.every(Boolean),'All92 referenced staged Survivor images decode');
  const before=await bytes(), beforeOrder=await order();
+ const familyItemsBefore=await page.locator('[data-stock-family="'+item.familyId+'"] [data-stock-subsection="items"] [data-stock-card]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockCard));
  await field(item.id).fill('5');
  assert.equal(await bytes(),before); assert.deepEqual(await order(),beforeOrder);
  await field(item.id).press('Enter');
  assert.equal(JSON.parse(await bytes()).characters['meg-thomas'].inventory.items[item.id],5);
   const committedFamilyItems=await page.locator('[data-stock-family="'+item.familyId+'"] [data-stock-subsection="items"] [data-stock-card]').evaluateAll(nodes=>nodes.map(n=>n.dataset.stockCard));
-  assert.equal(committedFamilyItems[0],item.id,'Positive stock moves to the front of its family Items subsection after commit');
+  assert.deepEqual(committedFamilyItems,familyItemsBefore,'Quantity commit leaves family Items in place');
  assert.equal(await field(item.id).evaluate(n=>document.activeElement===n),true);
   let committed=await bytes();
   const itemDetails=page.locator('[data-stock-card="'+item.id+'"] [data-action="stock-details"]');
@@ -418,7 +418,7 @@ export async function inventoryRegression(page,origin){
   assert.equal(await bytes(),committed,'Enter then blur must not stamp twice');
   await field(item.id).fill('invalid');
   await page.locator('#inventory-search').click();
-  await page.waitForFunction(()=>document.querySelector('[data-stock-error]')?.textContent.length>0);
+  await page.waitForFunction(id=>document.querySelector('#stock-error-'+id)?.textContent.length>0,item.id);
   assert.equal(await page.locator('#inventory-search').evaluate(n=>document.activeElement===n),true,'Invalid blur respects clicked destination');
  for(const invalid of ['','-1','1.5','9007199254740992']){
   await field(item.id).fill(invalid); await field(item.id).press('Enter');
@@ -623,13 +623,8 @@ export async function survivorAddonRarityNavigationRegression(page,origin){
  page.setDefaultTimeout(6000);
  const family='key';
  const addons=inventoryEntities.filter(entity=>entity.familyId===family&&entity.map==='addons').sort((a,b)=>a.order-b.order);
- const items=inventoryEntities.filter(entity=>entity.familyId===family&&entity.map==='items').sort((a,b)=>a.order-b.order);
- const sortIds=(entries,direction)=>{
-  const order=direction==='lowest-to-highest'?[...rarityOrder].reverse():rarityOrder;
-  return [...order.flatMap(rarity=>entries.filter(addon=>addon.rarity===rarity).map(addon=>addon.id)),
-   ...entries.filter(addon=>!rarityOrder.includes(addon.rarity)).map(addon=>addon.id)];
- };
- const rarityOrder=['Ultra Rare','Very Rare','Rare','Uncommon','Common'];
+ const items=inventoryEntities.filter(entity=>entity.familyId===family&&entity.map==='items');
+ items.sort(compareInventory);
  const save=freshSave();
  await page.evaluate(value=>localStorage.setItem('dbdTrackerData',JSON.stringify(value)),save);
  await page.goto(origin+'/#character/meg-thomas/items-addons');
@@ -641,20 +636,19 @@ export async function survivorAddonRarityNavigationRegression(page,origin){
  const itemOrder=()=>page.locator('[data-stock-subsection="items"] [data-stock-card]').evaluateAll(nodes=>nodes.map(node=>node.dataset.stockCard));
  assert.deepEqual(await itemOrder(),items.map(item=>item.id),'Survivor Items retain their existing family ordering');
  const bytes=()=>page.evaluate(()=>localStorage.getItem('dbdTrackerData'));
- const controls=page.locator('#addon-rarity-order');
  const addonList=page.locator('[data-stock-subsection="addons"] [data-stock-card]');
- assert.equal(await controls.inputValue(),'highest-to-lowest');
+ assert.equal(await page.locator('#addon-rarity-order').count(),0);
  const itemAddons=addons.filter(addon=>addon.compatibleItemIds.includes(selectedItem.id));
- assert.deepEqual(await addonList.evaluateAll(nodes=>nodes.map(card=>card.dataset.stockCard)),sortIds(itemAddons,'highest-to-lowest'),
-  'Highest → Lowest sorts the selected Item Add-ons and preserves equal-rarity source order');
+ assert.deepEqual(await addonList.evaluateAll(nodes=>nodes.map(card=>card.dataset.stockCard)),sortIds(itemAddons),
+  'Add-ons stay in fixed rarity and name order');
  for(const item of items){
   await itemSelect.selectOption(item.id);
   const compatible=addons.filter(addon=>addon.compatibleItemIds.includes(item.id));
-  assert.deepEqual(await addonList.evaluateAll(nodes=>nodes.map(card=>card.dataset.stockCard)),sortIds(compatible,'highest-to-lowest'),
+  assert.deepEqual(await addonList.evaluateAll(nodes=>nodes.map(card=>card.dataset.stockCard)),sortIds(compatible),
    'Each selected Item shows only its compatible Add-ons in one flat list: '+item.name);
  }
  await itemSelect.selectOption(selectedItem.id);
- const firstAddon=itemAddons.find(addon=>addon.id===sortIds(itemAddons,'highest-to-lowest')[0]);
+ const firstAddon=itemAddons.find(addon=>addon.id===sortIds(itemAddons)[0]);
  const field=id=>page.locator('[data-inventory-quantity="'+id+'"]');
  const zeroField=field(firstAddon.id);
  await zeroField.focus();
@@ -665,27 +659,25 @@ export async function survivorAddonRarityNavigationRegression(page,origin){
  await zeroField.fill('');await page.locator('#inventory-search').focus();
  await page.waitForFunction(id=>!JSON.parse(localStorage.dbdTrackerData).characters['meg-thomas'].inventory.addons[id],firstAddon.id);
  assert.equal(await zeroField.inputValue(),'0','Blurring an empty Survivor Add-on restores zero');
- const savedZero=await bytes();
  await zeroField.fill('14');await zeroField.press('Enter');
  const savedWithQuantity=await bytes();
- await controls.selectOption('lowest-to-highest');
- assert.deepEqual(await addonList.evaluateAll(nodes=>nodes.map(card=>card.dataset.stockCard)),sortIds(itemAddons,'lowest-to-highest'),
-  'Lowest → Highest sorts only the selected Item Add-ons');
- assert.deepEqual(await itemOrder(),items.map(item=>item.id),'Rarity sorting does not reorder Survivor Items');
- assert.equal(await field(firstAddon.id).inputValue(),'14','Rarity sorting keeps quantity attached to its Add-on');
- assert.equal(await bytes(),savedWithQuantity,'Rarity sorting changes presentation only');
- const otherItems=inventoryEntities.filter(item=>item.map==='items'&&item.familyId==='flashlight').sort((a,b)=>a.order-b.order);
+ assert.deepEqual(await addonList.evaluateAll(nodes=>nodes.map(card=>card.dataset.stockCard)),sortIds(itemAddons),
+  'Changing quantity does not move the Add-on');
+ assert.deepEqual(await itemOrder(),items.map(item=>item.id),'Changing quantity does not move Items');
+ assert.equal(await field(firstAddon.id).inputValue(),'14','Quantity stays attached to its Add-on');
+ assert.equal(await bytes(),savedWithQuantity,'Rendering does not change saved quantities');
+ const otherItems=inventoryEntities.filter(item=>item.map==='items'&&item.familyId==='flashlight').sort(compareInventory);
  const otherFamilyAddons=inventoryEntities.filter(addon=>addon.familyId==='flashlight'&&addon.map==='addons').sort((a,b)=>a.order-b.order);
  await page.locator('#stock-family-nav-flashlight').click();
  const otherItem=otherItems[0],otherItemAddons=otherFamilyAddons.filter(addon=>addon.compatibleItemIds.includes(otherItem.id));
  await page.locator('#inventory-item').selectOption(otherItem.id);
- assert.deepEqual(await addonList.evaluateAll(nodes=>nodes.map(card=>card.dataset.stockCard)),sortIds(otherItemAddons,'lowest-to-highest'),
+ assert.deepEqual(await addonList.evaluateAll(nodes=>nodes.map(card=>card.dataset.stockCard)),sortIds(otherItemAddons),
   'Sorting applies within the selected Item and never mixes Add-ons from another Item');
  assert.deepEqual(await itemOrder(),otherItems.map(item=>item.id),'Rarity sorting does not reorder the Flashlight Items');
  for(const item of otherItems){
   await page.locator('#inventory-item').selectOption(item.id);
   const compatible=otherFamilyAddons.filter(addon=>addon.compatibleItemIds.includes(item.id));
-  assert.deepEqual(await addonList.evaluateAll(nodes=>nodes.map(card=>card.dataset.stockCard)),sortIds(compatible,'lowest-to-highest'),
+  assert.deepEqual(await addonList.evaluateAll(nodes=>nodes.map(card=>card.dataset.stockCard)),sortIds(compatible),
    'Flashlight Add-ons remain segregated for '+item.name);
  }
  await page.locator('#stock-family-nav-'+family).click();

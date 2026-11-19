@@ -80,6 +80,20 @@ function createUserRepository(client) {
       return mapBackup(result.rows[0]);
     },
 
+    async listBackups() {
+      const result = await client.query(`
+        SELECT id, source_revision, created_at
+        FROM ledger_user_backups
+        WHERE user_id = current_setting('app.user_id', true)
+        ORDER BY created_at DESC, id DESC
+      `);
+      return result.rows.map(row => ({
+        id: row.id,
+        sourceRevision: safeRevision(row.source_revision),
+        createdAt: isoTimestamp(row.created_at),
+      }));
+    },
+
     async readBackup(backupId) {
       if (typeof backupId !== 'string' || !uuidPattern.test(backupId)) return null;
       const result = await client.query(`
