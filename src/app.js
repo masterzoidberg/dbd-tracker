@@ -105,7 +105,7 @@ function message(text, error = false) {
 }
 
 const editingActions = new Set(['favorite', 'overview-ownership-toggle', 'ownership', 'cycle', 'character-inventory-set-tier', 'character-inventory-correction-open', 'character-inventory-correction-apply', 'account-unlock-tier', 'drive-import', 'import', 'restore', 'reset', 'delete-backup', 'setup-open', 'setup-p1', 'setup-next', 'setup-back', 'character-task-start', 'character-task-save']);
-const editingControls = '#detail-content select, [data-up-next-intent], [data-character-task-field], [data-setup-owned], [data-setup-prestige], [data-setup-perk], [data-character-setup-perk], [data-character-setup-tier], [data-historical-ownership], [data-character-inventory-historical], [data-character-inventory-correction-tier], #character-setup-bloodweb, #halloween-names, #hellraiser-names, #import-file';
+const editingControls = '#detail-content select, [data-up-next-intent], [data-character-task-field], [data-setup-owned], [data-setup-prestige], [data-setup-perk], [data-character-setup-perk], [data-character-setup-tier], [data-historical-ownership], [data-character-inventory-correction-tier], #character-setup-bloodweb, #halloween-names, #hellraiser-names, #import-file';
 function requiresEditor(action) { return editingActions.has(action) || ['queue-add','queue-target','queue-remove','queue-move','queue-move-down','queue-save','queue-shortcut','queue-select','playing-add','playing-remove','playing-move-up','playing-move-down','up-next-pin','up-next-save','up-next-unpin','up-next-move'].includes(action) || (action?.startsWith('character-setup-') && action !== 'character-setup-exit'); }
 function editorPresentation() {
   const editing = initialized && editor.state === 'editing';
@@ -477,18 +477,17 @@ function characterPerkCard(row, characterId, selected = false) {
   return `<button class="perk-card ${tierClass}${tier === 0 ? ' perk-card-unrecorded' : ''}${selected ? ' is-selected' : ''}" data-action="character-inventory-select" data-character="${characterId}" data-perk="${row.perk.id}" aria-pressed="${selected}" aria-label="${esc(name)}: effective Tier ${esc(roman[tier])}; recorded ${esc(characterInventoryRecordedLabel(characterId, row.perk))}"><span class="perk-card-art">${perkArtwork(row.perk, 78)}</span><span class="perk-card-content"><span class="perk-card-tier-line"><span class="perk-card-tier">${roman[tier]}</span>${tier === 0 ? '<span class="perk-card-unrecorded-label">NO EFFECTIVE TIER</span>' : ''}</span><strong>${esc(name)}</strong><span class="perk-card-badges">${characterInventoryBadges(row)}</span></span></button>`;
 }
 
-function historicalCharacterInventoryControl(characterId, perk) {
-  const inventory = save.characters[characterId].perks;
-  const confirmed = Object.hasOwn(inventory, perk.id);
-  const tier = inventory[perk.id] ?? 0;
-  const floor = recordedTier(save, characterId, perk.id);
-  const options = [['', 'Not Confirmed'], [0, 'Not Owned'], [1, 'Tier I'], [2, 'Tier II'], [3, 'Tier III']];
-  return `<label class="character-inventory-history-control">Historical record<select data-character-inventory-historical="${perk.id}" data-character="${characterId}" aria-label="Historical ownership of ${esc(perkName(save, perk))} on ${esc(characterById[characterId].name)}" ${characterInventorySession.failedSelection ? 'disabled' : ''}>${options.map(([value, label]) => `<option value="${value}" ${(confirmed ? value === tier : value === '') ? 'selected' : ''} ${(value === '' && confirmed) || (value !== '' && value < floor) ? 'disabled' : ''}>${label}</option>`).join('')}</select></label>`;
-}
-
 function characterInventoryTierButtons(row, characterId) {
   const name = perkName(save, row.perk);
-  return `<div class="character-inventory-tier-controls" role="group" aria-label="Set current tier for ${esc(name)}">${[['none', 'Not recorded', 0], ['1', 'I', 1], ['2', 'II', 2], ['3', 'III', 3]].map(([value, label, tier]) => `<button data-action="character-inventory-set-tier" data-character="${characterId}" data-perk="${row.perk.id}" data-tier="${value}" aria-label="Set ${esc(name)} to ${tier ? `Tier ${label}` : label}" aria-pressed="${row.recordedTier === tier}" ${characterInventorySession.failedSelection || (tier && tier < row.automaticMinimum) ? 'disabled title="Resolve the failed selection first"' : ''}>${label}</button>`).join('')}</div>`;
+  const historical = row.isHistorical;
+  const options = [['none', historical ? 'Not owned' : 'Not recorded', 0], ['1', 'I', 1], ['2', 'II', 2], ['3', 'III', 3]];
+  const groupLabel = historical ? 'Set historical ownership for' : 'Set current tier for';
+  return `<div class="character-inventory-tier-controls" role="group" aria-label="${groupLabel} ${esc(name)}">${options.map(([value, label, tier]) => {
+    const selected = row.recordedTier === tier && (!historical || row.hasRecordedRecord);
+    const belowMinimum = historical ? tier < row.recordedTier : tier > 0 && tier < row.automaticMinimum;
+    const disabled = characterInventorySession.failedSelection ? 'disabled title="Resolve the failed selection first"' : belowMinimum ? 'disabled' : '';
+    return `<button data-action="character-inventory-set-tier" data-character="${characterId}" data-perk="${row.perk.id}" data-tier="${value}" aria-label="Set ${esc(name)} to ${tier ? `Tier ${label}` : label}" aria-pressed="${selected}" ${disabled}>${label}</button>`;
+  }).join('')}</div>`;
 }
 
 function characterInventoryQuickCard(row, characterId) {
@@ -498,7 +497,7 @@ function characterInventoryQuickCard(row, characterId) {
   const correction = characterInventoryCorrectionMarkup(row, characterId);
   const editor = correcting
     ? correction
-    : `${row.isHistorical ? historicalCharacterInventoryControl(characterId, row.perk) : characterInventoryTierButtons(row, characterId)}${correction}`;
+    : `${characterInventoryTierButtons(row, characterId)}${correction}`;
   const pickerLabel = `${correcting ? 'Correct personal record for' : row.isHistorical ? 'Set historical ownership for' : 'Set current tier for'} ${perkName(save, row.perk)}`;
   const record = save.characters[characterId].perks;
   const recorded = row.isHistorical
@@ -2296,8 +2295,9 @@ async function handleClick(event) {
   if (action === 'character-inventory-set-tier') {
     if (characterInventorySession.failedSelection) return;
     const characterId = button.dataset.character, perkId = button.dataset.perk;
-    const tier = button.dataset.tier === 'none' ? null : Number(button.dataset.tier);
-    saveCharacterInventorySelection({ type: 'personal', characterId, perkId, tier, baseFingerprint: JSON.stringify(save) });
+    const historical = perkById[perkId]?.historicalAvailability?.manualOwnership;
+    const tier = button.dataset.tier === 'none' ? (historical ? 0 : null) : Number(button.dataset.tier);
+    saveCharacterInventorySelection({ type: historical ? 'historical' : 'personal', characterId, perkId, tier, baseFingerprint: JSON.stringify(save) });
     return;
   }
   if (action === 'account-unlock-tier') {
@@ -2490,14 +2490,7 @@ document.addEventListener('change', async event => {
       stockFilters={...stockFilters,[key]:target.type==='checkbox'?target.checked:target.value};render();return;
     }
     if(target.dataset.inventoryQuantity)return;
-    if (target.matches(editingControls) && !target.matches('[data-character-inventory-historical]')) store.assertWriter();
-    if (target.dataset.characterInventoryHistorical) {
-      if (target.value === '') return;
-      const perkId = target.dataset.characterInventoryHistorical, characterId = target.dataset.character;
-      if (characterInventorySession.failedSelection) { render(); return; }
-      saveCharacterInventorySelection({ type: 'historical', characterId, perkId, tier: Number(target.value), baseFingerprint: JSON.stringify(save) });
-      return;
-    }
+    if (target.matches(editingControls)) store.assertWriter();
     if (target.dataset.characterInventoryCorrectionTier) {
       const draft = characterInventorySession.correctionDraft;
       const characterId = target.dataset.character, perkId = target.dataset.characterInventoryCorrectionTier;

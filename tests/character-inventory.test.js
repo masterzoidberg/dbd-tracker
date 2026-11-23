@@ -376,7 +376,7 @@ test('ordinary Perks uses the compact picker and removes featured Update Invento
   assert.doesNotMatch(controls, />Save<|>Confirm</);
   assert.match(controls, /characterInventoryTierButtons\(row, characterId\)/);
   const picker = source.slice(source.indexOf('function characterInventoryQuickCard'), source.indexOf('function closeCharacterInventoryQuickPicker'));
-  assert.match(picker, /historicalCharacterInventoryControl\(characterId, row\.perk\)/);
+  assert.match(picker, /characterInventoryTierButtons\(row, characterId\)/);
   assert.match(picker, /role="group" aria-label="\$\{esc\(pickerLabel\)\}"/);
   assert.match(picker, /Set current tier for/);
   assert.match(picker, /data-action="character-inventory-details"/);

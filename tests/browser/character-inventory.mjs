@@ -329,6 +329,11 @@ export async function characterInventoryRegression(page, origin) {
 async function quickPickerRegression(page, origin) {
   const picker = page.locator('.character-inventory-quick-picker');
   const choice = tier => picker.locator(`[data-tier="${tier}"]`);
+  const save = await stored(page);
+  delete save.characters['the-doctor'].perks.surge;
+  delete save.characters['ash-williams'].perks.camaraderie;
+  await page.evaluate(value => localStorage.setItem('dbdTrackerData', JSON.stringify(value)), save);
+  await page.reload();
   for (const [id, perk, floorPerk, historical] of [
     ['the-doctor', 'bitter-murmur', 'shadowborn', 'surge'],
     ['ash-williams', 'dark-sense', 'self-care', 'camaraderie'],
@@ -402,13 +407,27 @@ async function quickPickerRegression(page, origin) {
     await choice('none').click();
     assert.equal((await stored(page)).characters[id].perks[floorPerk], undefined);
     assert.equal(await card(page, floorPerk).evaluate(node => node.classList.contains('perk-tier-2')), true);
+    if (!(await card(page, historical).count())) {
+      await page.locator('[data-action="character-inventory-all-role"]').click();
+    }
     await card(page, historical).click();
-    assert.equal(await picker.count(), 1, 'Historical ownership remains editable in its distinct compact control');
-    assert.deepEqual(await page.locator('[data-character-inventory-historical] option').allTextContents(), ['Not Confirmed', 'Not Owned', 'Tier I', 'Tier II', 'Tier III']);
-    await page.locator('[data-character-inventory-historical]').selectOption('2');
+    assert.equal(await picker.count(), 1, 'Historical ownership uses the same compact button grid');
+    const historicalButtons = picker.locator('.character-inventory-tier-controls button');
+    assert.deepEqual(await historicalButtons.allTextContents(), ['Not owned', 'I', 'II', 'III']);
+    assert.match(await picker.locator('.character-inventory-quick-state').textContent(), /Not Confirmed/);
+    assert.equal(await picker.locator('.character-inventory-tier-controls [aria-pressed="true"]').count(), 0);
+    await choice('none').click();
+    assert.equal((await stored(page)).characters[id].perks[historical], 0);
+    await card(page, historical).click();
+    assert.equal(await choice('none').getAttribute('aria-pressed'), 'true');
+    await choice('2').click();
     assert.equal((await stored(page)).characters[id].perks[historical], 2);
     await card(page, historical).click();
-    assert.equal(await page.locator('[data-character-inventory-historical] option[value="1"]').evaluate(node => node.disabled), true);
+    assert.equal(await choice('1').isDisabled(), true);
+    assert.equal(await choice('none').isDisabled(), true);
+    if (await page.locator('[data-action="character-inventory-all-role"]').getAttribute('aria-pressed') === 'true') {
+      await page.locator('[data-action="character-inventory-all-role"]').click();
+    }
     await card(page, perk).click();
     await choice('3').click();
     await page.reload();
@@ -557,7 +576,7 @@ async function correctionRegression(page, origin) {
   await card(page, 'camaraderie').click();
   assert.equal(await page.locator('[data-action="character-inventory-correction-open"]').count(), 0,
     'Historical Not Owned zero remains on its existing acquisition path');
-  assert.equal(await page.locator('[data-character-inventory-historical="camaraderie"]').inputValue(), '0');
+  assert.equal(await page.locator('[data-action="character-inventory-set-tier"][data-perk="camaraderie"][data-tier="none"]').getAttribute('aria-pressed'), 'true');
 
   await page.goto(`${origin}/#manage/${character}`);
   await page.locator('[data-character-inventory-toolbar="perks"]').waitFor();
