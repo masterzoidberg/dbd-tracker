@@ -1,12 +1,12 @@
 {
   "status": "AWAITING_MANUAL_ACCEPTANCE",
-  "stage": "G:\\Projects\\dbd-tracker-summary\\release\\runtime",
+  "stage": "C:\\Users\\nicol\\.codex\\worktrees\\live-catalog-pages\\dbd-tracker\\release\\runtime",
   "catalog": {
-    "patch": "10.1.2a",
-    "date": "2026-10-05"
+    "patch": "10.2.2",
+    "date": "2026-11-22"
   },
   "localhost": "AUTOMATED PASS",
-  "browser": "msedge 157.0.4341.42",
+  "browser": "msedge 158.0.4370.33",
   "checks": [
     "startup",
     "contextual Bloodweb/Favorite save",
@@ -45,5 +45,5 @@
     "fallbackKillerPowers": 7
   },
   "directFile": "MANUAL ACCEPTANCE REQUIRED",
-  "bundleSha256": "455393530c0a9d4aab4b38ec02ebc0b8e6c8c6ca8e13c25dbd00a3c1759e93e9"
+  "bundleSha256": "fca53cc5f315fbcf68a36be2cdd5591ae18e21193824d9d432432f545894c107"
 }
