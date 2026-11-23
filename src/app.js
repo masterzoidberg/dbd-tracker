@@ -5,7 +5,7 @@ import { mountAccount } from './account.js';
 import { createGoogleDrive } from './google-drive.js';
 import { characterExportSnapshot, formatCharacterExport, characterExportFilename, characterExportMime } from './character-export.js';
 import { parseCharacterWorkspaceRoute, characterWorkspaceHref, characterWorkspaceNeighbors } from './character-workspace.js';
-import {inventoryEntities,inventoryEntityById,inventoryCatalogStatus,survivorInventorySource,killerPowerByCharacterId} from '../data/inventory-catalog.js';
+import {inventoryEntities,inventoryEntityById,inventoryCatalogStatus,survivorInventorySource,killerCatalogVersion,killerPowerByCharacterId} from '../data/inventory-catalog.js';
 import {inventoryIconPath,killerPowerIconPath} from './assets.js';
 import {createQuantityInteraction,updateQuantityInput,acceptQuantityInput,visibleQuantityEntries,regroupQuantityEntries,quantityFocusAfterCommit,groupQuantityEntries,groupQuantityEntriesByItem,sortQuantityEntriesByRarity,stepQuantityInput,inventoryRarityOrder} from './inventory-interaction.js';
 import { createCharacterTaskSession, updateCharacterTaskSession, buildCharacterTaskCandidate } from './character-edit.js';
@@ -854,8 +854,8 @@ function inventoryProvenanceView(){
   const unknown=Object.entries(save.characters).flatMap(([characterId,progress])=>Object.entries({...progress.inventory.items,...progress.inventory.addons})
     .filter(([id])=>!Object.hasOwn(inventoryEntityById,id)).map(([id,quantity])=>({characterId,id,quantity})));
   return '<section class="panel"><h2>Survivor inventory catalog</h2><p>'+esc(survivorInventorySource.patch)+' · research '+esc(survivorInventorySource.verifiedAt)
-    +' · 38 Items · 54 Add-ons · 7 families. Perk catalog version remains '+esc(catalogInfo.patch||'10.1.2a')+'.</p><p>'
-    +esc(survivorInventorySource.provenance.sourcePolicy)+'</p><p>Three optional Banquet underlying rarity assignments remain flagged; Event presentation is preserved.</p>'
+    +' · '+survivorInventorySource.items.length+' items · '+survivorInventorySource.addons.length+' add-ons · '+survivorInventorySource.itemFamilies.length+' families.</p><p>'
+    +esc(survivorInventorySource.provenance.sourcePolicy)+'</p><p>Killer powers and add-ons · '+esc(killerCatalogVersion)+'.</p>'
     +(unknown.length?'<details><summary>'+unknown.length+' unresolved inventory records (preserved/read-only)</summary><ul>'+unknown.map(e=>'<li>'+esc(e.characterId)+' / '+esc(e.id)+': '+e.quantity+'</li>').join('')+'</ul></details>':'')+'</section>';
 }
 function stockView(id) {

@@ -33,7 +33,7 @@ missing or failed portraits use a silhouette or named neutral fallback. Images f
 their fixed slots without cropping, and artwork does not affect your save. The
 generated release report and artwork check show the current asset totals and
 intentional fallbacks for each build.
-The bundled Killer Power & Add-ons workspace includes the catalog for patch 10.2.1.
+The bundled Killer catalog includes the live 10.2.2b backend tuning.
 Each Killer page shows its Power summary and a flat Add-on list with rarity sorting
 and filters. Details opens the full gameplay explanation or effect.
 Quantities save on valid Enter/blur or +/−; zero removes the stored key, and invalid
@@ -174,9 +174,9 @@ v3 migration. Playing Queues and Up Next start empty; unresolved valid records a
 preserved without guessing a role. Unknown supported character, perk and inventory
 IDs remain in the save. The current schema is shown on Data & backups and in export.
 
-Survivor inventory is a separately versioned 10.2.0 research catalog alongside the
-10.1.2a Perk catalog. Killer Power/Add-on data comes from the canonical 10.2.1
-master; the build generates a compact runtime catalog before the artwork manifest
+Survivor inventory and perks were reviewed against client 10.2.2.
+Killer Power/Add-on data includes the official 10.2.2b tuning and comes from the
+canonical master; the build generates a compact runtime catalog before the artwork manifest
 and bundle. The research master is excluded from the runtime.
 
 Writable schema migration backs up the validated predecessor before conversion.

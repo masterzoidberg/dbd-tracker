@@ -1,6 +1,6 @@
 {
-  "verified_live_patch": "10.1.2a",
-  "verified_date": "2026-10-05",
+  "verified_live_patch": "10.2.2",
+  "verified_date": "2026-11-22",
   "perks": [
     {
       "name": "A Place for Us",
@@ -726,48 +726,29 @@
       "source_character": "Rebecca Chambers",
       "is_general_perk": false,
       "tier_1_values": {
-        "action_speed_bonus_percent": 12
+        "actionspeedbonus%": 40
       },
       "tier_2_values": {
-        "action_speed_bonus_percent": 14
+        "actionspeedbonus%": 45
       },
       "tier_3_values": {
-        "action_speed_bonus_percent": 16
+        "actionspeedbonus%": 50
       },
-      "current_effect": "After you finish healing another Survivor, that Survivor blesses and cleanses Totems, heals, and unlocks Chests 12/14/16% faster until they take damage.",
-      "plain_english_summary": "Finishing a heal grants the healed Survivor a temporary bonus to four actions.",
-      "activation_requirements": [
-        "Complete healing another Survivor."
-      ],
-      "deactivation_conditions": [
-        "Effect ends when the affected Survivor takes damage."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Until the affected Survivor takes damage."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [
-        "Bonus applies to the healed Survivor, not the perk owner."
-      ],
+      "current_effect": "After you finish healing another Survivor, they heal, bless or cleanse Totems, and unlock Chests 40/45/50% faster until they take damage.",
+      "plain_english_summary": "After you finish healing another Survivor, they heal, bless or cleanse Totems, and unlock Chests 40/45/50% faster until they take damage.",
       "latest_known_live_balance_change": {
-        "patch": "6.2.0",
-        "change": "Expanded the affected action categories and set the live bonus to 12/14/16%."
+        "patch": "10.2.0",
+        "change": "After you finish healing another Survivor, they heal, bless or cleanse Totems, and unlock Chests 40/45/50% faster until they take damage."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Proposes increasing blessing/cleansing, healing, and Chest unlocking bonuses to 40/45/50% until the affected Survivor takes damage; not live."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/better-than-new"
       ],
-      "verification_notes": "Live 12/14/16% values are retained. PTB proposals are stored separately."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Better Together",
@@ -924,60 +905,33 @@
       "source_character": "Cheryl Mason",
       "is_general_perk": false,
       "tier_1_values": {
-        "haste_percent": 5,
-        "haste_seconds": null,
-        "aura_range_m": 16
+        "haste%": 5,
+        "requireddistance": 16
       },
       "tier_2_values": {
-        "haste_percent": 6,
-        "haste_seconds": null,
-        "aura_range_m": 16
+        "haste%": 6,
+        "requireddistance": 16
       },
       "tier_3_values": {
-        "haste_percent": 7,
-        "haste_seconds": null,
-        "aura_range_m": 16
+        "haste%": 7,
+        "requireddistance": 16
       },
-      "current_effect": "While you are not the Obsession, if you or the Obsession is injured, you see each other's Auras. When you finish healing the Obsession or they finish healing you, both gain 5/6/7% Haste while within 16 metres of each other; this lasts as long as you remain within that range. The perk is disabled while you are the Obsession. At Trial start, you are less likely to become the initial Obsession.",
-      "plain_english_summary": "Injury reveals the Obsession's Aura to you and yours to them. A completed heal grants both 5/6/7% Haste for as long as you remain within 16 metres; you are less likely to be the initial Obsession.",
-      "activation_requirements": [
-        "You are not the Obsession.",
-        "You or the Obsession is injured for the Aura link.",
-        "Complete a qualifying heal within 16 metres for Haste."
-      ],
-      "deactivation_conditions": [
-        "The Aura link ends when neither you nor the Obsession is injured, or when you become the Obsession.",
-        "The post-heal Haste ends when you and the Obsession are no longer within 16 metres of each other; it has no fixed time limit."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Post-heal Haste lasts for as long as both Survivors remain within 16 metres of each other; no fixed duration."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [
-        "Haste"
-      ],
-      "special_interactions": [
-        "At Trial start, you are less likely to be selected as the Obsession."
-      ],
+      "current_effect": "If you are not the Obsession and either of you is injured, you can see each other's Auras. If one of you finishes healing the other, both gain 5/6/7% Haste while within 16 metres of each other. You are less likely to start as the Obsession. If you are the Obsession and get hooked, it transfers to another Survivor.",
+      "plain_english_summary": "If you are not the Obsession and either of you is injured, you can see each other's Auras.",
       "latest_known_live_balance_change": {
-        "patch": "4.3.0",
-        "change": "Reduced the Haste values to 5/6/7% and changed the Haste duration from 6/8/10 seconds to lasting while the Survivors remain within 16 metres of each other."
+        "patch": "10.2.0",
+        "change": "If you are not the Obsession and either of you is injured, you can see each other's Auras. If one of you finishes healing the other, both gain 5/6/7% Haste while within 16 metres of each other. You are less likely to start as the Obsession. If you are the Obsession and get hooked, it transfers to another Survivor."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Proposes transferring Obsession status to another Survivor if you are the Obsession and are hooked; not live."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/248-4-3-0-mid-chapter"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/248-4-3-0-mid-chapter",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/blood-pact"
       ],
-      "verification_notes": "The live Haste duration is range-based, not 7 seconds: 7 is the Tier III Haste percentage. Official live patch 4.3.0 set the 5/6/7% values and range-based duration; the 9.5.0 page history describes a wording update, not a later balance change. The 10.2.0 Obsession-transfer change is PTB-only."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Blood Rush",
@@ -1033,48 +987,35 @@
       "source_character": "Kate Denson",
       "is_general_perk": false,
       "tier_1_values": {
-        "wiggle_effectiveness_bonus_percent": 60,
-        "fall_progress_percent": 33,
-        "hook_aura_block_range_m": 16
+        "fallextrawiggle%": 33,
+        "hookaurablockrange": 16,
+        "requiredfallheight": 1.25,
+        "wiggleintensity%": 60
       },
       "tier_2_values": {
-        "wiggle_effectiveness_bonus_percent": 70,
-        "fall_progress_percent": 33,
-        "hook_aura_block_range_m": 16
+        "fallextrawiggle%": 33,
+        "hookaurablockrange": 16,
+        "requiredfallheight": 1.25,
+        "wiggleintensity%": 70
       },
       "tier_3_values": {
-        "wiggle_effectiveness_bonus_percent": 80,
-        "fall_progress_percent": 33,
-        "hook_aura_block_range_m": 16
+        "fallextrawiggle%": 33,
+        "hookaurablockrange": 16,
+        "requiredfallheight": 1.25,
+        "wiggleintensity%": 80
       },
-      "current_effect": "While carried, your wiggle effects are 60/70/80% more effective and the Killer cannot read Hook Auras within 16 metres. If the Killer falls from a height while carrying you, gain 33% of your current wiggle progress.",
-      "plain_english_summary": "While carried, you wiggle more effectively, hide nearby Hook Auras, and gain progress if the Killer falls.",
-      "activation_requirements": [
-        "Be carried by the Killer.",
-        "Killer must fall from a height while carrying you for the extra progress."
-      ],
-      "deactivation_conditions": [
-        "Effects end when the Killer stops carrying you."
-      ],
-      "cooldown": null,
-      "duration": [],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [
-        "The 33% bonus is based on current wiggle progress."
-      ],
+      "current_effect": "While the Killer carries you, your wiggle pushes them 60/70/80% harder and they cannot see Hook Auras within 16 metres. If they drop at least 1.25 metres while carrying you, you gain 33% of your current wiggle progress.",
+      "plain_english_summary": "While the Killer carries you, your wiggle pushes them 60/70/80% harder and they cannot see Hook Auras within 16 metres.",
       "latest_known_live_balance_change": {
         "patch": "9.5.0",
         "change": "Changed the fall bonus to 33% of current wiggle progress."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": null,
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/boil-over"
       ],
-      "verification_notes": "Current mechanics verified against DBDVault's 10.1.2a Survivor perk reference; 10.1.2 contains no Survivor perk balance changes."
+      "verification_notes": "Gameplay and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Bond",
@@ -1267,48 +1208,29 @@
       "source_character": "Alan Wake",
       "is_general_perk": false,
       "tier_1_values": {
-        "boon_range_m": 24,
-        "bless_cleanse_speed_percent": 6
+        "actionspeed%": 150
       },
       "tier_2_values": {
-        "boon_range_m": 24,
-        "bless_cleanse_speed_percent": 8
+        "actionspeed%": 175
       },
       "tier_3_values": {
-        "boon_range_m": 24,
-        "bless_cleanse_speed_percent": 10
+        "actionspeed%": 200
       },
-      "current_effect": "Bless a Dull or Hex Totem. Survivors within 24 metres hear the Boon chimes and see Chest and Generator Auras. While your Boon Totem is lit, you bless and cleanse Totems 6/8/10% faster.",
-      "plain_english_summary": "A Boon Totem reveals nearby Chests and Generators and speeds your Totem interactions.",
-      "activation_requirements": [
-        "Bless a Dull or Hex Totem.",
-        "Aura reading applies within 24 metres."
-      ],
-      "deactivation_conditions": [
-        "Aura reading ends outside the range or when the totem is snuffed; speed bonus requires the Boon to remain lit."
-      ],
-      "cooldown": null,
-      "duration": [],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": "One active Boon Totem per Survivor; equipped Boons apply to that totem.",
-      "status_effects_involved": [],
-      "special_interactions": [],
+      "current_effect": "Bless a Totem to create a Boon. Survivors in its range can see Generator and Chest Auras. While your Boon is active, you bless Totems 150/175/200% faster.",
+      "plain_english_summary": "Bless a Totem to create a Boon.",
       "latest_known_live_balance_change": {
-        "patch": "7.5.0",
-        "change": "Introduced with nearby Chest/Generator Aura reading and a 6/8/10% blessing/cleansing-speed bonus."
+        "patch": "10.2.0",
+        "change": "Bless a Totem to create a Boon. Survivors in its range can see Generator and Chest Auras. While your Boon is active, you bless Totems 150/175/200% faster."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Proposes one totem combining all equipped Boons and 150/175/200% faster blessing by the perk owner; not live."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/boon-illumination"
       ],
-      "verification_notes": "Current mechanics verified against DBDVault's 10.1.2a Survivor perk reference; 10.1.2 contains no Survivor perk balance changes."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Boon: Shadow Step",
@@ -1516,57 +1438,35 @@
       "source_character": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "action_speed_bonus_percent": 2,
-        "obsession_reveal_interval_seconds": 30,
-        "obsession_aura_reveal_seconds": 3
+        "actionspeedbonus%": 8,
+        "aurarevealduration": 4,
+        "revealtimeintervals": 30
       },
       "tier_2_values": {
-        "action_speed_bonus_percent": 4,
-        "obsession_reveal_interval_seconds": 30,
-        "obsession_aura_reveal_seconds": 3
+        "actionspeedbonus%": 9,
+        "aurarevealduration": 4,
+        "revealtimeintervals": 30
       },
       "tier_3_values": {
-        "action_speed_bonus_percent": 6,
-        "obsession_reveal_interval_seconds": 30,
-        "obsession_aura_reveal_seconds": 3
+        "actionspeedbonus%": 10,
+        "aurarevealduration": 4,
+        "revealtimeintervals": 30
       },
-      "current_effect": "Whenever the Killer reads your Aura, you see the Killer's Aura for the same duration. While that Aura-reading effect is active, your Cleansing, Healing, and Repairing action speeds increase by 2/4/6% according to perk tier. If you are the Obsession, the Killer sees your Aura for 3 seconds every 30 seconds. At Trial start, your chance to become the initial Obsession is increased by 100% of the default chance.",
-      "plain_english_summary": "When the Killer reads your Aura, you see theirs and cleanse, heal, and repair faster for the same period; the Obsession's Aura is periodically revealed to the Killer.",
-      "activation_requirements": [
-        "The mutual Aura reveal and action-speed bonus activate whenever the Killer reads your Aura.",
-        "If you are the Obsession, the Killer's periodic Aura reveal occurs every 30 seconds."
-      ],
-      "deactivation_conditions": [
-        "The mutual Aura reveal and action-speed bonus end when the Killer's Aura-reading action ends.",
-        "Each periodic Obsession Aura reveal lasts 3 seconds."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Obsession Aura reveal: 3 seconds every 30 seconds."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [
-        "The tiered action-speed bonus applies to Cleansing, Healing, and Repairing while the Killer is reading your Aura.",
-        "At Trial start, increases your chance to be selected as the initial Obsession."
-      ],
+      "current_effect": "If you are the Obsession, the Killer sees your Aura for 4 seconds every 30 seconds. Whenever the Killer sees your Aura, you see theirs and gain 8/9/10% speed to healing, repairing, and blessing or cleansing Totems. You are more likely to start as the Obsession.",
+      "plain_english_summary": "Trade Aura reveals with the Killer for faster actions.",
       "latest_known_live_balance_change": {
-        "patch": "4.7.0",
-        "change": "The Object of Obsession rework is the last material live change found; perk's current name is Bound by Obsession."
+        "patch": "10.2.0",
+        "change": "If you are the Obsession, the Killer sees your Aura for 4 seconds every 30 seconds. Whenever the Killer sees your Aura, you see theirs and gain 8/9/10% speed to healing, repairing, and blessing or cleansing Totems. You are more likely to start as the Obsession."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Proposes 4-second Obsession Aura reveal and 8/9/10% action-speed bonuses for blessing/cleansing, healing and repairing; not live."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/bound-by-obsession"
       ],
-      "verification_notes": "Current 10.1.2a text limits the tiered action-speed bonus to Cleansing, Healing, and Repairing for the duration of the Killer Aura read; the broader blessing/cleansing bonus and 8/9/10% values belong to the 10.2.0 PTB entry only. DBDVault and the Official Dead by Daylight Wiki support the current effect."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Breakdown",
@@ -1784,44 +1684,29 @@
       "source_character": "Jake Park",
       "is_general_perk": false,
       "tier_1_values": {
-        "action_speed_penalty_percent": 40
+        "actionspeedreduction%": 8
       },
       "tier_2_values": {
-        "action_speed_penalty_percent": 35
+        "actionspeedreduction%": 9
       },
       "tier_3_values": {
-        "action_speed_penalty_percent": 30
+        "actionspeedreduction%": 10
       },
-      "current_effect": "Nearby Crows do not fly off and alert the Killer unless you come within touching distance. You do not scream. Chest unlocking and Totem blessing/cleansing sounds are suppressed, but those actions are 40/35/30% slower.",
-      "plain_english_summary": "It prevents most Crow alerts and your screams while making Chest and Totem interactions quieter but slower.",
-      "activation_requirements": [],
-      "deactivation_conditions": [],
-      "cooldown": null,
-      "duration": [
-        "Crows and screams are suppressed throughout the Trial; interaction sounds are suppressed while unlocking, blessing or cleansing."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [
-        "Crows can still be disturbed when you come within touching distance."
-      ],
+      "current_effect": "You do not startle Crows or scream. Blessing and cleansing Totems and unlocking Chests are silent and 8/9/10% faster.",
+      "plain_english_summary": "You do not startle Crows or scream.",
       "latest_known_live_balance_change": {
-        "patch": "unknown",
-        "change": "No material live balance change could be verified from available patch history."
+        "patch": "10.2.0",
+        "change": "You do not startle Crows or scream. Blessing and cleansing Totems and unlocking Chests are silent and 8/9/10% faster."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Proposes silent Chest/Totem interactions with no speed penalty and 8/9/10% faster action speed; not live."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/calm-spirit"
       ],
-      "verification_notes": "Current mechanics verified against DBDVault's 10.1.2a Survivor perk reference; 10.1.2 contains no Survivor perk balance changes."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Camaraderie",
@@ -2488,50 +2373,35 @@
       "source_character": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "killer_aura_seconds": 5,
-        "killer_approach_range_m": 24
+        "aurarange": 32,
+        "effectduration": 13,
+        "killerrange": 20
       },
       "tier_2_values": {
-        "killer_aura_seconds": 7,
-        "killer_approach_range_m": 24
+        "aurarange": 32,
+        "effectduration": 14,
+        "killerrange": 20
       },
       "tier_3_values": {
-        "killer_aura_seconds": 10,
-        "killer_approach_range_m": 24
+        "aurarange": 32,
+        "effectduration": 15,
+        "killerrange": 20
       },
-      "current_effect": "Each time a Generator is completed, Dark Sense activates. When the Killer comes within 24 metres of you, their Aura is revealed for 5/7/10 seconds. The perk deactivates after use.",
-      "plain_english_summary": "Completing a Generator arms the perk to reveal the Killer when they approach.",
-      "activation_requirements": [
-        "A Generator is completed.",
-        "Killer comes within 24 metres while the perk is active."
-      ],
-      "deactivation_conditions": [
-        "Deactivates after the Aura reveal."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Killer Aura reveal: 5/7/10 seconds by tier."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": "Reactivates on each subsequent Generator completion.",
-      "status_effects_involved": [],
-      "special_interactions": [],
+      "current_effect": "A completed Generator primes the perk. When the Killer next comes within 20 metres, you see their Aura, other Survivors' Auras, and Pallet and Window Auras within 32 metres for 13/14/15 seconds.",
+      "plain_english_summary": "A completed Generator primes the perk.",
       "latest_known_live_balance_change": {
-        "patch": "unknown",
-        "change": "No material live balance change could be verified from available patch history."
+        "patch": "10.2.0",
+        "change": "A completed Generator primes the perk. When the Killer next comes within 20 metres, you see their Aura, other Survivors' Auras, and Pallet and Window Auras within 32 metres for 13/14/15 seconds."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Proposes revealing the Killer, Survivors, and Pallet/Window Auras within 24m for 8/9/10s after a Generator is completed and the Killer approaches; not live."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/dark-sense"
       ],
-      "verification_notes": "Current mechanics verified against DBDVault's 10.1.2a Survivor perk reference; 10.1.2 contains no Survivor perk balance changes."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Dead Hard",
@@ -2932,55 +2802,35 @@
       "source_character": "Orela Rose",
       "is_general_perk": false,
       "tier_1_values": {
-        "healing_speed_per_hook_state_percent": 30,
-        "max_healing_speed_bonus_percent": 60,
-        "great_check_progress_per_hook_state_percent": 3,
-        "max_great_check_bonus_percent": 6
+        "greatskillcheckbonus%": 3,
+        "healspeedbonus%": 30,
+        "skillcheckodds%": 5
       },
       "tier_2_values": {
-        "healing_speed_per_hook_state_percent": 40,
-        "max_healing_speed_bonus_percent": 80,
-        "great_check_progress_per_hook_state_percent": 3,
-        "max_great_check_bonus_percent": 6
+        "greatskillcheckbonus%": 3,
+        "healspeedbonus%": 35,
+        "skillcheckodds%": 5
       },
       "tier_3_values": {
-        "healing_speed_per_hook_state_percent": 50,
-        "max_healing_speed_bonus_percent": 100,
-        "great_check_progress_per_hook_state_percent": 3,
-        "max_great_check_bonus_percent": 6
+        "greatskillcheckbonus%": 3,
+        "healspeedbonus%": 40,
+        "skillcheckodds%": 5
       },
-      "current_effect": "While healing another Survivor, for each Hook State they have, you heal 30/40/50% faster per state, up to 60/80/100% at two Hook States. Great Healing Skill Checks gain +3% progression for each Hook State the target has, up to +6%.",
-      "plain_english_summary": "Healing a hooked Survivor faster scales with their Hook States, as does Great Skill Check progression.",
-      "activation_requirements": [
-        "Heal another Survivor."
-      ],
-      "deactivation_conditions": [
-        "Healing bonuses apply only during the altruistic healing action."
-      ],
-      "cooldown": null,
-      "duration": [],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [
-        "Great Healing Skill Check progression bonus is +3% per Hook State, up to +6%."
-      ],
+      "current_effect": "For each Hook State another Survivor has, healing them is 30/35/40% faster, Great basic Skill Checks add 3% more progress, and basic Skill Checks are 5% more likely.",
+      "plain_english_summary": "For each Hook State another Survivor has, healing them is 30/35/40% faster, Great basic Skill Checks add 3% more progress, and basic Skill Checks are 5% more likely.",
       "latest_known_live_balance_change": {
-        "patch": "8.7.0",
-        "change": "Introduced with healing speed scaling by Hook State and an additional Great Healing Skill Check progression bonus."
+        "patch": "10.2.0",
+        "change": "For each Hook State another Survivor has, healing them is 30/35/40% faster, Great basic Skill Checks add 3% more progress, and basic Skill Checks are 5% more likely."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Proposes a 5% increased Skill Check chance and changing Great Skill Check bonus to a flat 3%; neither is live."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/do-no-harm"
       ],
-      "verification_notes": "Live text retains +3% Great Skill Check progression per Hook State. PTB-only +5% Skill Check chance and flat +3% Great Skill Check change are not used."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Down to the Last",
@@ -2988,64 +2838,41 @@
       "source_character": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "tokens_to_max": 3,
-        "aura_block_radius_per_token_m": 20,
-        "maximum_aura_block_radius_m": 60,
-        "last_survivor_repair_bonus_percent": 75,
-        "last_survivor_gate_hatch_open_bonus_percent": 50,
-        "initial_obsession_chance_increase_percent": 100
+        "aurablockingdurationpertoken": 6,
+        "exitgatespeedpertoken": 10,
+        "maxtokens": 6,
+        "tokenamounttreshold": 3,
+        "unhooksurvivortoken": 1
       },
       "tier_2_values": {
-        "tokens_to_max": 3,
-        "aura_block_radius_per_token_m": 22,
-        "maximum_aura_block_radius_m": 66,
-        "last_survivor_repair_bonus_percent": 75,
-        "last_survivor_gate_hatch_open_bonus_percent": 50,
-        "initial_obsession_chance_increase_percent": 100
+        "aurablockingdurationpertoken": 8,
+        "exitgatespeedpertoken": 10,
+        "maxtokens": 6,
+        "tokenamounttreshold": 3,
+        "unhooksurvivortoken": 1
       },
       "tier_3_values": {
-        "tokens_to_max": 3,
-        "aura_block_radius_per_token_m": 24,
-        "maximum_aura_block_radius_m": 72,
-        "last_survivor_repair_bonus_percent": 75,
-        "last_survivor_gate_hatch_open_bonus_percent": 50,
-        "initial_obsession_chance_increase_percent": 100
+        "aurablockingdurationpertoken": 10,
+        "exitgatespeedpertoken": 10,
+        "maxtokens": 6,
+        "tokenamounttreshold": 3,
+        "unhooksurvivortoken": 1
       },
-      "current_effect": "Each time another Survivor is killed or sacrificed, gain 1 Token, up to 3. Each Token creates a 20/22/24-metre radius around you, up to 60/66/72 metres, within which the Killer cannot read your Aura. When you are the Last Survivor Standing, repair 75% faster and open Exit Gates and the Hatch 50% faster. Increases your initial Obsession chance by 100%.",
-      "plain_english_summary": "Other Survivors' deaths build an Aura-blocking radius around you; when alone, you repair and open exits faster.",
-      "activation_requirements": [
-        "Another Survivor other than you is killed or sacrificed to gain a Token.",
-        "Be the Last Survivor Standing for the repair/opening bonuses."
-      ],
-      "deactivation_conditions": [
-        "Aura-blocking radius scales with Tokens; last-survivor bonuses apply only while you are the last Survivor."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Aura-block radius per Token: 20/22/24 metres by tier; maximum at 3 Tokens is 60/66/72 metres."
-      ],
-      "token_or_stack_behavior": "Gain 1 Token for each other Survivor killed or sacrificed; maximum 3.",
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [
-        "Makes you 100% more likely to be the initial Obsession."
-      ],
+      "current_effect": "Gain one token each time you are hooked or finish a Generator, up to six. Each token adds 10% Exit Gate opening speed for other Survivors. If you are the last Survivor with at least three tokens, you can unlock the Hatch and the Killer cannot read your Aura for 6/8/10 seconds per token.",
+      "plain_english_summary": "Build tokens to help others open gates and unlock the Hatch as the last Survivor.",
       "latest_known_live_balance_change": {
-        "patch": "6.1.0",
-        "change": "Most recent material live change located: added 75% faster Generator repair and 50% faster Exit Gate/Hatch opening while the last Survivor."
+        "patch": "10.2.0",
+        "change": "Gain one token each time you are hooked or finish a Generator, up to six. Each token adds 10% Exit Gate opening speed for other Survivors. If you are the last Survivor with at least three tokens, you can unlock the Hatch and the Killer cannot read your Aura for 6/8/10 seconds per token."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Proposes a rework: gain up to 6 Tokens for hooks or Generator completions; each Token speeds other Survivors' Exit Gate opening by 10%, and with 3+ Tokens as last Survivor unlock the Hatch and block Killer Aura reading for 6/8/10 seconds per Token. Not live."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/down-to-the-last"
       ],
-      "verification_notes": "Live page calls the perk Down to the Last (formerly Sole Survivor); preserve current 3-Token effects, not PTB rework."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Dramaturgy",
@@ -3218,51 +3045,31 @@
       "source_character": "Yoichi Asakawa",
       "is_general_perk": false,
       "tier_1_values": {
-        "altruistic_healing_speed_bonus_percent": 25,
-        "injured_survivor_aura_reveal_range": "global"
+        "healingbonus%": 30
       },
       "tier_2_values": {
-        "altruistic_healing_speed_bonus_percent": 30,
-        "injured_survivor_aura_reveal_range": "global"
+        "healingbonus%": 35
       },
       "tier_3_values": {
-        "altruistic_healing_speed_bonus_percent": 35,
-        "injured_survivor_aura_reveal_range": "global"
+        "healingbonus%": 40
       },
-      "current_effect": "You heal other Survivors 25/30/35% faster. Whenever another Survivor becomes injured, that Survivor sees your Aura anywhere on the map.",
-      "plain_english_summary": "You heal teammates faster, and newly injured teammates can see where you are.",
-      "activation_requirements": [
-        "The altruistic healing bonus is always active.",
-        "The Aura effect applies when another Survivor becomes injured."
-      ],
-      "deactivation_conditions": [],
-      "cooldown": null,
-      "duration": [
-        "Healing bonus is permanent for the Trial.",
-        "Aura visibility has no stated time limit while the other Survivor remains injured."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [],
+      "current_effect": "You heal other Survivors 30/35/40% faster, and injured Survivors can see your Aura.",
+      "plain_english_summary": "You heal other Survivors 30/35/40% faster, and injured Survivors can see your Aura.",
       "latest_known_live_balance_change": {
-        "patch": "9.0.0",
-        "change": "Made the injured Survivor's Aura reveal map-wide (formerly 32/64/96 m) and set healing-speed tiers to 25/30/35% (formerly 30% at every tier)."
+        "patch": "10.2.0",
+        "change": "You heal other Survivors 30/35/40% faster, and injured Survivors can see your Aura."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB (not live)",
-        "change": "Raises healing speed to 40/45/50% (from 25/30/35%); injured Survivors still see your Aura. Keep live values above until this change ships."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://support.deadbydaylight.com/hc/en-us/articles/38572561643796-9-0-0-Five-Nights-at-Freddy-s",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/empathic-connection",
         "https://deadbydaylight.wiki.gg/wiki/Empathic_Connection"
       ],
-      "verification_notes": "10.1.2a is the live patch verified on 2026-10-05; 10.2.0 remains PTB. The 10.2.0 PTB value is recorded separately and does not replace the live value."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Empathy",
@@ -3574,55 +3381,37 @@
       "source_character": "Kwon Tae-Young",
       "is_general_perk": false,
       "tier_1_values": {
-        "pallet_drop_interaction_speed_bonus_percent": 50,
-        "closest_pallet_and_window_aura_count": 5,
-        "cooldown_seconds_after_pallet_drop": 40
+        "actionspeedbuff%": 50,
+        "cooldown": 40,
+        "palletwindowauracount": 5
       },
       "tier_2_values": {
-        "pallet_drop_interaction_speed_bonus_percent": 50,
-        "closest_pallet_and_window_aura_count": 5,
-        "cooldown_seconds_after_pallet_drop": 35
+        "actionspeedbuff%": 50,
+        "cooldown": 35,
+        "palletwindowauracount": 5
       },
       "tier_3_values": {
-        "pallet_drop_interaction_speed_bonus_percent": 50,
-        "closest_pallet_and_window_aura_count": 5,
-        "cooldown_seconds_after_pallet_drop": 30
+        "actionspeedbuff%": 50,
+        "cooldown": 30,
+        "palletwindowauracount": 5
       },
-      "current_effect": "While you are being chased by the Killer or are inside the Killer's Terror Radius, you see the Auras of the 5 closest Pallets and Windows and perform the Pallet Drop interaction 50% faster. Dropping a Pallet puts the perk on a 40/35/30-second cooldown.",
-      "plain_english_summary": "Near or chased by the Killer, you see nearby Pallets and Windows and drop Pallets faster, then the perk cools down.",
-      "activation_requirements": [
-        "You must be in a chase or inside the Killer's Terror Radius to receive the active effects."
-      ],
-      "deactivation_conditions": [
-        "The effects are unavailable outside a chase and the Killer's Terror Radius.",
-        "Dropping a Pallet starts the 40/35/30-second cooldown."
-      ],
-      "cooldown": "40/35/30 seconds (Tier I/II/III) after dropping a Pallet.",
-      "duration": [],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [
-        "The Aura effect identifies the 5 closest Pallets and Windows while the activation condition is met."
-      ],
+      "current_effect": "In chase or inside the Killer's Terror Radius, see the five closest Pallets and regain movement 50% sooner after dropping one. Dropping a Pallet starts a 40/35/30-second cooldown.",
+      "plain_english_summary": "In chase or inside the Killer's Terror Radius, see the five closest Pallets and regain movement 50% sooner after dropping one.",
       "latest_known_live_balance_change": {
-        "patch": "9.5.0",
-        "change": "The live release increased the cooldown by 10 seconds at each tier, resulting in 40/35/30 seconds (the PTB values were 30/25/20 seconds)."
+        "patch": "10.2.0",
+        "change": "In chase or inside the Killer's Terror Radius, see the five closest Pallets and regain movement 50% sooner after dropping one. Dropping a Pallet starts a 40/35/30-second cooldown."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB (not live)",
-        "change": "Would reveal the Auras of the 5 closest Pallets while you are in the Killer’s Terror Radius or being chased; after you drop a Pallet, you start moving 50% earlier; every Pallet drop triggers a 40/35/30-second cooldown. This remains PTB-only."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://support.deadbydaylight.com/hc/en-us/articles/47138866657044-9-5-0-All-Kill-Comeback",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/five-moves-ahead",
         "https://deadbydaylight.wiki.gg/wiki/Five_Moves_Ahead"
       ],
-      "verification_notes": "The current DBDVault 10.1.2a entry describes the Pallet Drop interaction as 50% faster. The official 9.5.0 live notes phrase the same 50% effect as starting to move earlier after dropping a Pallet, while the 10.2.0 PTB announces that phrasing as a change. This wording/mechanics discrepancy is preserved rather than treated as a resolved live change. The wiki.gg page currently displays 10.2.0 PTB text at its top; that text is not used as live data. PTB text now follows the official 10.2.0 notes; the notes do not restrict the cooldown to drops while the perk is activated."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Fixated",
@@ -3772,58 +3561,37 @@
       "source_character": "Kwon Tae-Young",
       "is_general_perk": false,
       "tier_1_values": {
-        "tokens_gained_per_generator_completed": 1,
-        "maximum_tokens": 5,
-        "blessing_and_cleansing_speed_bonus_percent_per_token": 8,
-        "healing_speed_bonus_percent_per_token": 8,
-        "unhook_speed_bonus_percent_per_token": 8
+        "actionspeedbuff%": 13,
+        "maxtokens": 5,
+        "tokenspergenerator": 1
       },
       "tier_2_values": {
-        "tokens_gained_per_generator_completed": 1,
-        "maximum_tokens": 5,
-        "blessing_and_cleansing_speed_bonus_percent_per_token": 9,
-        "healing_speed_bonus_percent_per_token": 9,
-        "unhook_speed_bonus_percent_per_token": 9
+        "actionspeedbuff%": 14,
+        "maxtokens": 5,
+        "tokenspergenerator": 1
       },
       "tier_3_values": {
-        "tokens_gained_per_generator_completed": 1,
-        "maximum_tokens": 5,
-        "blessing_and_cleansing_speed_bonus_percent_per_token": 10,
-        "healing_speed_bonus_percent_per_token": 10,
-        "unhook_speed_bonus_percent_per_token": 10
+        "actionspeedbuff%": 15,
+        "maxtokens": 5,
+        "tokenspergenerator": 1
       },
-      "current_effect": "Whenever a Generator is completed, you gain 1 Token, up to 5. For each Token, you bless and cleanse Totems, heal, and unhook Survivors 8/9/10% faster, according to perk tier.",
-      "plain_english_summary": "Completed Generators build up to five tokens that speed up your Totem, healing, and unhook actions.",
-      "activation_requirements": [
-        "A Generator must be completed to gain a Token."
-      ],
-      "deactivation_conditions": [],
-      "cooldown": null,
-      "duration": [
-        "Tokens and their action-speed bonuses persist for the remainder of the Trial; no expiry is stated."
-      ],
-      "token_or_stack_behavior": "Gain 1 Token whenever any Generator is completed, up to 5. Tokens are not spent; each one adds the tier's action-speed bonus to blessing/cleansing, healing, and unhooking.",
-      "once_per_trial_or_other_limits": "Maximum of 5 Tokens.",
-      "status_effects_involved": [],
-      "special_interactions": [],
+      "current_effect": "Gain a token per completed Generator, up to five. Each token adds 13/14/15% speed to healing, unhooking, blessing, and cleansing.",
+      "plain_english_summary": "Gain a token per completed Generator, up to five.",
       "latest_known_live_balance_change": {
-        "patch": "unknown",
-        "change": "No material live balance change could be verified from available patch history."
+        "patch": "10.2.0",
+        "change": "Gain a token per completed Generator, up to five. Each token adds 13/14/15% speed to healing, unhooking, blessing, and cleansing."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB (not live)",
-        "change": "Would increase each Token's blessing/cleansing, healing, and unhook speed bonuses from 8/9/10% to 13/14/15%. The 5-Token cap and one Token per Generator completion remain."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://support.deadbydaylight.com/hc/en-us/articles/47138866657044-9-5-0-All-Kill-Comeback",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/flow-state",
         "https://deadbydaylight.wiki.gg/wiki/Flow_State"
       ],
-      "verification_notes": "Live values are from the 9.5.0 release and current DBDVault 10.1.2a page. The wiki.gg page currently labels and displays the 10.2.0 PTB values at the top; those announced values are kept only in upcoming_or_ptb_changes. No subsequent material live balance change was verified."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Fogwise",
@@ -3934,53 +3702,34 @@
       "source_character": "Thalita Lyra",
       "is_general_perk": false,
       "tier_1_values": {
-        "participating_survivor_repair_speed_bonus_percent": 5,
-        "duration_seconds": 100
+        "boostduration": 80,
+        "extrarepairspeed%": 10
       },
       "tier_2_values": {
-        "participating_survivor_repair_speed_bonus_percent": 5,
-        "duration_seconds": 110
+        "boostduration": 85,
+        "extrarepairspeed%": 10
       },
       "tier_3_values": {
-        "participating_survivor_repair_speed_bonus_percent": 5,
-        "duration_seconds": 120
+        "boostduration": 90,
+        "extrarepairspeed%": 10
       },
-      "current_effect": "Whenever you complete a Generator together with at least one other Survivor, all Survivors who participated in repairing it, including you, repair 5% faster for 100/110/120 seconds.",
-      "plain_english_summary": "Finishing a Generator with a teammate gives its participants a temporary repair-speed bonus.",
-      "activation_requirements": [
-        "You must complete a Generator while at least one other Survivor is also repairing it."
-      ],
-      "deactivation_conditions": [
-        "Each participant's bonus expires after 100/110/120 seconds."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Repair-speed bonus: 100/110/120 seconds (Tier I/II/III)."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [
-        "The repair-speed bonus affects every Survivor who participated in that Generator's repair, including the perk user."
-      ],
+      "current_effect": "After you and at least one teammate finish repairing a Generator together, the Survivors who finished it gain 10% repair speed for 80/85/90 seconds.",
+      "plain_english_summary": "After you and at least one teammate finish repairing a Generator together, the Survivors who finished it gain 10% repair speed for 80/85/90 seconds.",
       "latest_known_live_balance_change": {
-        "patch": "9.2.0",
-        "change": "Increased the duration from 45/60/75 to 100/110/120 seconds; the repair-speed bonus remained 5%."
+        "patch": "10.2.0",
+        "change": "After you and at least one teammate finish repairing a Generator together, the Survivors who finished it gain 10% repair speed for 80/85/90 seconds."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB (not live)",
-        "change": "Would give participating finishers +10% repair speed for 80/85/90 seconds instead of live +5% for 100/110/120 seconds. Keep live values above until this change ships."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/523-9-2-0-sinister-grace",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/friendly-competition",
         "https://deadbydaylight.wiki.gg/wiki/Friendly_Competition"
       ],
-      "verification_notes": "10.1.2a live value verified; 10.2.0 is only a PTB at the verification date. The announced PTB values are stored separately."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Fruits of Your Labor",
@@ -4595,50 +4344,31 @@
       "source_character": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "killer_aura_hook_radius_m": 8
+        "aurarevealdistance": 14
       },
       "tier_2_values": {
-        "killer_aura_hook_radius_m": 12
+        "aurarevealdistance": 15
       },
       "tier_3_values": {
-        "killer_aura_hook_radius_m": 16
+        "aurarevealdistance": 16
       },
-      "current_effect": "Whenever any Survivor is hooked, Kindred activates. All Survivors see the Killer's Aura while the Killer is within 8/12/16 m of the Hook. If you are hooked, all other Survivors see each other's Auras; if another Survivor is hooked, you see the Auras of all other Survivors. These effects last while a Survivor remains hooked.",
-      "plain_english_summary": "During any hook, it reveals nearby Killer Aura to everyone and shares Survivor Auras according to whether you are hooked.",
-      "activation_requirements": [
-        "Any Survivor is hooked."
-      ],
-      "deactivation_conditions": [
-        "The effect ends when no Survivor remains hooked."
-      ],
-      "cooldown": null,
-      "duration": [
-        "While a Survivor is hooked."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [
-        "When the perk owner is hooked, the other Survivors see one another's Auras; when another Survivor is hooked, the perk owner sees all other Survivors' Auras."
-      ],
+      "current_effect": "When you are hooked, your teammates can see each other's Auras and see the Killer within 14/15/16 metres of your Hook. When someone else is hooked, you get those Aura reveals yourself.",
+      "plain_english_summary": "When you are hooked, your teammates can see each other's Auras and see the Killer within 14/15/16 metres of your Hook.",
       "latest_known_live_balance_change": {
-        "patch": "3.4.0",
-        "change": "Added the effect that lets the perk owner see the Auras of other Survivors when another Survivor is hooked."
+        "patch": "10.2.0",
+        "change": "When you are hooked, your teammates can see each other's Auras and see the Killer within 14/15/16 metres of your Hook. When someone else is hooked, you get those Aura reveals yourself."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Proposed changing the Killer Aura reveal range to 14/15/16 m from the current live 8/12/16 m, both when you are hooked and when another Survivor is hooked. These PTB values are not live as of 2026-10-05."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/17-3-4-0-cursed-legacy",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/kindred",
         "https://deadbydaylight.wiki.gg/wiki/Kindred"
       ],
-      "verification_notes": "The wiki's Kindred page marks the proposed 10.2.0 PTB range in its current description; current live range is taken from DBDVault and the prior live description, with the PTB values kept separately above."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Last Stand",
@@ -5409,64 +5139,36 @@
       "source_character": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "healing_other_survivors_action_speed_bonus_percent": 50,
-        "unhook_action_speed_bonus_percent": 50,
-        "unhooked_survivor_haste_percent": 20,
-        "unhooked_survivor_haste_duration_seconds": 15
+        "actionspeed%": 80,
+        "increasedhaste%": 10
       },
       "tier_2_values": {
-        "healing_other_survivors_action_speed_bonus_percent": 75,
-        "unhook_action_speed_bonus_percent": 75,
-        "unhooked_survivor_haste_percent": 20,
-        "unhooked_survivor_haste_duration_seconds": 15
+        "actionspeed%": 90,
+        "increasedhaste%": 10
       },
       "tier_3_values": {
-        "healing_other_survivors_action_speed_bonus_percent": 100,
-        "unhook_action_speed_bonus_percent": 100,
-        "unhooked_survivor_haste_percent": 20,
-        "unhooked_survivor_haste_duration_seconds": 15
+        "actionspeed%": 100,
+        "increasedhaste%": 10
       },
-      "current_effect": "Once the Exit Gates are powered, the Auras of all other Survivors are revealed to you. Your Healing-other-Survivors and Unhook action speeds increase by 50/75/100% by tier. Whenever you unhook a Survivor, they gain 20% Haste for 15 seconds.",
-      "plain_english_summary": "After the Exit Gates are powered, you see other Survivors and heal and unhook faster, while unhooked Survivors receive Haste.",
-      "activation_requirements": [
-        "The Exit Gates must be powered."
-      ],
-      "deactivation_conditions": [
-        "The effects are inactive before the Exit Gates are powered; once activated, they last through the remainder of the Trial."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Aura reading and action-speed effects: from Exit Gates powered until the Trial ends.",
-        "Haste granted to an unhooked Survivor: 15 seconds."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [
-        "Haste"
-      ],
-      "special_interactions": [
-        "8.7.0 changed the perk from granting its own separate Haste effect to increasing the existing post-unhook Haste effect by 10%; with the 10% for 15 seconds post-unhook effect documented in 9.3.0, the combined current result is 20% Haste for 15 seconds."
-      ],
+      "current_effect": "Once all Generators are finished, see your teammates' Auras and heal or unhook them 80/90/100% faster. Survivors you unhook receive 10% extra Haste.",
+      "plain_english_summary": "Once all Generators are finished, see your teammates' Auras and heal or unhook them 80/90/100% faster.",
       "latest_known_live_balance_change": {
-        "patch": "8.7.0",
-        "change": "Changed the unhook Haste effect to increase the existing post-unhook Haste by 10%, instead of applying a separate Haste effect."
+        "patch": "10.2.0",
+        "change": "Once all Generators are finished, see your teammates' Auras and heal or unhook them 80/90/100% faster. Survivors you unhook receive 10% extra Haste."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "When all Generators are completed, the Healing and Unhook action-speed bonuses change to 80/90/100% (current live: 50/75/100%). The PTB text also states that unhooked Survivors gain 10% more Haste and that you see other Survivors' Auras; these match the current live Haste modifier and Aura effect, while the tiered action-speed values are the announced change. Do not apply the PTB action-speed values to live data."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/482-8-4-0-doomed-course",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/505-8-7-0-steady-pulse",
         "https://support.deadbydaylight.com/hc/en-us/articles/43679054706708-9-3-0-Mid-Chapter",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/no-one-left-behind",
         "https://deadbydaylight.wiki.gg/wiki/No_One_Left_Behind"
       ],
-      "verification_notes": "The current live 20% Haste for 15 seconds combines the perk's +10% to the existing post-unhook Haste effect (8.7.0) with the 10%-for-15-seconds post-unhook Haste (9.3.0). The 10.2.0 PTB increases action-speed tier values; its restated Haste/Aura text does not replace current live values. DBDVault page header may be cached at 10.1.1; global live patch verified as 10.1.2a."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Off the Record",
@@ -5792,55 +5494,35 @@
       "source_character": "Quentin Smith",
       "is_general_perk": false,
       "tier_1_values": {
-        "chest_unlock_speed_bonus_percent": 75,
-        "chest_noise_audible_range_reduction_m": 12,
-        "guaranteed_item": "Emergency Med-Kit"
+        "noisereductiondistance": 12,
+        "searchspeeds%": 75
       },
       "tier_2_values": {
-        "chest_unlock_speed_bonus_percent": 100,
-        "chest_noise_audible_range_reduction_m": 12,
-        "guaranteed_item": "Emergency Med-Kit"
+        "noisereductiondistance": 12,
+        "searchspeeds%": 100
       },
       "tier_3_values": {
-        "chest_unlock_speed_bonus_percent": 125,
-        "chest_noise_audible_range_reduction_m": 12,
-        "guaranteed_item": "Emergency Med-Kit"
+        "noisereductiondistance": 12,
+        "searchspeeds%": 125
       },
-      "current_effect": "While unlocking a Chest, increases the Unlocking speed by 75/100/125%, reduces the audible range of all noises related to the Unlocking interaction by 12 metres, and guarantees an Emergency Med-Kit when the interaction completes.",
-      "plain_english_summary": "Unlocking a Chest is faster and quieter, and the completed search guarantees an Emergency Med-Kit.",
-      "activation_requirements": [
-        "Unlock a Chest; the speed and sound effects apply during the Unlocking interaction."
-      ],
-      "deactivation_conditions": [
-        "The Unlocking bonuses end when the Chest interaction ends."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Applies for the duration of each Chest Unlocking interaction."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": "No once-per-Trial limit is stated; the guarantee applies to each completed Chest Unlocking interaction.",
-      "status_effects_involved": [],
-      "special_interactions": [],
+      "current_effect": "Unlocked Chests contain a Rare Med-Kit. Unlock and rummage 75/100/125% faster and rummage each Chest once. The Killer hears your unlocking from 12 metres less than usual.",
+      "plain_english_summary": "Unlocked Chests contain a Rare Med-Kit.",
       "latest_known_live_balance_change": {
-        "patch": "9.2.0",
-        "change": "Raised Chest Unlock speed to 75/100/125% and set the audible-range reduction to 12 metres; retained the Emergency Med-Kit guarantee."
+        "patch": "10.2.0",
+        "change": "Unlocked Chests contain a Rare Med-Kit. Unlock and rummage 75/100/125% faster and rummage each Chest once. The Killer hears your unlocking from 12 metres less than usual."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Would guarantee a Rare Med-Kit instead; applies 75/100/125% faster speed to both unlocking and rummaging, allows rummaging each Chest once, and shortens Killer hearing range for Chest unlocking noises by 12 metres. These are PTB values and are not live as of 10.1.2a."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/523-9-2-0-sinister-grace",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://forums.bhvr.com/dead-by-daylight/kb/categories/20-live"
+        "https://forums.bhvr.com/dead-by-daylight/kb/categories/20-live",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/pharmacy",
         "https://deadbydaylight.wiki.gg/wiki/Pharmacy"
       ],
-      "verification_notes": "Use the live DBDVault effect and 9.2.0 release values. The 10.2.0 PTB change is stored separately and has not replaced Emergency Med-Kit or the live interaction scope."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Plot Twist",
@@ -5903,52 +5585,35 @@
       "source_character": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "aura_reveal_range_m": 32,
-        "higher_rarity_item_chance_bonus_percent": 50
+        "actionspeed%": 150,
+        "modifychestrarity": 50
       },
       "tier_2_values": {
-        "aura_reveal_range_m": 48,
-        "higher_rarity_item_chance_bonus_percent": 50
+        "actionspeed%": 175,
+        "modifychestrarity": 50
       },
       "tier_3_values": {
-        "aura_reveal_range_m": 64,
-        "higher_rarity_item_chance_bonus_percent": 50
+        "actionspeed%": 200,
+        "modifychestrarity": 50
       },
-      "current_effect": "Reveals within 32/48/64 metres the Auras of closed environmental Chests, Items sitting inside opened Chests, and Items dropped in the environment. While unlocking or rummaging through Chests, increases the chances of finding rarer Items by 50%.",
-      "plain_english_summary": "It reveals nearby Chests and Items and improves the chance of finding a higher-rarity Item when searching a Chest.",
-      "activation_requirements": [
-        "Aura reading is passive within the tier-specific range.",
-        "The rarity bonus applies while unlocking or rummaging through Chests."
-      ],
-      "deactivation_conditions": [
-        "Aura reading stops beyond the tier-specific range.",
-        "The rarity bonus applies only while unlocking or rummaging through a Chest."
-      ],
-      "cooldown": null,
-      "duration": [],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [],
+      "current_effect": "See the Auras of Chests and items. Unlock Chests 150/175/200% faster, with a 50% increase in the chance of finding a higher rarity item.",
+      "plain_english_summary": "See the Auras of Chests and items.",
       "latest_known_live_balance_change": {
-        "patch": "8.4.0",
-        "change": "Expanded Aura range to 32/48/64 metres, updated the rarity chance bonus to +50%, and added Auras for dropped Items while limiting Chest Auras to unopened Chests."
+        "patch": "10.2.0",
+        "change": "See the Auras of Chests and items. Unlock Chests 150/175/200% faster, with a 50% increase in the chance of finding a higher rarity item."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Would reveal Auras of Chests and Items without the current tier-based range restriction and add Chest Unlock speed of 150/175/200%; the +50% higher-rarity chance remains. These are PTB values and are not live as of 10.1.2a."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/482-8-4-0-doomed-course",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://forums.bhvr.com/dead-by-daylight/kb/categories/20-live"
+        "https://forums.bhvr.com/dead-by-daylight/kb/categories/20-live",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/plunderer-s-instinct",
         "https://deadbydaylight.wiki.gg/wiki/Plunderer%27s_Instinct"
       ],
-      "verification_notes": "The 10.2.0 PTB proposes unlimited aura range and a new speed bonus; the current live 32/48/64-metre range and +50% rarity chance remain recorded here."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Poised",
@@ -6115,52 +5780,37 @@
       "source_character": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "detection_range_m": 36,
-        "detection_angle_degrees": 45,
-        "cooldown_seconds": 60
+        "activationrange": 32,
+        "cooldown": 55,
+        "killeraurarevealduration": 3
       },
       "tier_2_values": {
-        "detection_range_m": 36,
-        "detection_angle_degrees": 45,
-        "cooldown_seconds": 45
+        "activationrange": 32,
+        "cooldown": 50,
+        "killeraurarevealduration": 3
       },
       "tier_3_values": {
-        "detection_range_m": 36,
-        "detection_angle_degrees": 45,
-        "cooldown_seconds": 30
+        "activationrange": 32,
+        "cooldown": 45,
+        "killeraurarevealduration": 3
       },
-      "current_effect": "Projects an invisible 45-degree detection cone in the direction you are looking. When the Killer is within 36 metres in that cone, you receive an audio cue. The perk then has a 60/45/30-second cooldown. It does not reveal the Killer's Aura in the current live version.",
-      "plain_english_summary": "Looking toward a nearby Killer gives an audio warning, then the perk waits for its tier-specific cooldown.",
-      "activation_requirements": [
-        "Look in the Killer's direction while they are within 36 metres and inside the 45-degree detection cone."
-      ],
-      "deactivation_conditions": [
-        "The perk cannot trigger again during its 60/45/30-second cooldown."
-      ],
-      "cooldown": "60/45/30 seconds.",
-      "duration": [],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [],
+      "current_effect": "Outside chase, looking toward the Killer within 32 metres alerts you and reveals their Aura for 3 seconds. Cooldown is 55/50/45 seconds.",
+      "plain_english_summary": "Outside chase, looking toward the Killer within 32 metres alerts you and reveals their Aura for 3 seconds.",
       "latest_known_live_balance_change": {
-        "patch": "unknown",
-        "change": "No material live balance change could be verified from available patch history."
+        "patch": "10.2.0",
+        "change": "Outside chase, looking toward the Killer within 32 metres alerts you and reveals their Aura for 3 seconds. Cooldown is 55/50/45 seconds."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Proposed rework: only while not chased, looking toward the Killer within 32 metres notifies you and reveals the Killer's Aura for 3 seconds; cooldown changes to 70/65/60 seconds from live 60/45/30. These are PTB values and are not live as of 10.1.2a."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://forums.bhvr.com/dead-by-daylight/kb/categories/20-live"
+        "https://forums.bhvr.com/dead-by-daylight/kb/categories/20-live",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/premonition",
         "https://deadbydaylight.wiki.gg/wiki/Premonition"
       ],
-      "verification_notes": "The wiki.gg general-perk listing currently labels its effect as 10.2.0 PTB text. Live fields instead use the pre-PTB DBDVault description and 10.2.0 changes are kept separately."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Prove Thyself",
@@ -6635,49 +6285,32 @@
       "source_character": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "action_speed_bonus_percent_while_injured": 3
+        "actionspeed%": 7
       },
       "tier_2_values": {
-        "action_speed_bonus_percent_while_injured": 6
+        "actionspeed%": 8
       },
       "tier_3_values": {
-        "action_speed_bonus_percent_while_injured": 9
+        "actionspeed%": 9
       },
-      "current_effect": "While in the Injured State, increases your action speeds by 3/6/9% for blessing or cleansing Totems, healing yourself or other Survivors, opening Exit Gates, repairing Generators, sabotaging Hooks, searching Chests, unhooking other Survivors, and vaulting Windows.",
-      "plain_english_summary": "While injured, the listed Survivor interactions are faster by a tier-specific percentage.",
-      "activation_requirements": [
-        "Be in the Injured State while performing one of the listed actions."
-      ],
-      "deactivation_conditions": [
-        "The speed bonus ends when you are no longer in the Injured State or stop performing an affected action."
-      ],
-      "cooldown": null,
-      "duration": [
-        "While Injured and performing an affected action."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [],
+      "current_effect": "While injured, heal, repair, vault, bless or cleanse Totems, sabotage Hooks, unhook teammates, unlock Chests, and open Exit Gates 7/8/9% faster.",
+      "plain_english_summary": "While injured, heal, repair, vault, bless or cleanse Totems, sabotage Hooks, unhook teammates, unlock Chests, and open Exit Gates 7/8/9% faster.",
       "latest_known_live_balance_change": {
-        "patch": "6.2.0",
-        "change": "Added Blessing Totems to the list of interactions affected."
+        "patch": "10.2.0",
+        "change": "While injured, heal, repair, vault, bless or cleanse Totems, sabotage Hooks, unhook teammates, unlock Chests, and open Exit Gates 7/8/9% faster."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Proposed to raise the lower tier values for all listed action speeds to 7/8/9% from live 3/6/9%. These are PTB values and are not live as of 10.1.2a."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/349-6-2-0-resident-evil-project-w",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://forums.bhvr.com/dead-by-daylight/kb/categories/20-live"
+        "https://forums.bhvr.com/dead-by-daylight/kb/categories/20-live",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/resilience",
         "https://deadbydaylight.wiki.gg/wiki/Resilience"
       ],
-      "verification_notes": "The 10.2.0 PTB raises Tier I and II values only; live fields remain 3/6/9% as shown by the current reference. Status-effect list audit: Health States/conditions and effects caused only by a generic Endurance interaction were removed; only actual Status Effects applied or directly involved are listed."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Resurgence",
@@ -6730,68 +6363,45 @@
       "source_character": "Vee Boonyasak",
       "is_general_perk": false,
       "tier_1_values": {
-        "tokens_required_to_trigger_healing_bonus": 6,
-        "healing_speed_bonus_percent": 100,
-        "token_gain_great_repair_skill_check": 1,
-        "token_gain_good_repair_skill_check": 0,
-        "token_loss_failed_repair_skill_check": 1
+        "healinglinger": 4,
+        "healingspeedincrease%": 10,
+        "maxtokens": 6,
+        "tokenperskillcheck": 1,
+        "tokenslostonskillcheckfail": 1
       },
       "tier_2_values": {
-        "tokens_required_to_trigger_healing_bonus": 5,
-        "healing_speed_bonus_percent": 100,
-        "token_gain_great_repair_skill_check": 1,
-        "token_gain_good_repair_skill_check": 0,
-        "token_loss_failed_repair_skill_check": 1
+        "healinglinger": 4,
+        "healingspeedincrease%": 10,
+        "maxtokens": 5,
+        "tokenperskillcheck": 1,
+        "tokenslostonskillcheckfail": 1
       },
       "tier_3_values": {
-        "tokens_required_to_trigger_healing_bonus": 4,
-        "healing_speed_bonus_percent": 100,
-        "token_gain_great_repair_skill_check": 1,
-        "token_gain_good_repair_skill_check": 0,
-        "token_loss_failed_repair_skill_check": 1
+        "healinglinger": 4,
+        "healingspeedincrease%": 10,
+        "maxtokens": 4,
+        "tokenperskillcheck": 1,
+        "tokenslostonskillcheckfail": 1
       },
-      "current_effect": "While Injured and repairing a Generator, regular Repair Skill Checks grant +1 Token for Great, 0 for Good, and remove 1 Token for Failed. Once you accumulate 6/5/4 Tokens, all Tokens are consumed and your Healing speed increases by 100% until you stop healing. It does not activate while Broken and deactivates after use. It does not interact with special Skill Checks triggered by outside effects.",
-      "plain_english_summary": "While injured and repairing a Generator, Great checks build tokens that are spent for one faster heal.",
-      "activation_requirements": [
-        "Be Injured and repairing a Generator for regular Repair Skill Checks to change Tokens.",
-        "Accumulate 6/5/4 Tokens to trigger the healing-speed bonus."
-      ],
-      "deactivation_conditions": [
-        "The +100% Healing speed ends when you stop healing.",
-        "The perk does not activate while Broken and deactivates after use."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Healing speed bonus: until you stop healing."
-      ],
-      "token_or_stack_behavior": "Great regular Repair Skill Check: +1 Token; Good: no change; Failed: -1 Token. At 6/5/4 Tokens, all Tokens are consumed to activate the effect. No special Skill Checks caused by outside effects count.",
-      "once_per_trial_or_other_limits": "Deactivates after its healing-speed effect is used; cannot activate while Broken.",
-      "status_effects_involved": [
-        "Broken"
-      ],
-      "special_interactions": [
-        "Only regular Repair Skill Checks count; special checks caused by outside effects do not interact with Road Life."
-      ],
+      "current_effect": "While injured and repairing, gain a token on a Great basic Skill Check and lose one on a failed basic Skill Check. At 6/5/4 tokens, spend them all to self-heal at 10% increased speed. The effect lingers 4 seconds after you stop healing.",
+      "plain_english_summary": "While injured and repairing, gain a token on a Great basic Skill Check and lose one on a failed basic Skill Check.",
       "latest_known_live_balance_change": {
-        "patch": "9.2.0",
-        "change": "Reduced the token threshold from PTB 8/7/6 to 6/5/4 and the Failed Skill Check penalty from 2 Tokens to 1."
+        "patch": "10.2.0",
+        "change": "While injured and repairing, gain a token on a Great basic Skill Check and lose one on a failed basic Skill Check. At 6/5/4 tokens, spend them all to self-heal at 10% increased speed. The effect lingers 4 seconds after you stop healing."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Proposed rework: adds self-healing, keeps the 6/5/4 token thresholds and +100% speed, adds a 4-second linger after stopping healing, removes the Broken restriction, and removes the current limit to altruistic healing. These are PTB values and are not live as of 10.1.2a."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/522",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/523-9-2-0-sinister-grace",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://forums.bhvr.com/dead-by-daylight/kb/categories/20-live"
+        "https://forums.bhvr.com/dead-by-daylight/kb/categories/20-live",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/road-life",
         "https://deadbydaylight.wiki.gg/wiki/Road_Life"
       ],
-      "verification_notes": "The wiki.gg page currently labels its displayed effect as the 10.2.0 PTB proposal. Live data here is cross-checked against the current 10.1.2a DBDVault page and official 9.2.0 release changes; PTB changes are separate. Status-effect list audit: Health States/conditions and effects caused only by a generic Endurance interaction were removed; only actual Status Effects applied or directly involved are listed."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Rookie Spirit",
@@ -7148,51 +6758,30 @@
       "source_character": "Lee Yun-Jin",
       "is_general_perk": false,
       "tier_1_values": {
-        "elusive_duration_seconds": 20
+        "duration": 13
       },
       "tier_2_values": {
-        "elusive_duration_seconds": 25
+        "duration": 14
       },
       "tier_3_values": {
-        "elusive_duration_seconds": 30
+        "duration": 15
       },
-      "current_effect": "Whenever another Survivor is hooked, you gain Elusive for 20/25/30 seconds. Elusive suppresses your Aura, Scratch Marks, Pools of Blood, and Grunts of Pain.",
-      "plain_english_summary": "When another Survivor is hooked, briefly hides your Aura and tracking traces from the Killer.",
-      "activation_requirements": [
-        "Another Survivor is hooked."
-      ],
-      "deactivation_conditions": [
-        "Elusive expires after 20/25/30 seconds; Elusive may also end early under its status-effect rules."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Elusive: 20/25/30 seconds."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [
-        "Elusive"
-      ],
-      "special_interactions": [
-        "Elusive hides the Survivor's Aura and suppresses Scratch Marks, Pools of Blood, and Grunts of Pain."
-      ],
+      "current_effect": "When another Survivor is hooked, gain Elusive for 13/14/15 seconds.",
+      "plain_english_summary": "When another Survivor is hooked, gain Elusive for 13/14/15 seconds.",
       "latest_known_live_balance_change": {
-        "patch": "9.5.0",
-        "change": "Reworked to grant Elusive for 20/25/30 seconds whenever another Survivor is hooked."
+        "patch": "10.2.0",
+        "change": "When another Survivor is hooked, gain Elusive for 13/14/15 seconds."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Reduces Elusive duration to 13/14/15 seconds whenever another Survivor is hooked. This remains PTB-only."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://support.deadbydaylight.com/hc/en-us/articles/47138866657044-9-5-0-All-Kill-Comeback",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/self-preservation"
       ],
-      "verification_notes": "Do not apply the 10.2.0 PTB duration to live data."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Shoulder the Burden",
@@ -7200,51 +6789,32 @@
       "source_character": "Taurie Cain",
       "is_general_perk": false,
       "tier_1_values": {
-        "exposed_duration_seconds": 60
+        "brokenduration": 160,
+        "maxhookstodeactivate": 2
       },
       "tier_2_values": {
-        "exposed_duration_seconds": 50
+        "brokenduration": 140,
+        "maxhookstodeactivate": 2
       },
       "tier_3_values": {
-        "exposed_duration_seconds": 40
+        "brokenduration": 120,
+        "maxhookstodeactivate": 2
       },
-      "current_effect": "Once per Trial, while you are not on Death Hook, use Active Ability while standing in front of a Hooked Survivor to unhook them and trade 1 Hook Stage with them to their benefit. You scream and become Exposed for 60/50/40 seconds.",
-      "plain_english_summary": "Once per Trial, you can take a Hook Stage from a hooked teammate, becoming Exposed afterward.",
-      "activation_requirements": [
-        "Once per Trial, be next to a Hooked Survivor and not on Death Hook; use the Active Ability."
-      ],
-      "deactivation_conditions": [
-        "The perk's activation is consumed after use.",
-        "Exposed ends after 60/50/40 seconds."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Exposed: 60/50/40 seconds."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": "Once per Trial; cannot be used while on Death Hook.",
-      "status_effects_involved": [
-        "Exposed"
-      ],
-      "special_interactions": [
-        "The unhooked Survivor loses one Hook Stage and you gain that Hook Stage."
-      ],
+      "current_effect": "Once per trial, if you have fewer than two Hook States, use Active Ability 2 at a hooked teammate to unhook them and take one of their Hook States. You scream, become injured, and are Broken for 160/140/120 seconds.",
+      "plain_english_summary": "Once per trial, if you have fewer than two Hook States, use Active Ability 2 at a hooked teammate to unhook them and take one of their Hook States.",
       "latest_known_live_balance_change": {
-        "patch": "8.4.0",
-        "change": "Increased Exposed duration to 60/50/40 seconds."
+        "patch": "10.2.0",
+        "change": "Once per trial, if you have fewer than two Hook States, use Active Ability 2 at a hooked teammate to unhook them and take one of their Hook States. You scream, become injured, and are Broken for 160/140/120 seconds."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "The user becomes Injured and Broken for 160/140/120 seconds instead of Exposed; the perk is then deactivated for all Survivors. The once-per-Trial requirement is revised to require fewer than 2 Hook States. PTB-only."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/shoulder-the-burden"
       ],
-      "verification_notes": "The 10.2.0 PTB expressly replaces the current Exposed penalty; it has not replaced the live effect."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Slippery Meat",
@@ -7252,48 +6822,33 @@
       "source_character": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "additional_self_unhook_attempts_first_hook_stage": 3,
-        "self_unhook_success_chance_bonus_percent": 2
+        "unhookhastebonus": 5,
+        "unhookspeedmodifier": 90
       },
       "tier_2_values": {
-        "additional_self_unhook_attempts_first_hook_stage": 3,
-        "self_unhook_success_chance_bonus_percent": 3
+        "unhookhastebonus": 5,
+        "unhookspeedmodifier": 95
       },
       "tier_3_values": {
-        "additional_self_unhook_attempts_first_hook_stage": 3,
-        "self_unhook_success_chance_bonus_percent": 4
+        "unhookhastebonus": 5,
+        "unhookspeedmodifier": 100
       },
-      "current_effect": "Grants 3 additional Self-Unhook attempts during the first Hook Stage and increases the chance of a successful Self-Unhook by 2/3/4%.",
-      "plain_english_summary": "Adds three first-stage self-unhook attempts and slightly increases the chance each attempt succeeds.",
-      "activation_requirements": [
-        "Be in the first Hook Stage and attempt to unhook yourself."
-      ],
-      "deactivation_conditions": [
-        "The extra attempts are unavailable after leaving the first Hook Stage."
-      ],
-      "cooldown": null,
-      "duration": [],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": "The three additional attempts apply during the first Hook Stage only.",
-      "status_effects_involved": [],
-      "special_interactions": [],
+      "current_effect": "Other Survivors unhook you 90/95/100% faster. After being unhooked, you receive 5% extra Haste.",
+      "plain_english_summary": "Other Survivors unhook you 90/95/100% faster.",
       "latest_known_live_balance_change": {
-        "patch": "unknown",
-        "change": "No material live balance change could be verified from available patch history."
+        "patch": "10.2.0",
+        "change": "Other Survivors unhook you 90/95/100% faster. After being unhooked, you receive 5% extra Haste."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Rework: other Survivors unhook you 90/95/100% faster; whenever you are unhooked, you gain 5% more Haste. The current self-unhook attempt bonus would be removed. PTB-only."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/slippery-meat",
         "https://deadbydaylight.wiki.gg/wiki/Slippery_Meat"
       ],
-      "verification_notes": "The Official Dead by Daylight Wiki currently displays the upcoming 10.2.0 version in its perk description; the live values here are from DBDVault's 10.1.2a entry."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Small Game",
@@ -7301,55 +6856,29 @@
       "source_character": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "detection_cone_range_metres": 8,
-        "cooldown_seconds": 14,
-        "totem_cleanse_tokens_to_max": 5,
-        "cone_angle_reduction_per_token_degrees": 5
+        "totemaurarevealrange": 10
       },
       "tier_2_values": {
-        "detection_cone_range_metres": 10,
-        "cooldown_seconds": 12,
-        "totem_cleanse_tokens_to_max": 5,
-        "cone_angle_reduction_per_token_degrees": 5
+        "totemaurarevealrange": 11
       },
       "tier_3_values": {
-        "detection_cone_range_metres": 12,
-        "cooldown_seconds": 10,
-        "totem_cleanse_tokens_to_max": 5,
-        "cone_angle_reduction_per_token_degrees": 5
+        "totemaurarevealrange": 12
       },
-      "current_effect": "Projects an invisible 45-degree cone in the direction you face, with a range of 8/10/12 m. Detecting any type of Totem within the cone triggers an audio cue and starts a 14/12/10-second cooldown. Each time a Totem is cleansed, gain 1 Token, up to 5; each Token reduces the cone's detection angle by 5 degrees, to a maximum reduction of 25 degrees.",
-      "plain_english_summary": "An audio cue warns when a Totem is in the cone you face; cleansing Totems narrows the cone and reduces its cooldown.",
-      "activation_requirements": [
-        "Face toward a Totem within the tiered detection range and cone."
-      ],
-      "deactivation_conditions": [
-        "Detection is unavailable during the 14/12/10-second cooldown."
-      ],
-      "cooldown": "14/12/10 seconds after a detection cue",
-      "duration": [],
-      "token_or_stack_behavior": "Gain 1 token whenever any Totem is cleansed, up to 5; each token permanently reduces the detection cone angle by 5 degrees for the Trial, up to 25 degrees.",
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [
-        "Detects all Totem types."
-      ],
+      "current_effect": "See Totem Auras within 10/11/12 metres.",
+      "plain_english_summary": "See Totem Auras within 10/11/12 metres.",
       "latest_known_live_balance_change": {
-        "patch": "4.7.0",
-        "change": "Reworked the perk to detect Totems with a directional cone and gain a token per cleansed Totem, narrowing the cone by 5 degrees per token."
+        "patch": "10.2.0",
+        "change": "See Totem Auras within 10/11/12 metres."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Rework: reveals the Aura of a Totem while within 10/11/12 m; removes the cone, audio cue, cooldown, and token system. PTB-only."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/small-game"
       ],
-      "verification_notes": "The Official Dead by Daylight Wiki currently marks its Aura-reveal version as 10.2.0 PTB; live data remains the cone-and-token effect."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Smash Hit",
@@ -7412,47 +6941,29 @@
       "source_character": "Jane Romero",
       "is_general_perk": false,
       "tier_1_values": {
-        "self_healing_progress_percent_of_altruistic_healing": 50
+        "healratio": 65
       },
       "tier_2_values": {
-        "self_healing_progress_percent_of_altruistic_healing": 60
+        "healratio": 70
       },
       "tier_3_values": {
-        "self_healing_progress_percent_of_altruistic_healing": 70
+        "healratio": 75
       },
-      "current_effect": "While injured, healing another Survivor without a Med-Kit also gives you healing progress at 50/60/70% of the Altruistic Healing speed.",
-      "plain_english_summary": "While injured and healing a teammate without a Med-Kit, you also make slower progress toward healing yourself.",
-      "activation_requirements": [
-        "You must be injured and heal another Survivor.",
-        "You must not use a Med-Kit for the altruistic heal."
-      ],
-      "deactivation_conditions": [
-        "The self-healing progress effect ends when you stop healing another Survivor or are no longer injured."
-      ],
-      "cooldown": null,
-      "duration": [],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [
-        "The self-heal is progress granted in parallel with the altruistic heal; it does not itself complete a health state unless enough progress is accumulated."
-      ],
+      "current_effect": "While injured, healing a teammate also advances your own healing at 65/70/75% of that rate.",
+      "plain_english_summary": "While injured, healing a teammate also advances your own healing at 65/70/75% of that rate.",
       "latest_known_live_balance_change": {
-        "patch": "8.1.0",
-        "change": "Increased the self-healing conversion to 50/60/70% of Altruistic Healing speed."
+        "patch": "10.2.0",
+        "change": "While injured, healing a teammate also advances your own healing at 65/70/75% of that rate."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Removes the no-Med-Kit restriction and changes the self-healing progress rate to 65/70/75%. PTB-only."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/solidarity"
       ],
-      "verification_notes": "The PTB text is kept separate from the live Med-Kit restriction and 50/60/70% values."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Soul Guard",
@@ -7566,55 +7077,39 @@
       "source_character": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "activation_range_metres": 36,
-        "action_speed_bonus_percent": 2,
-        "line_of_sight_linger_seconds": 0.5
+        "cooldowntime": 40,
+        "effectduration": 12,
+        "killerrange": 40,
+        "vaultspeedmodifier": 10
       },
       "tier_2_values": {
-        "activation_range_metres": 36,
-        "action_speed_bonus_percent": 4,
-        "line_of_sight_linger_seconds": 0.5
+        "cooldowntime": 35,
+        "effectduration": 12,
+        "killerrange": 40,
+        "vaultspeedmodifier": 10
       },
       "tier_3_values": {
-        "activation_range_metres": 36,
-        "action_speed_bonus_percent": 6,
-        "line_of_sight_linger_seconds": 0.5
+        "cooldowntime": 30,
+        "effectduration": 12,
+        "killerrange": 40,
+        "vaultspeedmodifier": 10
       },
-      "current_effect": "When the Killer is within 36 m and looking at you with clear Line of Sight, Spine Chill lights to warn of proximity and potential awareness, and increases your Blessing, Cleansing, Gate-Opening, Healing, Repairing, Sabotaging, Unhooking, and Unlocking speeds by 2/4/6%. The effect lingers for 0.5 seconds after the Killer loses Line of Sight or leaves range.",
-      "plain_english_summary": "Warns when a nearby Killer has clear sight of you and slightly speeds several interactions while that condition holds.",
-      "activation_requirements": [
-        "The Killer is within 36 m and looking toward you with clear Line of Sight."
-      ],
-      "deactivation_conditions": [
-        "The effect ends after the Killer leaves range or loses Line of Sight, with a 0.5-second linger."
-      ],
-      "cooldown": null,
-      "duration": [
-        "0.5-second linger after the activation condition ends."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [
-        "In addition to the warning, the speed bonus applies to Blessing, Cleansing, Gate-Opening, Healing, Repairing, Sabotaging, Unhooking, and Unlocking."
-      ],
+      "current_effect": "If the Killer looks at you within 40 metres, get a warning. For 12 seconds, you cannot scream and vault 10% faster. Cooldown is 40/35/30 seconds.",
+      "plain_english_summary": "If the Killer looks at you within 40 metres, get a warning.",
       "latest_known_live_balance_change": {
-        "patch": "6.1.0",
-        "change": "Reworked the perk to provide a proximity/Line-of-Sight warning and 2/4/6% action-speed bonuses with a 0.5-second linger."
+        "patch": "10.2.0",
+        "change": "If the Killer looks at you within 40 metres, get a warning. For 12 seconds, you cannot scream and vault 10% faster. Cooldown is 40/35/30 seconds."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Rework: when the Killer looks at you within 40 m, you are notified, cannot scream for 12 seconds, and vault 10% faster for 12 seconds; cooldown 40/35/30 seconds. PTB-only."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/spine-chill",
         "https://deadbydaylight.wiki.gg/wiki/Spine_Chill"
       ],
-      "verification_notes": "The Official Dead by Daylight Wiki marks the 10.2.0 vault-speed rework as upcoming; live values remain the 6.1.0 rework."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Sprint Burst",
@@ -7678,56 +7173,48 @@
       "source_character": "David Tapp",
       "is_general_perk": false,
       "tier_1_values": {
-        "token_cap": 2,
-        "token_interval_seconds": 15,
-        "great_skill_check_extra_progress_percent": 1
+        "additionalprogressgained": 4,
+        "maxtokens": 2,
+        "minimumtokensrequired": 1,
+        "tokenchargerange": 24,
+        "tokenchargetime": 15,
+        "tokensgained": 1,
+        "tokensspent": 1
       },
       "tier_2_values": {
-        "token_cap": 3,
-        "token_interval_seconds": 15,
-        "great_skill_check_extra_progress_percent": 1
+        "additionalprogressgained": 4,
+        "maxtokens": 3,
+        "minimumtokensrequired": 1,
+        "tokenchargerange": 24,
+        "tokenchargetime": 15,
+        "tokensgained": 1,
+        "tokensspent": 1
       },
       "tier_3_values": {
-        "token_cap": 4,
-        "token_interval_seconds": 15,
-        "great_skill_check_extra_progress_percent": 1
+        "additionalprogressgained": 4,
+        "maxtokens": 4,
+        "minimumtokensrequired": 1,
+        "tokenchargerange": 24,
+        "tokenchargetime": 15,
+        "tokensgained": 1,
+        "tokensspent": 1
       },
-      "current_effect": "While in the Terror Radius and not being chased, gain 1 Token every 15 seconds, up to 2/3/4. During a skilful interaction that can trigger Skill Checks, a Token converts a Good Skill Check to a Great Skill Check, consumes 1 Token, and adds 1% Progression bonus. Regular Great Skill Checks are unaffected and do not consume tokens.",
-      "plain_english_summary": "Time spent near the Killer builds tokens that turn Good Skill Checks into slightly more rewarding Great checks.",
-      "activation_requirements": [
-        "Remain in the Terror Radius without being chased to gain tokens.",
-        "Have at least 1 token and perform a skilful interaction that can trigger Skill Checks to use one."
-      ],
-      "deactivation_conditions": [
-        "No tokens accrue while outside the Terror Radius or while being chased."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Gain 1 token every 15 seconds while the condition holds."
-      ],
-      "token_or_stack_behavior": "Gain tokens every 15 seconds while in the Terror Radius and not chased, to a tier cap of 2/3/4. A token is spent when it converts a Good check; the token cap does not decrease when a token is spent.",
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [
-        "Regular Great Skill Checks are not converted and do not consume tokens."
-      ],
+      "current_effect": "Hide within 24 metres of the Killer and inside their Terror Radius for 15 seconds to earn one token, up to 2/3/4. While you have a token, basic Skill Checks become special ones worth 4% extra progress. Hitting or missing one spends a token.",
+      "plain_english_summary": "Hide within 24 metres of the Killer and inside their Terror Radius for 15 seconds to earn one token, up to 2/3/4.",
       "latest_known_live_balance_change": {
-        "patch": "3.7.0",
-        "change": "Added an additional 1% Progression bonus to Great Skill Checks created by the perk."
+        "patch": "10.2.0",
+        "change": "Hide within 24 metres of the Killer and inside their Terror Radius for 15 seconds to earn one token, up to 2/3/4. While you have a token, basic Skill Checks become special ones worth 4% extra progress. Hitting or missing one spends a token."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Rework: after hiding for 15 seconds within 24 m of the Killer while in their Terror Radius, gain a token up to 2/3/4. With at least one token, basic Skill Checks become special Skill Checks: success grants +4% more progress and a miss loses 4% more progress. Every hit or missed special check spends one token. PTB notes say these special checks do not activate other Skill Check perks. PTB-only."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/stake-out",
         "https://deadbydaylight.wiki.gg/wiki/Stake_Out"
       ],
-      "verification_notes": "Do not replace the live 15-second, Terror-Radius-only token rule with the PTB's added 24 m/hiding condition."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Still Sight",
@@ -8269,50 +7756,30 @@
       "source_character": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "great_skill_check_zone_increase_percent": 10,
-        "injured_required": true
+        "goodbasiczonebonus": 150
       },
       "tier_2_values": {
-        "great_skill_check_zone_increase_percent": 20,
-        "injured_required": true
+        "goodbasiczonebonus": 175
       },
       "tier_3_values": {
-        "great_skill_check_zone_increase_percent": 30,
-        "injured_required": true
+        "goodbasiczonebonus": 200
       },
-      "current_effect": "While Injured, increases the Success zone for a Great Skill Check by 10/20/30% during Healing and Repairing interactions.",
-      "plain_english_summary": "While injured, enlarges Great Skill Check zones for healing and generator repair.",
-      "activation_requirements": [
-        "Be in the Injured State and perform a Healing or Repairing interaction that can trigger a Skill Check."
-      ],
-      "deactivation_conditions": [
-        "The bonus is inactive when you are not injured and does not affect interactions other than Healing or Repairing."
-      ],
-      "cooldown": null,
-      "duration": [],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [
-        "The live effect changes the Great Skill Check success zone, not the Good Skill Check zone."
-      ],
+      "current_effect": "The Good zone on basic Skill Checks is 150/175/200% larger.",
+      "plain_english_summary": "The Good zone on basic Skill Checks is 150/175/200% larger.",
       "latest_known_live_balance_change": {
-        "patch": "1.7.0",
-        "change": "Changed the larger Success zone to apply to the Great Skill Check zone rather than the Good zone."
+        "patch": "10.2.0",
+        "change": "The Good zone on basic Skill Checks is 150/175/200% larger."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Removes the Injured requirement; Good basic Skill Check zones become 150/175/200% bigger and Great basic Skill Check zones 30% bigger. PTB-only."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/this-is-not-happening",
         "https://deadbydaylight.wiki.gg/wiki/This_Is_Not_Happening"
       ],
-      "verification_notes": "Live effect is the injured-only 10/20/30% Great-zone bonus; the wider good-zone changes are PTB-only."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Troubleshooter",
@@ -8507,46 +7974,27 @@
       "source_character": "Quentin Smith",
       "is_general_perk": false,
       "tier_1_values": {
-        "status_effect_recovery_speed_percent": 30,
-        "area_of_effect_metres": 16,
-        "linger_after_leaving_seconds": 15
+        "effectrange": 16,
+        "lingerduration": 15,
+        "recoveryincrease%": 20
       },
       "tier_2_values": {
-        "status_effect_recovery_speed_percent": 35,
-        "area_of_effect_metres": 16,
-        "linger_after_leaving_seconds": 15
+        "effectrange": 16,
+        "lingerduration": 15,
+        "recoveryincrease%": 25
       },
       "tier_3_values": {
-        "status_effect_recovery_speed_percent": 40,
-        "area_of_effect_metres": 16,
-        "linger_after_leaving_seconds": 15
+        "effectrange": 16,
+        "lingerduration": 15,
+        "recoveryincrease%": 30
       },
-      "current_effect": "You and all Survivors within 16 metres recover from Exhausted 30/35/40% faster. The effect lingers for 15 seconds after leaving the area. A Survivor can only benefit from one Vigil effect at a time.",
-      "plain_english_summary": "Speeds Exhausted recovery by 30/35/40% for you and nearby teammates, with a 15-second linger after leaving range.",
-      "activation_requirements": [
-        "A Survivor must be within 16 metres of the perk user while recovering from Exhausted."
-      ],
-      "deactivation_conditions": [
-        "The aura of the effect ends 15 seconds after leaving the perk user's 16 m area."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Area effect lingers for 15 seconds after a Survivor leaves 16 m range."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": "A Survivor can benefit from only one Vigil effect at a time.",
-      "status_effects_involved": [
-        "Exhausted"
-      ],
-      "special_interactions": [
-        "Applies to the perk user and nearby Survivors; duplicate Vigil effects do not stack."
-      ],
+      "current_effect": "You and Survivors within 16 metres recover from Exhausted 20/25/30% faster. The bonus lingers for 15 seconds after leaving range. A Survivor can benefit from one Vigil at a time.",
+      "plain_english_summary": "You and Survivors within 16 metres recover from Exhausted 20/25/30% faster.",
       "latest_known_live_balance_change": {
         "patch": "10.1.2",
         "change": "Fixed the effect so Vigil affects Exhausted only; its Exhausted recovery values remain 30/35/40% from live patch 10.1.0."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": null,
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/556-10-1-0-chorus-of-sin",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/558-10-1-2-bugfix-patch"
@@ -8554,7 +8002,7 @@
       "secondary_source_urls": [
         "https://dbdvault.com/perks/vigil"
       ],
-      "verification_notes": "The official 10.1.0 live notes listed eight effects but explicitly said the list would be reviewed; the official 10.1.2 live bugfix then fixed Vigil so it no longer affected effects beyond Exhausted. Thus the current live status scope is Exhausted only, with 30/35/40% recovery, 16-metre range, and 15-second linger. DBDVault's current effect page has an older 20/25/30% Exhausted value and is stale on the numerical value; official 10.1.0 controls the current percentage."
+      "verification_notes": "Gameplay and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Visionary",
@@ -8609,60 +8057,33 @@
       "source_character": "Quentin Smith",
       "is_general_perk": false,
       "tier_1_values": {
-        "gate_opening_speed_percent_per_survivor_alive": 8,
-        "maximum_gate_opening_speed_percent": 32,
-        "gate_switch_aura_range_metres": 128,
-        "self_aura_range_metres_while_opening": 128
+        "gateopenspeedother%": 20,
+        "gateopenspeedself%": 8
       },
       "tier_2_values": {
-        "gate_opening_speed_percent_per_survivor_alive": 10,
-        "maximum_gate_opening_speed_percent": 40,
-        "gate_switch_aura_range_metres": 128,
-        "self_aura_range_metres_while_opening": 128
+        "gateopenspeedother%": 20,
+        "gateopenspeedself%": 9
       },
       "tier_3_values": {
-        "gate_opening_speed_percent_per_survivor_alive": 12.5,
-        "maximum_gate_opening_speed_percent": 50,
-        "gate_switch_aura_range_metres": 128,
-        "self_aura_range_metres_while_opening": 128
+        "gateopenspeedother%": 20,
+        "gateopenspeedself%": 10
       },
-      "current_effect": "Once all Generators are completed, reveals Exit Gate Switch Auras within 128 m permanently. While opening an Exit Gate, your Aura is revealed to other Survivors within 128 m. Gate-Opening speed increases by 8/10/12.5% for each Survivor still alive in the Trial, including you, to a maximum 32/40/50%.",
-      "plain_english_summary": "After the Generators are done, shows nearby gate switches, helps Survivors see you opening a gate, and speeds gate opening based on Survivors alive.",
-      "activation_requirements": [
-        "All Generators must be completed.",
-        "The self-Aura reveal applies while you are opening an Exit Gate."
-      ],
-      "deactivation_conditions": [
-        "Gate-switch Auras are shown within the 128 m limit; self-Aura sharing applies only while opening a gate."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Gate-switch Aura reveal lasts after all Generators are completed for the rest of the Trial.",
-        "Self-Aura is shared while opening an Exit Gate."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [
-        "Gate-opening bonus counts the perk user among Survivors still alive and caps at 32/40/50%."
-      ],
+      "current_effect": "After the final Generator, see Exit Gate Switch Auras. Teammates see your Aura while you open a gate. You open gates 8/9/10% faster, plus 20% for each other Survivor still alive.",
+      "plain_english_summary": "After the final Generator, see Exit Gate Switch Auras.",
       "latest_known_live_balance_change": {
-        "patch": "9.5.0",
-        "change": "Removed the 128 m limit on the exit-gate Aura reveal and changed the gate-opening bonus to 8/10/12.5% per Survivor still alive, capped at 32/40/50%."
+        "patch": "10.2.0",
+        "change": "After the final Generator, see Exit Gate Switch Auras. Teammates see your Aura while you open a gate. You open gates 8/9/10% faster, plus 20% for each other Survivor still alive."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "After all Generators are completed, reveals Exit Gate Switch Auras and shows your Aura to other Survivors while opening a gate. Gate opening speed becomes 8/9/10% for you plus an additional 20% for each other Survivor alive. PTB-only."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://support.deadbydaylight.com/hc/en-us/articles/47138866657044-9-5-0-All-Kill-Comeback"
+        "https://support.deadbydaylight.com/hc/en-us/articles/47138866657044-9-5-0-All-Kill-Comeback",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/wake-up"
       ],
-      "verification_notes": "The 10.2.0 PTB changes are kept separate from the current live per-survivor bonus."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "We See You",
@@ -8721,51 +8142,32 @@
       "source_character": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "activation_duration_seconds": 30,
-        "altruistic_healing_speed_bonus_percent": 100
+        "duration": 70,
+        "healingspeedincrease%": 100
       },
       "tier_2_values": {
-        "activation_duration_seconds": 60,
-        "altruistic_healing_speed_bonus_percent": 100
+        "duration": 80,
+        "healingspeedincrease%": 100
       },
       "tier_3_values": {
-        "activation_duration_seconds": 90,
-        "altruistic_healing_speed_bonus_percent": 100
+        "duration": 90,
+        "healingspeedincrease%": 100
       },
-      "current_effect": "After unhooking another Survivor, activates for 30/60/90 seconds and increases your Altruistic Healing speed by 100%.",
-      "plain_english_summary": "After an unhook, you heal other Survivors twice as fast for a tiered duration.",
-      "activation_requirements": [
-        "Unhook another Survivor."
-      ],
-      "deactivation_conditions": [
-        "The effect ends after 30/60/90 seconds."
-      ],
-      "cooldown": null,
-      "duration": [
-        "30/60/90 seconds after unhooking another Survivor."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [
-        "The 100% speed bonus applies to Altruistic Healing, not self-healing."
-      ],
+      "current_effect": "After you unhook a teammate, heal other Survivors twice as fast for 70/80/90 seconds.",
+      "plain_english_summary": "After you unhook a teammate, heal other Survivors twice as fast for 70/80/90 seconds.",
       "latest_known_live_balance_change": {
-        "patch": "unknown",
-        "change": "No material live balance change could be verified from available patch history."
+        "patch": "10.2.0",
+        "change": "After you unhook a teammate, heal other Survivors twice as fast for 70/80/90 seconds."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Increases activation duration to 70/80/90 seconds; healing speed remains +100%. PTB-only."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/we-ll-make-it"
       ],
-      "verification_notes": "Keep the 30/60/90-second live duration distinct from the PTB's proposed 70/80/90 seconds."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "We're Gonna Live Forever",
@@ -8994,47 +8396,36 @@
       "source_character": "Kate Denson",
       "is_general_perk": false,
       "tier_1_values": {
-        "aura_range_metres": 24
+        "cooldown": 40,
+        "vaultablesrevealdistance": 24,
+        "vaultspeed": 10
       },
       "tier_2_values": {
-        "aura_range_metres": 28
+        "cooldown": 35,
+        "vaultablesrevealdistance": 24,
+        "vaultspeed": 10
       },
       "tier_3_values": {
-        "aura_range_metres": 32
+        "cooldown": 30,
+        "vaultablesrevealdistance": 24,
+        "vaultspeed": 10
       },
-      "current_effect": "Reveals the Auras of Breakable Walls, Pallets, and Windows within 24/28/32 m.",
-      "plain_english_summary": "Shows nearby Breakable Walls, Pallets, and Windows through their Auras.",
-      "activation_requirements": [
-        "Breakable Walls, Pallets, or Windows must be within 24/28/32 m."
-      ],
-      "deactivation_conditions": [
-        "Aura visibility ends when a resource is outside the tiered range or no longer exists."
-      ],
-      "cooldown": null,
-      "duration": [],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "special_interactions": [
-        "The Aura reveal covers Breakable Walls, Pallets, and Windows."
-      ],
+      "current_effect": "See Window Auras within 24 metres and vault Windows 10% faster. Vaulting a Window starts a 40/35/30-second cooldown.",
+      "plain_english_summary": "See Window Auras within 24 metres and vault Windows 10% faster.",
       "latest_known_live_balance_change": {
-        "patch": "6.1.0",
-        "change": "Changed Aura ranges to 24/28/32 m."
+        "patch": "10.2.0",
+        "change": "See Window Auras within 24 metres and vault Windows 10% faster. Vaulting a Window starts a 40/35/30-second cooldown."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "patch": "10.2.0 PTB",
-        "change": "Rework: reveals only Window Auras within 24 m, grants 10% faster vaulting, and has a 40/35/30-second cooldown after vaulting a Window. PTB-only."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/windows-of-opportunity",
         "https://deadbydaylight.wiki.gg/wiki/Windows_of_Opportunity"
       ],
-      "verification_notes": "Current live effect remains the resource Aura-reading version; 10.2.0 PTB narrows it to Windows and adds vault speed."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Wiretap",

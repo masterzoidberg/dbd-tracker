@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "dataset": "dbd-killers-live",
-  "gameVersion": "10.2.1",
-  "compiledDate": "2026-10-17",
+  "gameVersion": "10.2.2b",
+  "compiledDate": "2026-11-22",
   "researchStatus": "VERIFIED",
   "scope": "Current live 1v4 Killer power baselines plus ordinary current Killer-specific Power Add-ons for all 44 live Killers. Power research and Add-ons are nested under the owning Killer but are not hard-linked to individual power mechanics.",
   "counts": {
@@ -1901,7 +1901,7 @@
           },
           {
             "name": "Cloaked movement speed",
-            "value": 6.0,
+            "value": 6,
             "unit": "m/s",
             "conditions": "While cloaked",
             "description": "Base cloaked movement speed.",
@@ -1921,7 +1921,7 @@
           },
           {
             "name": "Uncloaking time",
-            "value": 3.0,
+            "value": 3,
             "unit": "seconds",
             "conditions": "Bell begins ringing after 1.5 seconds",
             "description": "Base uncloak action time.",
@@ -2571,7 +2571,7 @@
           "characterId": "the-wraith",
           "killerId": "wraith",
           "killerName": "The Wraith",
-          "name": "\"Windstorm\" - Mud",
+          "name": "\"Windstorm\"- Mud",
           "side": "killer",
           "rarity": "Uncommon",
           "rarityColor": "#E8C252",
@@ -4712,7 +4712,7 @@
           "characterId": "the-hillbilly",
           "killerId": "hillbilly",
           "killerName": "The Hillbilly",
-          "name": "LoPro Chains",
+          "name": "Lo Pro Chains",
           "side": "killer",
           "rarity": "Very Rare",
           "rarityColor": "#AC3EE3",
@@ -4883,7 +4883,7 @@
           "characterId": "the-hillbilly",
           "killerId": "hillbilly",
           "killerName": "The Hillbilly",
-          "name": "Tuned Carburettor",
+          "name": "Tuned Carburetor",
           "side": "killer",
           "rarity": "Ultra Rare",
           "rarityColor": "#FF0955",
@@ -6972,7 +6972,7 @@
           "characterId": "the-shape",
           "killerId": "shape",
           "killerName": "The Shape",
-          "name": "Blond Hair",
+          "name": "Blonde Hair",
           "side": "killer",
           "rarity": "Common",
           "rarityColor": "#AB713C",
@@ -7533,7 +7533,7 @@
           "characterId": "the-shape",
           "killerId": "shape",
           "killerName": "The Shape",
-          "name": "J. Myers Memorial",
+          "name": "J.Myers Memorial",
           "side": "killer",
           "rarity": "Rare",
           "rarityColor": "#199B1E",
@@ -10182,7 +10182,7 @@
           "characterId": "the-doctor",
           "killerId": "doctor",
           "killerName": "The Doctor",
-          "name": "Mouldy Electrode",
+          "name": "Moldy Electrode",
           "side": "killer",
           "rarity": "Common",
           "rarityColor": "#AB713C",
@@ -13165,7 +13165,7 @@
           "characterId": "the-cannibal",
           "killerId": "cannibal",
           "killerName": "The Cannibal",
-          "name": "Chilli",
+          "name": "Chili",
           "side": "killer",
           "rarity": "Uncommon",
           "rarityColor": "#E8C252",
@@ -13502,7 +13502,7 @@
           "characterId": "the-cannibal",
           "killerId": "cannibal",
           "killerName": "The Cannibal",
-          "name": "Grisly Chains",
+          "name": "Grisly Chain",
           "side": "killer",
           "rarity": "Rare",
           "rarityColor": "#199B1E",
@@ -13728,7 +13728,7 @@
           "characterId": "the-cannibal",
           "killerId": "cannibal",
           "killerName": "The Cannibal",
-          "name": "Award-winning Chilli",
+          "name": "Award-Winning Chili",
           "side": "killer",
           "rarity": "Very Rare",
           "rarityColor": "#AC3EE3",
@@ -13897,7 +13897,7 @@
           "characterId": "the-cannibal",
           "killerId": "cannibal",
           "killerName": "The Cannibal",
-          "name": "Rusted Chains",
+          "name": "Rusted Chain",
           "side": "killer",
           "rarity": "Very Rare",
           "rarityColor": "#AC3EE3",
@@ -13954,7 +13954,7 @@
           "characterId": "the-cannibal",
           "killerId": "cannibal",
           "killerName": "The Cannibal",
-          "name": "Carburettor Tuning Guide",
+          "name": "Carburetor Tuning Guide",
           "side": "killer",
           "rarity": "Ultra Rare",
           "rarityColor": "#FF0955",
@@ -14329,7 +14329,7 @@
           },
           {
             "name": "Dream Snare charging movement speed",
-            "value": 4.0,
+            "value": 4,
             "unit": "m/s",
             "conditions": "While charging/placing a Dream Snare",
             "description": "Freddy's movement speed while preparing a Snare.",
@@ -15815,7 +15815,7 @@
           },
           {
             "name": "Crouched movement speed",
-            "value": 4.0,
+            "value": 4,
             "unit": "m/s",
             "conditions": "Crouched State",
             "description": "Reduced movement speed while crouched.",
@@ -16870,9 +16870,9 @@
           "killerName": "The Pig",
           "name": "Tampered Timer",
           "side": "killer",
-          "rarity": "Rare",
-          "rarityColor": "#199B1E",
-          "sourceRarity": "Rare",
+          "rarity": "Very Rare",
+          "rarityColor": "#AC3EE3",
+          "sourceRarity": "Very Rare",
           "effect": "Reduces Reverse Bear Trap Death timer by -20 seconds.",
           "status": "current",
           "event": false,
@@ -16900,6 +16900,12 @@
               "url": "https://deadbydaylight.wiki.gg/wiki/Pig",
               "sourceType": "current character/power add-on listing",
               "accessed": "2026-10-12"
+            },
+            {
+              "title": "The Pig, client build 10.2.2",
+              "url": "https://dbd.source.gs/killers/pig/",
+              "sourceType": "client build corroboration",
+              "accessed": "2026-11-22"
             }
           ],
           "provenance": {
@@ -16910,10 +16916,10 @@
             "batchAuditVerdict": "PASS WITH CORRECTIONS"
           },
           "artwork": {
-            "path": "images/Powers and Add-ons/Pig/With Background/Tampered Timer.png",
+            "path": "images/Powers and Add-ons/Pig/Tampered Timer.png",
             "filename": "Tampered Timer.png",
             "folder": "Pig",
-            "backgroundFolder": "With Background",
+            "backgroundFolder": null,
             "confidence": "EXACT",
             "mappingBatch": 2
           }
@@ -17092,11 +17098,11 @@
           "characterId": "the-pig",
           "killerId": "pig",
           "killerName": "The Pig",
-          "name": "Rules Set No.2",
+          "name": "Rule Set No.2",
           "side": "killer",
-          "rarity": "Very Rare",
-          "rarityColor": "#AC3EE3",
-          "sourceRarity": "Very Rare",
+          "rarity": "Rare",
+          "rarityColor": "#199B1E",
+          "sourceRarity": "Rare",
           "effect": "Survivors cannot see Jigsaw Box Auras until their Reverse Bear Trap becomes active.",
           "status": "current",
           "event": false,
@@ -17124,6 +17130,12 @@
               "url": "https://deadbydaylight.wiki.gg/wiki/Pig",
               "sourceType": "current character/power add-on listing",
               "accessed": "2026-10-12"
+            },
+            {
+              "title": "The Pig, client build 10.2.2",
+              "url": "https://dbd.source.gs/killers/pig/",
+              "sourceType": "client build corroboration",
+              "accessed": "2026-11-22"
             }
           ],
           "provenance": {
@@ -17134,10 +17146,10 @@
             "batchAuditVerdict": "PASS WITH CORRECTIONS"
           },
           "artwork": {
-            "path": "images/Powers and Add-ons/Pig/With Background/Rule Set No.2.png",
+            "path": "images/Powers and Add-ons/Pig/Rule Set No.2.png",
             "filename": "Rule Set No.2.png",
             "folder": "Pig",
-            "backgroundFolder": "With Background",
+            "backgroundFolder": null,
             "confidence": "REVIEW",
             "mappingBatch": 2,
             "reviewReason": "Drive filename uses singular 'Rule' while the canonical master uses 'Rules'."
@@ -18369,7 +18381,7 @@
           "characterId": "the-clown",
           "killerId": "clown",
           "killerName": "The Clown",
-          "name": "Sulphuric Acid Vial",
+          "name": "Sulfuric Acid Vial",
           "side": "killer",
           "rarity": "Rare",
           "rarityColor": "#199B1E",
@@ -18538,7 +18550,7 @@
           "characterId": "the-clown",
           "killerId": "clown",
           "killerName": "The Clown",
-          "name": "Ether 15 Vol%",
+          "name": "Ether 15 vol%",
           "side": "killer",
           "rarity": "Very Rare",
           "rarityColor": "#AC3EE3",
@@ -18595,7 +18607,7 @@
           "characterId": "the-clown",
           "killerId": "clown",
           "killerName": "The Clown",
-          "name": "Garish Make-Up Kit",
+          "name": "Garish Makeup Kit",
           "side": "killer",
           "rarity": "Very Rare",
           "rarityColor": "#AC3EE3",
@@ -18652,7 +18664,7 @@
           "characterId": "the-clown",
           "killerId": "clown",
           "killerName": "The Clown",
-          "name": "Redhead's Pinkie Finger",
+          "name": "Redhead's Pinky Finger",
           "side": "killer",
           "rarity": "Ultra Rare",
           "rarityColor": "#FF0955",
@@ -22450,7 +22462,7 @@
           "characterId": "the-plague",
           "killerId": "plague",
           "killerName": "The Plague",
-          "name": "Emetic Potion",
+          "name": "Emetic potion",
           "side": "killer",
           "rarity": "Uncommon",
           "rarityColor": "#E8C252",
@@ -22506,7 +22518,7 @@
           "characterId": "the-plague",
           "killerId": "plague",
           "killerName": "The Plague",
-          "name": "Haematite Seal",
+          "name": "Hematite Seal",
           "side": "killer",
           "rarity": "Uncommon",
           "rarityColor": "#E8C252",
@@ -23425,7 +23437,7 @@
           },
           {
             "name": "Crouched movement speed",
-            "value": 4.0,
+            "value": 4,
             "unit": "metres per second",
             "conditions": "Base current value",
             "description": "Official 9.6.1 value.",
@@ -23782,7 +23794,7 @@
           "characterId": "the-ghost-face",
           "killerId": "ghost-face",
           "killerName": "The Ghost Face",
-          "name": "Headline Cut-Outs",
+          "name": "Headline Cutouts",
           "side": "killer",
           "rarity": "Common",
           "rarityColor": "#AB713C",
@@ -25470,7 +25482,7 @@
           "characterId": "the-demogorgon",
           "killerId": "demogorgon",
           "killerName": "The Demogorgon",
-          "name": "Mews' Guts",
+          "name": "Mew's Guts",
           "side": "killer",
           "rarity": "Uncommon",
           "rarityColor": "#E8C252",
@@ -26159,7 +26171,7 @@
           "characterId": "the-demogorgon",
           "killerId": "demogorgon",
           "killerName": "The Demogorgon",
-          "name": "Vermilion Webcap",
+          "name": "Vermillion Webcap",
           "side": "killer",
           "rarity": "Very Rare",
           "rarityColor": "#AC3EE3",
@@ -27313,7 +27325,7 @@
           "characterId": "the-oni",
           "killerId": "oni",
           "killerName": "The Oni",
-          "name": "Kanai-Anzen Talisman",
+          "name": "Kanai-anzen Talisman",
           "side": "killer",
           "rarity": "Rare",
           "rarityColor": "#199B1E",
@@ -27762,7 +27774,7 @@
           "characterId": "the-oni",
           "killerId": "oni",
           "killerName": "The Oni",
-          "name": "Tear-Soaked Tenugui",
+          "name": "Tear Soaked Tenugui",
           "side": "killer",
           "rarity": "Very Rare",
           "rarityColor": "#AC3EE3",
@@ -28949,7 +28961,7 @@
           "characterId": "the-deathslinger",
           "killerId": "deathslinger",
           "killerName": "The Deathslinger",
-          "name": "Honey Locust Thorn",
+          "name": "Honey Locust Thorns",
           "side": "killer",
           "rarity": "Rare",
           "rarityColor": "#199B1E",
@@ -29580,22 +29592,22 @@
         "mechanics": [
           {
             "name": "Rites of Judgement activation time",
-            "value": 1,
-            "unit": "second",
+            "value": 0.8,
+            "unit": "seconds",
             "conditions": "Base activation time",
             "description": "Time to activate Rites of Judgement.",
             "sourceIds": [
-              "EXEC-WIKI"
+              "EXEC-1022A"
             ]
           },
           {
             "name": "Rites of Judgement cancellation time",
-            "value": 1,
-            "unit": "second",
+            "value": 1.2,
+            "unit": "seconds",
             "conditions": "Base cancellation time",
             "description": "Time to cancel Rites of Judgement.",
             "sourceIds": [
-              "EXEC-WIKI"
+              "EXEC-1022A"
             ]
           },
           {
@@ -29611,12 +29623,12 @@
           },
           {
             "name": "Power gauge capacity",
-            "value": 10,
+            "value": 8,
             "unit": "charges",
             "conditions": "Base capacity",
             "description": "Maximum Rites of Judgement gauge capacity.",
             "sourceIds": [
-              "EXEC-WIKI"
+              "EXEC-1022A"
             ]
           },
           {
@@ -29631,32 +29643,32 @@
           },
           {
             "name": "Maximum continuous trail drawing time",
-            "value": 10,
+            "value": 8,
             "unit": "seconds",
-            "conditions": "From a full gauge, continuously moving and drawing",
-            "description": "Maximum draw time derived from the 10-charge capacity and 1-charge/second drain.",
+            "conditions": "Starting at full gauge and moving continuously",
+            "description": "Eight charges at a drain rate of one charge per second.",
             "sourceIds": [
-              "EXEC-WIKI"
+              "EXEC-1022A"
             ]
           },
           {
             "name": "Power gauge recharge rate",
-            "value": 0.25,
+            "value": 0.5,
             "unit": "charges/second",
             "conditions": "While the Power is recharging",
             "description": "Base recharge rate.",
             "sourceIds": [
-              "EXEC-WIKI"
+              "EXEC-1022A"
             ]
           },
           {
             "name": "Full Power gauge recharge time",
-            "value": 40,
+            "value": 16,
             "unit": "seconds",
-            "conditions": "From empty to 10 charges at the base recharge rate",
-            "description": "Recharge time for a fully depleted gauge.",
+            "conditions": "From empty once recharge begins",
+            "description": "Eight charges at a recharge rate of half a charge per second.",
             "sourceIds": [
-              "EXEC-WIKI"
+              "EXEC-1022A"
             ]
           },
           {
@@ -29671,13 +29683,12 @@
           },
           {
             "name": "Punishment of the Damned range",
-            "value": 10,
+            "value": 16,
             "unit": "metres",
             "conditions": "Base range",
-            "description": "Maximum attack range after the 9.1.0 update.",
+            "description": "Maximum travel distance of the attack.",
             "sourceIds": [
-              "EXEC-91",
-              "EXEC-WIKI"
+              "EXEC-1022A"
             ]
           },
           {
@@ -29774,13 +29785,43 @@
               "EXEC-101",
               "EXEC-WIKI"
             ]
+          },
+          {
+            "name": "Punishment initial spawn delay",
+            "value": 0.25,
+            "unit": "seconds",
+            "conditions": "Starting Punishment of the Damned",
+            "description": "Time before the first segment appears.",
+            "sourceIds": [
+              "EXEC-1022A"
+            ]
+          },
+          {
+            "name": "Punishment segment interval",
+            "value": 0.015,
+            "unit": "seconds",
+            "conditions": "While Punishment of the Damned propagates",
+            "description": "Time between consecutive segments appearing.",
+            "sourceIds": [
+              "EXEC-1022B"
+            ]
+          },
+          {
+            "name": "Punishment segment lifetime",
+            "value": 0.3,
+            "unit": "seconds",
+            "conditions": "Per segment",
+            "description": "Time that a spawned segment persists.",
+            "sourceIds": [
+              "EXEC-1022A"
+            ]
           }
         ],
         "resources": [
           {
             "name": "Rites of Judgement gauge",
             "type": "Power resource",
-            "description": "A 10-charge gauge used to draw Torment Trails and perform Punishment of the Damned. It drains while drawing trails and recharges at the base rate."
+            "description": "An 8-charge gauge for drawing Torment Trails and using Punishment of the Damned. It recharges at 0.5 charges per second."
           },
           {
             "name": "Torment Trails",
@@ -29898,13 +29939,29 @@
           }
         ],
         "baselineFacts": [
-          "Rites of Judgement has a 10-charge gauge and drains at 1 charge per second while drawing trails and moving.",
+          "Rites of Judgement has a 8-charge gauge and drains at 1 charge per second while drawing trails and moving.",
           "The Executioner moves at 4.2 m/s while drawing trails; regular trail segments last 90 seconds.",
-          "Punishment of the Damned consumes 2 charges and has a 10-metre base range.",
+          "Punishment of the Damned consumes 2 charges and has a 16-metre base range.",
           "Crossing a Torment Trail while not crouched applies Torment and reveals the Survivor with Killer Instinct for 3 seconds.",
           "A downed Tormented Survivor can be sent to a Cage; Final Judgment is available on a downed Tormented Survivor at the second Hook Stage."
         ],
         "recentChanges": [
+          {
+            "version": "10.2.2b",
+            "change": "Punishment of the Damned now spawns its segments 0.015 seconds apart.",
+            "verification": "Confirmed in official live patch notes.",
+            "sourceIds": [
+              "EXEC-1022B"
+            ]
+          },
+          {
+            "version": "10.2.2a",
+            "change": "The Rites gauge holds 8 charges and recovers 0.5 per second. Rites activates in 0.8 seconds and cancels in 1.2 seconds. Punishment reaches 16 metres. The first segment appears after 0.25 seconds and each segment lasts 0.3 seconds.",
+            "verification": "Confirmed in official live patch notes.",
+            "sourceIds": [
+              "EXEC-1022A"
+            ]
+          },
           {
             "version": "10.2.1",
             "change": "Fixed a Family Residence map issue where Punishment of the Damned would not travel up the stairs around the porch.",
@@ -29933,11 +29990,10 @@
           }
         ],
         "verificationNotes": [
-          "Research date: 2026-10-15. The current live version is 10.2.1.",
+          "Backend tuning through 10.2.2b checked on 2026-11-22.",
           "The current official BHVR character page identifies the character as The Executioner – Pyramid Head and names Rites of Judgement, Punishment of the Damned, and Cage of Torment.",
           "The maintained Wiki still uses Cage of Atonement. Current official BHVR usage in the 10.1.0 notes and character page supports Cage of Torment as the current terminology; the underlying interaction is the same.",
           "The 7.0.0 PTB briefly proposed applying Torment from Punishment of the Damned hits. BHVR's live-release update says the change was reversed, so it is not included as a base mechanic.",
-          "The latest direct Power changes located were in 9.1.0. Later 10.1.0 and 10.2.1 notes contain uphill-travel fixes and Cage timer presentation changes, not base-value changes.",
           "Focused tracker audit completed 2026-10-15. Use Cage of Torment as the tracker term; the maintained Wiki/reference also uses Cage of Atonement for the same mechanic.",
           "The Torment-on-direct-Punishment change was PTB-only and was reversed before 7.0.0 live, not by a later live hotfix.",
           "Final Judgment requires a downed, Tormented Survivor who has reached the second Hook Stage. Do not translate this into a fixed prior-hook-count requirement."
@@ -30055,6 +30111,27 @@
               "Family Residence staircase fix for Punishment of the Damned"
             ],
             "accessDate": "2026-10-15"
+          },
+          {
+            "sourceId": "EXEC-1022A",
+            "title": "Dead by Daylight 10.2.2a",
+            "sourceType": "Official",
+            "url": "https://steamcommunity.com/games/381210/announcements/detail/692024563197805375",
+            "relevantFacts": [
+              "Rites of Judgment gauge and handling",
+              "Punishment range and segment timing"
+            ],
+            "accessDate": "2026-11-22"
+          },
+          {
+            "sourceId": "EXEC-1022B",
+            "title": "Dead by Daylight 10.2.2b",
+            "sourceType": "Official",
+            "url": "https://steamcommunity.com/games/381210/announcements/detail/692025469726360069",
+            "relevantFacts": [
+              "Segment spawn interval"
+            ],
+            "accessDate": "2026-11-22"
           }
         ],
         "artwork": {
@@ -30710,7 +30787,7 @@
           "characterId": "the-executioner",
           "killerId": "executioner",
           "killerName": "The Executioner",
-          "name": "Misty Day, Remains of Judgement",
+          "name": "Misty Day, Remains of Judgment",
           "side": "killer",
           "rarity": "Rare",
           "rarityColor": "#199B1E",
@@ -31005,7 +31082,7 @@
           "characterId": "the-executioner",
           "killerId": "executioner",
           "killerName": "The Executioner",
-          "name": "Rust-Coloured Egg",
+          "name": "Rust-colored Egg",
           "side": "killer",
           "rarity": "Very Rare",
           "rarityColor": "#AC3EE3",
@@ -32762,7 +32839,7 @@
           },
           {
             "name": "Victor movement speed",
-            "value": 6.0,
+            "value": 6,
             "unit": "m/s",
             "conditions": "Victor controlled",
             "description": "Base movement speed while controlling Victor.",
@@ -35279,7 +35356,7 @@
           "characterId": "the-trickster",
           "killerId": "trickster",
           "killerName": "The Trickster",
-          "name": "Ji-Woon's Autograph",
+          "name": "Ji-woon's Autograph",
           "side": "killer",
           "rarity": "Uncommon",
           "rarityColor": "#E8C252",
@@ -35762,7 +35839,7 @@
           "characterId": "the-trickster",
           "killerId": "trickster",
           "killerName": "The Trickster",
-          "name": "Waiting For You Watch",
+          "name": "Waiting for You Watch",
           "side": "killer",
           "rarity": "Rare",
           "rarityColor": "#199B1E",
@@ -36367,7 +36444,7 @@
             "name": "Movement speed while charging / holding Tentacle Strike",
             "value": [
               3.8,
-              4.0
+              4
             ],
             "unit": "m/s",
             "conditions": "Mutation Rates I–II: 3.8 m/s; Mutation Rate III: 4.0 m/s",
@@ -37730,7 +37807,7 @@
           "characterId": "the-nemesis",
           "killerId": "nemesis",
           "killerName": "The Nemesis",
-          "name": "Ne-α Parasite",
+          "name": "NE-α Parasite",
           "side": "killer",
           "rarity": "Very Rare",
           "rarityColor": "#AC3EE3",
@@ -41084,7 +41161,7 @@
         "mechanics": [
           {
             "name": "Manifesting movement speed",
-            "value": 4.0,
+            "value": 4,
             "unit": "m/s",
             "conditions": "During Manifestation",
             "description": "The Onryō's movement speed while Manifesting.",
@@ -42586,7 +42663,7 @@
           },
           {
             "name": "Movement while charging / holding Power",
-            "value": 4.0,
+            "value": 4,
             "unit": "m/s",
             "conditions": "Base value after 9.6.0",
             "description": "Movement speed while charging or holding Reign of Darkness.",
@@ -44390,6 +44467,13 @@
             "sourceIds": [
               "MW-WIKI"
             ]
+          },
+          {
+            "name": "Chaining and redirecting Bounds",
+            "description": "Wesker can sidestep between Bounds and carry some momentum off ledges unless he has grabbed a Survivor. The 10.2.1 update improved redirection.",
+            "sourceIds": [
+              "MW-1021"
+            ]
           }
         ],
         "baselineFacts": [
@@ -44400,6 +44484,14 @@
           "First Aid Sprays have two uses and using one triggers Killer Instinct."
         ],
         "recentChanges": [
+          {
+            "version": "10.2.1",
+            "change": "Live 10.2.0 improved collision and allowed movement between chained Bounds. The 10.2.1 follow-up further improved redirection.",
+            "verification": "Confirmed in official live patch notes.",
+            "sourceIds": [
+              "MW-1021"
+            ]
+          },
           {
             "version": "9.6.0",
             "change": "Token recharge reduced to 5 seconds, Bound recovery reduced to 2.7 seconds, and Chain Bound Window increased to 2.5 seconds.",
@@ -44476,6 +44568,16 @@
               "Virulent Bound received ground-collision, ledge-momentum, and between-Bound sidestep/control changes."
             ],
             "accessDate": "2026-10-16"
+          },
+          {
+            "sourceId": "MW-1021",
+            "title": "Dead by Daylight 10.2.1",
+            "sourceType": "Official",
+            "url": "https://steamcommunity.com/games/381210/announcements/detail/716792458916138264",
+            "relevantFacts": [
+              "Virulent Bound turning and redirection"
+            ],
+            "accessDate": "2026-11-22"
           }
         ],
         "artwork": {
@@ -46380,7 +46482,7 @@
           "characterId": "the-knight",
           "killerId": "knight",
           "killerName": "The Knight",
-          "name": "Battle Axe Head",
+          "name": "Battleaxe Head",
           "side": "killer",
           "rarity": "Uncommon",
           "rarityColor": "#E8C252",
@@ -46437,7 +46539,7 @@
           "characterId": "the-knight",
           "killerId": "knight",
           "killerName": "The Knight",
-          "name": "Call to Arms",
+          "name": "Call To Arms",
           "side": "killer",
           "rarity": "Uncommon",
           "rarityColor": "#E8C252",
@@ -52566,7 +52668,7 @@
         "powerName": "Playtime's Over",
         "researchStatus": "VERIFIED",
         "shortSummary": "The Good Guy enters Hidey-Ho Mode to become Undetectable and create misleading Illusory Footfalls around Survivors. During the mode, Slice & Dice provides a fast lunge, and colliding with a dropped Pallet or Window during the attack allows Scamper. Mode duration and cooldown, footfall range, Slice & Dice speed and duration, and Scamper timing are useful Add-on baselines.",
-        "fullExplanation": "The Good Guy can activate Hidey-Ho Mode for 14 seconds. During it, he is Undetectable and Illusory Footfalls appear around Survivors, producing misleading sounds and footsteps. While in Hidey-Ho Mode, he can charge and perform Slice & Dice, a fast attack that travels forward and attacks at the end or when released. During Slice & Dice, colliding with a dropped Pallet or Window allows him to Scamper under or over it. Scamper is available only during Slice & Dice. After Hidey-Ho Mode ends, its cooldown is 12 seconds under the current live values.",
+        "fullExplanation": "The Good Guy can activate Hidey-Ho Mode for 14 seconds. During it, he is Undetectable and Illusory Footfalls appear around Survivors, producing misleading sounds and footsteps. While in Hidey-Ho Mode, he can charge and perform Slice & Dice, a fast attack that travels forward and attacks at the end or when released. During Slice & Dice, colliding with a dropped Pallet or Window allows him to Scamper under or over it. Scamper is available only during Slice & Dice. After Hidey-Ho Mode ends, it takes 10 seconds to recharge.",
         "components": [
           {
             "name": "Hidey-Ho Mode",
@@ -52603,13 +52705,12 @@
           },
           {
             "name": "Hidey-Ho cooldown",
-            "value": 12,
+            "value": 10,
             "unit": "seconds",
             "conditions": "Current live cooldown",
             "description": "Cooldown after Hidey-Ho Mode; 8.6.0 reduced it from the prior 14-second value.",
             "sourceIds": [
-              "GOOD-86",
-              "GOOD-WIKI"
+              "GOOD-1022A"
             ]
           },
           {
@@ -52635,13 +52736,12 @@
           },
           {
             "name": "Slice & Dice duration",
-            "value": 1.8,
+            "value": 2,
             "unit": "seconds",
             "conditions": "Base attack duration",
             "description": "Duration of Slice & Dice.",
             "sourceIds": [
-              "GOOD-841",
-              "GOOD-WIKI"
+              "GOOD-1022A"
             ]
           },
           {
@@ -52656,12 +52756,13 @@
           },
           {
             "name": "Scamper duration",
-            "value": 1,
-            "unit": "second",
+            "value": 0.8,
+            "unit": "seconds",
             "conditions": "During Slice & Dice when colliding with a dropped Pallet or Window",
             "description": "Current Scamper traversal time.",
             "sourceIds": [
-              "GOOD-WIKI"
+              "GOOD-1022A",
+              "GOOD-1022B"
             ]
           },
           {
@@ -52734,7 +52835,7 @@
           {
             "name": "Hidey-Ho cooldown",
             "type": "Cooldown",
-            "description": "Twelve seconds under the current live value."
+            "description": "Ten seconds after the mode ends."
           }
         ],
         "survivorInteractions": [
@@ -52785,11 +52886,27 @@
         "baselineFacts": [
           "Hidey-Ho Mode lasts 14 seconds and has a current 12-second cooldown.",
           "Illusory Footfalls appear within 16 metres of each Survivor.",
-          "Slice & Dice moves at 8 m/s for up to 1.8 seconds.",
-          "Scamper takes one second and is available only during Slice & Dice.",
+          "Slice & Dice moves at 8 m/s for up to 2 seconds.",
+          "Scamper takes 0.8 seconds and is available only during Slice & Dice.",
           "Scamper requires collision with a dropped Pallet or Window."
         ],
         "recentChanges": [
+          {
+            "version": "10.2.2b",
+            "change": "Scampering under a dropped Pallet now takes 0.8 seconds, matching Windows.",
+            "verification": "Confirmed in official live patch notes.",
+            "sourceIds": [
+              "GOOD-1022B"
+            ]
+          },
+          {
+            "version": "10.2.2a",
+            "change": "Hidey-Ho recharges in 10 seconds. Slice & Dice can run for up to 2 seconds, and a Window Scamper takes 0.8 seconds.",
+            "verification": "Confirmed in official live patch notes.",
+            "sourceIds": [
+              "GOOD-1022A"
+            ]
+          },
           {
             "version": "8.4.1",
             "change": "Increased Hidey-Ho cooldown to 14 seconds, increased Slice & Dice duration to 1.8 seconds, and reduced its speed to 8 m/s.",
@@ -52808,6 +52925,7 @@
           }
         ],
         "verificationNotes": [
+          "Backend tuning through 10.2.2b checked on 2026-11-22.",
           "The 2v8 Innate Skills for The Good Guy are mode-specific and excluded from the core Power record.",
           "The 8.4.1 and 8.6.0 cooldown values differ because the later live patch reverted the 14-second cooldown to 12 seconds.",
           "Normal 1v4 compilation excludes The Good Guy's 2v8-only Innate Skill and all values that come solely from that mode. Scamper is stored as a 1-second traversal for tracker use; deeper charge/traversal segmentation remains helper-level."
@@ -52859,6 +52977,28 @@
               "Scamper duration and cancelled-charge cooldown"
             ],
             "accessDate": "2026-10-15"
+          },
+          {
+            "sourceId": "GOOD-1022A",
+            "title": "Dead by Daylight 10.2.2a",
+            "sourceType": "Official",
+            "url": "https://steamcommunity.com/games/381210/announcements/detail/692024563197805375",
+            "relevantFacts": [
+              "Hidey-Ho cooldown",
+              "Slice & Dice duration",
+              "Scamper at Windows"
+            ],
+            "accessDate": "2026-11-22"
+          },
+          {
+            "sourceId": "GOOD-1022B",
+            "title": "Dead by Daylight 10.2.2b",
+            "sourceType": "Official",
+            "url": "https://steamcommunity.com/games/381210/announcements/detail/692025469726360069",
+            "relevantFacts": [
+              "Scamper at dropped Pallets"
+            ],
+            "accessDate": "2026-11-22"
           }
         ],
         "artwork": {
@@ -60118,7 +60258,7 @@
           },
           {
             "name": "Search-path movement speed",
-            "value": 6.0,
+            "value": 6,
             "unit": "m/s",
             "conditions": "Houndmaster's Search-path meter reaches 100 points",
             "description": "Movement speed while the Search-path boost is active; this is a fixed movement rule rather than the Haste status.",
@@ -65589,7 +65729,7 @@
           },
           {
             "name": "Intestinal Whip cooldown after miss",
-            "value": 3.0,
+            "value": 3,
             "unit": "seconds",
             "conditions": "Missed Intestinal Whip",
             "description": "Miss recovery.",
