@@ -2239,14 +2239,10 @@ footer span {
 .character-inventory-quick-picker.opens-above { top:auto; bottom:calc(100% + 6px); }
 .character-inventory-quick-picker .character-inventory-tier-controls { grid-template-columns:repeat(4,minmax(0,1fr)); }
 .character-inventory-quick-picker .character-inventory-tier-controls button { min-height:44px; padding:5px 2px; font-size:10px; line-height:1.2; overflow-wrap:anywhere; }
-.character-inventory-quick-picker .character-inventory-history-control { align-items:flex-start; flex-direction:column; gap:6px; }
-.character-inventory-quick-picker .character-inventory-history-control select { width:100%; min-height:44px; }
 .character-inventory-quick-picker button { min-height:44px; }
 .character-inventory-quick-picker button:focus-visible { outline:2px solid white; outline-offset:2px; }
 .character-inventory-quick-picker .character-inventory-correction { margin-top:6px; padding-top:6px; }
 .character-inventory-quick-picker .character-inventory-correction>button { min-height:44px; }
-.character-inventory-history-control { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:11px; }
-.character-inventory-history-control select { flex:1; min-width:0; padding:8px; font-size:11px; }
 .character-inventory-correction { margin-top:18px; padding-top:14px; border-top:1px solid var(--border); }
 .character-inventory-correction>button { width:100%; min-height:40px; text-align:left; }
 .character-inventory-correction-editor { margin-top:12px; padding:12px; border-left:2px solid var(--gold); background:#1b1b1a; }
