@@ -2770,7 +2770,6 @@ footer span {
   justify-content:space-between;
   gap:12px 24px;
   margin:0 0 16px;
-  border-left:3px solid var(--gold);
 }
 .chapter-preview-status { color:var(--gold); font-size:12px; font-weight:700; }
 .chapter-preview h2 { margin:4px 0; }
