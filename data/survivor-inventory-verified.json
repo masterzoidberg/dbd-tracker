@@ -1,6 +1,6 @@
 {
-  "patch": "10.2.0",
-  "verifiedAt": "2026-10-12",
+  "patch": "10.2.2",
+  "verifiedAt": "2026-11-22",
   "provenance": {
     "archiveSha256": "26e86e71a5d4f4a8aa931e48e3bed3ef0ca16eb6640e71a37f705c0e4cdfa053",
     "references": [
@@ -56,9 +56,12 @@
       "https://deadbydaylight.wiki.gg/wiki/Crimson_Stamp",
       "https://support.deadbydaylight.com/hc/en-us/articles/43679054706708-9-3-0-Mid-Chapter",
       "https://deadbydaylight.wiki.gg/wiki/Anti-Exhaustion_Syringe",
-      "https://deadbydaylight.wiki.gg/wiki/Refined_Serum"
+      "https://deadbydaylight.wiki.gg/wiki/Refined_Serum",
+      "https://dbd.source.gs/about/",
+      "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335",
+      "https://steamcommunity.com/games/381210/announcements/detail/716793092553837357"
     ],
-    "sourcePolicy": "Official live patch notes and independently consulted indexed current Wiki/structured extracts; direct Wiki retrieval returned 403. Historical information is not substituted for the cutoff state. Three Banquet underlying-rarity assignments remain supported inference; these are optional metadata qualifications.",
+    "sourcePolicy": "Regular Survivor inventory and display names checked against the 10.2.2 client build and live patch notes. Seasonal labels describe stock tracking, and three Banquet base rarities remain provisional.",
     "enrichment": {
       "sourcePackage": "survivor-item-addon-research-10.2.0-2026-10-12.zip",
       "runBDatasetRevision": "10.2.0-2026-10-12-r1",
@@ -3685,7 +3688,7 @@
     },
     {
       "id": "survivor-item-med-kit-emergency-med-kit",
-      "name": "Emergency Med-Kit",
+      "name": "Emergency Med-kit",
       "itemTypeId": "med-kit",
       "rarity": "Rare",
       "rarityColor": "blue",
@@ -3806,7 +3809,7 @@
     },
     {
       "id": "survivor-item-med-kit-ranger-med-kit",
-      "name": "Ranger Med-Kit",
+      "name": "Ranger Med-kit",
       "itemTypeId": "med-kit",
       "rarity": "Very Rare",
       "rarityColor": "purple",
@@ -4086,7 +4089,7 @@
     },
     {
       "id": "survivor-item-med-kit-anniversary-med-kit",
-      "name": "Anniversary Med-Kit",
+      "name": "Anniversary Med-kit",
       "itemTypeId": "med-kit",
       "rarity": "Event",
       "rarityColor": "gold",
@@ -4657,7 +4660,7 @@
     },
     {
       "id": "survivor-item-toolbox-worn-out-tools",
-      "name": "Worn-Out Tools",
+      "name": "Worn-out Tools",
       "itemTypeId": "toolbox",
       "rarity": "Common",
       "rarityColor": "brown",
@@ -7377,7 +7380,7 @@
     },
     {
       "id": "survivor-addon-flashlight-high-end-sapphire-lens",
-      "name": "High-End Sapphire Lens",
+      "name": "High-end Sapphire lens",
       "side": "survivor",
       "itemTypes": [
         "flashlight"
@@ -10937,7 +10940,7 @@
       "rarity": "Event",
       "gameRarity": "Common",
       "rarityColor": "#FFA800",
-      "effect": "While healing yourself or another Survivor, Secondary Action grants +5% Movement speed for 16 seconds and creates a Blight trail behind the affected Survivor. Consumes the Med-Kit when triggered.",
+      "effect": "Use Secondary Action while healing with a Med-Kit to give the Survivor 5% Haste for 20 seconds. This consumes the Med-Kit.",
       "status": "event-stockpile-usable",
       "event": true,
       "sources": [

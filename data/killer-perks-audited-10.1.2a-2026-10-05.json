@@ -1,6 +1,6 @@
 {
-  "verified_live_patch": "10.1.2a",
-  "verified_date": "2026-10-05",
+  "verified_live_patch": "10.2.2",
+  "verified_date": "2026-11-22",
   "perks": [
     {
       "name": "A Nurse's Calling",
@@ -62,61 +62,34 @@
       "source_killer": "The Trapper",
       "is_general_perk": false,
       "tier_1_values": {
-        "carrying_haste_percent": 6,
-        "terror_radius_increase_m": 12,
-        "not_tier_scaled": false
+        "haste%": 14,
+        "terrorradiusincreasesize": 12
       },
       "tier_2_values": {
-        "carrying_haste_percent": 12,
-        "terror_radius_increase_m": 12,
-        "not_tier_scaled": false
+        "haste%": 16,
+        "terrorradiusincreasesize": 12
       },
       "tier_3_values": {
-        "carrying_haste_percent": 18,
-        "terror_radius_increase_m": 12,
-        "not_tier_scaled": false
+        "haste%": 18,
+        "terrorradiusincreasesize": 12
       },
-      "current_effect": "While carrying a Survivor, increases carrying speed by 6/12/18% and increases the Terror Radius by 12 m.",
-      "plain_english_summary": "Carry Survivors faster, at the cost of a larger Terror Radius while carrying them.",
-      "activation_requirements": [
-        "The Killer must be carrying a Survivor."
-      ],
-      "deactivation_conditions": [
-        "Both effects end when the Killer is no longer carrying a Survivor."
-      ],
-      "cooldown": null,
-      "duration": [
-        "While carrying a Survivor."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [
-        "Haste"
-      ],
-      "generator_interactions": null,
-      "hook_interactions": "The carrying speed bonus applies while transporting a Survivor to a Hook; it does not increase the Hooking action speed.",
-      "aura_or_tracking_interactions": null,
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [],
+      "current_effect": "While carrying a Survivor, gain 14/16/18% Haste and add 12 metres to your Terror Radius.",
+      "plain_english_summary": "While carrying a Survivor, gain 14/16/18% Haste and add 12 metres to your Terror Radius.",
       "latest_known_live_balance_change": {
-        "patch": "2.6.2",
-        "change": "Standardized the Terror Radius increase at +12 m across all tiers; live carrying Haste values are 6/12/18%."
+        "patch": "10.2.0",
+        "change": "While carrying a Survivor, gain 14/16/18% Haste and add 12 metres to your Terror Radius."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "While carrying a Survivor, Haste is proposed to increase to 14/16/18% from 6/12/18%; the +12 m Terror Radius remains."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/categories/20-live",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/24-2-6-2-hotfix",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Agitation"
       ],
-      "verification_notes": "The current wiki page places 10.2.0 PTB values in its lead description; those values are excluded from current_effect and tier values. Official 10.2.0 PTB notes confirm the proposed tier update. The wiki also mentions an undocumented 8.7.0 Haste indicator; this is a UI change and is not treated as the latest balance change."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Alien Instinct",
@@ -542,67 +515,37 @@
       "source_killer": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "completed_generator_aura_range_m": 16,
-        "completed_generator_aura_duration_s": 5,
-        "last_generator_aura_duration_s": 5,
-        "not_tier_scaled": false
+        "aurarevealduration": 10,
+        "aurarevealendgameduration": 16,
+        "aurarevealrange": 20
       },
       "tier_2_values": {
-        "completed_generator_aura_range_m": 16,
-        "completed_generator_aura_duration_s": 5,
-        "last_generator_aura_duration_s": 7,
-        "not_tier_scaled": false
+        "aurarevealduration": 10,
+        "aurarevealendgameduration": 18,
+        "aurarevealrange": 20
       },
       "tier_3_values": {
-        "completed_generator_aura_range_m": 16,
-        "completed_generator_aura_duration_s": 5,
-        "last_generator_aura_duration_s": 10,
-        "not_tier_scaled": false
+        "aurarevealduration": 10,
+        "aurarevealendgameduration": 20,
+        "aurarevealrange": 20
       },
-      "current_effect": "Whenever a Generator is completed, reveals for 5 seconds the Auras of Survivors within 16 m of that Generator. When the last Generator is completed, reveals all Survivors' Auras for 5/7/10 seconds.",
-      "plain_english_summary": "Generator completions briefly reveal nearby Survivors; the final Generator reveals everyone.",
-      "activation_requirements": [
-        "A Generator must be completed for the local Aura reveal.",
-        "The last Generator must be completed for the all-Survivor Aura reveal."
-      ],
-      "deactivation_conditions": [
-        "The local reveal ends after 5 seconds.",
-        "The final-Generator reveal ends after 5/7/10 seconds."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Local Aura reveal: 5 seconds.",
-        "Final Generator all-Survivor Aura reveal: 5/7/10 seconds."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": "The all-Survivor reveal occurs when the final Generator is completed; the local reveal applies on each Generator completion.",
-      "status_effects_involved": [],
-      "generator_interactions": "Generator completion triggers the local Aura reveal; completing the final Generator also triggers the all-Survivor reveal.",
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": "Reveals Survivors' Auras near each completed Generator and all Survivor Auras on the final Generator completion.",
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [
-        "The final Generator completion triggers the perk's all-Survivor reveal in addition to the standard completion trigger."
-      ],
+      "current_effect": "A completed Generator reveals Survivors within 20 metres of it for 10 seconds. Once the final Generator is finished, see every Survivor's Aura for 16/18/20 seconds.",
+      "plain_english_summary": "A completed Generator reveals Survivors within 20 metres of it for 10 seconds.",
       "latest_known_live_balance_change": {
-        "patch": "2.1.0",
-        "change": "Added a local reveal within 16 m of each completed Generator for 5 seconds; current final-Generator reveal is 5/7/10 seconds."
+        "patch": "10.2.0",
+        "change": "A completed Generator reveals Survivors within 20 metres of it for 10 seconds. Once the final Generator is finished, see every Survivor's Aura for 16/18/20 seconds."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Proposed local reveal increases from 16 m/5 seconds to 20 m/8 seconds, and the final-Generator reveal increases from 5/7/10 to 10/12/14 seconds."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/categories/20-live",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/122-2-1-0-ptb",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Bitter_Murmur"
       ],
-      "verification_notes": "The current wiki page displays 10.2.0 PTB values in its lead description; current_effect and tier values use its live-history values (16 m, 5 seconds, and 5/7/10 seconds). Official 10.2.0 PTB notes confirm the proposed change. The official 2.1.0 PTB notes document the original local-reveal mechanic; the current wiki history supplies the final live values."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Blood Echo",
@@ -1259,61 +1202,37 @@
       "source_killer": "The Lich",
       "is_general_perk": false,
       "tier_1_values": {
-        "window_vault_speed_increase_percent": 15,
-        "pallet_stun_recovery_speed_reduction_percent": 15,
-        "killer_blind_duration_increase_percent": 15,
-        "not_tier_scaled": false
+        "attackcooldownreduction%": 10,
+        "extrablindstunduration%": 25,
+        "vaultspeedincrease%": 15
       },
       "tier_2_values": {
-        "window_vault_speed_increase_percent": 20,
-        "pallet_stun_recovery_speed_reduction_percent": 15,
-        "killer_blind_duration_increase_percent": 15,
-        "not_tier_scaled": false
+        "attackcooldownreduction%": 10,
+        "extrablindstunduration%": 25,
+        "vaultspeedincrease%": 20
       },
       "tier_3_values": {
-        "window_vault_speed_increase_percent": 25,
-        "pallet_stun_recovery_speed_reduction_percent": 15,
-        "killer_blind_duration_increase_percent": 15,
-        "not_tier_scaled": false
+        "attackcooldownreduction%": 10,
+        "extrablindstunduration%": 25,
+        "vaultspeedincrease%": 25
       },
-      "current_effect": "While vaulting a Window, your Vaulting speed increases by 15/20/25%. Whenever you are Pallet-stunned or blinded, your Pallet-stun recovery speed is reduced by 15% and the duration of Killer Blinds is increased by 15%.",
-      "plain_english_summary": "Vault Windows faster, at the cost of longer Pallet stuns and blinds.",
-      "activation_requirements": [
-        "Vault a Window to receive the Vaulting speed bonus.",
-        "Be Pallet-stunned or blinded for the penalties to apply."
-      ],
-      "deactivation_conditions": [
-        "The Vaulting bonus applies while vaulting; stun and blind penalties apply when those events occur."
-      ],
-      "cooldown": null,
-      "duration": [],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "generator_interactions": null,
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": null,
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [],
+      "current_effect": "Basic Window vaults are 15/20/25% faster. Basic attacks recover 10% sooner whether they hit, miss, or are obstructed. Blinds and Pallet stuns last 25% longer on you.",
+      "plain_english_summary": "Vault Windows and recover from basic attacks faster, at the cost of longer blinds and Pallet stuns.",
       "latest_known_live_balance_change": {
-        "patch": "9.2.0",
-        "change": "Reduced the Pallet-stun and Killer-blind duration penalties from 25% to 15%."
+        "patch": "10.2.2",
+        "change": "Basic Window vaults are 15/20/25% faster. Basic attacks recover 10% sooner whether they hit, miss, or are obstructed. Blinds and Pallet stuns last 25% longer on you."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Proposes 15/20/25% faster basic-attack recovery while vaulting and increases the blind and Pallet-stun penalties from 15% to 25%. These PTB values are not live in 10.1.2a."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/523-9-2-0-sinister-grace",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://x.com/DeadbyDaylight/status/2100600572323786756"
+        "https://x.com/DeadbyDaylight/status/2100600572323786756",
+        "https://steamcommunity.com/games/381210/announcements/detail/716793092553837357"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Dark_Arrogance"
       ],
-      "verification_notes": "The current wiki article displays 10.2.0 PTB text. Live 10.1.2a values are taken from the prior live entry and Behaviour's 9.2.0 release notes; the PTB proposal is recorded separately."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Dark Devotion",
@@ -1445,60 +1364,35 @@
       "source_killer": "The Deathslinger",
       "is_general_perk": false,
       "tier_1_values": {
-        "generator_block_duration_seconds": 25,
-        "not_tier_scaled": false,
-        "cooldown_seconds": 50
+        "cooldown": 30,
+        "generatorblockduration": 30,
+        "generatorreleaseduration": 2
       },
       "tier_2_values": {
-        "generator_block_duration_seconds": 30,
-        "not_tier_scaled": false,
-        "cooldown_seconds": 50
+        "cooldown": 35,
+        "generatorblockduration": 35,
+        "generatorreleaseduration": 2
       },
       "tier_3_values": {
-        "generator_block_duration_seconds": 35,
-        "not_tier_scaled": false,
-        "cooldown_seconds": 50
+        "cooldown": 40,
+        "generatorblockduration": 40,
+        "generatorreleaseduration": 2
       },
-      "current_effect": "After you hook a Survivor, the first time any Survivor stops repairing a Generator, that Generator is blocked by the Entity for 25/30/35 seconds and highlighted white to you. The live perk has a 50-second cooldown after activation.",
-      "plain_english_summary": "After a hook, the first Generator a Survivor lets go of is blocked for a short time.",
-      "activation_requirements": [
-        "Hook a Survivor.",
-        "After the hook, a Survivor stops repairing a Generator; the first such Generator is blocked.",
-        "The 50-second cooldown must have ended since the prior activation."
-      ],
-      "deactivation_conditions": [
-        "The Generator block ends after 25/30/35 seconds.",
-        "A 50-second cooldown prevents another activation after the perk triggers."
-      ],
-      "cooldown": "50 seconds after activation",
-      "duration": [
-        "Generator block: 25/30/35 seconds"
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": "One Generator is blocked per activation. After triggering, the perk cannot activate again until its 50-second cooldown ends and a later hook-triggered opportunity occurs. The live trigger does not require the Survivor to stop repairing for more than 2 seconds.",
-      "status_effects_involved": [],
-      "generator_interactions": "After a hook, the first Generator a Survivor stops repairing is blocked by the Entity for 25/30/35 seconds and highlighted white to the Killer. The cooldown is 50 seconds.",
-      "hook_interactions": "Hooking any Survivor creates the opportunity for the first subsequent Survivor who stops repairing a Generator to trigger the block, subject to the 50-second cooldown.",
-      "aura_or_tracking_interactions": "The blocked Generator is highlighted white to the Killer.",
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [],
+      "current_effect": "Hooking a Survivor primes the perk. The next Generator a Survivor leaves for more than 2 seconds is blocked for 30/35/40 seconds. The cooldown is also 30/35/40 seconds.",
+      "plain_english_summary": "After hooking a Survivor, block the next Generator a Survivor leaves for more than 2 seconds.",
       "latest_known_live_balance_change": {
-        "patch": "9.2.0",
-        "change": "Reduced the Generator block duration to 25/30/35 seconds from 40/45/50 seconds."
+        "patch": "10.2.0",
+        "change": "Hooking a Survivor primes the perk. The next Generator a Survivor leaves for more than 2 seconds is blocked for 30/35/40 seconds. The cooldown is also 30/35/40 seconds."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Proposes that the first Generator a Survivor stops repairing for more than 2 seconds after a hook is blocked for 30/35/40 seconds, with a separate 30/35/40-second cooldown. This is not live in 10.1.2a."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/523-9-2-0-sinister-grace",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://x.com/DeadbyDaylight/status/2100600572323786756"
+        "https://x.com/DeadbyDaylight/status/2100600572323786756",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [],
-      "verification_notes": "The 10.2.0 PTB notes explicitly identify the live version as an immediate stop-repair trigger with 25/30/35-second blocks and a 50-second cooldown; its proposed >2-second wait, 30/35/40-second blocks, and 30/35/40-second cooldown are not live in 10.1.2a. The linked secondary Killer Perks listing currently displays PTB values and was not used for live verification. No secondary URL is retained for current mechanics because the available per-perk wiki/stat pages conflict with BHVR's explicit 50-second live cooldown comparison."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Deadlock",
@@ -1617,64 +1511,35 @@
       "source_killer": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "automatic_interval_seconds": 40,
-        "killer_aura_revealed_to_survivor_seconds": 3,
-        "not_tier_scaled": false
+        "revealduration": 4,
+        "revealtimeintervals": 40
       },
       "tier_2_values": {
-        "automatic_interval_seconds": 35,
-        "killer_aura_revealed_to_survivor_seconds": 3,
-        "not_tier_scaled": false
+        "revealduration": 4,
+        "revealtimeintervals": 35
       },
       "tier_3_values": {
-        "automatic_interval_seconds": 30,
-        "killer_aura_revealed_to_survivor_seconds": 3,
-        "not_tier_scaled": false
+        "revealduration": 4,
+        "revealtimeintervals": 30
       },
-      "current_effect": "Whenever a Survivor reads your Aura through an Aura-reading effect with a fixed duration, Deerstalker reveals that Survivor's Aura to you for the same duration. Also, every 40/35/30 seconds, your Aura is revealed to the Survivor with the lowest cumulative Chase time for 3 seconds.",
-      "plain_english_summary": "When a Survivor sees your Aura, you can see theirs; periodically, the least-chased Survivor sees your Aura.",
-      "activation_requirements": [
-        "A Survivor reads your Aura through a fixed-duration Aura-reading effect.",
-        "Automatically triggers every 40/35/30 seconds."
-      ],
-      "deactivation_conditions": [
-        "Each Aura reveal ends when its corresponding Aura-reading duration ends; the automatic reveal lasts 3 seconds."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Automatic Aura reveal to Survivor: 3 seconds",
-        "Reciprocal reveal: same duration as the Survivor's fixed-duration Aura-reading effect"
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": "Automatic reveal repeats every 40/35/30 seconds.",
-      "status_effects_involved": [],
-      "generator_interactions": null,
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": "Reciprocally reveals the Aura of a Survivor reading the Killer's Aura; periodically reveals the Killer's Aura to the Survivor with the lowest cumulative Chase time.",
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [
-        "The reciprocal effect only works with fixed-duration Aura reveals, not conditional Aura reveals. The Lich's Magic Items can trigger it when they reveal his Aura, except Skyguard for Fly, which is conditional."
-      ],
+      "current_effect": "Every 40/35/30 seconds, the Survivor with the least time spent in chase can see your Aura for 4 seconds. Whenever a Survivor can read your Aura, you can read theirs.",
+      "plain_english_summary": "Every 40/35/30 seconds, the Survivor with the least time spent in chase can see your Aura for 4 seconds.",
       "latest_known_live_balance_change": {
-        "patch": "9.2.0",
-        "change": "Reworked from revealing Dying Survivors to reciprocally revealing the Aura of a Survivor who reads the Killer's Aura and periodically showing the Killer's Aura to the least-chased Survivor."
+        "patch": "10.2.0",
+        "change": "Every 40/35/30 seconds, the Survivor with the least time spent in chase can see your Aura for 4 seconds. Whenever a Survivor can read your Aura, you can read theirs."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Proposes increasing the automatic Killer-Aura reveal to 4 seconds from 3 seconds. The 3-second value remains live in 10.1.2a."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/523-9-2-0-sinister-grace",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://x.com/DeadbyDaylight/status/2100600572323786756"
+        "https://x.com/DeadbyDaylight/status/2100600572323786756",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Deerstalker",
         "https://deadbydaylight.wiki.gg/wiki/Perks/General_Perks"
       ],
-      "verification_notes": "The 10.2.0 PTB changes only the automatic reveal duration; live 10.1.2a remains 3 seconds. The wiki's current page may show the PTB 4-second value, so the 9.2.0 live rework text was used."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Discordance",
@@ -1740,66 +1605,34 @@
       "source_killer": "The Dredge",
       "is_general_perk": false,
       "tier_1_values": {
-        "activation_delay_seconds": 3,
-        "active_duration_seconds": 12,
-        "not_tier_scaled": false
+        "effectduration": 13,
+        "timebeforetrigger": 3
       },
       "tier_2_values": {
-        "activation_delay_seconds": 3,
-        "active_duration_seconds": 16,
-        "not_tier_scaled": false
+        "effectduration": 14,
+        "timebeforetrigger": 3
       },
       "tier_3_values": {
-        "activation_delay_seconds": 3,
-        "active_duration_seconds": 20,
-        "not_tier_scaled": false
+        "effectduration": 15,
+        "timebeforetrigger": 3
       },
-      "current_effect": "Three seconds after you injure a Survivor by any means, Dissolution activates for 12/16/20 seconds. While it is active, the next time any Survivor fast-vaults a Pallet while inside your Terror Radius, the Entity breaks that Pallet at the end of the vault and Dissolution deactivates.",
-      "plain_english_summary": "After any injury and a 3-second delay, the next Survivor who fast-vaults a Pallet inside your Terror Radius during the active window has that Pallet broken.",
-      "activation_requirements": [
-        "Injure a Survivor by any means.",
-        "Wait 3 seconds for the effect to activate.",
-        "Any Survivor must fast-vault a Pallet while inside your Terror Radius during the active window to trigger the break."
-      ],
-      "deactivation_conditions": [
-        "The active duration expires.",
-        "Any Survivor fast-vaults a Pallet inside your Terror Radius and it breaks."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Activation delay: 3 seconds",
-        "Active: 12/16/20 seconds"
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": "The active effect breaks one qualifying Pallet.",
-      "status_effects_involved": [],
-      "generator_interactions": null,
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": null,
-      "basic_attack_or_special_attack_restrictions": "Any source of injury can activate the live perk; a Basic Attack is not required.",
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [
-        "The Survivor injured to activate Dissolution does not have to be the Survivor who later fast-vaults the Pallet.",
-        "The qualifying Pallet vault must occur inside the Killer's Terror Radius; a vault outside it does not trigger the break."
-      ],
+      "current_effect": "A basic attack that damages a Survivor starts a 3-second delay. During the following 13/14/15 seconds, the first Survivor to fast-vault a Pallet inside your Terror Radius breaks that Pallet.",
+      "plain_english_summary": "A basic attack that damages a Survivor starts a 3-second delay.",
       "latest_known_live_balance_change": {
-        "patch": "6.0.0",
-        "change": "Introduced with a 3-second delay, 12/16/20-second active window, and Pallet break on a qualifying fast vault."
+        "patch": "10.2.0",
+        "change": "A basic attack that damages a Survivor starts a 3-second delay. During the following 13/14/15 seconds, the first Survivor to fast-vault a Pallet inside your Terror Radius breaks that Pallet."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Proposes requiring Basic-Attack damage to activate and changing the active duration from 12/16/20 seconds to 13/14/15 seconds. The Pallet-break trigger remains the next Survivor to fast-vault a Pallet inside the Killer’s Terror Radius; this part is not a new PTB change. These proposed values are not live in 10.1.2a."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/334-6-0-0-roots-of-dread",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://x.com/DeadbyDaylight/status/2100600572323786756"
+        "https://x.com/DeadbyDaylight/status/2100600572323786756",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://nightlight.gg/perks/Dissolution"
       ],
-      "verification_notes": "The 6.0.0 live notes say 'if a Survivor fast vaults' during the active effect, so the vaulting Survivor need not be the injured Survivor. The 10.2.0 PTB changes the damage type and duration, not the vaulting-Survivor trigger; the linked secondary Killer Perks page has displayed PTB values and an unsupported Aura reveal, so it was not used for live verification. The stale wiki page that displayed 10.2.0 PTB values and an unsupported Aura reveal was removed from secondary_source_urls; NightLight's current live text was used as the secondary reference."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Distressing",
@@ -1807,55 +1640,35 @@
       "source_killer": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "terror_radius_increase_percent": 20,
-        "not_tier_scaled": false
+        "repairspeedpenalty": 6,
+        "terrorradiusincreasesize": 30
       },
       "tier_2_values": {
-        "terror_radius_increase_percent": 25,
-        "not_tier_scaled": false
+        "repairspeedpenalty": 7,
+        "terrorradiusincreasesize": 30
       },
       "tier_3_values": {
-        "terror_radius_increase_percent": 30,
-        "not_tier_scaled": false
+        "repairspeedpenalty": 8,
+        "terrorradiusincreasesize": 30
       },
-      "current_effect": "Permanently increases your Terror Radius by 20/25/30%.",
-      "plain_english_summary": "Makes your Terror Radius larger.",
-      "activation_requirements": [
-        "Always active."
-      ],
-      "deactivation_conditions": [],
-      "cooldown": null,
-      "duration": [
-        "Permanent"
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "generator_interactions": null,
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": null,
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [],
+      "current_effect": "Your Terror Radius is 30% larger. Survivors repair Generators 6/7/8% slower while inside it.",
+      "plain_english_summary": "Your Terror Radius is 30% larger.",
       "latest_known_live_balance_change": {
-        "patch": "8.4.0",
-        "change": "Set Terror Radius increases to 20/25/30% and removed the Deviousness Bloodpoint bonus."
+        "patch": "10.2.0",
+        "change": "Your Terror Radius is 30% larger. Survivors repair Generators 6/7/8% slower while inside it."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Proposes a fixed 30% larger Terror Radius and a 6/7/8% Generator repair-speed penalty for Survivors inside your Terror Radius. The slowdown is not live in 10.1.2a."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/482-8-4-0-doomed-course",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://x.com/DeadbyDaylight/status/2100600572323786756"
+        "https://x.com/DeadbyDaylight/status/2100600572323786756",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Distressing",
         "https://deadbydaylight.wiki.gg/wiki/Perks/General_Perks"
       ],
-      "verification_notes": "The current wiki page displays 10.2.0 PTB text. Live 10.1.2a is the Terror Radius increase only; the 8.4.0 live notes verify its tier values."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Dominance",
@@ -1863,58 +1676,34 @@
       "source_killer": "The Dark Lord",
       "is_general_perk": false,
       "tier_1_values": {
-        "prop_block_duration_seconds": 8,
-        "not_tier_scaled": false
+        "auraduration": 3,
+        "blockduration": 25
       },
       "tier_2_values": {
-        "prop_block_duration_seconds": 12,
-        "not_tier_scaled": false
+        "auraduration": 4,
+        "blockduration": 25
       },
       "tier_3_values": {
-        "prop_block_duration_seconds": 16,
-        "not_tier_scaled": false
+        "auraduration": 5,
+        "blockduration": 25
       },
-      "current_effect": "The first time each Chest and each Totem is interacted with by a Survivor, the Entity blocks it for 8/12/16 seconds and its Aura is highlighted white to you.",
-      "plain_english_summary": "The first Survivor to interact with each Chest or Totem temporarily blocks it and reveals its location to you.",
-      "activation_requirements": [
-        "A Survivor interacts with a Chest or Totem for the first time that Trial."
-      ],
-      "deactivation_conditions": [
-        "The Entity block expires after 8/12/16 seconds."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Prop block: 8/12/16 seconds"
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": "Triggers once per Chest and once per Totem per Trial.",
-      "status_effects_involved": [],
-      "generator_interactions": null,
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": "Highlights the blocked Chest or Totem Aura white to the Killer.",
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [
-        "A qualifying interaction on a Totem includes Survivor interactions with that Totem; the live perk also affects Chests."
-      ],
+      "current_effect": "The first attempted blessing or cleansing of each Totem blocks it for 25 seconds. The Survivor attempting the action screams and is revealed to you for 3/4/5 seconds.",
+      "plain_english_summary": "The first attempted blessing or cleansing of each Totem blocks it for 25 seconds.",
       "latest_known_live_balance_change": {
-        "patch": "8.4.0",
-        "change": "Doubled the block duration to 8/12/16 seconds."
+        "patch": "10.2.0",
+        "change": "The first attempted blessing or cleansing of each Totem blocks it for 25 seconds. The Survivor attempting the action screams and is revealed to you for 3/4/5 seconds."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Proposes limiting the trigger to Totems being blessed or cleansed, extending the block to 25 seconds, and adding a Survivor scream plus 3/4/5-second Aura reveal. Chests remain affected in live 10.1.2a."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/482-8-4-0-doomed-course",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://x.com/DeadbyDaylight/status/2100600572323786756"
+        "https://x.com/DeadbyDaylight/status/2100600572323786756",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Dominance"
       ],
-      "verification_notes": "The live 8.4.0 notes verify the 8/12/16-second value. The wiki page also displays upcoming 10.2.0 PTB text; live Chests-and-Totems behavior is retained here."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Dragon's Grip",
@@ -2174,59 +1963,37 @@
       "source_killer": "The Nightmare",
       "is_general_perk": false,
       "tier_1_values": {
-        "action_speed_bonus_per_completed_generator_percent": 4,
-        "maximum_generator_tokens": 5,
-        "not_tier_scaled": false
+        "actionspeedbonus%": 6,
+        "maxtokens": 5,
+        "tokenspergenerator": 1
       },
       "tier_2_values": {
-        "action_speed_bonus_per_completed_generator_percent": 5,
-        "maximum_generator_tokens": 5,
-        "not_tier_scaled": false
+        "actionspeedbonus%": 7,
+        "maxtokens": 5,
+        "tokenspergenerator": 1
       },
       "tier_3_values": {
-        "action_speed_bonus_per_completed_generator_percent": 6,
-        "maximum_generator_tokens": 5,
-        "not_tier_scaled": false
+        "actionspeedbonus%": 8,
+        "maxtokens": 5,
+        "tokenspergenerator": 1
       },
-      "current_effect": "Each completed Generator grants 1 Token (maximum 5). Each Token increases the Killer's action speed for vaulting Windows, breaking Pallets and Breakable Walls, damaging Generators, and picking up or putting down Survivors by 4/5/6%.",
-      "plain_english_summary": "Generator completions build a stackable bonus to several Killer actions.",
-      "activation_requirements": [
-        "A Generator is completed; gain 1 Token."
-      ],
-      "deactivation_conditions": [
-        "The Trial ends."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Each gained Token persists for the rest of the Trial."
-      ],
-      "token_or_stack_behavior": "Gains 1 Token per completed Generator, up to 5; each Token adds 4/5/6% to the listed action speeds.",
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "generator_interactions": "Activates once per completed Generator; increases the Killer's Generator-damage action speed.",
-      "hook_interactions": "Increases Survivor pickup and drop action speeds; does not change the Hook action.",
-      "aura_or_tracking_interactions": null,
-      "basic_attack_or_special_attack_restrictions": "No attack trigger; this is an action-speed modifier.",
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [],
+      "current_effect": "Gain a token per completed Generator, up to five. Each token adds 6/7/8% speed to basic Pallet and Breakable Wall breaks, Generator damage, Survivor pickups and drops, and basic Window vaults.",
+      "plain_english_summary": "Gain a token per completed Generator, up to five.",
       "latest_known_live_balance_change": {
-        "patch": "8.5.0",
-        "change": "Increased the per-Generator action-speed bonus to 4/5/6% (from 3/3.5/4%)."
+        "patch": "10.2.0",
+        "change": "Gain a token per completed Generator, up to five. Each token adds 6/7/8% speed to basic Pallet and Breakable Wall breaks, Generator damage, Survivor pickups and drops, and basic Window vaults."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "10.2.0 PTB raises the per-Generator bonus from 4/5/6% to 6/7/8%. Live values remain 4/5/6% in 10.1.2a."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/5614",
         "https://support.deadbydaylight.com/hc/en-us/sections/6713961045524-Live-Patch-Notes",
-        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/5737"
+        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/5737",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Fire_Up"
       ],
-      "verification_notes": "Live values taken from the perk page; 10.2.0 text is labeled PTB and excluded from current_effect. No interaction beyond the listed actions was encoded."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Forced Hesitation",
@@ -2587,64 +2354,34 @@
       "source_killer": "The Skull Merchant",
       "is_general_perk": false,
       "tier_1_values": {
-        "haste_percent": 7,
-        "haste_duration_seconds": 8,
-        "not_tier_scaled": false
+        "haste%": 10,
+        "hasteduration": 8
       },
       "tier_2_values": {
-        "haste_percent": 7,
-        "haste_duration_seconds": 9,
-        "not_tier_scaled": false
+        "haste%": 10,
+        "hasteduration": 9
       },
       "tier_3_values": {
-        "haste_percent": 7,
-        "haste_duration_seconds": 10,
-        "not_tier_scaled": false
+        "haste%": 10,
+        "hasteduration": 10
       },
-      "current_effect": "While chasing the Obsession, performing a Break or Damage action grants 7% Haste for 8/9/10 seconds. Hitting the Survivor with the highest cumulative Chase time with a Basic Attack transfers the Obsession to them.",
-      "plain_english_summary": "Breaking or damaging an object while chasing the Obsession grants speed; a Basic Attack on the most-chased Survivor makes them the Obsession.",
-      "activation_requirements": [
-        "While chasing the Obsession, perform a Break or Damage action.",
-        "Hit the Survivor with the highest cumulative Chase time with a Basic Attack to transfer the Obsession."
-      ],
-      "deactivation_conditions": [
-        "Haste ends after 8/9/10 seconds."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Haste: 8/9/10 seconds."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [
-        "Haste"
-      ],
-      "generator_interactions": "Damaging a Generator while chasing the Obsession triggers Haste.",
-      "hook_interactions": "Obsession role can transfer when the perk's Basic Attack condition is met.",
-      "aura_or_tracking_interactions": "Tracks cumulative Chase time across Survivors; does not itself reveal Auras.",
-      "basic_attack_or_special_attack_restrictions": "Obsession transfer requires a Basic Attack on the Survivor with the highest cumulative Chase time; Haste is triggered by a Break or Damage action.",
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [
-        "Its Haste can trigger regardless of whether a Pallet, Breakable Wall, or Generator is broken/damaged manually, by the Killer's Power, or by another Perk's effect, per the wiki interaction note."
-      ],
+      "current_effect": "While chasing the Obsession, breaking a Pallet or wall with a basic break or damaging a Generator grants 10% Haste for 8/9/10 seconds. A basic hit on the Survivor with the most chase time makes them the Obsession.",
+      "plain_english_summary": "While chasing the Obsession, breaking a Pallet or wall with a basic break or damaging a Generator grants 10% Haste for 8/9/10 seconds.",
       "latest_known_live_balance_change": {
-        "patch": "8.7.0",
-        "change": "Increased the Haste strength from 5% to 7%."
+        "patch": "10.2.0",
+        "change": "While chasing the Obsession, breaking a Pallet or wall with a basic break or damaging a Generator grants 10% Haste for 8/9/10 seconds. A basic hit on the Survivor with the most chase time makes them the Obsession."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "10.2.0 PTB increases Haste from 7% to 10%; live 10.1.2a value remains 7%. PTB clarifies the action as basic-breaking a Pallet/Breakable Wall or damaging a Generator while chasing the Obsession."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/5614",
         "https://support.deadbydaylight.com/hc/en-us/sections/6713961045524-Live-Patch-Notes",
-        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/5737"
+        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/5737",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Game_Afoot"
       ],
-      "verification_notes": "Current wiki page prominently shows 10.2.0 PTB text; current_effect uses its preceding live 7% value and the PTB delta is isolated above."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Gearhead",
@@ -2884,62 +2621,41 @@
       "source_killer": "The Animatronic",
       "is_general_perk": false,
       "tier_1_values": {
-        "successful_basic_attack_recovery_bonus_percent": 25,
-        "bonus_duration_seconds": 40,
-        "not_tier_scaled": false
+        "attackcooldownreduction%": 25,
+        "duration": 70,
+        "generatorscompromised": 3,
+        "regressionspeed%": 150
       },
       "tier_2_values": {
-        "successful_basic_attack_recovery_bonus_percent": 25,
-        "bonus_duration_seconds": 50,
-        "not_tier_scaled": false
+        "attackcooldownreduction%": 25,
+        "duration": 80,
+        "generatorscompromised": 3,
+        "regressionspeed%": 150
       },
       "tier_3_values": {
-        "successful_basic_attack_recovery_bonus_percent": 25,
-        "bonus_duration_seconds": 60,
-        "not_tier_scaled": false
+        "attackcooldownreduction%": 25,
+        "duration": 90,
+        "generatorscompromised": 3,
+        "regressionspeed%": 150
       },
-      "current_effect": "After performing the Damage Generator action, that Generator becomes Compromised. If it is completed while Compromised, the Killer gains 25% faster successful Basic Attack recovery for 40/50/60 seconds. Only one Generator can be Compromised at a time.",
-      "plain_english_summary": "Damage a Generator to mark it; if Survivors complete that marked Generator, the Killer gets a temporary successful Basic Attack recovery boost.",
-      "activation_requirements": [
-        "Perform the Damage Generator action on a Generator.",
-        "That Generator must be completed while Compromised to grant the recovery bonus."
-      ],
-      "deactivation_conditions": [
-        "The Compromised status ends when the Generator is completed or another Generator is Compromised.",
-        "The successful Basic Attack recovery bonus ends after 40/50/60 seconds."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Successful Basic Attack recovery bonus: 40/50/60 seconds."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "generator_interactions": "Compromises the Generator the Killer damages; only one is Compromised at a time in live 10.1.2a.",
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": null,
-      "basic_attack_or_special_attack_restrictions": "The reward affects successful Basic Attack recovery; it does not state a Special Attack recovery bonus.",
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [],
+      "current_effect": "Damaging a Generator compromises it, up to three at once. If Survivors finish one, the others stop being compromised. For 70/80/90 seconds, successful basic attacks recover 25% sooner and unattended Generators regress at 150% of normal speed.",
+      "plain_english_summary": "Damaging a Generator compromises it, up to three at once.",
       "latest_known_live_balance_change": {
-        "patch": "9.0.0",
-        "change": "Introduced with a single Compromised Generator and 25% successful Basic Attack recovery bonus for 40/50/60 seconds."
+        "patch": "10.2.0",
+        "change": "Damaging a Generator compromises it, up to three at once. If Survivors finish one, the others stop being compromised. For 70/80/90 seconds, successful basic attacks recover 25% sooner and unattended Generators regress at 150% of normal speed."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "When a Compromised Generator is completed, proposes successful Basic Attack recovery cooldowns 25% shorter for 100/110/120 seconds; unworked Generators regress at 150% of normal speed for the same duration; other Generators lose Compromised; up to 3 Generators can be Compromised at once. These are PTB-only and are not live in 10.1.2a."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/5614",
         "https://support.deadbydaylight.com/hc/en-us/sections/6713961045524-Live-Patch-Notes",
         "https://support.deadbydaylight.com/hc/en-us/articles/38572561643796-9-0-0-Five-Nights-at-Freddy-s",
-        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/5737"
+        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/5737",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Help_Wanted"
       ],
-      "verification_notes": "The wiki page currently labels the expanded version as 10.2.0 PTB. Only the earlier live single-Generator effect is recorded in current_effect."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Hex: Blood Favour",
@@ -2947,66 +2663,34 @@
       "source_killer": "The Blight",
       "is_general_perk": false,
       "tier_1_values": {
-        "pallet_block_radius_m": 24,
-        "block_duration_seconds": 15,
-        "health_state_trigger_count": 1,
-        "not_tier_scaled": false
+        "blockduration": 13,
+        "effectradius": 32
       },
       "tier_2_values": {
-        "pallet_block_radius_m": 28,
-        "block_duration_seconds": 15,
-        "health_state_trigger_count": 1,
-        "not_tier_scaled": false
+        "blockduration": 14,
+        "effectradius": 32
       },
       "tier_3_values": {
-        "pallet_block_radius_m": 32,
-        "block_duration_seconds": 15,
-        "health_state_trigger_count": 1,
-        "not_tier_scaled": false
+        "blockduration": 15,
+        "effectradius": 32
       },
-      "current_effect": "At the start of the Trial, a Hex Totem lights. Whenever a Survivor loses a Health State by any means, upright Pallets within 24/28/32 metres of them are blocked for 15 seconds.",
-      "plain_english_summary": "A Health State loss blocks nearby upright Pallets briefly while this Hex Totem remains.",
-      "activation_requirements": [
-        "A Hex Totem is lit at the start of the Trial.",
-        "A Survivor loses a Health State by any means."
-      ],
-      "deactivation_conditions": [
-        "Each Pallet block ends after 15 seconds.",
-        "The perk ends when its Hex Totem is cleansed or blessed."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Pallet blocks: 15 seconds."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [
-        "Blocked (Pallets)"
-      ],
-      "generator_interactions": null,
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": null,
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "Hex",
-      "special_interactions": [],
+      "current_effect": "A dull Totem becomes a Hex at the start of the trial. When your basic attack injures a healthy Survivor, standing Pallets within 32 metres of them are blocked for 13/14/15 seconds.",
+      "plain_english_summary": "A dull Totem becomes a Hex at the start of the trial.",
       "latest_known_live_balance_change": {
-        "patch": "5.3.0",
-        "change": "Removed the activation cooldown, broadened the trigger to any Health State loss, and increased the block radius to 24/28/32 metres."
+        "patch": "10.2.0",
+        "change": "A dull Totem becomes a Hex at the start of the trial. When your basic attack injures a healthy Survivor, standing Pallets within 32 metres of them are blocked for 13/14/15 seconds."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "10.2.0 PTB changes the trigger to a Basic Attack injuring a Healthy Survivor, fixes the radius at 32 metres, and changes duration to 13/14/15 seconds. Live 10.1.2a remains any Health State loss, 24/28/32 metres, 15 seconds."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/5614",
         "https://support.deadbydaylight.com/hc/en-us/sections/6713961045524-Live-Patch-Notes",
-        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/5737"
+        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/5737",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Hex%3A_Blood_Favor"
       ],
-      "verification_notes": "Wiki uses the page path Hex: Blood Favor for the official British-spelling perk name Blood Favour. The newer text is PTB-only."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Hex: Crowd Control",
@@ -3535,68 +3219,44 @@
       "source_killer": "The Ghoul",
       "is_general_perk": false,
       "tier_1_values": {
-        "basic_attack_hits_to_activate": 8,
-        "hindered_percent": 5,
-        "hindered_duration_seconds": 10,
-        "not_tier_scaled": false
+        "basichitsrequired": 4,
+        "hindered%": 5,
+        "hinderedduration": 10,
+        "vault%": 10,
+        "vaultduration": 10
       },
       "tier_2_values": {
-        "basic_attack_hits_to_activate": 8,
-        "hindered_percent": 5,
-        "hindered_duration_seconds": 12.5,
-        "not_tier_scaled": false
+        "basichitsrequired": 4,
+        "hindered%": 5,
+        "hinderedduration": 12.5,
+        "vault%": 10,
+        "vaultduration": 12.5
       },
       "tier_3_values": {
-        "basic_attack_hits_to_activate": 8,
-        "hindered_percent": 5,
-        "hindered_duration_seconds": 15,
-        "not_tier_scaled": false
+        "basichitsrequired": 4,
+        "hindered%": 5,
+        "hinderedduration": 15,
+        "vault%": 10,
+        "vaultduration": 15
       },
-      "current_effect": "After damaging Survivors 8 times with Basic Attacks, a random Dull Totem becomes a Hex Totem, cursing all Survivors. Thereafter, Survivors damaged by a Basic Attack suffer 5% Hindered for 10/12.5/15 seconds. The perk does not reactivate if the Hex is removed.",
-      "plain_english_summary": "Eight Basic Attack damage events light the Hex; later Basic Attack damage briefly hinders the affected Survivor.",
-      "activation_requirements": [
-        "Damage Survivors 8 times with Basic Attacks.",
-        "A random Dull Totem must be available to light."
-      ],
-      "deactivation_conditions": [
-        "The effect ends when the Hex Totem is cleansed or blessed.",
-        "It does not reactivate for the rest of the Trial after removal."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Hindered: 10/12.5/15 seconds per qualifying hit."
-      ],
-      "token_or_stack_behavior": "Tracks 8 Basic Attack damage events to activate; does not reactivate once its Hex is removed.",
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [
-        "Hindered",
-        "Cursed (Hex)"
-      ],
-      "generator_interactions": null,
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": null,
-      "basic_attack_or_special_attack_restrictions": "Both activation and subsequent Hindered triggers require Basic Attack damage.",
-      "hex_or_scythe_hook_status": "Hex",
-      "special_interactions": [],
+      "current_effect": "After four damaging basic attacks against Survivors, a dull Totem becomes a Hex. While the Hex is active, basic hits slow the target by 5% and reduce their vault speed by 10%, both for 10/12.5/15 seconds.",
+      "plain_english_summary": "After four damaging basic attacks against Survivors, a dull Totem becomes a Hex.",
       "latest_known_live_balance_change": {
-        "patch": "8.6.0",
-        "change": "Introduced with an 8-Basic-Attack activation threshold and 5% Hindered for 10/12.5/15 seconds."
+        "patch": "10.2.0",
+        "change": "After four damaging basic attacks against Survivors, a dull Totem becomes a Hex. While the Hex is active, basic hits slow the target by 5% and reduce their vault speed by 10%, both for 10/12.5/15 seconds."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "10.2.0 PTB reduces activation from 8 to 4 Basic Attack damage events and adds 10% slower vaulting for the same duration. Those changes are not live in 10.1.2a."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/5614",
         "https://support.deadbydaylight.com/hc/en-us/sections/6713961045524-Live-Patch-Notes",
         "https://support.deadbydaylight.com/hc/en-us/articles/28522331781268-8-6-0-Tokyo-Ghoul",
-        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/5737"
+        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/5737",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Hex%3A_Nothing_but_Misery"
       ],
-      "verification_notes": "The live perk effect is recorded from the pre-10.2.0 description. The activating eighth hit lights the Hex; the Hindered effect applies to later hits."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Hex: Overture of Doom",
@@ -4044,67 +3704,32 @@
       "source_killer": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "starting_tokens": 5,
-        "per_token_action_speed_penalty_percent": 8,
-        "maximum_penalty_percent": 40,
-        "not_tier_scaled": false
+        "blockdurationpertoken": 4
       },
       "tier_2_values": {
-        "starting_tokens": 5,
-        "per_token_action_speed_penalty_percent": 9,
-        "maximum_penalty_percent": 45,
-        "not_tier_scaled": false
+        "blockdurationpertoken": 5
       },
       "tier_3_values": {
-        "starting_tokens": 5,
-        "per_token_action_speed_penalty_percent": 10,
-        "maximum_penalty_percent": 50,
-        "not_tier_scaled": false
+        "blockdurationpertoken": 6
       },
-      "current_effect": "Start with 5 Tokens. For each Token, Survivors' Blessing and Cleansing action speed is reduced by 8/9/10%, up to 40/45/50%. Lose 1 Token whenever any Totem is cleansed; the Hex ends if its associated totem is cleansed or blessed.",
-      "plain_english_summary": "Each remaining Token slows Survivor Blessing and Cleansing; every cleansed Totem removes a Token.",
-      "activation_requirements": [
-        "The Hex Totem lights at the start of the Trial and starts with 5 Tokens.",
-        "Survivors attempt to Bless or Cleanse a Totem."
-      ],
-      "deactivation_conditions": [
-        "Lose 1 Token whenever any Totem is cleansed.",
-        "The Hex effect ends if its own Hex Totem is cleansed or blessed."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Action-speed penalty lasts while the Hex is active and Tokens remain."
-      ],
-      "token_or_stack_behavior": "Starts with 5 Tokens; each Token applies a tiered penalty. Loses 1 Token whenever any Totem is cleansed.",
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [
-        "Cursed (Hex)"
-      ],
-      "generator_interactions": null,
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": null,
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "Hex",
-      "special_interactions": [],
+      "current_effect": "Your first hook lights a dull Totem. On each hook, all lit Hex Totems are blocked for 4/5/6 seconds per lit Hex Totem.",
+      "plain_english_summary": "Your first hook lights a dull Totem.",
       "latest_known_live_balance_change": {
-        "patch": "10.1.0",
-        "change": "Reduced the Blessing/Cleansing action-speed penalty to 8/9/10% per Token (from 8/10/12%)."
+        "patch": "10.2.0",
+        "change": "Your first hook lights a dull Totem. On each hook, all lit Hex Totems are blocked for 4/5/6 seconds per lit Hex Totem."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "10.2.0 PTB replaces the live action-speed penalty with first-hook Dull Totem lighting and Entity blocking of all Hex Totems for 6/7/8 seconds per lit Hex Totem when hooking. That version is not live in 10.1.2a."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/5614",
         "https://support.deadbydaylight.com/hc/en-us/sections/6713961045524-Live-Patch-Notes",
         "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/5737",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/556-10-1-0-chorus-of-sin"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/556-10-1-0-chorus-of-sin",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Hex%3A_Thrill_of_the_Hunt"
       ],
-      "verification_notes": "Current live effect is the pre-10.2.0 slowdown/token version. PTB-only rework is kept separate."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Hex: Two Can Play",
@@ -4711,64 +4336,35 @@
       "source_killer": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "stationary_activation_seconds": 3,
-        "undetectable_while_stationary": true,
-        "not_tier_scaled": false
+        "lingertime": 6,
+        "timetoactivate": 2
       },
       "tier_2_values": {
-        "stationary_activation_seconds": 2,
-        "undetectable_while_stationary": true,
-        "not_tier_scaled": false
+        "lingertime": 7,
+        "timetoactivate": 2
       },
       "tier_3_values": {
-        "stationary_activation_seconds": 1,
-        "undetectable_while_stationary": true,
-        "not_tier_scaled": false
+        "lingertime": 8,
+        "timetoactivate": 2
       },
-      "current_effect": "After standing still for 3/2/1 seconds, you gain Undetectable for as long as you remain stationary. Moving deactivates the perk.",
-      "plain_english_summary": "Stand still to hide your Terror Radius and Red Stain; moving ends the stealth.",
-      "activation_requirements": [
-        "Remain stationary for the tier's activation time."
-      ],
-      "deactivation_conditions": [
-        "Moving deactivates Insidious."
-      ],
-      "cooldown": null,
-      "duration": [
-        "While stationary after activation"
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [
-        "Undetectable"
-      ],
-      "generator_interactions": null,
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": null,
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [
-        "Killer lullabies and other non-Terror-Radius sounds are not suppressed."
-      ],
+      "current_effect": "Standing idle for 2 seconds grants Undetectable. After you act again, it lasts another 6/7/8 seconds.",
+      "plain_english_summary": "Standing idle for 2 seconds grants Undetectable.",
       "latest_known_live_balance_change": {
-        "patch": "9.1.0",
-        "change": "Reduced stationary activation wait to 3/2/1 seconds from 4/3/2 seconds."
+        "patch": "10.2.0",
+        "change": "Standing idle for 2 seconds grants Undetectable. After you act again, it lasts another 6/7/8 seconds."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Activation wait becomes 2 seconds for all tiers (was 3/2/1); after acting, Undetectable lingers for 6/7/8 seconds."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://steamcommunity.com/app/381210/announcements/",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/558-10-1-2-bugfix-patch",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/516-9-1-0-the-walking-dead",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Insidious"
       ],
-      "verification_notes": "The current wiki display is marked as based on upcoming 10.2.0. Live values here use the historical pre-PTB entry and official 9.1.0 notes."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Iron Grasp",
@@ -4776,62 +4372,35 @@
       "source_killer": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "wiggle_strafing_reduction_percent": 75,
-        "wiggle_time_increase_percent": 4,
-        "not_tier_scaled": false
+        "wigglestrengthreduction%": 75,
+        "wiggletimeincrease%": 10
       },
       "tier_2_values": {
-        "wiggle_strafing_reduction_percent": 75,
-        "wiggle_time_increase_percent": 8,
-        "not_tier_scaled": false
+        "wigglestrengthreduction%": 75,
+        "wiggletimeincrease%": 11
       },
       "tier_3_values": {
-        "wiggle_strafing_reduction_percent": 75,
-        "wiggle_time_increase_percent": 12,
-        "not_tier_scaled": false
+        "wigglestrengthreduction%": 75,
+        "wiggletimeincrease%": 12
       },
-      "current_effect": "While carrying a Survivor, reduces involuntary wiggle strafing by 75% and increases the time required to wiggle free by 4/8/12%.",
-      "plain_english_summary": "Carried Survivors have less influence over your steering and take longer to wiggle free.",
-      "activation_requirements": [
-        "Pick up and carry a Survivor."
-      ],
-      "deactivation_conditions": [
-        "The carried Survivor is hooked, dropped, or escapes."
-      ],
-      "cooldown": null,
-      "duration": [
-        "While carrying a Survivor"
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "generator_interactions": null,
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": null,
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [
-        "Boil Over counters the primary wiggle-strafing reduction."
-      ],
+      "current_effect": "A carried Survivor's wiggle pushes you 75% less and progresses 10/11/12% slower.",
+      "plain_english_summary": "A carried Survivor's wiggle pushes you 75% less and progresses 10/11/12% slower.",
       "latest_known_live_balance_change": {
-        "patch": "2.6.3",
-        "change": "The fixed 75% reduction to wiggle-induced strafing was corrected to apply across all tiers; official 2.6.0 notes announce the all-tier 75% value."
+        "patch": "10.2.0",
+        "change": "A carried Survivor's wiggle pushes you 75% less and progresses 10/11/12% slower."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Wiggle-time increase becomes 10/11/12% (was 4/8/12%); the 75% strafing reduction is unchanged."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://steamcommunity.com/app/381210/announcements/",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/558-10-1-2-bugfix-patch",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/50-2-6-0-demise-of-the-faithful",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Iron_Grasp"
       ],
-      "verification_notes": "Wiki history records the 2.6.3 implementation correction; the available official patch-notes link is 2.6.0. Current values are pre-10.2.0."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Iron Maiden",
@@ -4967,68 +4536,41 @@
       "source_killer": "The Cannibal",
       "is_general_perk": false,
       "tier_1_values": {
-        "distance_from_dropped_pallet_m": 6,
-        "move_window_seconds": 6,
-        "hindered_percent": 5,
-        "hindered_seconds": 3,
-        "not_tier_scaled": false
+        "distancethreshold": 10,
+        "hindered%": 20,
+        "hinderedduration": 2,
+        "triggertime": 6
       },
       "tier_2_values": {
-        "distance_from_dropped_pallet_m": 6,
-        "move_window_seconds": 6,
-        "hindered_percent": 5,
-        "hindered_seconds": 4,
-        "not_tier_scaled": false
+        "distancethreshold": 10,
+        "hindered%": 20,
+        "hinderedduration": 3,
+        "triggertime": 6
       },
       "tier_3_values": {
-        "distance_from_dropped_pallet_m": 6,
-        "move_window_seconds": 6,
-        "hindered_percent": 5,
-        "hindered_seconds": 5,
-        "not_tier_scaled": false
+        "distancethreshold": 10,
+        "hindered%": 20,
+        "hinderedduration": 4,
+        "triggertime": 6
       },
-      "current_effect": "When a Survivor drops a Pallet, if they move more than 6 m away from it within 6 seconds, they suffer 5% Hindered for 3/4/5 seconds.",
-      "plain_english_summary": "A Survivor who abandons a recently dropped Pallet is briefly slowed.",
-      "activation_requirements": [
-        "A Survivor drops a Pallet and then moves more than 6 m from it within 6 seconds."
-      ],
-      "deactivation_conditions": [
-        "The Hindered effect expires."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Hindered lasts 3/4/5 seconds"
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [
-        "Hindered"
-      ],
-      "generator_interactions": null,
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": null,
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [],
+      "current_effect": "If a Survivor moves 10 metres away within 6 seconds of dropping a Pallet, they suffer 20% Hindered for 2/3/4 seconds. Starting to break the Pallet ends the effect early.",
+      "plain_english_summary": "If a Survivor moves 10 metres away within 6 seconds of dropping a Pallet, they suffer 20% Hindered for 2/3/4 seconds.",
       "latest_known_live_balance_change": {
-        "patch": "8.6.0",
-        "change": "Reworked the perk: leaving a dropped Pallet by more than 6 m within 6 seconds applies 5% Hindered for 3/4/5 seconds."
+        "patch": "10.2.0",
+        "change": "If a Survivor moves 10 metres away within 6 seconds of dropping a Pallet, they suffer 20% Hindered for 2/3/4 seconds. Starting to break the Pallet ends the effect early."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Distance threshold becomes 10 m and Hindered becomes 20%; breaking the Pallet ends the effect early."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://steamcommunity.com/app/381210/announcements/",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/558-10-1-2-bugfix-patch",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/498-8-6-0-tokyo-ghoul",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Knock_Out"
       ],
-      "verification_notes": "The current wiki page marks its visible effect as the upcoming 10.2.0 version. Live values here are taken from the pre-PTB history entry and 8.6.0 change record."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Languid Touch",
@@ -5347,67 +4889,38 @@
       "source_killer": "The Singularity",
       "is_general_perk": false,
       "tier_1_values": {
-        "maximum_compromised_generators": 1,
-        "haste_percent": 8,
-        "bonus_seconds": 40,
-        "not_tier_scaled": false
+        "generatorscompromised": 3,
+        "haste%": 8,
+        "perkduration": 40
       },
       "tier_2_values": {
-        "maximum_compromised_generators": 1,
-        "haste_percent": 8,
-        "bonus_seconds": 50,
-        "not_tier_scaled": false
+        "generatorscompromised": 3,
+        "haste%": 8,
+        "perkduration": 50
       },
       "tier_3_values": {
-        "maximum_compromised_generators": 1,
-        "haste_percent": 8,
-        "bonus_seconds": 60,
-        "not_tier_scaled": false
+        "generatorscompromised": 3,
+        "haste%": 8,
+        "perkduration": 60
       },
-      "current_effect": "After damaging a Generator, it becomes Compromised and its Aura is highlighted yellow until completed; damaging a different Generator transfers the state. When completed by Survivors, gain Undetectable and 8% Haste for 40/50/60 seconds. The perk then deactivates.",
-      "plain_english_summary": "Mark a Generator by damaging it. When Survivors finish it, you gain temporary stealth and speed.",
-      "activation_requirements": [
-        "Perform the Damage Generator action."
-      ],
-      "deactivation_conditions": [
-        "Damaging another Generator transfers the Compromised state.",
-        "The perk deactivates after its bonus effects activate."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Undetectable and 8% Haste last 40/50/60 seconds"
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": "Live version allows one Compromised Generator at a time; the perk deactivates after its bonus effects trigger.",
-      "status_effects_involved": [
-        "Undetectable",
-        "Haste"
-      ],
-      "generator_interactions": "The Compromised Generator's Aura is highlighted yellow until Survivors complete it; that completion activates the bonuses.",
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": "The Compromised Generator is highlighted yellow until completed.",
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [],
+      "current_effect": "Damaging a Generator compromises it, up to three at once. When Survivors finish a compromised Generator, you gain 8% Haste and Undetectable for 40/50/60 seconds and the remaining Generators lose their compromised status.",
+      "plain_english_summary": "Damaging a Generator compromises it, up to three at once.",
       "latest_known_live_balance_change": {
-        "patch": "9.0.0",
-        "change": "Reduced Haste from 10% to 8% and set bonus duration to 40/50/60 seconds from 30/35/40 seconds."
+        "patch": "10.2.0",
+        "change": "Damaging a Generator compromises it, up to three at once. When Survivors finish a compromised Generator, you gain 8% Haste and Undetectable for 40/50/60 seconds and the remaining Generators lose their compromised status."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Allows up to 3 Compromised Generators; completing any grants 10% Haste and Undetectable for 40/50/60 seconds, and other Compromised Generators lose the state."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://steamcommunity.com/app/381210/announcements/",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/558-10-1-2-bugfix-patch",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/510-9-0-0-five-nights-at-freddys",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Machine_Learning"
       ],
-      "verification_notes": "The current wiki page displays upcoming 10.2.0 text. Live values here follow the pre-PTB history and official 9.0.0 notes."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Mad Grit",
@@ -6342,7 +5855,7 @@
       "verification_notes": "The current page marks its one historical description as 9.0.0 PTB, but the same effect appears in the official 9.0.0 live notes; live current values were used."
     },
     {
-      "name": "Play with Your Food",
+      "name": "Play With Your Food",
       "slug": "play-with-your-food",
       "source_killer": "The Shape",
       "is_general_perk": false,
@@ -6743,65 +6256,44 @@
       "source_killer": "The Krasue",
       "is_general_perk": false,
       "tier_1_values": {
-        "max_tokens": 4,
-        "exposed_duration_seconds": 40,
-        "not_tier_scaled": false
+        "carryhaste%pertoken": 4,
+        "exposedduration": 80,
+        "hookfaster%pertoken": 4,
+        "maxtokens": 4,
+        "tokensperuniquehook": 1
       },
       "tier_2_values": {
-        "max_tokens": 4,
-        "exposed_duration_seconds": 50,
-        "not_tier_scaled": false
+        "carryhaste%pertoken": 4,
+        "exposedduration": 85,
+        "hookfaster%pertoken": 4,
+        "maxtokens": 4,
+        "tokensperuniquehook": 1
       },
       "tier_3_values": {
-        "max_tokens": 4,
-        "exposed_duration_seconds": 60,
-        "not_tier_scaled": false
+        "carryhaste%pertoken": 4,
+        "exposedduration": 90,
+        "hookfaster%pertoken": 4,
+        "maxtokens": 4,
+        "tokensperuniquehook": 1
       },
-      "current_effect": "The first time each Survivor is hooked, gain 1 Token, up to 4. Once four Tokens are accumulated, all Survivors scream and suffer Exposed for 40/50/60 seconds.",
-      "plain_english_summary": "Hook every Survivor once to build four tokens; reaching four makes all Survivors scream and become Exposed for a tier-based duration.",
-      "activation_requirements": [
-        "Hook each unique Survivor for the first time to gain one Token, up to four.",
-        "Accumulating four Tokens makes all Survivors scream and applies Exposed."
-      ],
-      "deactivation_conditions": [
-        "Exposed ends after 40/50/60 seconds."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Exposed: 40/50/60 seconds after reaching four Tokens."
-      ],
-      "token_or_stack_behavior": "Gains one Token the first time each Survivor is hooked, up to four; reaching four triggers the global effect.",
-      "once_per_trial_or_other_limits": "Requires four first-time Survivor hooks; maximum four Tokens and the Exposed effect triggers on reaching four.",
-      "status_effects_involved": [
-        "Exposed"
-      ],
-      "generator_interactions": null,
-      "hook_interactions": "First hook of each unique Survivor adds one Token.",
-      "aura_or_tracking_interactions": null,
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [
-        "The 10.2.0 PTB adds Haste and faster hooking per Token and lengthens four-Token Exposed to 80/85/90 seconds; these are not live in 10.1.2a."
-      ],
+      "current_effect": "Your first hook on each Survivor earns a token. Each token adds 4% Haste while carrying and 4% hooking speed. At four tokens, all Survivors scream and become Exposed for 80/85/90 seconds.",
+      "plain_english_summary": "Your first hook on each Survivor earns a token.",
       "latest_known_live_balance_change": {
-        "patch": "9.2.0",
-        "change": "Introduced live with one Token per Survivor's first hook, up to four; at four Tokens all Survivors scream and become Exposed for 40/50/60 seconds. The 10.2.0 changes are PTB-only."
+        "patch": "10.2.0",
+        "change": "Your first hook on each Survivor earns a token. Each token adds 4% Haste while carrying and 4% hooking speed. At four tokens, all Survivors scream and become Exposed for 80/85/90 seconds."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Adds +4% Haste while carrying and +4% hooking speed per Token; at four Tokens, Exposed duration changes from live 40/50/60 seconds to 80/85/90 seconds."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/523-9-2-0-sinister-grace",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/558-10-1-2-bugfix-patch",
-        "https://store.steampowered.com/oldnews/?appgroupname=Dead+by+Daylight&appids=381210&feed=steam_community_announcements&headlines=1"
+        "https://store.steampowered.com/oldnews/?appgroupname=Dead+by+Daylight&appids=381210&feed=steam_community_announcements&headlines=1",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Ravenous"
       ],
-      "verification_notes": "The current wiki page explicitly flags its displayed description as upcoming 10.2.0. Live fields here use its historical pre-PTB effect (40/50/60-second Exposed, no per-Token Haste or hook-speed bonus), corroborated by the General Perks list and official 9.2.0 release notes; 10.2.0 is recorded only in upcoming_or_ptb_changes."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Remember Me",
@@ -6872,7 +6364,7 @@
       "verification_notes": "Current values and Obsession exemption match the live page and official 8.5.0 note. No later live mechanical change was located in the checked history."
     },
     {
-      "name": "Save the Best for Last",
+      "name": "Save the best for last",
       "slug": "save-the-best-for-last",
       "source_killer": "The Shape",
       "is_general_perk": false,
@@ -7237,76 +6729,33 @@
       "source_killer": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "random_scourge_hooks": 4,
-        "sacrifice_speed_bonus_percent": 10,
-        "distance_m": 24,
-        "not_tier_scaled": false,
-        "not_tier_scaled_fields": [
-          "random_scourge_hooks",
-          "distance_m"
-        ]
+        "generatorregression": 150,
+        "range": 24
       },
       "tier_2_values": {
-        "random_scourge_hooks": 4,
-        "sacrifice_speed_bonus_percent": 15,
-        "distance_m": 24,
-        "not_tier_scaled": false,
-        "not_tier_scaled_fields": [
-          "random_scourge_hooks",
-          "distance_m"
-        ]
+        "generatorregression": 175,
+        "range": 24
       },
       "tier_3_values": {
-        "random_scourge_hooks": 4,
-        "sacrifice_speed_bonus_percent": 20,
-        "distance_m": 24,
-        "not_tier_scaled": false,
-        "not_tier_scaled_fields": [
-          "random_scourge_hooks",
-          "distance_m"
-        ]
+        "generatorregression": 200,
+        "range": 24
       },
-      "current_effect": "At the start of the Trial, the 4 Basement Hooks and 4 random Hooks become Scourge Hooks and their auras are revealed in white. While you are more than 24 metres from a Survivor on a Scourge Hook, that Survivor's sacrifice process progresses 10/15/20% faster.",
-      "plain_english_summary": "Marked hooks include every Basement Hook; Survivors on them progress through sacrifice faster while you are away.",
-      "activation_requirements": [
-        "The Trial begins to mark Basement Hooks and 4 random Hooks.",
-        "The Killer is more than 24 metres from a Survivor on a Scourge Hook."
-      ],
-      "deactivation_conditions": [
-        "The sacrifice-speed bonus is inactive while the Killer is within 24 metres of the hooked Survivor."
-      ],
-      "cooldown": null,
-      "duration": [
-        "The bonus applies while the distance condition is met."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": "Hook marking is set at Trial start; effect may apply to eligible hooked Survivors throughout the Trial.",
-      "status_effects_involved": [],
-      "generator_interactions": null,
-      "hook_interactions": "All Basement Hooks and 4 random Hooks become Scourge Hooks.",
-      "aura_or_tracking_interactions": "Reveals marked Scourge Hook auras in white at Trial start.",
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "Scourge Hook",
-      "special_interactions": [
-        "Basement Hooks converted by this perk can also trigger other equipped Scourge Hook perks."
-      ],
+      "current_effect": "Four random Hooks and every basement Hook become Scourge Hooks. While at least 24 metres from a Survivor on a Scourge Hook, unattended Generators regress at 150/175/200% of normal speed.",
+      "plain_english_summary": "Four random Hooks and every basement Hook become Scourge Hooks.",
       "latest_known_live_balance_change": {
-        "patch": "6.1.0",
-        "change": "Reworked to mark 4 random Hooks plus Basement Hooks as Scourge Hooks and accelerate sacrifice by 10/15/20% when the Killer is more than 24 metres away."
+        "patch": "10.2.0",
+        "change": "Four random Hooks and every basement Hook become Scourge Hooks. While at least 24 metres from a Survivor on a Scourge Hook, unattended Generators regress at 150/175/200% of normal speed."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Proposed to make unworked Generators regress at 150/175/200% of normal regression while the Killer is at least 24 metres from a Survivor on a Scourge Hook; the existing sacrifice-speed bonus is removed in the PTB text."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/558-10-1-2-bugfix-patch",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Monstrous_Shrine"
       ],
-      "verification_notes": "Current effect is live 10.1.2a. The 10.2.0 text is PTB-only and is recorded solely as upcoming."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Scourge Hook: Pain Resonance",
@@ -7738,53 +7187,30 @@
       "source_killer": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "aura_reveal_s": 6,
-        "not_tier_scaled": false
+        "effectduration": 16
       },
       "tier_2_values": {
-        "aura_reveal_s": 7,
-        "not_tier_scaled": false
+        "effectduration": 18
       },
       "tier_3_values": {
-        "aura_reveal_s": 8,
-        "not_tier_scaled": false
+        "effectduration": 20
       },
-      "current_effect": "Instead of snuffing a Boon Totem, you destroy it. When you destroy a Boon Totem this way, the auras of all Survivors within its Boon range are revealed for 6/7/8 seconds.",
-      "plain_english_summary": "Destroying a Boon Totem permanently removes it and briefly reveals nearby Survivors.",
-      "activation_requirements": [
-        "The Killer interacts with an active Boon Totem to snuff it."
-      ],
-      "deactivation_conditions": [],
-      "cooldown": null,
-      "duration": [
-        "Survivor aura reveal: 6/7/8 seconds."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": "Each Boon Totem can only be destroyed once.",
-      "status_effects_involved": [],
-      "generator_interactions": null,
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": "Reveals all Survivors within the destroyed Boon Totem's range for 6/7/8 seconds.",
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [],
+      "current_effect": "Snuffing a Boon destroys its Totem. Blessing, cleansing, or destroying any Totem blocks dull and Hex Totems and reveals Boon Totem Auras to you for 16/18/20 seconds.",
+      "plain_english_summary": "Snuffing a Boon destroys its Totem.",
       "latest_known_live_balance_change": {
-        "patch": "6.0.0",
-        "change": "Introduced as a General Perk with the current Boon destruction and aura reveal effect."
+        "patch": "10.2.0",
+        "change": "Snuffing a Boon destroys its Totem. Blessing, cleansing, or destroying any Totem blocks dull and Hex Totems and reveals Boon Totem Auras to you for 16/18/20 seconds."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Proposed to reveal Boon Totem auras and block all Dull and Hex Totems for 16/18/20 seconds whenever any Totem is blessed, cleansed, or destroyed; the existing Survivor aura reveal is removed."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/558-10-1-2-bugfix-patch",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Boon_Destroyer"
       ],
-      "verification_notes": "Current effect is live 10.1.2a. The separate Totem blocking and Boon aura effect is 10.2.0 PTB-only."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Silent Shadow",
@@ -7927,63 +7353,33 @@
       "source_killer": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "crow_detection_radius_m": 20,
-        "cooldown_s": 5,
-        "not_tier_scaled": false,
-        "not_tier_scaled_fields": [
-          "cooldown_s"
-        ]
+        "cooldown": 3,
+        "notificationrange": 36
       },
       "tier_2_values": {
-        "crow_detection_radius_m": 28,
-        "cooldown_s": 5,
-        "not_tier_scaled": false,
-        "not_tier_scaled_fields": [
-          "cooldown_s"
-        ]
+        "cooldown": 3,
+        "notificationrange": 38
       },
       "tier_3_values": {
-        "crow_detection_radius_m": 36,
-        "cooldown_s": 5,
-        "not_tier_scaled": false,
-        "not_tier_scaled_fields": [
-          "cooldown_s"
-        ]
+        "cooldown": 3,
+        "notificationrange": 40
       },
-      "current_effect": "Whenever a Survivor startles a Crow within 20/28/36 metres of you, you receive a Loud Noise Notification at the Crow's location. This effect has a 5-second cooldown.",
-      "plain_english_summary": "Crows startled near the Killer point out the Survivor's location, with a short cooldown between alerts.",
-      "activation_requirements": [
-        "A Survivor startles a Crow within 20/28/36 metres of the Killer."
-      ],
-      "deactivation_conditions": [],
-      "cooldown": "5 seconds.",
-      "duration": [],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": "One Loud Noise Notification per 5-second cooldown window.",
-      "status_effects_involved": [],
-      "generator_interactions": null,
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": "The startled Crow's location produces a Loud Noise Notification.",
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [],
+      "current_effect": "A Survivor disturbing a Crow within 36/38/40 metres alerts you. The alert has a 3-second cooldown.",
+      "plain_english_summary": "A Survivor disturbing a Crow within 36/38/40 metres alerts you.",
       "latest_known_live_balance_change": {
-        "patch": "2.6.0",
-        "change": "Current live radius tiers and 5-second cooldown appear on the perk page; no later live effect change was verified before the 10.2.0 PTB proposal."
+        "patch": "10.2.0",
+        "change": "A Survivor disturbing a Crow within 36/38/40 metres alerts you. The alert has a 3-second cooldown."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Proposed detection radius 36/38/40 metres and a 3-second cooldown, replacing live values 20/28/36 metres and 5 seconds."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/558-10-1-2-bugfix-patch",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Spies_from_the_Shadows"
       ],
-      "verification_notes": "The live description is separated from the announced 10.2.0 PTB values. Exact older balance-history attribution should be checked against archived patch notes if a complete history is required."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Spirit Fury",
@@ -8159,74 +7555,40 @@
       "source_killer": "The Mastermind",
       "is_general_perk": false,
       "tier_1_values": {
-        "detection_radius_m": 12,
-        "vault_speed_bonus_percent": 30,
-        "cooldown_s": 25,
-        "not_tier_scaled": false,
-        "not_tier_scaled_fields": [
-          "detection_radius_m",
-          "cooldown_s"
-        ]
+        "cooldown": 20,
+        "survivorvaultdistance": 12,
+        "vaultspeed%": 30,
+        "vaultspeedduration": 10
       },
       "tier_2_values": {
-        "detection_radius_m": 12,
-        "vault_speed_bonus_percent": 35,
-        "cooldown_s": 25,
-        "not_tier_scaled": false,
-        "not_tier_scaled_fields": [
-          "detection_radius_m",
-          "cooldown_s"
-        ]
+        "cooldown": 20,
+        "survivorvaultdistance": 12,
+        "vaultspeed%": 35,
+        "vaultspeedduration": 10
       },
       "tier_3_values": {
-        "detection_radius_m": 12,
-        "vault_speed_bonus_percent": 40,
-        "cooldown_s": 25,
-        "not_tier_scaled": false,
-        "not_tier_scaled_fields": [
-          "detection_radius_m",
-          "cooldown_s"
-        ]
+        "cooldown": 20,
+        "survivorvaultdistance": 12,
+        "vaultspeed%": 40,
+        "vaultspeedduration": 10
       },
-      "current_effect": "When a Survivor performs a Rush Vault within 12 metres, Superior Anatomy activates. Your next vault is 30/35/40% faster, after which the perk deactivates. It has a 25-second cooldown.",
-      "plain_english_summary": "A nearby Survivor's fast vault briefly speeds up the Killer's next window vault.",
-      "activation_requirements": [
-        "A Survivor performs a Rush Vault within 12 metres of the Killer."
-      ],
-      "deactivation_conditions": [
-        "The effect is consumed after the Killer's next vault."
-      ],
-      "cooldown": "25 seconds.",
-      "duration": [
-        "Until the next Killer vault or the perk's 25-second cooldown state."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": "Can reactivate after cooldown.",
-      "status_effects_involved": [],
-      "generator_interactions": null,
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": null,
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [],
+      "current_effect": "A Survivor's medium or fast vault within 12 metres primes your next basic Window vault. That vault starts a 10-second bonus of 30/35/40% to basic Window vault speed. Cooldown is 20 seconds.",
+      "plain_english_summary": "A Survivor's medium or fast vault within 12 metres primes your next basic Window vault.",
       "latest_known_live_balance_change": {
-        "patch": "9.0.0",
-        "change": "Increased detection range to 12 metres and reduced cooldown to 25 seconds."
+        "patch": "10.2.0",
+        "change": "A Survivor's medium or fast vault within 12 metres primes your next basic Window vault. That vault starts a 10-second bonus of 30/35/40% to basic Window vault speed. Cooldown is 20 seconds."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Proposed to trigger on a Survivor's medium or fast vault within 12 metres, then increase Killer basic window vault speed by 30/35/40% for 10 seconds; cooldown reduced to 20 seconds."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/558-10-1-2-bugfix-patch",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/510-9-0-0-five-nights-at-freddys"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/510-9-0-0-five-nights-at-freddys",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Superior_Anatomy"
       ],
-      "verification_notes": "10.2.0 effect is PTB-only. The live effect is consumed by one next vault, unlike the PTB's proposed timed window."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Surge",
@@ -8748,53 +8110,28 @@
       "source_killer": "The Executioner",
       "is_general_perk": false,
       "tier_1_values": {
-        "cooldown_s": 60,
-        "not_tier_scaled": false
+        "cooldown": 60
       },
       "tier_2_values": {
-        "cooldown_s": 45,
-        "not_tier_scaled": false
+        "cooldown": 45
       },
       "tier_3_values": {
-        "cooldown_s": 30,
-        "not_tier_scaled": false
+        "cooldown": 30
       },
-      "current_effect": "After damaging a Generator, you become Undetectable and that Generator's aura is revealed in yellow to Survivors. The effect ends when the Generator stops regressing by any means. Trail of Torment has a 60/45/30-second cooldown.",
-      "plain_english_summary": "Damaging a Generator hides the Killer and marks that Generator for Survivors until its regression stops.",
-      "activation_requirements": [
-        "The Killer performs the Damage Generator action."
-      ],
-      "deactivation_conditions": [
-        "Undetectable ends when the damaged Generator stops regressing by any means."
-      ],
-      "cooldown": "60/45/30 seconds.",
-      "duration": [
-        "Until the damaged Generator stops regressing."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": "Can reactivate after cooldown.",
-      "status_effects_involved": [
-        "Undetectable"
-      ],
-      "generator_interactions": "Damage Generator action activates it; the marked Generator's regression ending deactivates it.",
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": "The affected Generator aura is revealed in yellow to Survivors.",
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [],
+      "current_effect": "Damaging a Generator makes you Undetectable and reveals that Generator's Aura to Survivors until it stops regressing. Cooldown is 60/45/30 seconds.",
+      "plain_english_summary": "Damaging a Generator grants Undetectable until it stops regressing.",
       "latest_known_live_balance_change": {
         "patch": "8.1.0",
         "change": "Reduced cooldown to 60/45/30 seconds from 80/70/60 seconds."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": null,
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/558-10-1-2-bugfix-patch"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Trail_of_Torment"
       ],
-      "verification_notes": "Aura color and regression-ending deactivation follow the live page description."
+      "verification_notes": "Gameplay and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Turn Back the Clock",
@@ -8936,79 +8273,37 @@
       "source_killer": "The Unknown",
       "is_general_perk": false,
       "tier_1_values": {
-        "activation_duration_s": 24,
-        "haste_percent": 7,
-        "haste_duration_s": 10,
-        "not_tier_scaled": false,
-        "not_tier_scaled_fields": [
-          "haste_percent",
-          "haste_duration_s"
-        ]
+        "effectduration": 26,
+        "haste%": 5,
+        "hasteduration": 25
       },
       "tier_2_values": {
-        "activation_duration_s": 27,
-        "haste_percent": 7,
-        "haste_duration_s": 10,
-        "not_tier_scaled": false,
-        "not_tier_scaled_fields": [
-          "haste_percent",
-          "haste_duration_s"
-        ]
+        "effectduration": 28,
+        "haste%": 5,
+        "hasteduration": 25
       },
       "tier_3_values": {
-        "activation_duration_s": 30,
-        "haste_percent": 7,
-        "haste_duration_s": 10,
-        "not_tier_scaled": false,
-        "not_tier_scaled_fields": [
-          "haste_percent",
-          "haste_duration_s"
-        ]
+        "effectduration": 30,
+        "haste%": 5,
+        "hasteduration": 25
       },
-      "current_effect": "Whenever a Survivor becomes injured by any means, Unbound activates for 24/27/30 seconds. Vaulting a Window while it is active grants 7% Haste for 10 seconds.",
-      "plain_english_summary": "After any Survivor is injured, a Killer window vault can grant a short burst of speed during the activation window.",
-      "activation_requirements": [
-        "A Survivor becomes injured by any means.",
-        "The Killer vaults a Window while the activation window is active."
-      ],
-      "deactivation_conditions": [
-        "The activation window ends after 24/27/30 seconds.",
-        "The Haste effect ends after 10 seconds."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Activation window: 24/27/30 seconds.",
-        "Haste: 10 seconds after a qualifying Window vault."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": "Haste effects from this perk do not stack with themselves.",
-      "status_effects_involved": [
-        "Haste"
-      ],
-      "generator_interactions": null,
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": null,
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [],
+      "current_effect": "When a healthy Survivor becomes injured, a 26/28/30-second window opens. Basic Window vaults during that window grant 5% Haste for 25 seconds.",
+      "plain_english_summary": "When a healthy Survivor becomes injured, a 26/28/30-second window opens.",
       "latest_known_live_balance_change": {
-        "patch": "9.0.0",
-        "change": "Reduced the Haste bonus from 10% to 7%."
+        "patch": "10.2.0",
+        "change": "When a healthy Survivor becomes injured, a 26/28/30-second window opens. Basic Window vaults during that window grant 5% Haste for 25 seconds."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Proposed triggering whenever a Survivor takes damage (rather than becomes injured), then for 26/28/30 seconds allowing a basic Window vault to grant 5% Haste for 25 seconds. PTB-only; live values are 24/27/30 seconds of activation and 7% Haste for 10 seconds."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/558-10-1-2-bugfix-patch",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/510-9-0-0-five-nights-at-freddys"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/510-9-0-0-five-nights-at-freddys",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Unbound"
       ],
-      "verification_notes": "The 10.2.0 values are PTB-only; live 10.1.2a retains the 7% Haste for 10 seconds."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Undone",
@@ -9016,87 +8311,39 @@
       "source_killer": "The Unknown",
       "is_general_perk": false,
       "tier_1_values": {
-        "maximum_tokens": 18,
-        "regression_percent_per_token": 1,
-        "maximum_regression_percent": 18,
-        "block_s_per_token": 1,
-        "maximum_block_s": 18,
-        "cooldown_s": 60,
-        "not_tier_scaled": false,
-        "not_tier_scaled_fields": [
-          "regression_percent_per_token",
-          "block_s_per_token",
-          "cooldown_s"
-        ]
+        "blocktimepertoken": 8,
+        "generatorregressionpertoken%": 8,
+        "maxtokens": 3,
+        "tokengain": 1
       },
       "tier_2_values": {
-        "maximum_tokens": 24,
-        "regression_percent_per_token": 1,
-        "maximum_regression_percent": 24,
-        "block_s_per_token": 1,
-        "maximum_block_s": 24,
-        "cooldown_s": 60,
-        "not_tier_scaled": false,
-        "not_tier_scaled_fields": [
-          "regression_percent_per_token",
-          "block_s_per_token",
-          "cooldown_s"
-        ]
+        "blocktimepertoken": 9,
+        "generatorregressionpertoken%": 9,
+        "maxtokens": 3,
+        "tokengain": 1
       },
       "tier_3_values": {
-        "maximum_tokens": 30,
-        "regression_percent_per_token": 1,
-        "maximum_regression_percent": 30,
-        "block_s_per_token": 1,
-        "maximum_block_s": 30,
-        "cooldown_s": 60,
-        "not_tier_scaled": false,
-        "not_tier_scaled_fields": [
-          "regression_percent_per_token",
-          "block_s_per_token",
-          "cooldown_s"
-        ]
+        "blocktimepertoken": 10,
+        "generatorregressionpertoken%": 10,
+        "maxtokens": 3,
+        "tokengain": 1
       },
-      "current_effect": "A Survivor failing a Repair or Healing Skill Check grants 3 tokens, up to 18/24/30. Damaging a Generator consumes all tokens, instantly regresses it by 1% of total progress per token, and blocks it for 1 second per token. The Generator begins regressing after the block. The perk has a 60-second cooldown.",
-      "plain_english_summary": "Failed Repair or Healing skill checks build charges; damaging a Generator spends them for immediate regression and a matching block duration.",
-      "activation_requirements": [
-        "A Survivor fails a Repair or Healing Skill Check to grant 3 tokens.",
-        "The Killer damages a Generator while tokens are available to spend them."
-      ],
-      "deactivation_conditions": [
-        "Tokens are consumed when a Generator is damaged.",
-        "Generator block ends after one second per token spent."
-      ],
-      "cooldown": "60 seconds after spending tokens.",
-      "duration": [
-        "Generator block: one second per token spent, up to 18/24/30 seconds."
-      ],
-      "token_or_stack_behavior": "Each failed Repair or Healing Skill Check grants 3 tokens; maximum 18/24/30. Damaging a Generator consumes all current tokens.",
-      "once_per_trial_or_other_limits": "Regression and block are capped at 18/24/30% and 18/24/30 seconds respectively; 60-second cooldown after activation.",
-      "status_effects_involved": [],
-      "generator_interactions": "Manual Damage Generator action spends tokens, instantly removes 1% total progress per token, blocks the Generator for one second per token, then starts regression.",
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": null,
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [],
+      "current_effect": "Gain one token per hook, up to three. Damaging a Generator spends them all. Each token removes an additional 8/9/10% progress and blocks the Generator for 8/9/10 seconds.",
+      "plain_english_summary": "Gain one token per hook, up to three.",
       "latest_known_live_balance_change": {
-        "patch": "7.6.0",
-        "change": "Introduced with the current skill-check token gain, Generator damage spend, regression, and block behavior."
+        "patch": "10.2.0",
+        "change": "Gain one token per hook, up to three. Damaging a Generator spends them all. Each token removes an additional 8/9/10% progress and blocks the Generator for 8/9/10 seconds."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Proposed gaining 1 token per hooked Survivor, up to 3; damaging a Generator spends all tokens, removing 8/9/10% of total progress and blocking the Generator for 8/9/10 seconds per token. The Generator begins regressing after the block; PTB-only."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/558-10-1-2-bugfix-patch",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Undone"
       ],
-      "verification_notes": "Current live trigger is failed Repair or Healing Skill Checks. The hook-token rework is PTB-only."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Unforeseen",
@@ -9240,53 +8487,33 @@
       "source_killer": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "missed_basic_attack_cooldown_reduction_percent": 20,
-        "not_tier_scaled": false
+        "attackhitcooldownreduction": 10,
+        "attackmisscooldownreduction": 30
       },
       "tier_2_values": {
-        "missed_basic_attack_cooldown_reduction_percent": 25,
-        "not_tier_scaled": false
+        "attackhitcooldownreduction": 10,
+        "attackmisscooldownreduction": 35
       },
       "tier_3_values": {
-        "missed_basic_attack_cooldown_reduction_percent": 30,
-        "not_tier_scaled": false
+        "attackhitcooldownreduction": 10,
+        "attackmisscooldownreduction": 40
       },
-      "current_effect": "Reduces the cooldown after a missed Basic Attack by 20/25/30%.",
-      "plain_english_summary": "The Killer recovers faster after missing a Basic Attack.",
-      "activation_requirements": [
-        "The Killer misses a Basic Attack."
-      ],
-      "deactivation_conditions": [],
-      "cooldown": null,
-      "duration": [
-        "Applies to the missed Basic Attack recovery period."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "generator_interactions": null,
-      "hook_interactions": null,
-      "aura_or_tracking_interactions": null,
-      "basic_attack_or_special_attack_restrictions": "Affects missed Basic Attacks only; Special Attacks and successful attacks do not receive this live bonus.",
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [],
+      "current_effect": "Missed basic attacks recover 30/35/40% sooner. Successful basic attacks recover 10% sooner. Obstructed basic attacks also get a recovery bonus.",
+      "plain_english_summary": "Missed basic attacks recover 30/35/40% sooner.",
       "latest_known_live_balance_change": {
-        "patch": "1.4.0",
-        "change": "Removed the previous successful-attack cooldown reduction; live effect applies to missed Basic Attacks only."
+        "patch": "10.2.0",
+        "change": "Missed basic attacks recover 30/35/40% sooner. Successful basic attacks recover 10% sooner. Obstructed basic attacks also get a recovery bonus."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Proposed increasing missed Basic Attack recovery reduction to 30/35/40%, adding a 10% successful Basic Attack recovery reduction, and including obstructed Basic Attacks. PTB-only."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/558-10-1-2-bugfix-patch",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Unrelenting"
       ],
-      "verification_notes": "PTB changes are excluded from current_effect and tier values; only the live missed Basic Attack recovery effect is recorded."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Wandering Eye",
@@ -9434,55 +8661,33 @@
       "source_killer": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "detection_radius_m": 48,
-        "not_tier_scaled": false
+        "hasteamount%": 5,
+        "rangetosurvivors": 28
       },
       "tier_2_values": {
-        "detection_radius_m": 40,
-        "not_tier_scaled": false
+        "hasteamount%": 5,
+        "rangetosurvivors": 26
       },
       "tier_3_values": {
-        "detection_radius_m": 32,
-        "not_tier_scaled": false
+        "hasteamount%": 5,
+        "rangetosurvivors": 24
       },
-      "current_effect": "When at least one Survivor is within 48/40/32 metres, the Entity sporadically whispers to you. The audio cue indicates that a Survivor is within range.",
-      "plain_english_summary": "An audio cue tells the Killer that at least one Survivor is nearby, without identifying which one.",
-      "activation_requirements": [
-        "At least one Survivor is within 48/40/32 metres of the Killer."
-      ],
-      "deactivation_conditions": [
-        "The cue stops when no Survivors are within the tier's detection radius."
-      ],
-      "cooldown": null,
-      "duration": [
-        "Whispers occur sporadically while a Survivor is within range."
-      ],
-      "token_or_stack_behavior": null,
-      "once_per_trial_or_other_limits": null,
-      "status_effects_involved": [],
-      "generator_interactions": null,
-      "hook_interactions": "The live page's notes indicate Survivors in hooked, carried, or dying states can still satisfy the proximity condition.",
-      "aura_or_tracking_interactions": "Provides an intermittent audio cue only; it does not reveal an aura or identify a specific Survivor.",
-      "basic_attack_or_special_attack_restrictions": null,
-      "hex_or_scythe_hook_status": "neither",
-      "special_interactions": [],
+      "current_effect": "You occasionally hear whispers when a Survivor is within 28/26/24 metres. Outside that range from every Survivor, gain 5% Haste.",
+      "plain_english_summary": "You occasionally hear whispers when a Survivor is within 28/26/24 metres.",
       "latest_known_live_balance_change": {
-        "patch": "1.0.5",
-        "change": "Changed the proximity cue so it does not activate for dead or sacrificed Survivors; current live tier ranges are 48/40/32 metres."
+        "patch": "10.2.0",
+        "change": "You occasionally hear whispers when a Survivor is within 28/26/24 metres. Outside that range from every Survivor, gain 5% Haste."
       },
-      "current_live_patch_verified": "10.1.2a",
-      "upcoming_or_ptb_changes": {
-        "version": "10.2.0 PTB",
-        "change": "Proposed reducing ranges to 28/26/24 metres and granting 5% Haste whenever all Survivors are outside the corresponding range."
-      },
+      "current_live_patch_verified": "10.2.2",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/558-10-1-2-bugfix-patch",
-        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes"
+        "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Whispers"
       ],
-      "verification_notes": "PTB ranges and Haste are not live as of 10.1.2a. The list of Survivor states qualifying for the cue follows wiki trivia and is flagged here as page-level detail."
+      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
     },
     {
       "name": "Zanshin Tactics",

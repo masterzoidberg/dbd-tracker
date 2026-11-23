@@ -17,7 +17,7 @@ test('canonical projection preserves all explicit identities owners source order
   const before = structuredClone(source), result = projectKillerRuntimeCatalog(source);
   assert.deepEqual(Object.keys(result), ['dataset', 'gameVersion', 'killers']);
   assert.equal(result.dataset, 'dbd-killers-live');
-  assert.equal(result.gameVersion, '10.2.1');
+  assert.equal(result.gameVersion, '10.2.2b');
   assert.equal(result.killers.length, 44);
   assert.deepEqual(new Set(result.killers.map(k => k.characterId)), new Set(characters.filter(c => c.role === 'killer').map(c => c.id)));
   const addons = result.killers.flatMap(k => k.addons);

@@ -1,6 +1,7 @@
 import survivorSource from './survivor-inventory-verified.json' with {type:'json'};
 import killerSource from './killer-runtime-catalog.json' with {type:'json'};
 export const survivorInventorySource = survivorSource;
+export const killerCatalogVersion = killerSource.gameVersion;
 export const inventoryEntities = adaptInventoryCatalog(survivorSource,'survivor');
 const killerCatalog = adaptKillerRuntimeCatalog(killerSource);
 export const inventoryEntityById = Object.fromEntries([...inventoryEntities,...killerCatalog.addons].map(entity=>[entity.id,entity]));

@@ -118,7 +118,7 @@ stay expanded, including zero stock. Power Details and Add-on Details open the
 gameplay explanation and effects. Quantities save on valid Enter/blur or +/−;
 zero removes the stored key, and invalid or failed edits retain their text.
 Reader windows can open Details while quantities remain disabled. The 44-Killer,
-880-Add-on patch 10.2.1 catalog and artwork are bundled for offline use. Layout
+880-Add-on catalog and artwork through backend patch 10.2.2b are bundled for offline use. Layout
 checks cover 320/500/760/1100/1440/1600px, with 44px quantity/action targets.
 
 Click an owned character’s name or Prestige badge to be offered initial character setup. Enter its Bloodweb level, then record personal acquisitions and upgrades. Native perks start automatically at I, while Prestige, Legacy, and Shrine unlocks provide account-wide minimums. General perks start unselected unless personally acquired. Selecting one defaults to Tier I. Finish saves additions/upgrades and completion for that character; subsequent clicks open its normal details without asking again. Edit Bloodweb setup lets you revisit it.
@@ -189,14 +189,16 @@ offline recovery acceptance instructions are in the runtime README.
 
 ## Catalog coverage
 
-The tracker loads the supplied patch **10.1.2a** JSON catalogs dated **2026-10-05**: **176 Survivor perks and 145 distinct Killer perks**, with **54 Survivor records and 44 Killer records**. The six duplicate Halloween/Hellraiser killer name variants share records. Character definitions are derived from perk sources. Catalog patch/date labels describe the supplied files; the app does not independently verify live game data.
+The tracker loads the supplied patch **10.2.2** JSON catalogs reviewed on **2026-11-22**: **176 Survivor perks and 145 distinct Killer perks**, with **54 Survivor records and 44 Killer records**. The six duplicate Halloween/Hellraiser killer name variants share records. Character definitions are derived from perk sources. Catalog patch/date labels describe the supplied files; the app does not independently verify live game data.
 
 Catalog source definitions are `data/dbd-survivor-perks-live-10.1.2a-2026-10-05-corrected.json` and `data/killer-perks-audited-10.1.2a-2026-10-05.json`. Update those files to change catalog data; `data/catalog.js` adapts their fields to the tracker model. Run `npm run build` after catalog changes to include them in `dist/app.js`. The browser loads a regular script with the catalog embedded, avoiding module imports and JSON fetches under `file:` URLs.
 
-Killer Power/Add-on research has its own patch version, **10.2.1**, in the canonical
+Killer Power/Add-on research includes backend patch **10.2.2b** in the canonical
 `data/dbd-killers-live-10.2.1.json`. Update that master and rebuild to refresh its
 generated runtime projection; research sources, verification notes and patch history
-are excluded from the runtime workspace.
+are excluded from the runtime workspace. Survivor inventory was checked against
+client 10.2.2. Catalog source filenames retain their original snapshot labels.
+See [the catalog update notes](docs/catalog-update-10.2.2.md) for scope and sources.
 
 Compatibility mappings preserve existing tracker IDs for Bill, Yun-Jin, Barbecue & Chilli, Monitor & Abuse, and Laurie's renamed perks. Licensed name variants share one perk record and general Bloodweb availability. Laurie, The Shape, and The Cenobite own their native perks at I; their recorded Prestige can raise global automatic tiers. Display preferences only change names.
 

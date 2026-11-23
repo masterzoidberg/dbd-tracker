@@ -10,8 +10,8 @@ const characterNames = {
 };
 
 export const halloweenNames = {
-  'save-the-best-for-last': ['Save the Best for Last', 'Keep Them Waiting'],
-  'play-with-your-food': ['Play with Your Food', 'See How They Run'],
+  'save-the-best-for-last': ['Save the best for last', 'Keep Them Waiting'],
+  'play-with-your-food': ['Play With Your Food', 'See How They Run'],
   'dying-light': ['Dying Light', 'Cull the Weak'],
   'sole-survivor': ['Sole Survivor', 'Down to the Last'],
   'object-of-obsession': ['Object of Obsession', 'Bound by Obsession'],
