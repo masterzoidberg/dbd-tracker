@@ -1,12 +1,12 @@
 {
   "status": "AWAITING_MANUAL_ACCEPTANCE",
-  "stage": "G:\\Projects\\dbd-tracker-summary\\release\\runtime",
+  "stage": "C:\\Users\\nicol\\.codex\\worktrees\\live-catalog-vercel\\dbd-tracker\\release\\runtime",
   "catalog": {
-    "patch": "10.1.2a",
-    "date": "2026-10-05"
+    "patch": "10.2.2",
+    "date": "2026-11-22"
   },
   "localhost": "AUTOMATED PASS",
-  "browser": "msedge 157.0.4341.42",
+  "browser": "msedge 158.0.4370.33",
   "checks": [
     "startup",
     "contextual Bloodweb/Favorite save",
@@ -38,12 +38,12 @@
     "fallbackPerks": 0,
     "usablePortraits": 98,
     "fallbackPortraits": 0,
-    "usableCollectionPortraits": 97,
-    "fallbackCollectionPortraits": 1,
+    "usableCollectionPortraits": 98,
+    "fallbackCollectionPortraits": 0,
     "killerAddons": 880,
     "killerPowers": 37,
     "fallbackKillerPowers": 7
   },
   "directFile": "MANUAL ACCEPTANCE REQUIRED",
-  "bundleSha256": "455393530c0a9d4aab4b38ec02ebc0b8e6c8c6ca8e13c25dbd00a3c1759e93e9"
+  "bundleSha256": "d38eff8ea8c1c1a3d87597368ec922ee92afaf8b067231217fe26cc9e82d3503"
 }
