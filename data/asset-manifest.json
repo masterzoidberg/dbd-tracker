@@ -5331,10 +5331,10 @@
       "sha256": "47b24a2657cd84919cdcd94c9e4705fabf78735d816c9cd071a2cbfc20c753d3"
     },
     "killer-addon-pig-tampered-timer": {
-      "path": "images/Powers and Add-ons/Pig/With Background/Tampered Timer.png",
-      "width": 300,
-      "height": 300,
-      "sha256": "18f577bd7dc4ca5298c78206a6e613fb799e74b9e209ec54aaf44e631d0c093c"
+      "path": "images/Powers and Add-ons/Pig/Tampered Timer.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "ec1f51b9c8afc39bcc1fc4501da06655b336c9884220fc4c569935c14dc9b679"
     },
     "killer-addon-pig-amandas-secret": {
       "path": "images/Powers and Add-ons/Pig/With Background/Amanda_s Secret.png",
@@ -5355,10 +5355,10 @@
       "sha256": "e44d1bc0b6a8ce75fe1b2bd7193f6d5d32005568b4184735a87e2500fcea76d9"
     },
     "killer-addon-pig-rules-set-no-2": {
-      "path": "images/Powers and Add-ons/Pig/With Background/Rule Set No.2.png",
-      "width": 300,
-      "height": 300,
-      "sha256": "566348eb4da0d3f57ab6cfaac38e9c872112d584adecb0dec7abbb5e35dd2ba0"
+      "path": "images/Powers and Add-ons/Pig/Rule Set No.2.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "94f3d102dd1bd1fb3241066302d9fa0132e310ac6cbb9e8178987c89bbf36cef"
     },
     "killer-addon-pig-amandas-letter": {
       "path": "images/Powers and Add-ons/Pig/With Background/Amanda_s Letter.png",
