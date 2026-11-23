@@ -345,6 +345,7 @@ async function quickPickerRegression(page, origin) {
     await page.goto(`${origin}/#manage/${id}/update`);
     await page.locator('#character-inventory-search').waitFor();
     const count = await cards(page).count();
+    const historicalWasVisible = (await card(page, historical).count()) > 0;
     console.log(`${id}: ${count} candidates`);
     assert.ok(count >= 20);
     assert.equal(new URL(page.url()).hash, `#character/${id}/perks`, 'Old update aliases normalize to ordinary Perks');
@@ -439,7 +440,8 @@ async function quickPickerRegression(page, origin) {
     assert.equal((await stored(page)).characters[id].perks[perk], 3);
     assert.equal(await page.locator('.changed-this-update').count(), 0);
     assert.equal(await picker.count(), 0);
-    assert.equal(await cards(page).count(), count);
+    assert.equal(await cards(page).count(), count + (historicalWasVisible ? 0 : 1),
+      'The historical perk joins the default inventory once a personal record is saved');
     await card(page, perk).click();
     await choice('3').click();
     assert.equal(await page.locator('.changed-this-update').count(), 0);
