@@ -34,7 +34,7 @@ export async function artworkRegression(page, origin, manifest) {
   const killerPowers = Object.values(manifest.killerPowers).filter(Boolean);
   assert.equal(killerAddons.length, 880);
   assert.equal(killerPowers.length, 37);
-  assert.equal(Object.values(manifest.killerPowers).filter(value => value === null).length, 7);
+  assert.equal(Object.values(manifest.killerPowers).filter(value => value === null).length, 8);
   const assets = [...Object.values(manifest.perks).filter(Boolean), ...killerAddons, ...killerPowers];
   const decoded = await page.evaluate(async assets => Promise.all(assets.map(async asset => {
     const img = new Image(); img.src = asset.path.split('/').map(encodeURIComponent).join('/');

@@ -1,6 +1,6 @@
 {
-  "patch": "10.2.2",
-  "verifiedAt": "2026-11-22",
+  "patch": "10.3.0",
+  "verifiedAt": "2026-11-25",
   "provenance": {
     "archiveSha256": "26e86e71a5d4f4a8aa931e48e3bed3ef0ca16eb6640e71a37f705c0e4cdfa053",
     "references": [
@@ -59,9 +59,10 @@
       "https://deadbydaylight.wiki.gg/wiki/Refined_Serum",
       "https://dbd.source.gs/about/",
       "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335",
-      "https://steamcommunity.com/games/381210/announcements/detail/716793092553837357"
+      "https://steamcommunity.com/games/381210/announcements/detail/716793092553837357",
+      "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/7067"
     ],
-    "sourcePolicy": "Regular Survivor inventory and display names checked against the 10.2.2 client build and live patch notes. Seasonal labels describe stock tracking, and three Banquet base rarities remain provisional.",
+    "sourcePolicy": "Existing Survivor stock carried forward. The live 10.3.0 notes remove the shared per-Chest rummage limit. Individual effects still have their own allowances. Seasonal labels describe stock tracking, and three Banquet base rarities remain provisional.",
     "enrichment": {
       "sourcePackage": "survivor-item-addon-research-10.2.0-2026-10-12.zip",
       "runBDatasetRevision": "10.2.0-2026-10-12-r1",
@@ -659,7 +660,7 @@
       "itemTypeId": "key",
       "rarity": "Uncommon",
       "rarityColor": "green",
-      "effect": "Starts with 5 Charges. Press Use Item to start channeling; once fully channelled, reveal other Survivors within 56 metres for 9 seconds. Can quickly open a locked Chest: guarantees a Rare-or-higher Item; reveals that Chest in yellow to other Survivors within 42 metres; allows 1 other Survivor to rummage it once for another Rare-or-higher Item, revealing that rummaging Survivor's Aura to the Key holder. With a remaining Charge, can re-open a Hatch closed by the Killer in 2.5 seconds. Opening the Hatch and escaping does not destroy the Key. Each ability consumes 1 Charge.",
+      "effect": "Starts with 5 Charges. Press Use Item to start channeling; once fully channelled, reveal other Survivors within 56 metres for 9 seconds. Can quickly open a locked Chest: guarantees a Rare-or-higher Item; reveals that Chest in yellow to other Survivors within 42 metres; grants one other Survivor a Key-enabled rummage for another Rare-or-higher Item, revealing that rummaging Survivor's Aura to the Key holder. With a remaining Charge, can re-open a Hatch closed by the Killer in 2.5 seconds. Opening the Hatch and escaping does not destroy the Key. Each ability consumes 1 Charge.",
       "status": "current",
       "event": false,
       "sources": [
@@ -747,7 +748,8 @@
           "https://deadbydaylight.wiki.gg/wiki/Keys",
           "https://support.deadbydaylight.com/hc/en-us/articles/41607860703380-9-1-0-The-Walking-Dead",
           "https://deadbydaylight.wiki.gg/wiki/Shrill_Whistle",
-          "https://forums.bhvr.com/dead-by-daylight/discussion/456978/9-2-0-sinister-grace-patch-notes"
+          "https://forums.bhvr.com/dead-by-daylight/discussion/456978/9-2-0-sinister-grace-patch-notes",
+          "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/7067"
         ],
         "sourceDetails": [
           {
@@ -816,7 +818,7 @@
       "itemTypeId": "key",
       "rarity": "Rare",
       "rarityColor": "blue",
-      "effect": "Starts with 6 Charges. Press Use Item to start channeling; once fully channelled, reveal other Survivors within 64 metres for 10 seconds. Can quickly open a locked Chest: guarantees a Rare-or-higher Item; reveals that Chest in yellow to other Survivors within 42 metres; allows 1 other Survivor to rummage it once for another Rare-or-higher Item, revealing that rummaging Survivor's Aura to the Key holder. With a remaining Charge, can re-open a Hatch closed by the Killer in 2.5 seconds. Opening the Hatch and escaping does not destroy the Key. Each ability consumes 1 Charge.",
+      "effect": "Starts with 6 Charges. Press Use Item to start channeling; once fully channelled, reveal other Survivors within 64 metres for 10 seconds. Can quickly open a locked Chest: guarantees a Rare-or-higher Item; reveals that Chest in yellow to other Survivors within 42 metres; grants one other Survivor a Key-enabled rummage for another Rare-or-higher Item, revealing that rummaging Survivor's Aura to the Key holder. With a remaining Charge, can re-open a Hatch closed by the Killer in 2.5 seconds. Opening the Hatch and escaping does not destroy the Key. Each ability consumes 1 Charge.",
       "status": "current",
       "event": false,
       "sources": [
@@ -904,7 +906,8 @@
           "https://deadbydaylight.wiki.gg/wiki/Keys",
           "https://support.deadbydaylight.com/hc/en-us/articles/41607860703380-9-1-0-The-Walking-Dead",
           "https://deadbydaylight.wiki.gg/wiki/Shrill_Whistle",
-          "https://forums.bhvr.com/dead-by-daylight/discussion/456978/9-2-0-sinister-grace-patch-notes"
+          "https://forums.bhvr.com/dead-by-daylight/discussion/456978/9-2-0-sinister-grace-patch-notes",
+          "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/7067"
         ],
         "sourceDetails": [
           {

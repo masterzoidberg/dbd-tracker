@@ -138,6 +138,7 @@
       "height": 100,
       "sha256": "299434aa617daf6480543439fa41f65d44e407759adf6af73104c44cce7bb37d"
     },
+    "best-gift-ever": null,
     "better-than-new": {
       "path": "images/survivor-perks/rebecca-chambers/better-than-new.png",
       "width": 100,
@@ -714,6 +715,7 @@
       "height": 256,
       "sha256": "cf6ea033158975fb49e6e9dd1d0b57c557a0de056069794af390a60f3bafed52"
     },
+    "funny-business": null,
     "furtive-chase": {
       "path": "images/killer-perks/danny-johnson/furtive-chase.png",
       "width": 100,
@@ -996,6 +998,7 @@
       "height": 100,
       "sha256": "d9964227b216a068e7d58fd3b1e7789429edc1376120c414aecce10effcab76f"
     },
+    "kill-spree": null,
     "kindred": {
       "path": "images/survivor-perks/universal/kindred.png",
       "width": 100,
@@ -1020,6 +1023,7 @@
       "height": 256,
       "sha256": "11d631bfa69face67ff3eaaaf75a24679ed2523f10bc47989a1906b15859b53d"
     },
+    "laughingstock": null,
     "lay-waste": {
       "path": "images/killer-perks/supplied/lay-waste.png",
       "width": 256,
@@ -1536,6 +1540,7 @@
       "height": 100,
       "sha256": "f422ed6418dc4acc0f7bb35468bc48274e80e1e948cbe11d3ec765ae41bbc967"
     },
+    "shared-trauma": null,
     "shattered-hope": {
       "path": "images/killer-perks/universal/shattered-hope.png",
       "width": 100,
@@ -1842,6 +1847,7 @@
       "height": 100,
       "sha256": "b836ecb91175ac21b5a193894ec486e176b88a7a88c80a81d9a751765a1bc486"
     },
+    "valkyries-rage": null,
     "vigil": {
       "path": "images/survivor-perks/quentin-smith/vigil.png",
       "width": 100,
@@ -2280,6 +2286,7 @@
       "format": "png",
       "sha256": "c0b370f33d0b5a8d2b1ac1aa3989b765f900480f72cc4ac61c69d7ca4788d787"
     },
+    "sienna-shaw": null,
     "steve-harrington": {
       "path": "images/survivor-images/steve_harrington.png",
       "sourcePath": "images/survivor-images/steve_harrington.png",
@@ -2608,6 +2615,7 @@
       "format": "png",
       "sha256": "0c9e88e59e315aecfde4af99e15b8e80f1acc0239a52ef570458d30fed13c09f"
     },
+    "the-terrifier": null,
     "the-trapper": {
       "path": "images/killer-images/the_trapper.png",
       "sourcePath": "images/killer-images/the_trapper.png",
@@ -3066,6 +3074,7 @@
       "format": "png",
       "sha256": "c8a1e4f49190e00867f6da30464bec76f59b61644334d18cc9da264f7fdad9e2"
     },
+    "sienna-shaw": null,
     "steve-harrington": {
       "path": "images/updated-images/Character Portraits/Survivors/Lore/Steve Harrington.png",
       "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Steve Harrington.png",
@@ -3387,6 +3396,7 @@
       "format": "png",
       "sha256": "540261382f2838a948e6c58f6e42819fc1514ba5a6b17df18be0c6e3f3803e09"
     },
+    "the-terrifier": null,
     "the-trapper": {
       "path": "images/updated-images/Character Portraits/Killers/Lore/Trapper.png",
       "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Trapper.png",
@@ -9324,7 +9334,27 @@
       "width": 300,
       "height": 300,
       "sha256": "f85b9091834a4430b103265dbacaa4268cf5769b7bd4d04d032a378b72ddc23f"
-    }
+    },
+    "killer-addon-terrifier-allies-scalp": null,
+    "killer-addon-terrifier-blackened-heart": null,
+    "killer-addon-terrifier-bottle-of-bleach": null,
+    "killer-addon-terrifier-mikes-phone": null,
+    "killer-addon-terrifier-bloodstained-bullet": null,
+    "killer-addon-terrifier-brookes-pustule": null,
+    "killer-addon-terrifier-burnt-wings": null,
+    "killer-addon-terrifier-shiny-tricycle": null,
+    "killer-addon-terrifier-siennas-flesh": null,
+    "killer-addon-terrifier-candy-head-bowl": null,
+    "killer-addon-terrifier-dead-opossum": null,
+    "killer-addon-terrifier-emily": null,
+    "killer-addon-terrifier-thornton-salt": null,
+    "killer-addon-terrifier-victorias-eye": null,
+    "killer-addon-terrifier-art-crispies": null,
+    "killer-addon-terrifier-explosive-gift": null,
+    "killer-addon-terrifier-jonathans-skull": null,
+    "killer-addon-terrifier-wacky-jacks": null,
+    "killer-addon-terrifier-duct-tape": null,
+    "killer-addon-terrifier-the-ninth-circle": null
   },
   "killerPowers": {
     "the-trapper": {
@@ -9555,6 +9585,7 @@
       "height": 300,
       "sha256": "4b1921421753d1b49e4a822cdd062e581cf7220ac18bef3058c855344f8a1419"
     },
-    "the-judgment": null
+    "the-judgment": null,
+    "the-terrifier": null
   }
 }

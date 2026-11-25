@@ -32,14 +32,14 @@ async function withoutKillerArt(callback) {
   try{return await callback();}
   finally{addons.forEach((entity,index)=>entity.imagePath=addonPaths[index]);powers.forEach((power,index)=>power.artwork.path=powerPaths[index]);}
 }
-test('current portraits cover all 98 canonical characters, preserving source hashes and actual formats', async () => {
+test('current portraits map 98 canonical characters, preserving source hashes and actual formats', async () => {
   const { portraits } = await assets.generatePortraitManifest(project);
   assert.deepEqual(Object.keys(portraits), characters.map(c => c.id).sort());
   assert.equal(Object.values(portraits).filter(Boolean).length, 98);
-  assert.equal(Object.values(portraits).filter(p => p.format === 'webp').length, 12);
+  assert.equal(Object.values(portraits).filter(p => p?.format === 'webp').length, 12);
   assert.equal(portraits['zarina-kassir'].width, 512); assert.equal(portraits['zarina-kassir'].height, 512);
   for (const id of ['aestri-yazar', 'bill-overbeck', 'yun-jin-lee', 'the-onryo']) assert.ok(portraits[id]);
-  for (const portrait of Object.values(portraits)) {
+  for (const portrait of Object.values(portraits).filter(Boolean)) {
     assert.equal(createHash('sha256').update(await readFile(join(project, portrait.sourcePath))).digest('hex'), portrait.sha256);
     assert.ok(portrait.path.endsWith('.' + portrait.format));
   }

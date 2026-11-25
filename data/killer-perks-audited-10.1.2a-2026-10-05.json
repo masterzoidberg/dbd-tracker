@@ -1,6 +1,6 @@
 {
-  "verified_live_patch": "10.2.2",
-  "verified_date": "2026-11-22",
+  "verified_live_patch": "10.3.0",
+  "verified_date": "2026-11-25",
   "perks": [
     {
       "name": "A Nurse's Calling",
@@ -1202,37 +1202,38 @@
       "source_killer": "The Lich",
       "is_general_perk": false,
       "tier_1_values": {
-        "attackcooldownreduction%": 10,
-        "extrablindstunduration%": 25,
-        "vaultspeedincrease%": 15
+        "basic_window_vault_speed_bonus_percent": 15,
+        "successful_basic_attack_recovery_reduction_percent": 13,
+        "extra_blind_and_pallet_stun_duration_percent": 15
       },
       "tier_2_values": {
-        "attackcooldownreduction%": 10,
-        "extrablindstunduration%": 25,
-        "vaultspeedincrease%": 20
+        "basic_window_vault_speed_bonus_percent": 15,
+        "successful_basic_attack_recovery_reduction_percent": 14,
+        "extra_blind_and_pallet_stun_duration_percent": 15
       },
       "tier_3_values": {
-        "attackcooldownreduction%": 10,
-        "extrablindstunduration%": 25,
-        "vaultspeedincrease%": 25
+        "basic_window_vault_speed_bonus_percent": 15,
+        "successful_basic_attack_recovery_reduction_percent": 15,
+        "extra_blind_and_pallet_stun_duration_percent": 15
       },
-      "current_effect": "Basic Window vaults are 15/20/25% faster. Basic attacks recover 10% sooner whether they hit, miss, or are obstructed. Blinds and Pallet stuns last 25% longer on you.",
-      "plain_english_summary": "Vault Windows and recover from basic attacks faster, at the cost of longer blinds and Pallet stuns.",
+      "current_effect": "Basic Window vaults are 15% faster and successful basic attacks recover 13/14/15% sooner. Blinds and Pallet stuns last 15% longer on you.",
+      "plain_english_summary": "Basic Window vaults are 15% faster and successful basic attacks recover 13/14/15% sooner. Blinds and Pallet stuns last 15% longer on you.",
       "latest_known_live_balance_change": {
-        "patch": "10.2.2",
-        "change": "Basic Window vaults are 15/20/25% faster. Basic attacks recover 10% sooner whether they hit, miss, or are obstructed. Blinds and Pallet stuns last 25% longer on you."
+        "patch": "10.3.0",
+        "change": "Basic Window vaults are 15% faster and successful basic attacks recover 13/14/15% sooner. Blinds and Pallet stuns last 15% longer on you."
       },
-      "current_live_patch_verified": "10.2.2",
+      "current_live_patch_verified": "10.3.0",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/523-9-2-0-sinister-grace",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
         "https://x.com/DeadbyDaylight/status/2100600572323786756",
-        "https://steamcommunity.com/games/381210/announcements/detail/716793092553837357"
+        "https://steamcommunity.com/games/381210/announcements/detail/716793092553837357",
+        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/7067"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Dark_Arrogance"
       ],
-      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
+      "verification_notes": "Behaviour live release notes, Steam build 26718868."
     },
     {
       "name": "Dark Devotion",
@@ -6256,44 +6257,42 @@
       "source_killer": "The Krasue",
       "is_general_perk": false,
       "tier_1_values": {
-        "carryhaste%pertoken": 4,
-        "exposedduration": 80,
-        "hookfaster%pertoken": 4,
-        "maxtokens": 4,
-        "tokensperuniquehook": 1
+        "max_tokens": 4,
+        "carry_haste_per_token_percent": 4,
+        "hook_speed_per_token_percent": 4,
+        "exposed_duration_seconds": 60
       },
       "tier_2_values": {
-        "carryhaste%pertoken": 4,
-        "exposedduration": 85,
-        "hookfaster%pertoken": 4,
-        "maxtokens": 4,
-        "tokensperuniquehook": 1
+        "max_tokens": 4,
+        "carry_haste_per_token_percent": 4,
+        "hook_speed_per_token_percent": 4,
+        "exposed_duration_seconds": 65
       },
       "tier_3_values": {
-        "carryhaste%pertoken": 4,
-        "exposedduration": 90,
-        "hookfaster%pertoken": 4,
-        "maxtokens": 4,
-        "tokensperuniquehook": 1
+        "max_tokens": 4,
+        "carry_haste_per_token_percent": 4,
+        "hook_speed_per_token_percent": 4,
+        "exposed_duration_seconds": 70
       },
-      "current_effect": "Your first hook on each Survivor earns a token. Each token adds 4% Haste while carrying and 4% hooking speed. At four tokens, all Survivors scream and become Exposed for 80/85/90 seconds.",
-      "plain_english_summary": "Your first hook on each Survivor earns a token.",
+      "current_effect": "Gain a token the first time you hook each Survivor. Each token grants 4% Haste while carrying and 4% faster hooking. Reaching four tokens makes all Survivors scream and applies Exposed for 60/65/70 seconds.",
+      "plain_english_summary": "Gain a token the first time you hook each Survivor. Each token grants 4% Haste while carrying and 4% faster hooking. Reaching four tokens makes all Survivors scream and applies Exposed for 60/65/70 seconds.",
       "latest_known_live_balance_change": {
-        "patch": "10.2.0",
-        "change": "Your first hook on each Survivor earns a token. Each token adds 4% Haste while carrying and 4% hooking speed. At four tokens, all Survivors scream and become Exposed for 80/85/90 seconds."
+        "patch": "10.3.0",
+        "change": "Gain a token the first time you hook each Survivor. Each token grants 4% Haste while carrying and 4% faster hooking. Reaching four tokens makes all Survivors scream and applies Exposed for 60/65/70 seconds."
       },
-      "current_live_patch_verified": "10.2.2",
+      "current_live_patch_verified": "10.3.0",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/523-9-2-0-sinister-grace",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/558-10-1-2-bugfix-patch",
         "https://store.steampowered.com/oldnews/?appgroupname=Dead+by+Daylight&appids=381210&feed=steam_community_announcements&headlines=1",
-        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335",
+        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/7067"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Ravenous"
       ],
-      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
+      "verification_notes": "Behaviour live release notes, Steam build 26718868."
     },
     {
       "name": "Remember Me",
@@ -6729,33 +6728,40 @@
       "source_killer": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "generatorregression": 150,
-        "range": 24
+        "random_scourge_hooks": 4,
+        "minimum_distance_metres": 24,
+        "regression_speed_percent": 200,
+        "linger_seconds": 20
       },
       "tier_2_values": {
-        "generatorregression": 175,
-        "range": 24
+        "random_scourge_hooks": 4,
+        "minimum_distance_metres": 24,
+        "regression_speed_percent": 200,
+        "linger_seconds": 25
       },
       "tier_3_values": {
-        "generatorregression": 200,
-        "range": 24
+        "random_scourge_hooks": 4,
+        "minimum_distance_metres": 24,
+        "regression_speed_percent": 200,
+        "linger_seconds": 30
       },
-      "current_effect": "Four random Hooks and every basement Hook become Scourge Hooks. While at least 24 metres from a Survivor on a Scourge Hook, unattended Generators regress at 150/175/200% of normal speed.",
-      "plain_english_summary": "Four random Hooks and every basement Hook become Scourge Hooks.",
+      "current_effect": "Four random Hooks and the basement Hooks become Scourge Hooks. While you are at least 24 metres from a Survivor on a Scourge Hook, Generators that are already regressing and are not being repaired regress at 200% speed. The effect lingers for 20/25/30 seconds after that Survivor leaves the Hook.",
+      "plain_english_summary": "Four random Hooks and the basement Hooks become Scourge Hooks. While you are at least 24 metres from a Survivor on a Scourge Hook, Generators that are already regressing and are not being repaired regress at 200% speed. The effect lingers for 20/25/30 seconds after that Survivor leaves the Hook.",
       "latest_known_live_balance_change": {
-        "patch": "10.2.0",
-        "change": "Four random Hooks and every basement Hook become Scourge Hooks. While at least 24 metres from a Survivor on a Scourge Hook, unattended Generators regress at 150/175/200% of normal speed."
+        "patch": "10.3.0",
+        "change": "Four random Hooks and the basement Hooks become Scourge Hooks. While you are at least 24 metres from a Survivor on a Scourge Hook, Generators that are already regressing and are not being repaired regress at 200% speed. The effect lingers for 20/25/30 seconds after that Survivor leaves the Hook."
       },
-      "current_live_patch_verified": "10.2.2",
+      "current_live_patch_verified": "10.3.0",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/558-10-1-2-bugfix-patch",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335",
+        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/7067"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Monstrous_Shrine"
       ],
-      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
+      "verification_notes": "Behaviour live release notes, Steam build 26718868."
     },
     {
       "name": "Scourge Hook: Pain Resonance",
@@ -8661,33 +8667,34 @@
       "source_killer": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "hasteamount%": 5,
-        "rangetosurvivors": 28
+        "range_metres": 28,
+        "haste_percent": 7
       },
       "tier_2_values": {
-        "hasteamount%": 5,
-        "rangetosurvivors": 26
+        "range_metres": 26,
+        "haste_percent": 7
       },
       "tier_3_values": {
-        "hasteamount%": 5,
-        "rangetosurvivors": 24
+        "range_metres": 24,
+        "haste_percent": 7
       },
-      "current_effect": "You occasionally hear whispers when a Survivor is within 28/26/24 metres. Outside that range from every Survivor, gain 5% Haste.",
-      "plain_english_summary": "You occasionally hear whispers when a Survivor is within 28/26/24 metres.",
+      "current_effect": "You periodically hear whispers if a Survivor is within 28/26/24 metres. Gain 7% Haste when every Survivor is outside that range.",
+      "plain_english_summary": "You periodically hear whispers if a Survivor is within 28/26/24 metres. Gain 7% Haste when every Survivor is outside that range.",
       "latest_known_live_balance_change": {
-        "patch": "10.2.0",
-        "change": "You occasionally hear whispers when a Survivor is within 28/26/24 metres. Outside that range from every Survivor, gain 5% Haste."
+        "patch": "10.3.0",
+        "change": "You periodically hear whispers if a Survivor is within 28/26/24 metres. Gain 7% Haste when every Survivor is outside that range."
       },
-      "current_live_patch_verified": "10.2.2",
+      "current_live_patch_verified": "10.3.0",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/558-10-1-2-bugfix-patch",
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335",
+        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/7067"
       ],
       "secondary_source_urls": [
         "https://deadbydaylight.wiki.gg/wiki/Whispers"
       ],
-      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
+      "verification_notes": "Behaviour live release notes, Steam build 26718868."
     },
     {
       "name": "Zanshin Tactics",
@@ -8754,6 +8761,108 @@
         "https://deadbydaylight.wiki.gg/wiki/Zanshin_Tactics"
       ],
       "verification_notes": "The latest official patch note located confirms the Survivor aura duration reduction; current environmental aura set is Pallets and Windows."
+    },
+    {
+      "name": "Laughingstock",
+      "slug": "laughingstock",
+      "native_id": "K45P01",
+      "source_killer": "The Terrifier",
+      "is_general_perk": false,
+      "current_effect": "See completed Generator Auras. Survivors within 12 metres of a completed Generator become Exhausted and Oblivious. Both effects linger for 3/4/5 seconds after they leave.",
+      "plain_english_summary": "See completed Generator Auras. Survivors within 12 metres of a completed Generator become Exhausted and Oblivious. Both effects linger for 3/4/5 seconds after they leave.",
+      "tier_1_values": {
+        "generator_radius_metres": 12,
+        "linger_seconds": 3
+      },
+      "tier_2_values": {
+        "generator_radius_metres": 12,
+        "linger_seconds": 4
+      },
+      "tier_3_values": {
+        "generator_radius_metres": 12,
+        "linger_seconds": 5
+      },
+      "latest_known_live_balance_change": {
+        "patch": "10.3.0",
+        "change": "See completed Generator Auras. Survivors within 12 metres of a completed Generator become Exhausted and Oblivious. Both effects linger for 3/4/5 seconds after they leave."
+      },
+      "current_live_patch_verified": "10.3.0",
+      "official_source_urls": [
+        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/7067"
+      ],
+      "verification_notes": "Live release notes and the preserved client 10.3.0-3993125 perk localization/tunables."
+    },
+    {
+      "name": "Kill Spree",
+      "slug": "kill-spree",
+      "native_id": "K45P02",
+      "source_killer": "The Terrifier",
+      "is_general_perk": false,
+      "current_effect": "After all Generators are completed, you can kill a Survivor if every remaining Survivor has two Hook States. Both Exit Gate Switches are blocked during the kill and for 12/16/20 seconds afterward.",
+      "plain_english_summary": "After all Generators are completed, you can kill a Survivor if every remaining Survivor has two Hook States. Both Exit Gate Switches are blocked during the kill and for 12/16/20 seconds afterward.",
+      "tier_1_values": {
+        "required_hook_states": 2,
+        "gate_block_linger_seconds": 12
+      },
+      "tier_2_values": {
+        "required_hook_states": 2,
+        "gate_block_linger_seconds": 16
+      },
+      "tier_3_values": {
+        "required_hook_states": 2,
+        "gate_block_linger_seconds": 20
+      },
+      "latest_known_live_balance_change": {
+        "patch": "10.3.0",
+        "change": "After all Generators are completed, you can kill a Survivor if every remaining Survivor has two Hook States. Both Exit Gate Switches are blocked during the kill and for 12/16/20 seconds afterward."
+      },
+      "current_live_patch_verified": "10.3.0",
+      "official_source_urls": [
+        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/7067"
+      ],
+      "verification_notes": "Live release notes and the preserved client 10.3.0-3993125 perk localization/tunables."
+    },
+    {
+      "name": "Funny Business",
+      "slug": "funny-business",
+      "native_id": "K45P03",
+      "source_killer": "The Terrifier",
+      "is_general_perk": false,
+      "current_effect": "Damaging a Generator gives you 10% Haste for 10 seconds and triggers one random outcome: 5 extra seconds of Haste, a 2-second stun, a 30-second block on that Generator, or harmless confetti. The same outcome cannot occur twice consecutively. Cooldown is 60/50/40 seconds.",
+      "plain_english_summary": "Damaging a Generator gives you 10% Haste for 10 seconds and triggers one random outcome: 5 extra seconds of Haste, a 2-second stun, a 30-second block on that Generator, or harmless confetti. The same outcome cannot occur twice consecutively. Cooldown is 60/50/40 seconds.",
+      "tier_1_values": {
+        "haste_percent": 10,
+        "haste_seconds": 10,
+        "extra_haste_seconds": 5,
+        "stun_seconds": 2,
+        "generator_block_seconds": 30,
+        "cooldown_seconds": 60
+      },
+      "tier_2_values": {
+        "haste_percent": 10,
+        "haste_seconds": 10,
+        "extra_haste_seconds": 5,
+        "stun_seconds": 2,
+        "generator_block_seconds": 30,
+        "cooldown_seconds": 50
+      },
+      "tier_3_values": {
+        "haste_percent": 10,
+        "haste_seconds": 10,
+        "extra_haste_seconds": 5,
+        "stun_seconds": 2,
+        "generator_block_seconds": 30,
+        "cooldown_seconds": 40
+      },
+      "latest_known_live_balance_change": {
+        "patch": "10.3.0",
+        "change": "Damaging a Generator gives you 10% Haste for 10 seconds and triggers one random outcome: 5 extra seconds of Haste, a 2-second stun, a 30-second block on that Generator, or harmless confetti. The same outcome cannot occur twice consecutively. Cooldown is 60/50/40 seconds."
+      },
+      "current_live_patch_verified": "10.3.0",
+      "official_source_urls": [
+        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/7067"
+      ],
+      "verification_notes": "Live release notes and the preserved client 10.3.0-3993125 perk localization/tunables."
     }
   ]
 }

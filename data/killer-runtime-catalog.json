@@ -1,6 +1,6 @@
 {
   "dataset": "dbd-killers-live",
-  "gameVersion": "10.2.2b",
+  "gameVersion": "10.3.0",
   "killers": [
     {
       "characterId": "the-trapper",
@@ -22062,6 +22062,324 @@
           "artwork": {
             "path": "images/Powers and Add-ons/Judgment/With Background/Obsidian Feather.png",
             "confidence": "EXACT"
+          }
+        }
+      ]
+    },
+    {
+      "characterId": "the-terrifier",
+      "power": {
+        "powerName": "Bag of Toys",
+        "shortSummary": "Pick a single-use Toy from two options. Build Deadliness by inflicting Torture and Taunting Terrified Survivors. Follow up with a different Toy to down a Tortured Survivor or use a Toy already at maximum Deadliness.",
+        "fullExplanation": "Open the bag to choose one of two randomly offered Toys. Closing it starts a 10-second cooldown. Damaging Toys injure healthy Survivors or inflict Torture on injured Survivors, which earns a Deadliness point for that Toy. A different Toy can down a Tortured Survivor and make them Terrified. A maxed Toy can injure and Torture with one hit or down an injured Survivor. Downing a Tortured Survivor with a maxed Toy also makes them Terrified. Maxing a Toy increases the threshold for each other Toy by one point. Taunt a downed Terrified Survivor within 6 metres to clear Terrified and give every Toy one Deadliness point. Hooking a Terrified Survivor triggers the Taunt automatically.",
+        "components": [
+          {
+            "name": "Acid Bottle",
+            "type": "Toy",
+            "description": "Thrown acid leaves a puddle for 1.5 seconds. On walls the puddle forms at the base if the impact is below 8 metres."
+          },
+          {
+            "name": "Flamethrower",
+            "type": "Toy",
+            "description": "Flames can persist for up to 6 seconds on the environment and for 6 seconds on Generators, Windows and dropped Pallets. Survivors have 8 seconds of flame immunity after being unhooked or escaping the Killer’s grasp."
+          },
+          {
+            "name": "Handgun",
+            "type": "Toy",
+            "description": "Aim and fire one round. Movement while charging and holding it is 1 metre per second."
+          },
+          {
+            "name": "Flail",
+            "type": "Toy",
+            "description": "Strikes up to 5 metres away and reaches over Windows, Pallets and low obstacles."
+          },
+          {
+            "name": "Bike Horn",
+            "type": "Toy",
+            "description": "Detects Survivors in a 6-metre radius and at unlimited distance forward. Detected Survivors give a loud noise notification. Detecting multiple Survivors increases the Horn’s Deadliness and also applies Oblivious and reveals them with Killer Instinct. Detection refreshes existing Torture. A maxed Horn interrupts repairing and healing and removes 5% progress from the interrupted action."
+          }
+        ],
+        "mechanics": [
+          {
+            "name": "Bag cooldown",
+            "value": 10,
+            "unit": "seconds",
+            "description": "Starts after closing the bag."
+          },
+          {
+            "name": "Acid charge time",
+            "value": 0.5,
+            "unit": "seconds",
+            "description": "Time to ready the Acid Bottle."
+          },
+          {
+            "name": "Acid Puddle lifetime",
+            "value": 1.5,
+            "unit": "seconds",
+            "description": "Time the puddle remains after impact."
+          },
+          {
+            "name": "Torture duration",
+            "value": 40,
+            "unit": "seconds",
+            "description": "Ends early if healed to healthy or downed. A hit from the same Toy refreshes it."
+          },
+          {
+            "name": "Manual Taunt range",
+            "value": 6,
+            "unit": "metres",
+            "description": "Distance from a downed Terrified Survivor."
+          }
+        ],
+        "resources": [],
+        "survivorInteractions": [],
+        "powerStates": [],
+        "addonRelevantMechanics": [],
+        "complexRules": [],
+        "artwork": {
+          "path": null,
+          "confidence": "MISSING"
+        }
+      },
+      "addons": [
+        {
+          "id": "killer-addon-terrifier-allies-scalp",
+          "characterId": "the-terrifier",
+          "name": "Allie's Scalp",
+          "order": 0,
+          "rarity": "Common",
+          "effect": "Once per Trial, a basic attack that downs a Tortured Survivor also makes them Terrified.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-blackened-heart",
+          "characterId": "the-terrifier",
+          "name": "Blackened Heart",
+          "order": 1,
+          "rarity": "Common",
+          "effect": "After a Taunt, the next Toy that downs a Survivor earns one extra Deadliness point.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-bottle-of-bleach",
+          "characterId": "the-terrifier",
+          "name": "Bottle of Bleach",
+          "order": 2,
+          "rarity": "Common",
+          "effect": "Torture decays 15% more slowly.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-mikes-phone",
+          "characterId": "the-terrifier",
+          "name": "Mike's Phone",
+          "order": 3,
+          "rarity": "Common",
+          "effect": "A Toy hit on a Generator that is not already regressing damages it and starts regression.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-bloodstained-bullet",
+          "characterId": "the-terrifier",
+          "name": "Bloodstained Bullet",
+          "order": 4,
+          "rarity": "Uncommon",
+          "effect": "A Handgun hit from over 16 metres away grants 10% Haste for 10 seconds. Inflicting Torture guarantees the Handgun as an option the next time you open the bag.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-brookes-pustule",
+          "characterId": "the-terrifier",
+          "name": "Brooke's Pustule",
+          "order": 5,
+          "rarity": "Uncommon",
+          "effect": "Acid Puddles grow with the distance the acid falls, reaching double size after 6 metres. Inflicting Torture guarantees the Acid Bottle as an option on the next bag search.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-burnt-wings",
+          "characterId": "the-terrifier",
+          "name": "Burnt Wings",
+          "order": 6,
+          "rarity": "Uncommon",
+          "effect": "Flames last 5 seconds longer. Inflicting Torture guarantees the Flamethrower as an option on the next bag search.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-shiny-tricycle",
+          "characterId": "the-terrifier",
+          "name": "Shiny Tricycle",
+          "order": 7,
+          "rarity": "Uncommon",
+          "effect": "When the Bike Horn detects multiple Survivors, see the Auras of the other Survivors for 5 seconds. Inflicting Torture guarantees the Bike Horn as an option on the next bag search.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-siennas-flesh",
+          "characterId": "the-terrifier",
+          "name": "Sienna's Flesh",
+          "order": 8,
+          "rarity": "Uncommon",
+          "effect": "The Flail reaches 20% farther. Inflicting Torture guarantees the Flail as an option on the next bag search.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-candy-head-bowl",
+          "characterId": "the-terrifier",
+          "name": "Candy Head Bowl",
+          "order": 9,
+          "rarity": "Rare",
+          "effect": "Detecting a Survivor with the Bike Horn resets the Bag of Toys cooldown.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-dead-opossum",
+          "characterId": "the-terrifier",
+          "name": "Dead Opossum",
+          "order": 10,
+          "rarity": "Rare",
+          "effect": "A Handgun or Flail hit on a healthy Survivor makes all other Survivors within 24 metres scream and reveal their locations for 3 seconds.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-emily",
+          "characterId": "the-terrifier",
+          "name": "Emily",
+          "order": 11,
+          "rarity": "Rare",
+          "effect": "The bag offers Toys in a fixed sequence: Bike Horn, Handgun, Flamethrower, Flail, then Acid Bottle.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-thornton-salt",
+          "characterId": "the-terrifier",
+          "name": "Thornton Salt",
+          "order": 12,
+          "rarity": "Rare",
+          "effect": "Injured Survivors who are Tortured suffer Mangled and Hemorrhage. The effects linger for 40 seconds after Torture ends.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-victorias-eye",
+          "characterId": "the-terrifier",
+          "name": "Victoria's Eye",
+          "order": 13,
+          "rarity": "Rare",
+          "effect": "A direct Fire or Acid hit reveals the Survivor’s Aura for 5 seconds.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-art-crispies",
+          "characterId": "the-terrifier",
+          "name": "Art Crispies",
+          "order": 14,
+          "rarity": "Very Rare",
+          "effect": "Inflicting Torture grants you and the affected Survivor a random 5% to 15% Haste bonus for 5 seconds.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-explosive-gift",
+          "characterId": "the-terrifier",
+          "name": "Explosive Gift",
+          "order": 15,
+          "rarity": "Very Rare",
+          "effect": "Each Toy at maximum Deadliness reduces your Terror Radius by 12%.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-jonathans-skull",
+          "characterId": "the-terrifier",
+          "name": "Jonathan's Skull",
+          "order": 16,
+          "rarity": "Very Rare",
+          "effect": "Gain one token, up to five, when a Toy damages or Tortures a Survivor. Taunting spends them all and reveals Survivor Auras for 6 seconds within 10 metres plus 5 metres per token, if at least one token was spent.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-wacky-jacks",
+          "characterId": "the-terrifier",
+          "name": "Wacky Jacks",
+          "order": 17,
+          "rarity": "Very Rare",
+          "effect": "A Toy needs no more than five points to reach maximum Deadliness.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-duct-tape",
+          "characterId": "the-terrifier",
+          "name": "Duct Tape",
+          "order": 18,
+          "rarity": "Ultra Rare",
+          "effect": "Choosing a Toy within half a second of opening the bag reduces the bag cooldown by 4 seconds.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-the-ninth-circle",
+          "characterId": "the-terrifier",
+          "name": "The Ninth Circle",
+          "order": 19,
+          "rarity": "Ultra Rare",
+          "effect": "Gain a token for the first Taunt on each Terrified Survivor. With four tokens and powered Exit Gates, the Bag of Toys cooldown drops to 1 second.",
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
           }
         }
       ]

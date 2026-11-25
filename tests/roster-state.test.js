@@ -10,9 +10,9 @@ test('paginates the already filtered and sorted list in six-result pages for bot
   const survivors = roleList('survivor').filter(character => character.name.length > 0).sort((a, b) => b.name.localeCompare(a.name));
   const killers = roleList('killer').filter(character => character.id !== 'unknown').sort((a, b) => a.name.localeCompare(b.name));
 
-  assert.equal(survivors.length, 54);
-  assert.equal(killers.length, 44);
-  assert.equal(paginateRoster(survivors, 0).pageCount, 9);
+  assert.equal(survivors.length, 55);
+  assert.equal(killers.length, 45);
+  assert.equal(paginateRoster(survivors, 0).pageCount, 10);
   assert.equal(paginateRoster(killers, 0).pageCount, 8);
   assert.equal(paginateRoster(survivors, 0).results.length, 6);
   assert.deepEqual(paginateRoster(survivors, 1).results, survivors.slice(6, 12));

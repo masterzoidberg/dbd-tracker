@@ -19,18 +19,18 @@ test('only referenced verified Survivor assets bind stable IDs and null fallback
 test('all explicit Killer Power and Add-on artwork mappings resolve with confidence retained',async()=>{
  const manifest=await generateAssetManifest();
  const killerAddons=Object.values(inventoryEntityById).filter(entity=>entity.kind==='killer-addon');
- assert.equal(killerAddons.length,880);
- assert.equal(Object.keys(manifest.killerPowers).length,44);
+ assert.equal(killerAddons.length,900);
+ assert.equal(Object.keys(manifest.killerPowers).length,45);
  assert.equal(Object.values(manifest.inventory).filter(asset=>asset&&asset.path.startsWith('images/Powers and Add-ons/')).length,880);
- const mappings=[...killerAddons.map(entity=>entity.artworkConfidence),...Object.values(killerPowerByCharacterId).map(power=>power.artwork.confidence).filter(confidence=>confidence==='EXACT'||confidence==='REVIEW')];
+ const mappings=[...killerAddons.map(entity=>entity.artworkConfidence),...Object.values(killerPowerByCharacterId).map(power=>power.artwork.confidence)].filter(confidence=>confidence!=='MISSING');
  assert.equal(mappings.length,917);
  assert.equal(mappings.filter(confidence=>confidence==='EXACT').length,843);
  assert.equal(mappings.filter(confidence=>confidence==='REVIEW').length,74);
- assert.equal(Object.values(killerPowerByCharacterId).filter(power=>power.artwork.path===null).length,7);
+ assert.equal(Object.values(killerPowerByCharacterId).filter(power=>power.artwork.path===null).length,8);
  for(const entity of killerAddons) {
   const asset=manifest.inventory[entity.id];
-  assert.ok(asset,`missing ${entity.id}`);
-  assert.equal(asset.path,entity.imagePath);
+  assert.equal(asset?.path??null,entity.imagePath,entity.id);
+  assert.equal(asset===null,entity.artworkConfidence==='MISSING',entity.id);
  }
  for(const [characterId,power] of Object.entries(killerPowerByCharacterId)) {
   const asset=manifest.killerPowers[characterId];
