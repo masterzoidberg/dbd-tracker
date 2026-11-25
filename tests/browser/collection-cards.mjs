@@ -431,7 +431,7 @@ export async function collectionCardsRegression(page, origin, manifest) {
   assert.equal(await page.locator('.survivor-collection-card').count(), 3, 'Owned filter remains functional');
   await page.locator('#ownership-filter').selectOption('locked');
   assert.equal(await page.locator('.survivor-collection-card').count(), 6, 'Locked filter remains functional and paginated');
-  assert.match(await page.locator('#collection-page-status').textContent(), /of 51/);
+  assert.match(await page.locator('#collection-page-status').textContent(), /of 52/);
   await page.locator('#ownership-filter').selectOption('all');
   await page.locator('#prestige-filter').selectOption('2');
   assert.equal(await page.locator('.survivor-collection-card').count(), 1, 'Prestige filter remains functional');
