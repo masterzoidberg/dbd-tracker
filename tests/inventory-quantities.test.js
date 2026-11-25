@@ -43,8 +43,8 @@ test('fresh inventory has independent empty maps', () => {
 
 test('reviewed Survivor and Killer registries activate while v2 defaults stay empty', () => {
   assert.equal(inventoryEntities.length,92);
-  assert.equal(Object.keys(inventoryEntityById).length,972);
-  assert.equal(Object.keys(killerPowerByCharacterId).length,44);
+  assert.equal(Object.keys(inventoryEntityById).length,992);
+  assert.equal(Object.keys(killerPowerByCharacterId).length,45);
   assert.deepEqual(inventoryCatalogStatus, {
     survivor: 'ready', killerAddons: 'ready', killerPowers: 'ready',
   });

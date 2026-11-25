@@ -38,9 +38,9 @@ test('adapter rejects duplicate kind provenance and mismapped identities',()=>{
 test('Killer runtime adapter activates explicit Add-on identities and Power registry without changing Survivors',()=>{
  const runtime=JSON.parse(readFileSync(new URL('../data/killer-runtime-catalog.json',import.meta.url)));
  const {addons,powersByCharacterId}=catalog.adaptKillerRuntimeCatalog(runtime);
- assert.equal(addons.length,880);
- assert.equal(Object.keys(powersByCharacterId).length,44);
- assert.equal(Object.keys(inventoryEntityById).length,972);
+ assert.equal(addons.length,900);
+ assert.equal(Object.keys(powersByCharacterId).length,45);
+ assert.equal(Object.keys(inventoryEntityById).length,992);
  assert.equal(inventoryEntities.length,92);
  assert.equal(inventoryCatalogStatus.killerAddons,'ready');
  assert.equal(inventoryCatalogStatus.killerPowers,'ready');

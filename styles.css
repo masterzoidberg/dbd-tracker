@@ -2759,18 +2759,6 @@ footer span {
   font-size:12px;
   line-height:1.45
 }
-.chapter-preview {
-  display:flex;
-  flex-wrap:wrap;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px 24px;
-  margin:0 0 16px;
-}
-.chapter-preview-status { color:var(--gold); font-size:12px; font-weight:700; }
-.chapter-preview h2 { margin:4px 0; }
-.chapter-preview p { margin:4px 0 0; color:var(--muted); }
-.chapter-preview-details strong { display:block; color:var(--text); }
 .collection-art-fallback {
   display:grid;
   width:100%;

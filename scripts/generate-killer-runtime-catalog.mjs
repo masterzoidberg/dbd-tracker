@@ -83,7 +83,7 @@ export function projectKillerRuntimeCatalog(source) {
       counts[addon.rarity]++;
       ids.add(addon.id); researchIds.add(addon.researchId);
       return { id: addon.id, characterId: addon.characterId, name: addon.name, order, rarity: addon.rarity,
-        effect: addon.effect, artwork: projectArtwork(addon.artwork, false) };
+        effect: addon.effect, artwork: projectArtwork(addon.artwork, true) };
     });
     check(Object.entries(rarityCounts).every(([rarity, count]) => counts[rarity] === count), 'Invalid Add-on rarity counts.');
     return { characterId: killer.characterId, power: projectPower(killer.power), addons };

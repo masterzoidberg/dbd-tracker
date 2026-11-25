@@ -1,22 +1,22 @@
 {
   "schemaVersion": 1,
   "dataset": "dbd-killers-live",
-  "gameVersion": "10.2.2b",
-  "compiledDate": "2026-11-22",
+  "gameVersion": "10.3.0",
+  "compiledDate": "2026-11-25",
   "researchStatus": "VERIFIED",
-  "scope": "Current live 1v4 Killer power baselines plus ordinary current Killer-specific Power Add-ons for all 44 live Killers. Power research and Add-ons are nested under the owning Killer but are not hard-linked to individual power mechanics.",
+  "scope": "Current live 1v4 Killer power baselines plus ordinary current Killer-specific Power Add-ons for all 45 live Killers. Power research and Add-ons are nested under the owning Killer but are not hard-linked to individual power mechanics.",
   "counts": {
-    "killers": 44,
-    "verifiedPowers": 44,
-    "addons": 880,
-    "verifiedAddons": 880,
+    "killers": 45,
+    "verifiedPowers": 45,
+    "addons": 900,
+    "verifiedAddons": 900,
     "addonsPerKiller": 20,
     "rarities": {
-      "Common": 176,
-      "Uncommon": 220,
-      "Rare": 220,
-      "Very Rare": 176,
-      "Ultra Rare": 88,
+      "Common": 180,
+      "Uncommon": 225,
+      "Rare": 225,
+      "Very Rare": 180,
+      "Ultra Rare": 90,
       "Event": 0
     }
   },
@@ -40756,6 +40756,12 @@
               "url": "https://deadbydaylight.wiki.gg/wiki/The_Artist",
               "sourceType": "current character/power add-on listing",
               "accessed": "2026-10-12"
+            },
+            {
+              "title": "Behaviour 10.3.0 live patch notes",
+              "url": "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/7067",
+              "sourceType": "official bug fix",
+              "accessed": "2026-11-25"
             }
           ],
           "provenance": {
@@ -73356,6 +73362,608 @@
             "backgroundFolder": "With Background",
             "confidence": "EXACT",
             "mappingBatch": 5
+          }
+        }
+      ]
+    },
+    {
+      "ordinal": 45,
+      "characterId": "the-terrifier",
+      "killerId": "terrifier",
+      "killerName": "The Terrifier",
+      "characterName": "Art the Clown",
+      "powerName": "Bag of Toys",
+      "sourceBatch": "10.3.0",
+      "addonCount": 20,
+      "addonRarities": {
+        "Common": 4,
+        "Uncommon": 5,
+        "Rare": 5,
+        "Very Rare": 4,
+        "Ultra Rare": 2
+      },
+      "power": {
+        "killerName": "The Terrifier",
+        "characterName": "Art the Clown",
+        "powerName": "Bag of Toys",
+        "native_id": "Item_K45Power",
+        "researchStatus": "VERIFIED",
+        "shortSummary": "Pick a single-use Toy from two options. Build Deadliness by inflicting Torture and Taunting Terrified Survivors. Follow up with a different Toy to down a Tortured Survivor or use a Toy already at maximum Deadliness.",
+        "fullExplanation": "Open the bag to choose one of two randomly offered Toys. Closing it starts a 10-second cooldown. Damaging Toys injure healthy Survivors or inflict Torture on injured Survivors, which earns a Deadliness point for that Toy. A different Toy can down a Tortured Survivor and make them Terrified. A maxed Toy can injure and Torture with one hit or down an injured Survivor. Downing a Tortured Survivor with a maxed Toy also makes them Terrified. Maxing a Toy increases the threshold for each other Toy by one point. Taunt a downed Terrified Survivor within 6 metres to clear Terrified and give every Toy one Deadliness point. Hooking a Terrified Survivor triggers the Taunt automatically.",
+        "components": [
+          {
+            "name": "Acid Bottle",
+            "type": "Toy",
+            "description": "Thrown acid leaves a puddle for 1.5 seconds. On walls the puddle forms at the base if the impact is below 8 metres."
+          },
+          {
+            "name": "Flamethrower",
+            "type": "Toy",
+            "description": "Flames can persist for up to 6 seconds on the environment and for 6 seconds on Generators, Windows and dropped Pallets. Survivors have 8 seconds of flame immunity after being unhooked or escaping the Killer’s grasp."
+          },
+          {
+            "name": "Handgun",
+            "type": "Toy",
+            "description": "Aim and fire one round. Movement while charging and holding it is 1 metre per second."
+          },
+          {
+            "name": "Flail",
+            "type": "Toy",
+            "description": "Strikes up to 5 metres away and reaches over Windows, Pallets and low obstacles."
+          },
+          {
+            "name": "Bike Horn",
+            "type": "Toy",
+            "description": "Detects Survivors in a 6-metre radius and at unlimited distance forward. Detected Survivors give a loud noise notification. Detecting multiple Survivors increases the Horn’s Deadliness and also applies Oblivious and reveals them with Killer Instinct. Detection refreshes existing Torture. A maxed Horn interrupts repairing and healing and removes 5% progress from the interrupted action."
+          }
+        ],
+        "mechanics": [
+          {
+            "name": "Bag cooldown",
+            "value": 10,
+            "unit": "seconds",
+            "description": "Starts after closing the bag."
+          },
+          {
+            "name": "Acid charge time",
+            "value": 0.5,
+            "unit": "seconds",
+            "description": "Time to ready the Acid Bottle."
+          },
+          {
+            "name": "Acid Puddle lifetime",
+            "value": 1.5,
+            "unit": "seconds",
+            "description": "Time the puddle remains after impact."
+          },
+          {
+            "name": "Torture duration",
+            "value": 40,
+            "unit": "seconds",
+            "description": "Ends early if healed to healthy or downed. A hit from the same Toy refreshes it."
+          },
+          {
+            "name": "Manual Taunt range",
+            "value": 6,
+            "unit": "metres",
+            "description": "Distance from a downed Terrified Survivor."
+          }
+        ],
+        "resources": [],
+        "survivorInteractions": [],
+        "powerStates": [],
+        "addonRelevantMechanics": [],
+        "complexRules": [],
+        "sources": [
+          {
+            "title": "Behaviour 10.3.0 live patch notes",
+            "url": "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/7067"
+          }
+        ],
+        "artwork": {
+          "path": null,
+          "confidence": "MISSING"
+        }
+      },
+      "addons": [
+        {
+          "id": "killer-addon-terrifier-allies-scalp",
+          "researchId": "terrifier/allies-scalp",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "Allie's Scalp",
+          "rarity": "Common",
+          "effect": "Once per Trial, a basic attack that downs a Tortured Survivor also makes them Terrified.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "020B900A40126A79B16C468D6854DA6F"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-blackened-heart",
+          "researchId": "terrifier/blackened-heart",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "Blackened Heart",
+          "rarity": "Common",
+          "effect": "After a Taunt, the next Toy that downs a Survivor earns one extra Deadliness point.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "2FCB039A4C7C678CD92F798C8CA23BE4"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-bottle-of-bleach",
+          "researchId": "terrifier/bottle-of-bleach",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "Bottle of Bleach",
+          "rarity": "Common",
+          "effect": "Torture decays 15% more slowly.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "04CFC64E4DA58234F1ABCCB32708421F"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-mikes-phone",
+          "researchId": "terrifier/mikes-phone",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "Mike's Phone",
+          "rarity": "Common",
+          "effect": "A Toy hit on a Generator that is not already regressing damages it and starts regression.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "BC7FA94340B632F30534ACB5172A411B"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-bloodstained-bullet",
+          "researchId": "terrifier/bloodstained-bullet",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "Bloodstained Bullet",
+          "rarity": "Uncommon",
+          "effect": "A Handgun hit from over 16 metres away grants 10% Haste for 10 seconds. Inflicting Torture guarantees the Handgun as an option the next time you open the bag.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "B5E8B53D4000CF7C20E2BAB1D15232A5"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-brookes-pustule",
+          "researchId": "terrifier/brookes-pustule",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "Brooke's Pustule",
+          "rarity": "Uncommon",
+          "effect": "Acid Puddles grow with the distance the acid falls, reaching double size after 6 metres. Inflicting Torture guarantees the Acid Bottle as an option on the next bag search.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "E4123CD347E3D26DE6242DA73CD297E3"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-burnt-wings",
+          "researchId": "terrifier/burnt-wings",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "Burnt Wings",
+          "rarity": "Uncommon",
+          "effect": "Flames last 5 seconds longer. Inflicting Torture guarantees the Flamethrower as an option on the next bag search.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "C195E479489AF8DD1135CC89636B23FC"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-shiny-tricycle",
+          "researchId": "terrifier/shiny-tricycle",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "Shiny Tricycle",
+          "rarity": "Uncommon",
+          "effect": "When the Bike Horn detects multiple Survivors, see the Auras of the other Survivors for 5 seconds. Inflicting Torture guarantees the Bike Horn as an option on the next bag search.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "005BC7F54501185D92D17C87907660E5"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-siennas-flesh",
+          "researchId": "terrifier/siennas-flesh",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "Sienna's Flesh",
+          "rarity": "Uncommon",
+          "effect": "The Flail reaches 20% farther. Inflicting Torture guarantees the Flail as an option on the next bag search.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "23DA86AF4866310E6A79389D86250DB7"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-candy-head-bowl",
+          "researchId": "terrifier/candy-head-bowl",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "Candy Head Bowl",
+          "rarity": "Rare",
+          "effect": "Detecting a Survivor with the Bike Horn resets the Bag of Toys cooldown.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "C5882B474B5E3ACDA09EA7A8C48F53D6"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-dead-opossum",
+          "researchId": "terrifier/dead-opossum",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "Dead Opossum",
+          "rarity": "Rare",
+          "effect": "A Handgun or Flail hit on a healthy Survivor makes all other Survivors within 24 metres scream and reveal their locations for 3 seconds.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "766D3EC640F0522813F3CDB8209D3B27"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-emily",
+          "researchId": "terrifier/emily",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "Emily",
+          "rarity": "Rare",
+          "effect": "The bag offers Toys in a fixed sequence: Bike Horn, Handgun, Flamethrower, Flail, then Acid Bottle.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "3503120C4F616488BC1AC1A429B11170"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-thornton-salt",
+          "researchId": "terrifier/thornton-salt",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "Thornton Salt",
+          "rarity": "Rare",
+          "effect": "Injured Survivors who are Tortured suffer Mangled and Hemorrhage. The effects linger for 40 seconds after Torture ends.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "3ED0D0424F1DB99A59F4ECB05C00B3E1"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-victorias-eye",
+          "researchId": "terrifier/victorias-eye",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "Victoria's Eye",
+          "rarity": "Rare",
+          "effect": "A direct Fire or Acid hit reveals the Survivor’s Aura for 5 seconds.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "B2156B024BF638B1739CAE8C8F28FFF6"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-art-crispies",
+          "researchId": "terrifier/art-crispies",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "Art Crispies",
+          "rarity": "Very Rare",
+          "effect": "Inflicting Torture grants you and the affected Survivor a random 5% to 15% Haste bonus for 5 seconds.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "06AD1AE443CB2D2489CCCBBE1CD252FF"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-explosive-gift",
+          "researchId": "terrifier/explosive-gift",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "Explosive Gift",
+          "rarity": "Very Rare",
+          "effect": "Each Toy at maximum Deadliness reduces your Terror Radius by 12%.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "7026228D434329BAF4BAF986BD454423"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-jonathans-skull",
+          "researchId": "terrifier/jonathans-skull",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "Jonathan's Skull",
+          "rarity": "Very Rare",
+          "effect": "Gain one token, up to five, when a Toy damages or Tortures a Survivor. Taunting spends them all and reveals Survivor Auras for 6 seconds within 10 metres plus 5 metres per token, if at least one token was spent.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "D3F934F44BC344AD87FBF1B1DB1D9714"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-wacky-jacks",
+          "researchId": "terrifier/wacky-jacks",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "Wacky Jacks",
+          "rarity": "Very Rare",
+          "effect": "A Toy needs no more than five points to reach maximum Deadliness.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "B9A4B395486B09142234A99F2FA45F79"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-duct-tape",
+          "researchId": "terrifier/duct-tape",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "Duct Tape",
+          "rarity": "Ultra Rare",
+          "effect": "Choosing a Toy within half a second of opening the bag reduces the bag cooldown by 4 seconds.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "A8412EC046C62D51891B9099BD93F966"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
+          }
+        },
+        {
+          "id": "killer-addon-terrifier-the-ninth-circle",
+          "researchId": "terrifier/the-ninth-circle",
+          "characterId": "the-terrifier",
+          "killerId": "terrifier",
+          "killerName": "The Terrifier",
+          "name": "The Ninth Circle",
+          "rarity": "Ultra Rare",
+          "effect": "Gain a token for the first Taunt on each Terrified Survivor. With four tokens and powered Exit Gates, the Bag of Toys cooldown drops to 1 second.",
+          "researchStatus": "VERIFIED",
+          "sources": [
+            {
+              "title": "Live English localization, build 26718868",
+              "localizationKey": "7BE25C4B4FAE95A0808B5F8C762FA8A0"
+            },
+            {
+              "title": "K45 add-on rarities",
+              "url": "https://deadbydaylight.wiki.gg/wiki/The_Terrifier"
+            }
+          ],
+          "artwork": {
+            "path": null,
+            "confidence": "MISSING"
           }
         }
       ]

@@ -334,36 +334,6 @@ function openUpNextPinEditor(role,opener) {
   $('#detail').showModal(); editorPresentation(); $('#up-next-character').focus();
 }
 
-const chapterPreviews = {
-  killer: {
-    name: 'The Terrifier',
-    alias: 'Art the Clown',
-    power: 'Bag of Toys',
-    perks: ['Laughingstock', 'Kill Spree', 'Funny Business'],
-  },
-  survivor: {
-    name: 'Sienna Shaw',
-    perks: ["Valkyrie's Rage", 'Shared Trauma', 'Best Gift Ever'],
-  },
-};
-
-function chapterPreview(role) {
-  const preview = chapterPreviews[role];
-  const search = filters.search.trim().toLowerCase();
-  if (filters.status !== 'all' || filters.prestige !== 'all' || filters.favorite
-    || ![preview.name, preview.alias].some(name => name?.toLowerCase().includes(search))) return '';
-  return `<article class="chapter-preview panel" aria-labelledby="chapter-preview-name">
-    <div><span class="chapter-preview-status">Coming soon</span><h2 id="chapter-preview-name">${esc(preview.name)}</h2>
-      ${preview.alias ? `<p>${esc(preview.alias)}</p>` : ''}
-      <p>Terrifier chapter · 10.3.0 · Scheduled for <time datetime="2026-11-24">November 24, 2026</time></p>
-    </div>
-    <div class="chapter-preview-details">
-      ${preview.power ? `<p>Preview power <strong>${esc(preview.power)}</strong></p>` : ''}
-      <p>Preview perks <strong>${preview.perks.map(esc).join(' · ')}</strong></p>
-    </div>
-  </article>`;
-}
-
 function characterCollectionCard(c) {
   const progress = save.characters[c.id];
   const survivor = c.role === 'survivor';
@@ -383,7 +353,10 @@ function characterCollectionCard(c) {
 }
 function characterMatches(c, status = filters.status) {
   const p = save.characters[c.id];
-  return (status === 'all' || (status === 'owned' ? p.owned : !p.owned)) && (filters.prestige === 'all' || (filters.prestige === '3' ? p.prestige >= 3 : p.prestige === Number(filters.prestige))) && (!filters.favorite || p.favorite) && c.name.toLowerCase().includes(filters.search.toLowerCase());
+  const search = filters.search.trim().toLowerCase();
+  const matchesName = c.name.toLowerCase().includes(search)
+    || (c.id === 'the-terrifier' && 'art the clown'.includes(search));
+  return (status === 'all' || (status === 'owned' ? p.owned : !p.owned)) && (filters.prestige === 'all' || (filters.prestige === '3' ? p.prestige >= 3 : p.prestige === Number(filters.prestige))) && (!filters.favorite || p.favorite) && matchesName;
 }
 function collection(role) {
   const rosterState = collectionState.update(role, { ...filters });
@@ -397,7 +370,6 @@ function collection(role) {
   const page = paginateRoster(visible, rosterState.page);
   collectionState.update(role, { page: page.page });
   const cards = page.results.map(characterCollectionCard).join('');
-  const upcoming = chapterPreview(role);
   const activeFilters = [
     ...(filters.status !== 'all' ? [`<button type="button" data-action="collection-clear-filter" data-filter-key="status" data-active-filter="ownership">${filters.status === 'owned' ? 'Owned' : 'Locked'} ×</button>`] : []),
     ...(filters.prestige !== 'all' ? [`<button type="button" data-action="collection-clear-filter" data-filter-key="prestige" data-active-filter="prestige">${filters.prestige === '3' ? 'Prestige 3+' : `Prestige ${filters.prestige}`} ×</button>`] : []),
@@ -412,7 +384,7 @@ function collection(role) {
     : `<div class="heading-count">${ownedCount}<span>/ ${list.length} owned</span></div>`;
   const scopeNote = role === 'survivor'
     ? '<p class="collection-scope-note">Native perk states show account access, not recorded tiers on this Survivor. General perks can be available without an automatic tier.</p>' : '';
-  const view = pageHeading('CHARACTER COLLECTION', role === 'survivor' ? 'Survivors' : 'Killers', 'Track your collection and the next step through the Bloodweb.', headingCount) + `<section class="collection-controls"><div class="collection-toolbar"><div class="collection-search-group">${searchInput('Search characters…')}${filters.search ? '<button type="button" data-action="collection-clear-search">Clear search</button>' : ''}</div><details id="collection-filters"${collectionFiltersOpen ? ' open' : ''}><summary>Filters${activeFilters ? `<span class="collection-filter-count">${(filters.status !== 'all' ? 1 : 0) + (filters.prestige !== 'all' ? 1 : 0) + (filters.favorite ? 1 : 0)} active</span>` : ''}</summary><div class="collection-filter-options">${selectControl('ownership-filter', 'Ownership', ownershipOptions, filters.status)}${selectControl('prestige-filter', 'Prestige', [['all', 'Any prestige'], ['0', 'P0'], ['1', 'P1'], ['2', 'P2'], ['3', 'P3+']], filters.prestige)}<button type="button" data-action="favorites-filter" class="${filters.favorite ? 'selected' : ''}" aria-pressed="${filters.favorite}">★ Favorites</button><button type="button" data-action="collection-reset-filters"${resetDisabled ? ' disabled' : ''}>Reset filters</button></div></details>${selectControl('sort', 'Sort', [['name', 'Name'], ['prestige-desc', 'Prestige ↓'], ['prestige-asc', 'Prestige ↑'], ['bloodweb', 'Bloodweb ↓'], ['perks', 'Perks owned ↓'], ['recent', 'Recently updated']], filters.sort)}</div>${activeFilters ? `<div class="collection-active-filters" aria-label="Active filters">${activeFilters}</div>` : ''}${scopeNote}</section>${upcoming}<div class="results-label" id="collection-results-heading" tabindex="-1">${visible.length} CHARACTERS<span>${page.total ? `${page.start}–${page.end} of ${page.total} matching` : 'No matching characters'}</span></div><div class="character-grid character-collection-grid ${role}-collection-grid">${cards}</div>${visible.length ? '' : empty(upcoming ? 'No playable characters match this search.' : 'No characters match these search and filters.')} ${pageControls}`;
+  const view = pageHeading('CHARACTER COLLECTION', role === 'survivor' ? 'Survivors' : 'Killers', 'Track your collection and the next step through the Bloodweb.', headingCount) + `<section class="collection-controls"><div class="collection-toolbar"><div class="collection-search-group">${searchInput('Search characters…')}${filters.search ? '<button type="button" data-action="collection-clear-search">Clear search</button>' : ''}</div><details id="collection-filters"${collectionFiltersOpen ? ' open' : ''}><summary>Filters${activeFilters ? `<span class="collection-filter-count">${(filters.status !== 'all' ? 1 : 0) + (filters.prestige !== 'all' ? 1 : 0) + (filters.favorite ? 1 : 0)} active</span>` : ''}</summary><div class="collection-filter-options">${selectControl('ownership-filter', 'Ownership', ownershipOptions, filters.status)}${selectControl('prestige-filter', 'Prestige', [['all', 'Any prestige'], ['0', 'P0'], ['1', 'P1'], ['2', 'P2'], ['3', 'P3+']], filters.prestige)}<button type="button" data-action="favorites-filter" class="${filters.favorite ? 'selected' : ''}" aria-pressed="${filters.favorite}">★ Favorites</button><button type="button" data-action="collection-reset-filters"${resetDisabled ? ' disabled' : ''}>Reset filters</button></div></details>${selectControl('sort', 'Sort', [['name', 'Name'], ['prestige-desc', 'Prestige ↓'], ['prestige-asc', 'Prestige ↑'], ['bloodweb', 'Bloodweb ↓'], ['perks', 'Perks owned ↓'], ['recent', 'Recently updated']], filters.sort)}</div>${activeFilters ? `<div class="collection-active-filters" aria-label="Active filters">${activeFilters}</div>` : ''}${scopeNote}</section><div class="results-label" id="collection-results-heading" tabindex="-1">${visible.length} CHARACTERS<span>${page.total ? `${page.start}–${page.end} of ${page.total} matching` : 'No matching characters'}</span></div><div class="character-grid character-collection-grid ${role}-collection-grid">${cards}</div>${visible.length ? '' : empty('No characters match these search and filters.')} ${pageControls}`;
   return `<div class="${role}-roster-layout">${view}</div>`;
 }
 

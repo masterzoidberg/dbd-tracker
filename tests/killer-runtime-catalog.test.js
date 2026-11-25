@@ -17,13 +17,13 @@ test('canonical projection preserves all explicit identities owners source order
   const before = structuredClone(source), result = projectKillerRuntimeCatalog(source);
   assert.deepEqual(Object.keys(result), ['dataset', 'gameVersion', 'killers']);
   assert.equal(result.dataset, 'dbd-killers-live');
-  assert.equal(result.gameVersion, '10.2.2b');
-  assert.equal(result.killers.length, 44);
+  assert.equal(result.gameVersion, '10.3.0');
+  assert.equal(result.killers.length, 45);
   assert.deepEqual(new Set(result.killers.map(k => k.characterId)), new Set(characters.filter(c => c.role === 'killer').map(c => c.id)));
   const addons = result.killers.flatMap(k => k.addons);
-  assert.equal(addons.length, 880);
-  assert.equal(new Set(addons.map(a => a.id)).size, 880);
-  assert.equal(new Set(source.killers.flatMap(k => k.addons.map(a => a.researchId))).size, 880);
+  assert.equal(addons.length, 900);
+  assert.equal(new Set(addons.map(a => a.id)).size, 900);
+  assert.equal(new Set(source.killers.flatMap(k => k.addons.map(a => a.researchId))).size, 900);
   for (const [index, killer] of result.killers.entries()) {
     assert.deepEqual(Object.keys(killer), ['characterId', 'power', 'addons']);
     assert.equal(killer.characterId, source.killers[index].characterId);
@@ -95,8 +95,8 @@ test('Power projection retains gameplay details and strips research metadata at 
   assert.deepEqual(rows.reduce((counts, row) => {
     counts[row.artwork.confidence] = (counts[row.artwork.confidence] ?? 0) + 1;
     return counts;
-  }, {}), { EXACT: 843, REVIEW: 74, MISSING: 7 });
-  assert.equal(result.killers.filter(k => k.power.artwork.path === null).length, 7);
+  }, {}), { EXACT: 843, REVIEW: 74, MISSING: 28 });
+  assert.equal(result.killers.filter(k => k.power.artwork.path === null).length, 8);
 });
 
 test('projection rejects malformed data duplicate identities ownership and rarity/count violations', () => {

@@ -115,8 +115,8 @@ async function sixResultToolbarRegression(page, origin, fixture) {
       assert.match(await status.textContent(), /Page 1 of 9/);
       for (let pageNumber = 1; pageNumber < 9; pageNumber++) await page.getByRole('button', { name: 'Next Page', exact: true }).click();
       assert.match(await status.textContent(), /Page 9 of 9/);
-      assert.match(await status.textContent(), /49–51 of 51/);
-      assert.equal(await grid.locator('.character-collection-card').count(), 3, 'the final filtered Survivor page is partial');
+      assert.match(await status.textContent(), /49–52 of 52/);
+      assert.equal(await grid.locator('.character-collection-card').count(), 4, 'the final filtered Survivor page is partial');
       await page.evaluate(() => window.scrollTo(0, 0));
       await page.screenshot({ path: resolve(project, 'test-results/survivor-collection-final-filtered-page.png'), fullPage: true });
     }
@@ -251,8 +251,8 @@ export async function collectionCardsRegression(page, origin, manifest) {
 
   assert.equal(await page.locator('.survivor-collection-grid').count(), 1, 'Survivors use the restored collection card grid');
   assert.equal(await page.locator('.survivor-collection-card').count(), 6, 'Survivors show the first six results');
-  assert.match(await page.locator('.heading-count').textContent(), /3\s*owned\s*·\s*54 Survivors/i, 'Header separates owned count from catalog size');
-  assert.match(await page.locator('#collection-results-heading').textContent(), /1–6 of 54 matching/, 'Results show the matching range separately');
+  assert.match(await page.locator('.heading-count').textContent(), /3\s*owned\s*·\s*55 Survivors/i, 'Header separates owned count from catalog size');
+  assert.match(await page.locator('#collection-results-heading').textContent(), /1–6 of 55 matching/, 'Results show the matching range separately');
   assert.equal(await page.locator('.survivor-collection-card [data-collection-summary]').count(), 0, 'Survivor cards have no inventory-stat panels');
   assert.equal(await page.locator('.survivor-collection-card .character-name').first().evaluate(node => node.tagName), 'H2', 'each card exposes its character name as a heading');
   assert.match(await byCharacterId(page, 'ash-williams').locator('.prestige').textContent(), /P100/, 'Prestige has no invented P100 cap');

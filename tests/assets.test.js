@@ -22,11 +22,11 @@ async function put(root, path, bytes = png) {
   await writeFile(join(root, path), bytes);
 }
 
-test('current tree has all 321 usable perk references, with sorted repeatable output', async () => {
+test('current tree has 321 mapped perk icons and all 327 perk entries, with sorted repeatable output', async () => {
   const manifest = await generatePerkManifest(project);
-  assert.equal(Object.keys(manifest.perks).length, 321);
+  assert.equal(Object.keys(manifest.perks).length, 327);
   assert.equal(Object.values(manifest.perks).filter(Boolean).length, 321);
-  assert.equal(Object.values(manifest.perks).filter(value => value === null).length, 0);
+  assert.equal(Object.values(manifest.perks).filter(value => value === null).length, 6);
   assert.deepEqual(Object.keys(manifest.perks), perks.map(p => p.id).sort());
   assert.deepEqual(await generatePerkManifest(project), manifest);
   for (const value of Object.values(manifest.perks).filter(Boolean)) {

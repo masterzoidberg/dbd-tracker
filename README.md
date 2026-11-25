@@ -189,16 +189,18 @@ offline recovery acceptance instructions are in the runtime README.
 
 ## Catalog coverage
 
-The tracker loads the supplied patch **10.2.2** JSON catalogs reviewed on **2026-11-22**: **176 Survivor perks and 145 distinct Killer perks**, with **54 Survivor records and 44 Killer records**. The six duplicate Halloween/Hellraiser killer name variants share records. Character definitions are derived from perk sources. Catalog patch/date labels describe the supplied files; the app does not independently verify live game data.
+The **10.3.0** catalog contains **179 Survivor perks and 148 distinct Killer perks** across **55 Survivors and 45 Killers**. The six duplicate Halloween/Hellraiser Killer name variants share records. Character definitions are derived from perk sources.
 
 Catalog source definitions are `data/dbd-survivor-perks-live-10.1.2a-2026-10-05-corrected.json` and `data/killer-perks-audited-10.1.2a-2026-10-05.json`. Update those files to change catalog data; `data/catalog.js` adapts their fields to the tracker model. Run `npm run build` after catalog changes to include them in `dist/app.js`. The browser loads a regular script with the catalog embedded, avoiding module imports and JSON fetches under `file:` URLs.
 
-Killer Power/Add-on research includes backend patch **10.2.2b** in the canonical
+The catalog adds The Terrifier's Bag of Toys and 20 add-ons. Existing Power and
+Add-on research includes backend patch **10.2.2b** in the canonical
 `data/dbd-killers-live-10.2.1.json`. Update that master and rebuild to refresh its
 generated runtime projection; research sources, verification notes and patch history
-are excluded from the runtime workspace. Survivor inventory was checked against
-client 10.2.2. Catalog source filenames retain their original snapshot labels.
-See [the catalog update notes](docs/catalog-update-10.2.2.md) for scope and sources.
+are excluded from the runtime workspace. Survivor inventory carries forward the
+10.2.2 baseline with an updated Chest rummage rule. Catalog source filenames
+retain their original snapshot labels.
+See the [10.3.0 live patch notes](https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/7067).
 
 Compatibility mappings preserve existing tracker IDs for Bill, Yun-Jin, Barbecue & Chilli, Monitor & Abuse, and Laurie's renamed perks. Licensed name variants share one perk record and general Bloodweb availability. Laurie, The Shape, and The Cenobite own their native perks at I; their recorded Prestige can raise global automatic tiers. Display preferences only change names.
 

@@ -336,10 +336,10 @@ test('catalog IDs are unique and native relationships resolve to the correct rol
   }
 });
 test('JSON catalog includes all supplied perks and preserves IDs for existing saves', () => {
-  assert.equal(perks.filter(p => p.role === 'survivor').length, 176);
-  assert.equal(perks.filter(p => p.role === 'killer').length, 145);
-  assert.equal(characters.filter(c => c.role === 'survivor').length, 54);
-  assert.equal(characters.filter(c => c.role === 'killer').length, 44);
+  assert.equal(perks.filter(p => p.role === 'survivor').length, 179);
+  assert.equal(perks.filter(p => p.role === 'killer').length, 148);
+  assert.equal(characters.filter(c => c.role === 'survivor').length, 55);
+  assert.equal(characters.filter(c => c.role === 'killer').length, 45);
   assert.equal(characterById['bill-overbeck'].name, 'William "Bill" Overbeck');
   assert.equal(characterById['yun-jin-lee'].name, 'Lee Yun-Jin');
   assert.equal(characterById['aestri-yazar'].name, 'Aestri Yazar & Baermar Uraz');
@@ -365,7 +365,7 @@ test('JSON catalog includes all supplied perks and preserves IDs for existing sa
   const historical = { ...save, characters: Object.fromEntries(legacyIds.map(id => [id, save.characters[id]])) };
   const expanded = parseSave(exportSave(historical));
   assert.deepEqual(expanded.warnings, []);
-  assert.equal(Object.keys(expanded.save.characters).length, 98);
+  assert.equal(Object.keys(expanded.save.characters).length, 100);
   for (const id of legacyIds) assert.deepEqual(expanded.save.characters[id], historical.characters[id]);
   assert.equal(expanded.save.characters['the-krasue'].prestige, 0);
 });

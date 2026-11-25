@@ -1,6 +1,6 @@
 {
-  "verified_live_patch": "10.2.2",
-  "verified_date": "2026-11-22",
+  "verified_live_patch": "10.3.0",
+  "verified_date": "2026-11-25",
   "perks": [
     {
       "name": "A Place for Us",
@@ -1684,29 +1684,30 @@
       "source_character": "Jake Park",
       "is_general_perk": false,
       "tier_1_values": {
-        "actionspeedreduction%": 8
+        "totem_and_chest_speed_bonus_percent": 23
       },
       "tier_2_values": {
-        "actionspeedreduction%": 9
+        "totem_and_chest_speed_bonus_percent": 24
       },
       "tier_3_values": {
-        "actionspeedreduction%": 10
+        "totem_and_chest_speed_bonus_percent": 25
       },
-      "current_effect": "You do not startle Crows or scream. Blessing and cleansing Totems and unlocking Chests are silent and 8/9/10% faster.",
-      "plain_english_summary": "You do not startle Crows or scream.",
+      "current_effect": "You do not startle Crows or scream. Bless and cleanse Totems and unlock Chests silently and 23/24/25% faster.",
+      "plain_english_summary": "You do not startle Crows or scream. Bless and cleanse Totems and unlock Chests silently and 23/24/25% faster.",
       "latest_known_live_balance_change": {
-        "patch": "10.2.0",
-        "change": "You do not startle Crows or scream. Blessing and cleansing Totems and unlocking Chests are silent and 8/9/10% faster."
+        "patch": "10.3.0",
+        "change": "You do not startle Crows or scream. Bless and cleanse Totems and unlock Chests silently and 23/24/25% faster."
       },
-      "current_live_patch_verified": "10.2.2",
+      "current_live_patch_verified": "10.3.0",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335",
+        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/7067"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/calm-spirit"
       ],
-      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
+      "verification_notes": "Behaviour live release notes, Steam build 26718868."
     },
     {
       "name": "Camaraderie",
@@ -2373,35 +2374,45 @@
       "source_character": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "aurarange": 32,
-        "effectduration": 13,
-        "killerrange": 20
+        "starting_tokens": 1,
+        "tokens_per_generator": 1,
+        "max_tokens": 5,
+        "killer_trigger_metres": 20,
+        "pallet_window_range_metres": 32,
+        "aura_duration_seconds": 13
       },
       "tier_2_values": {
-        "aurarange": 32,
-        "effectduration": 14,
-        "killerrange": 20
+        "starting_tokens": 1,
+        "tokens_per_generator": 1,
+        "max_tokens": 5,
+        "killer_trigger_metres": 20,
+        "pallet_window_range_metres": 32,
+        "aura_duration_seconds": 14
       },
       "tier_3_values": {
-        "aurarange": 32,
-        "effectduration": 15,
-        "killerrange": 20
+        "starting_tokens": 1,
+        "tokens_per_generator": 1,
+        "max_tokens": 5,
+        "killer_trigger_metres": 20,
+        "pallet_window_range_metres": 32,
+        "aura_duration_seconds": 15
       },
-      "current_effect": "A completed Generator primes the perk. When the Killer next comes within 20 metres, you see their Aura, other Survivors' Auras, and Pallet and Window Auras within 32 metres for 13/14/15 seconds.",
-      "plain_english_summary": "A completed Generator primes the perk.",
+      "current_effect": "Start the Trial with one token and gain another whenever a Generator is finished, up to five. When the Killer comes within 20 metres, spend one token to see the Killer and all other Survivors, plus Pallets and Windows within 32 metres, for 13/14/15 seconds.",
+      "plain_english_summary": "Start the Trial with one token and gain another whenever a Generator is finished, up to five. When the Killer comes within 20 metres, spend one token to see the Killer and all other Survivors, plus Pallets and Windows within 32 metres, for 13/14/15 seconds.",
       "latest_known_live_balance_change": {
-        "patch": "10.2.0",
-        "change": "A completed Generator primes the perk. When the Killer next comes within 20 metres, you see their Aura, other Survivors' Auras, and Pallet and Window Auras within 32 metres for 13/14/15 seconds."
+        "patch": "10.3.0",
+        "change": "Start the Trial with one token and gain another whenever a Generator is finished, up to five. When the Killer comes within 20 metres, spend one token to see the Killer and all other Survivors, plus Pallets and Windows within 32 metres, for 13/14/15 seconds."
       },
-      "current_live_patch_verified": "10.2.2",
+      "current_live_patch_verified": "10.3.0",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335",
+        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/7067"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/dark-sense"
       ],
-      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
+      "verification_notes": "Behaviour live release notes, Steam build 26718868."
     },
     {
       "name": "Dead Hard",
@@ -6822,33 +6833,34 @@
       "source_character": "General",
       "is_general_perk": true,
       "tier_1_values": {
-        "unhookhastebonus": 5,
-        "unhookspeedmodifier": 90
+        "unhook_speed_bonus_percent": 65,
+        "extra_haste_percent": 7
       },
       "tier_2_values": {
-        "unhookhastebonus": 5,
-        "unhookspeedmodifier": 95
+        "unhook_speed_bonus_percent": 70,
+        "extra_haste_percent": 7
       },
       "tier_3_values": {
-        "unhookhastebonus": 5,
-        "unhookspeedmodifier": 100
+        "unhook_speed_bonus_percent": 75,
+        "extra_haste_percent": 7
       },
-      "current_effect": "Other Survivors unhook you 90/95/100% faster. After being unhooked, you receive 5% extra Haste.",
-      "plain_english_summary": "Other Survivors unhook you 90/95/100% faster.",
+      "current_effect": "Other Survivors unhook you 65/70/75% faster. When unhooked, you gain 7% additional Haste.",
+      "plain_english_summary": "Other Survivors unhook you 65/70/75% faster. When unhooked, you gain 7% additional Haste.",
       "latest_known_live_balance_change": {
-        "patch": "10.2.0",
-        "change": "Other Survivors unhook you 90/95/100% faster. After being unhooked, you receive 5% extra Haste."
+        "patch": "10.3.0",
+        "change": "Other Survivors unhook you 65/70/75% faster. When unhooked, you gain 7% additional Haste."
       },
-      "current_live_patch_verified": "10.2.2",
+      "current_live_patch_verified": "10.3.0",
       "official_source_urls": [
         "https://forums.bhvr.com/dead-by-daylight/kb/articles/559-10-2-0-ptb-patch-notes",
-        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335"
+        "https://steamcommunity.com/games/381210/announcements/detail/716791824502491335",
+        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/7067"
       ],
       "secondary_source_urls": [
         "https://dbdvault.com/perks/slippery-meat",
         "https://deadbydaylight.wiki.gg/wiki/Slippery_Meat"
       ],
-      "verification_notes": "Gameplay summary checked against the live notes and tier values checked against client build 10.2.2-3889370."
+      "verification_notes": "Behaviour live release notes, Steam build 26718868."
     },
     {
       "name": "Small Game",
@@ -8480,6 +8492,117 @@
         "https://nightlight.gg/perks/Wiretap"
       ],
       "verification_notes": "DBDVault's direct perk page did not load during retrieval; current requirements and interactions were cross-checked against the official Dead by Daylight Wiki and NightLight."
+    },
+    {
+      "name": "Valkyrie's Rage",
+      "slug": "valkyries-rage",
+      "native_id": "S55P01",
+      "source_character": "Sienna Shaw",
+      "is_general_perk": false,
+      "current_effect": "After spending 40/35/30 seconds in chase, your next Pallet stun lasts 75% longer.",
+      "plain_english_summary": "After spending 40/35/30 seconds in chase, your next Pallet stun lasts 75% longer.",
+      "tier_1_values": {
+        "chase_seconds": 40,
+        "pallet_stun_duration_bonus_percent": 75
+      },
+      "tier_2_values": {
+        "chase_seconds": 35,
+        "pallet_stun_duration_bonus_percent": 75
+      },
+      "tier_3_values": {
+        "chase_seconds": 30,
+        "pallet_stun_duration_bonus_percent": 75
+      },
+      "latest_known_live_balance_change": {
+        "patch": "10.3.0",
+        "change": "After spending 40/35/30 seconds in chase, your next Pallet stun lasts 75% longer."
+      },
+      "current_live_patch_verified": "10.3.0",
+      "official_source_urls": [
+        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/7067"
+      ],
+      "verification_notes": "Live release notes and the preserved client 10.3.0-3993125 perk localization/tunables."
+    },
+    {
+      "name": "Shared Trauma",
+      "slug": "shared-trauma",
+      "native_id": "S55P02",
+      "source_character": "Sienna Shaw",
+      "is_general_perk": false,
+      "current_effect": "Taking a protection hit lets Survivors within 12 metres recover from Exhausted while running for 30/35/40 seconds. You also see the Auras of Exhausted Survivors within 32 metres.",
+      "plain_english_summary": "Taking a protection hit lets Survivors within 12 metres recover from Exhausted while running for 30/35/40 seconds. You also see the Auras of Exhausted Survivors within 32 metres.",
+      "tier_1_values": {
+        "protection_hit_radius_metres": 12,
+        "exhaustion_recovery_window_seconds": 30,
+        "aura_radius_metres": 32
+      },
+      "tier_2_values": {
+        "protection_hit_radius_metres": 12,
+        "exhaustion_recovery_window_seconds": 35,
+        "aura_radius_metres": 32
+      },
+      "tier_3_values": {
+        "protection_hit_radius_metres": 12,
+        "exhaustion_recovery_window_seconds": 40,
+        "aura_radius_metres": 32
+      },
+      "latest_known_live_balance_change": {
+        "patch": "10.3.0",
+        "change": "Taking a protection hit lets Survivors within 12 metres recover from Exhausted while running for 30/35/40 seconds. You also see the Auras of Exhausted Survivors within 32 metres."
+      },
+      "current_live_patch_verified": "10.3.0",
+      "official_source_urls": [
+        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/7067"
+      ],
+      "verification_notes": "Live release notes and the preserved client 10.3.0-3993125 perk localization/tunables."
+    },
+    {
+      "name": "Best Gift Ever",
+      "slug": "best-gift-ever",
+      "native_id": "S55P03",
+      "source_character": "Sienna Shaw",
+      "is_general_perk": false,
+      "current_effect": "Start with 4/5/6 tokens. The first time you drop each eligible item type, spend a token and consume the item for a matching perk effect. Flashlight: your stuns also blind the Killer for 2 seconds. Fog Vial: after a fast vault, your Scratch Marks fade 50% faster for 5 seconds. Key: one extra rummage per Chest. Map: timed Aura reveals last 1 second longer. Med-Kit: healing another Survivor also heals you at 25% speed. Toolbox: see the Auras of the three Generators nearest to one another.",
+      "plain_english_summary": "Start with 4/5/6 tokens. The first time you drop each eligible item type, spend a token and consume the item for a matching perk effect. Flashlight: your stuns also blind the Killer for 2 seconds. Fog Vial: after a fast vault, your Scratch Marks fade 50% faster for 5 seconds. Key: one extra rummage per Chest. Map: timed Aura reveals last 1 second longer. Med-Kit: healing another Survivor also heals you at 25% speed. Toolbox: see the Auras of the three Generators nearest to one another.",
+      "tier_1_values": {
+        "starting_tokens": 4,
+        "flashlight_blind_seconds": 2,
+        "fog_effect_seconds": 5,
+        "fog_faster_scratch_mark_fade_percent": 50,
+        "key_extra_rummages": 1,
+        "map_aura_bonus_seconds": 1,
+        "medkit_self_heal_percent": 25,
+        "toolbox_generator_count": 3
+      },
+      "tier_2_values": {
+        "starting_tokens": 5,
+        "flashlight_blind_seconds": 2,
+        "fog_effect_seconds": 5,
+        "fog_faster_scratch_mark_fade_percent": 50,
+        "key_extra_rummages": 1,
+        "map_aura_bonus_seconds": 1,
+        "medkit_self_heal_percent": 25,
+        "toolbox_generator_count": 3
+      },
+      "tier_3_values": {
+        "starting_tokens": 6,
+        "flashlight_blind_seconds": 2,
+        "fog_effect_seconds": 5,
+        "fog_faster_scratch_mark_fade_percent": 50,
+        "key_extra_rummages": 1,
+        "map_aura_bonus_seconds": 1,
+        "medkit_self_heal_percent": 25,
+        "toolbox_generator_count": 3
+      },
+      "latest_known_live_balance_change": {
+        "patch": "10.3.0",
+        "change": "Start with 4/5/6 tokens. The first time you drop each eligible item type, spend a token and consume the item for a matching perk effect. Flashlight: your stuns also blind the Killer for 2 seconds. Fog Vial: after a fast vault, your Scratch Marks fade 50% faster for 5 seconds. Key: one extra rummage per Chest. Map: timed Aura reveals last 1 second longer. Med-Kit: healing another Survivor also heals you at 25% speed. Toolbox: see the Auras of the three Generators nearest to one another."
+      },
+      "current_live_patch_verified": "10.3.0",
+      "official_source_urls": [
+        "https://bugreport.deadbydaylight.com/projects/pr-5642738318/releases/7067"
+      ],
+      "verification_notes": "Live release notes and the preserved client 10.3.0-3993125 perk localization/tunables."
     }
   ]
 }
