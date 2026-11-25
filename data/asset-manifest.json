@@ -138,7 +138,12 @@
       "height": 100,
       "sha256": "299434aa617daf6480543439fa41f65d44e407759adf6af73104c44cce7bb37d"
     },
-    "best-gift-ever": null,
+    "best-gift-ever": {
+      "path": "images/survivor-perks/sienna-shaw/best-gift-ever.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "f260970e5dfb283bf4c947b9b8db1aac886c674eec855165f5d30b9d67e92430"
+    },
     "better-than-new": {
       "path": "images/survivor-perks/rebecca-chambers/better-than-new.png",
       "width": 100,
@@ -715,7 +720,12 @@
       "height": 256,
       "sha256": "cf6ea033158975fb49e6e9dd1d0b57c557a0de056069794af390a60f3bafed52"
     },
-    "funny-business": null,
+    "funny-business": {
+      "path": "images/killer-perks/terrifier/funny-business.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "5224522950d494df531703d135957bb70098b3c9d1873eab99bb63a4924c56b5"
+    },
     "furtive-chase": {
       "path": "images/killer-perks/danny-johnson/furtive-chase.png",
       "width": 100,
@@ -998,7 +1008,12 @@
       "height": 100,
       "sha256": "d9964227b216a068e7d58fd3b1e7789429edc1376120c414aecce10effcab76f"
     },
-    "kill-spree": null,
+    "kill-spree": {
+      "path": "images/killer-perks/terrifier/kill-spree.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "cc58a62260f1cb2e5b54264149f4a5de7feb4a71a8e210bf3b974697ee9d1f8c"
+    },
     "kindred": {
       "path": "images/survivor-perks/universal/kindred.png",
       "width": 100,
@@ -1023,7 +1038,12 @@
       "height": 256,
       "sha256": "11d631bfa69face67ff3eaaaf75a24679ed2523f10bc47989a1906b15859b53d"
     },
-    "laughingstock": null,
+    "laughingstock": {
+      "path": "images/killer-perks/terrifier/laughingstock.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "94caa299a0decaaf039953063ebaff7bdd00ff4b9bd07785a3fb58130b32fc5c"
+    },
     "lay-waste": {
       "path": "images/killer-perks/supplied/lay-waste.png",
       "width": 256,
@@ -1540,7 +1560,12 @@
       "height": 100,
       "sha256": "f422ed6418dc4acc0f7bb35468bc48274e80e1e948cbe11d3ec765ae41bbc967"
     },
-    "shared-trauma": null,
+    "shared-trauma": {
+      "path": "images/survivor-perks/sienna-shaw/shared-trauma.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "9a0e4501a6548f2378682e5cc168363bbe0d49466c88c7a043253315763c221e"
+    },
     "shattered-hope": {
       "path": "images/killer-perks/universal/shattered-hope.png",
       "width": 100,
@@ -1847,7 +1872,12 @@
       "height": 100,
       "sha256": "b836ecb91175ac21b5a193894ec486e176b88a7a88c80a81d9a751765a1bc486"
     },
-    "valkyries-rage": null,
+    "valkyries-rage": {
+      "path": "images/survivor-perks/sienna-shaw/valkyries-rage.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "59c28fb2b953dd81900661728e9c262fe45bc33e1ace5021e0d5fb996921628e"
+    },
     "vigil": {
       "path": "images/survivor-perks/quentin-smith/vigil.png",
       "width": 100,

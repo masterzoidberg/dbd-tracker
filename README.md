@@ -68,9 +68,9 @@ record separately; a rerun requires a new check and overwrites the automated
 report. File and localhost storage remain distinct/browser-dependent.
 
 The generated `release/artwork-file-check.html` sits outside the runtime artifact.
-Open it directly offline to check all staged images; it should report **1428/1428**
-decoded (321 perks, 100 portraits, 92 Survivor inventory images, 880 Killer Add-ons
-and 37 Powers), with **7 intentional Power fallbacks** for the current supplied image tree.
+Open it directly offline to confirm all staged images decode. The report includes
+327 perk icons, 100 standard character portraits, roster artwork, and inventory
+and Power images.
 It does not access saves. Complete the app's direct-file checks separately.
 
 Tests/generation/build/copy/reference/browser failures exit nonzero, mark verification
@@ -78,7 +78,7 @@ FAILED and remove unverified runtime staging. Keep any prior verified artifact
 separately before rerunning. No ZIP or source archive is created.
 
 Perk artwork uses canonical IDs and catalog aliases, independent of display names.
-The supplied tree now covers all 321 perks. The 42 additional icons were supplied
+The supplied tree now covers all 327 perks. The 42 earlier supplemental icons were supplied
 as WebP files with PNG filenames in `images/missing-perks`; authorized PNG copies
 were created in each role's `supplied/` directory with identical decoded pixels and dimensions.
 The supplied originals and original Cenobite placeholders remain unchanged; the
