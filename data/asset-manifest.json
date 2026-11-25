@@ -9393,26 +9393,126 @@
       "height": 300,
       "sha256": "f85b9091834a4430b103265dbacaa4268cf5769b7bd4d04d032a378b72ddc23f"
     },
-    "killer-addon-terrifier-allies-scalp": null,
-    "killer-addon-terrifier-blackened-heart": null,
-    "killer-addon-terrifier-bottle-of-bleach": null,
-    "killer-addon-terrifier-mikes-phone": null,
-    "killer-addon-terrifier-bloodstained-bullet": null,
-    "killer-addon-terrifier-brookes-pustule": null,
-    "killer-addon-terrifier-burnt-wings": null,
-    "killer-addon-terrifier-shiny-tricycle": null,
-    "killer-addon-terrifier-siennas-flesh": null,
-    "killer-addon-terrifier-candy-head-bowl": null,
-    "killer-addon-terrifier-dead-opossum": null,
-    "killer-addon-terrifier-emily": null,
-    "killer-addon-terrifier-thornton-salt": null,
-    "killer-addon-terrifier-victorias-eye": null,
-    "killer-addon-terrifier-art-crispies": null,
-    "killer-addon-terrifier-explosive-gift": null,
-    "killer-addon-terrifier-jonathans-skull": null,
-    "killer-addon-terrifier-wacky-jacks": null,
-    "killer-addon-terrifier-duct-tape": null,
-    "killer-addon-terrifier-the-ninth-circle": null
+    "killer-addon-terrifier-allies-scalp": {
+      "path": "images/Powers and Add-ons/Terrifier/common/allies-scalp.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "88c688766a868fd54e1ca05b453737fedc347f24bd9455519f7de5b48db4d191"
+    },
+    "killer-addon-terrifier-blackened-heart": {
+      "path": "images/Powers and Add-ons/Terrifier/common/blackened-heart.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "55354806243ea37b06260a697d3de599978e8327d7f0ec1080f9162ae9b5676a"
+    },
+    "killer-addon-terrifier-bottle-of-bleach": {
+      "path": "images/Powers and Add-ons/Terrifier/common/bottle-of-bleach.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "5a77b6837270c849f9c05a7c5d614052b21edf37e5662cb4cb21c6a5e554a749"
+    },
+    "killer-addon-terrifier-mikes-phone": {
+      "path": "images/Powers and Add-ons/Terrifier/common/mikes-phone.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "795586d9a879e61acab988d580b7f13a58220608d53e7e74d211dc5a988ac13f"
+    },
+    "killer-addon-terrifier-bloodstained-bullet": {
+      "path": "images/Powers and Add-ons/Terrifier/uncommon/bloodstained-bullet.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "de96c58dcc5602a883881e4dab816930be2fd9ce8cdf53fafa9d007ad6cf2047"
+    },
+    "killer-addon-terrifier-brookes-pustule": {
+      "path": "images/Powers and Add-ons/Terrifier/uncommon/brookes-pustule.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "ec893c80d7a8213e6238da92cc8ad52496ed55e22449dfcc538fc729d470bf7b"
+    },
+    "killer-addon-terrifier-burnt-wings": {
+      "path": "images/Powers and Add-ons/Terrifier/uncommon/burnt-wings.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "95412299e9e7c84c109e3ed3420718693f8329802cc9534e6f40ff56be98c3c7"
+    },
+    "killer-addon-terrifier-shiny-tricycle": {
+      "path": "images/Powers and Add-ons/Terrifier/uncommon/shiny-tricycle.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "81d0e19d71b31dc50208d77514d949c8d44be32b6de66d52855ae3e15ddb0a92"
+    },
+    "killer-addon-terrifier-siennas-flesh": {
+      "path": "images/Powers and Add-ons/Terrifier/uncommon/siennas-flesh.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "f9e260a4970e572fc6a11cde17dd2e5a28d3d30d43ca886ea48449edd0b7b949"
+    },
+    "killer-addon-terrifier-candy-head-bowl": {
+      "path": "images/Powers and Add-ons/Terrifier/rare/candy-head-bowl.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "06ddef922120493b359fb584dcb21810c3389a390833273240ef44de9fc7faee"
+    },
+    "killer-addon-terrifier-dead-opossum": {
+      "path": "images/Powers and Add-ons/Terrifier/rare/dead-opossum.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "dfcfec4a29a39b0e774a8fb345aa1943c287d3d2e4ee23e0a9f287f79a354ddb"
+    },
+    "killer-addon-terrifier-emily": {
+      "path": "images/Powers and Add-ons/Terrifier/rare/emily.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "98ecdfe03d612618865b8c203552ebdc9ff64db8a3f6ea31064d00e54ddfb7ff"
+    },
+    "killer-addon-terrifier-thornton-salt": {
+      "path": "images/Powers and Add-ons/Terrifier/rare/thornton-salt.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "e1f71a2a0cbd97cdee93f5bc6f6a33f92db7f00fc6d4d7f8784b86559daaf0a7"
+    },
+    "killer-addon-terrifier-victorias-eye": {
+      "path": "images/Powers and Add-ons/Terrifier/rare/victorias-eye.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "5f3d786fc402b1b0c9f83ae978c0d1ef3be4b4b3f7296c3fb2a8d8c86a488082"
+    },
+    "killer-addon-terrifier-art-crispies": {
+      "path": "images/Powers and Add-ons/Terrifier/very-rare/art-crispies.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "fe71b13fe320edef0272266d2040b94e8d80098c25cb3478931b1f7e61334109"
+    },
+    "killer-addon-terrifier-explosive-gift": {
+      "path": "images/Powers and Add-ons/Terrifier/very-rare/explosive-gift.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "ad92ed4fdda3402ffc9454c1d690d2780cb5040c383d19618d6d7e6d2533ba24"
+    },
+    "killer-addon-terrifier-jonathans-skull": {
+      "path": "images/Powers and Add-ons/Terrifier/very-rare/jonathans-skull.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "937d9b12ccab21310d3bdf35317d02dca82fe17df97ffd1c92135de7c63e9c64"
+    },
+    "killer-addon-terrifier-wacky-jacks": {
+      "path": "images/Powers and Add-ons/Terrifier/very-rare/wacky-jacks.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "34ff13c6513e337e1d4266f9396cf9366e7eba743e8926b18be0da2bf07d371e"
+    },
+    "killer-addon-terrifier-duct-tape": {
+      "path": "images/Powers and Add-ons/Terrifier/visceral/duct-tape.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "9ab261785a1c92950d943ee6a43280e63fa9b211175d4e87e422e33bced87441"
+    },
+    "killer-addon-terrifier-the-ninth-circle": {
+      "path": "images/Powers and Add-ons/Terrifier/visceral/the-ninth-circle.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "27a20cf2dca8e8d2686df68473048d15001e5518bdc85a824b2ff52361fb9d76"
+    }
   },
   "killerPowers": {
     "the-trapper": {
@@ -9644,6 +9744,43 @@
       "sha256": "4b1921421753d1b49e4a822cdd062e581cf7220ac18bef3058c855344f8a1419"
     },
     "the-judgment": null,
-    "the-terrifier": null
+    "the-terrifier": {
+      "path": "images/Powers and Add-ons/Terrifier/power/bag-of-toys.png",
+      "width": 256,
+      "height": 256,
+      "sha256": "e99939b81136a61a9a543e864308adc05a790023c8ab02590c664d833500f19e"
+    }
+  },
+  "killerPowerComponents": {
+    "images/Powers and Add-ons/Terrifier/power/acid-bottle.png": {
+      "path": "images/Powers and Add-ons/Terrifier/power/acid-bottle.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "e68fc79726b054c3c940109ba129daaafa7c4c0a0adef454126f710fd4c7b4df"
+    },
+    "images/Powers and Add-ons/Terrifier/power/flamethrower.png": {
+      "path": "images/Powers and Add-ons/Terrifier/power/flamethrower.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "d4fd23884b9db092d7deef29db0a5f46d3a78b9e81957ea6114fe99a1c80a5e1"
+    },
+    "images/Powers and Add-ons/Terrifier/power/handgun.png": {
+      "path": "images/Powers and Add-ons/Terrifier/power/handgun.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "9d7cbc949f5defd1a59cfbd6aa6623f2884e50cb66b4c4118d7be358561769cb"
+    },
+    "images/Powers and Add-ons/Terrifier/power/flail.png": {
+      "path": "images/Powers and Add-ons/Terrifier/power/flail.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "0d5f02e173acbdc9313d509cf5f7f787e3b2c842c8dfec9131061127db9a656d"
+    },
+    "images/Powers and Add-ons/Terrifier/power/bike-horn.png": {
+      "path": "images/Powers and Add-ons/Terrifier/power/bike-horn.png",
+      "width": 128,
+      "height": 128,
+      "sha256": "c861f0dedac8f3198a4705c68ea6aca4f03f101d57452873f85df64a9c456e9c"
+    }
   }
 }

@@ -24,6 +24,10 @@ export async function assertStagePath(root, stage = resolve(root, 'release/runti
   return expected;
 }
 
+function powerAssets(manifest) {
+  return [...Object.values(manifest.killerPowers||{}), ...Object.values(manifest.killerPowerComponents||{})].filter(Boolean);
+}
+
 function runtimeFiles(manifest) {
   const files = { ...RUNTIME_FILES };
   for(const [id,asset] of Object.entries(manifest.inventory||{}).filter(([,asset])=>asset)){
@@ -33,7 +37,7 @@ function runtimeFiles(manifest) {
     if(Object.hasOwn(files,path))throw Error('Inventory asset path collision.');
     files[path]=path;
   }
-  for(const asset of Object.values(manifest.killerPowers||{}).filter(Boolean)){
+  for(const asset of powerAssets(manifest)){
     const path=assertInventoryAssetPath(asset.path);
     if(!path.startsWith('images/Powers and Add-ons/'))throw Error(`Killer Power asset must be below images/Powers and Add-ons/: ${path}`);
     if(Object.hasOwn(files,path))throw Error(`Killer Power asset path collision: ${path}`);
@@ -105,7 +109,7 @@ export async function verifyStage(stage, { manifest = { perks: {} } } = {}) {
     if(dimensions.width!==asset.width||dimensions.height!==asset.height||createHash('sha256').update(bytes).digest('hex')!==asset.sha256)
       throw Error('Staged inventory asset hash/dimensions mismatch: '+path);
   }
-  for(const asset of Object.values(manifest.killerPowers||{}).filter(Boolean)){
+  for(const asset of powerAssets(manifest)){
     const path=assertInventoryAssetPath(asset.path), bytes=await readFile(resolve(stage,path)), dimensions=pngDimensions(bytes,path);
     if(dimensions.width!==asset.width||dimensions.height!==asset.height||createHash('sha256').update(bytes).digest('hex')!==asset.sha256)
       throw Error(`Staged Killer Power asset hash/dimensions mismatch: ${path}`);
@@ -155,7 +159,7 @@ function runCommand(command, args, root) {
 // Outside runtime: a human opens this page to check every staged image in file mode.
 function artworkFileCheck(manifest) {
   const collectionPortraits = Object.entries(manifest.collectionPortraits || {}).map(([id, asset]) => ['Collection · ' + id, asset]);
-  const assets = [...Object.entries(manifest.perks), ...Object.entries(manifest.portraits || {}), ...collectionPortraits, ...Object.entries(manifest.inventory || {}), ...Object.entries(manifest.killerPowers || {})].filter(([, asset]) => asset).map(([id, asset]) => ({ id, ...asset }));
+  const assets = [...Object.entries(manifest.perks), ...Object.entries(manifest.portraits || {}), ...collectionPortraits, ...Object.entries(manifest.inventory || {}), ...Object.entries(manifest.killerPowers || {}), ...Object.entries(manifest.killerPowerComponents || {})].filter(([, asset]) => asset).map(([id, asset]) => ({ id, ...asset }));
   const fallbacks = [...Object.values(manifest.perks), ...Object.values(manifest.portraits || {}), ...Object.values(manifest.collectionPortraits || {}), ...Object.values(manifest.killerPowers || {})].filter(value => value === null).length;
   return `<!doctype html><meta charset="utf-8"><title>Staged artwork verification</title>
 <style>body{font:16px system-ui;background:#19191b;color:#edebe6;padding:24px}li{display:inline-flex;align-items:center;gap:8px;width:280px;margin:8px}img{width:36px;height:36px;object-fit:contain}</style>
