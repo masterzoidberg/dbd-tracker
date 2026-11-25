@@ -2286,7 +2286,14 @@
       "format": "png",
       "sha256": "c0b370f33d0b5a8d2b1ac1aa3989b765f900480f72cc4ac61c69d7ca4788d787"
     },
-    "sienna-shaw": null,
+    "sienna-shaw": {
+      "path": "images/survivor-images/sienna-shaw.png",
+      "sourcePath": "images/survivor-images/sienna-shaw.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "1463cc32b641f52054ac7ce1ef8de1103c1b1d6afeae58b021176012de2fae8a"
+    },
     "steve-harrington": {
       "path": "images/survivor-images/steve_harrington.png",
       "sourcePath": "images/survivor-images/steve_harrington.png",
@@ -2615,7 +2622,14 @@
       "format": "png",
       "sha256": "0c9e88e59e315aecfde4af99e15b8e80f1acc0239a52ef570458d30fed13c09f"
     },
-    "the-terrifier": null,
+    "the-terrifier": {
+      "path": "images/killer-images/the_terrifier.png",
+      "sourcePath": "images/killer-images/the_terrifier.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "49e17b89cb6075b63bdc61d70ecc448feb7da11271f57a0f71bdf51c8a01ad58"
+    },
     "the-trapper": {
       "path": "images/killer-images/the_trapper.png",
       "sourcePath": "images/killer-images/the_trapper.png",
@@ -3074,7 +3088,14 @@
       "format": "png",
       "sha256": "c8a1e4f49190e00867f6da30464bec76f59b61644334d18cc9da264f7fdad9e2"
     },
-    "sienna-shaw": null,
+    "sienna-shaw": {
+      "path": "images/updated-images/Character Portraits/Survivors/Lore/Sienna Shaw.png",
+      "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Sienna Shaw.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "1463cc32b641f52054ac7ce1ef8de1103c1b1d6afeae58b021176012de2fae8a"
+    },
     "steve-harrington": {
       "path": "images/updated-images/Character Portraits/Survivors/Lore/Steve Harrington.png",
       "sourcePath": "images/updated-images/Character Portraits/Survivors/Lore/Steve Harrington.png",
@@ -3403,7 +3424,14 @@
       "format": "png",
       "sha256": "540261382f2838a948e6c58f6e42819fc1514ba5a6b17df18be0c6e3f3803e09"
     },
-    "the-terrifier": null,
+    "the-terrifier": {
+      "path": "images/updated-images/Character Portraits/Killers/Lore/Terrifier.png",
+      "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Terrifier.png",
+      "width": 512,
+      "height": 1024,
+      "format": "png",
+      "sha256": "49e17b89cb6075b63bdc61d70ecc448feb7da11271f57a0f71bdf51c8a01ad58"
+    },
     "the-trapper": {
       "path": "images/updated-images/Character Portraits/Killers/Lore/Trapper.png",
       "sourcePath": "images/updated-images/Character Portraits/Killers/Lore/Trapper.png",

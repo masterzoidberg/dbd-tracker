@@ -19,7 +19,7 @@ test('collection Lore manifest maps every live character to an explicit role-cor
   assert.equal(typeof assets.generateCollectionPortraitManifest, 'function');
   const { collectionPortraits } = await assets.generateCollectionPortraitManifest(project);
   assert.deepEqual(Object.keys(collectionPortraits), characters.map(character => character.id).sort());
-  assert.equal(Object.values(collectionPortraits).filter(Boolean).length, 98);
+  assert.equal(Object.values(collectionPortraits).filter(Boolean).length, 100);
   assert.ok(collectionPortraits['the-slasher'].path.endsWith('/Killers/Lore/Slasher.png'));
   assert.ok(collectionPortraits['jake-park'].path.endsWith('/Survivors/Lore/JakeStore.png'));
   assert.ok(collectionPortraits['the-cenobite'].path.endsWith('/Killers/Lore/Pinhead.png'));
