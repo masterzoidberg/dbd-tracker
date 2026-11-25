@@ -25,14 +25,7 @@
 *.lnk
 /data/dbd-tracker-*.json
 
-# Original artwork delivery tree: retain only collection portraits used at runtime
+# Keep the runtime character portraits; exclude other source artwork folders
 /images/updated-images/*
 !/images/updated-images/Character Portraits/
-/images/updated-images/Character Portraits/*
-!/images/updated-images/Character Portraits/Survivors/
-/images/updated-images/Character Portraits/Survivors/*
-!/images/updated-images/Character Portraits/Survivors/Lore/
-/images/updated-images/Character Portraits/Killers/
-/images/updated-images/Character Portraits/Killers/*
-!/images/updated-images/Character Portraits/Killers/Lore/
 /images/missing-perks/
