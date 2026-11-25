@@ -81,12 +81,13 @@ for (const [role, data] of [['survivor', survivorData], ['killer', killerData]])
     if (role === 'killer' && perkAliases[row.slug]) continue;
     const sourceName = row.source_character ?? row.source_killer;
     const name = characterNames[sourceName] ?? sourceName;
-    const sourceId = row.is_general_perk ? null : characterIds[sourceName] ?? slug(sourceName);
+    // The Good Guy's perks are General while retaining their native Prestige path.
+    const sourceId = row.is_general_perk && sourceName !== 'The Good Guy' ? null : characterIds[sourceName] ?? slug(sourceName);
     const id = perkIds[row.slug] ?? row.slug;
     perkTierValuesById[id] = [row.tier_1_values, row.tier_2_values, row.tier_3_values];
     perks.push({
       id, name: row.name, role, general: row.is_general_perk || !!halloweenNames[id] || !!hellraiserNames[id],
-      sourceCharacterId: sourceId, sourceCharacterName: row.is_general_perk ? 'General' : name,
+      sourceCharacterId: sourceId, sourceCharacterName: sourceId ? name : 'General',
       description: row.current_effect, summary: row.plain_english_summary,
       ...(historicalAvailability[id] ? { historicalAvailability: historicalAvailability[id] } : {}),
     });
@@ -106,8 +107,6 @@ for (const id of characters.find(c => c.id === 'laurie-strode').nativePerkIds) {
   perk.sourceCharacterId = 'laurie-strode';
   perk.sourceCharacterName = 'Laurie Strode';
 }
-// The Good Guy remains playable after his former native perks move to the General pool.
-characters.push({ id: 'the-good-guy', name: 'The Good Guy', role: 'killer', nativePerkIds: [] });
 characters.sort((a, b) => a.name.localeCompare(b.name));
 export const characterById = Object.fromEntries(characters.map(c => [c.id, c]));
 export const perkById = Object.fromEntries(perks.map(p => [p.id, p]));

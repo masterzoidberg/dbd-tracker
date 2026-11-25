@@ -328,28 +328,35 @@ test('catalog IDs are unique and native relationships resolve to the correct rol
   assert.equal(new Set(characters.map(c => c.id)).size, characters.length);
   assert.equal(new Set(perks.map(p => p.id)).size, perks.length);
   for (const c of characters) {
-    assert.equal(c.nativePerkIds.length, c.id === 'the-good-guy' ? 0 : 3);
+    assert.equal(c.nativePerkIds.length, 3);
     for (const id of c.nativePerkIds) {
       assert.equal(perkById[id].sourceCharacterId, c.id);
       assert.equal(perkById[id].role, c.role);
     }
   }
 });
-test('The Good Guy’s former native perks are General and grant no Prestige or native tier', () => {
+test('The Good Guy’s native perks are General before Prestige and grant normal global Prestige tiers', () => {
   const save = freshSave();
-  save.characters['the-good-guy'].owned = true;
-  save.characters['the-good-guy'].prestige = 3;
+  const goodGuy = save.characters['the-good-guy'];
   for (const id of ['batteries-included', 'friends-til-the-end', 'hex-two-can-play']) {
+    Object.assign(goodGuy, { owned: false, prestige: 0 });
     const perk = perkById[id];
     assert.equal(perk.general, true);
-    assert.equal(perk.sourceCharacterId, null);
+    assert.equal(perk.sourceCharacterId, 'the-good-guy');
+    assert.ok(characterById['the-good-guy'].nativePerkIds.includes(id));
     assert.equal(globalTier(save, perk), 0);
     assert.equal(unlockSource(save, perk), 'General');
-    for (const killerId of ['the-good-guy', 'the-trapper']) {
-      assert.equal(automaticTier(save, killerId, perk), 0);
-      assert.equal(bloodwebNextTier(save, killerId, perk), 1);
+    assert.equal(automaticTier(save, 'the-trapper', perk), 0);
+    assert.equal(bloodwebNextTier(save, 'the-trapper', perk), 1);
+    goodGuy.owned = true;
+    for (const prestige of [1, 2, 3]) {
+      goodGuy.prestige = prestige;
+      assert.equal(globalTier(save, perk), prestige);
+      assert.equal(automaticTier(save, 'the-trapper', perk), prestige);
+      assert.equal(unlockSource(save, perk), 'Prestige');
     }
   }
+  goodGuy.prestige = 0;
   save.characters['the-trapper'].perks['batteries-included'] = 2;
   const reloaded = parseSave(JSON.stringify(save)).save;
   assert.equal(inventoryTier(reloaded, 'the-trapper', 'batteries-included'), 2);
