@@ -37,13 +37,13 @@ export async function portraitsRegression(page, origin, manifest) {
     try { await image.decode(); return [image.naturalWidth, image.naturalHeight]; }
     catch { return [0, 0]; }
   })), assets);
-  assert.equal(decoded.length, 98);
+  assert.equal(decoded.length, 100);
   for (const [index, asset] of assets.entries()) assert.deepEqual(decoded[index], [asset.width, asset.height], asset.path);
   for (const asset of assets.filter(a => a.format === 'webp')) {
     const response = await page.request.get(origin + '/' + asset.path);
     assert.equal(response.headers()['content-type'], 'image/webp');
   }
-  for (const id of ['meg-thomas', 'aestri-yazar', 'bill-overbeck', 'yun-jin-lee', 'the-onryo', 'the-ghost-face', 'zarina-kassir']) {
+  for (const id of ['meg-thomas', 'aestri-yazar', 'bill-overbeck', 'yun-jin-lee', 'the-onryo', 'the-ghost-face', 'zarina-kassir', 'sienna-shaw', 'the-terrifier']) {
     const character = characters.find(c => c.id === id);
     await page.goto(origin + '/#' + character.role + 's');
     await page.locator('#search').fill(character.name);

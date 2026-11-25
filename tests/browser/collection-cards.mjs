@@ -418,7 +418,7 @@ export async function collectionCardsRegression(page, origin, manifest) {
     try { await image.decode(); return [image.naturalWidth, image.naturalHeight]; }
     catch { return [0, 0]; }
   })), manifestAssets);
-  assert.equal(decoded.length, 97);
+  assert.equal(decoded.length, 99);
   for (const [index, asset] of manifestAssets.entries()) assert.deepEqual(decoded[index], [asset.width, asset.height], asset.path);
 
   await page.evaluate(() => window.scrollTo(0, 0));

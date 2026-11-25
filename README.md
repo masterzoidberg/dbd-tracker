@@ -69,7 +69,7 @@ report. File and localhost storage remain distinct/browser-dependent.
 
 The generated `release/artwork-file-check.html` sits outside the runtime artifact.
 Open it directly offline to check all staged images; it should report **1428/1428**
-decoded (321 perks, 98 portraits, 92 Survivor inventory images, 880 Killer Add-ons
+decoded (321 perks, 100 portraits, 92 Survivor inventory images, 880 Killer Add-ons
 and 37 Powers), with **7 intentional Power fallbacks** for the current supplied image tree.
 It does not access saves. Complete the app's direct-file checks separately.
 
@@ -96,9 +96,9 @@ current inputs and isolated fixtures; it never consumes workspace-generated JSON
 before esbuild. The research master stays out of the bundle. Release stages only
 explicit manifest references from that build. No manifest/catalog JSON is fetched at runtime.
 
-Character portraits cover all 98 characters. Collection cards use a 64px slot;
+Character portraits cover all 100 characters. Collection cards use a 64px slot;
 details and character managers use 80px, with CSS containment and a silhouette
-fallback. The 86 PNG files are used directly; 12 WebP files named `.png` receive
+fallback. The 88 PNG files are used directly; 12 WebP files named `.png` receive
 byte-identical `.webp` copies under `images/portrait-runtime` during every build.
 Source portrait files stay unchanged. Tests scan source inputs, and release uses
 the same freshly generated manifest to stage and verify all referenced portraits.
