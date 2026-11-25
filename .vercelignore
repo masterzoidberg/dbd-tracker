@@ -1,0 +1,38 @@
+# Keep Vercel output focused on runtime files.
+# Build/API inputs remain in scripts, src, api, db, data and images.
+
+# Local tooling, docs, plans and test artifacts
+/.github/
+/.impeccable/
+/.superpowers/
+/.codex-attachments/
+/credentials/
+/docs/
+/experiments/
+/plans/
+/release/
+/tests/
+/test-results/
+/playwright-report/
+/.cache/
+/.vercel/
+/README.md
+
+# Local-only files, archives and account exports
+.env*
+*.zip
+*.log
+*.lnk
+/data/dbd-tracker-*.json
+
+# Original artwork delivery tree: retain only collection portraits used at runtime
+/images/updated-images/*
+!/images/updated-images/Character Portraits/
+/images/updated-images/Character Portraits/*
+!/images/updated-images/Character Portraits/Survivors/
+/images/updated-images/Character Portraits/Survivors/*
+!/images/updated-images/Character Portraits/Survivors/Lore/
+/images/updated-images/Character Portraits/Killers/
+/images/updated-images/Character Portraits/Killers/*
+!/images/updated-images/Character Portraits/Killers/Lore/
+/images/missing-perks/
