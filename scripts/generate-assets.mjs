@@ -190,13 +190,10 @@ export async function generateAssetManifest(root = PROJECT_ROOT) {
     if(sha256!==entity.imageSha256)continue;
     try {inventory[entity.id]={path,...pngDimensions(bytes,path),sha256};}catch{ /* Truthful art fallback. */ }
   }
-  const killerPowers={};
-  for(const [characterId,power] of Object.entries(killerPowerByCharacterId)) {
-    const path=power.artwork.path;
-    if(path===null){killerPowers[characterId]=null;continue;}
+  const killerPowers={}, killerPowerComponents={};
+  async function powerAsset(path) {
     assertInventoryAssetPath(path);
     if(!path.startsWith('images/Powers and Add-ons/'))throw Error(`Killer Power artwork path must be below images/Powers and Add-ons/: ${path}`);
-    if(!['EXACT','REVIEW'].includes(power.artwork.confidence))throw Error(`Killer Power artwork confidence is invalid: ${characterId}`);
     let parent=root;
     const parts=path.split('/');
     for(const [index,part] of parts.entries()) {
@@ -207,9 +204,18 @@ export async function generateAssetManifest(root = PROJECT_ROOT) {
       if(index===parts.length-1?!info.isFile():!info.isDirectory())throw Error(`Killer Power artwork path has an invalid component: ${path}`);
     }
     const bytes=await readFile(resolve(root,path));
-    killerPowers[characterId]={path,...pngDimensions(bytes,path),sha256:createHash('sha256').update(bytes).digest('hex')};
+    return {path,...pngDimensions(bytes,path),sha256:createHash('sha256').update(bytes).digest('hex')};
   }
-  return { ...perks, ...portraits, ...collectionPortraits, inventory, killerPowers };
+  for(const [characterId,power] of Object.entries(killerPowerByCharacterId)) {
+    const path=power.artwork.path;
+    if(path===null){killerPowers[characterId]=null;continue;}
+    if(!['EXACT','REVIEW'].includes(power.artwork.confidence))throw Error(`Killer Power artwork confidence is invalid: ${characterId}`);
+    killerPowers[characterId]=await powerAsset(path);
+    for(const component of power.components??[]) {
+      if(component.imagePath) killerPowerComponents[component.imagePath]=await powerAsset(component.imagePath);
+    }
+  }
+  return { ...perks, ...portraits, ...collectionPortraits, inventory, killerPowers, killerPowerComponents };
 }
 export function assertInventoryAssetPath(path) {
   const survivor=typeof path==='string'&&/^images\/survivor-items-addons\/[a-z0-9]+(?:-[a-z0-9]+)*\/(items|addons)\/[a-z0-9]+(?:-[a-z0-9]+)*\.png$/.test(path);

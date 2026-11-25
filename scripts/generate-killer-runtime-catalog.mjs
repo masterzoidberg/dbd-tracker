@@ -6,7 +6,7 @@ import { characters, characterById } from '../data/catalog.js';
 const PROJECT_ROOT = resolve(import.meta.dirname, '..');
 const rarityCounts = { Common: 4, Uncommon: 5, Rare: 5, 'Very Rare': 4, 'Ultra Rare': 2 };
 const detailFields = {
-  components: ['name', 'type', 'description'],
+  components: ['name', 'type', 'description', 'imagePath'],
   mechanics: ['name', 'value', 'unit', 'conditions', 'description'],
   resources: ['name', 'type', 'description'],
   survivorInteractions: ['name', 'description'],
@@ -46,6 +46,7 @@ function projectPower(power) {
       check(object(row) && text(row.name) && text(row.description), `Invalid Power ${field} entry.`);
       return Object.fromEntries(detailFields[field].filter(key => Object.hasOwn(row, key)).map(key => {
         const value = row[key];
+        if (key === 'imagePath') check(text(value), 'Invalid Power component imagePath.');
         check(key === 'value' ? scalar(value) || Array.isArray(value) && value.every(scalar)
           : typeof value === 'string' || key === 'unit' && value === null, `Invalid Power ${field} ${key}.`);
         return [key, structuredClone(value)];

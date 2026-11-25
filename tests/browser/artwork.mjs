@@ -32,20 +32,29 @@ export async function artworkRegression(page, origin, manifest) {
   // Decode every staged reference explicitly, including icons outside lazy table viewports.
   const killerAddons = Object.values(manifest.inventory).filter(asset => asset?.path.startsWith('images/Powers and Add-ons/'));
   const killerPowers = Object.values(manifest.killerPowers).filter(Boolean);
-  assert.equal(killerAddons.length, 880);
-  assert.equal(killerPowers.length, 37);
-  assert.equal(Object.values(manifest.killerPowers).filter(value => value === null).length, 8);
-  const assets = [...Object.values(manifest.perks).filter(Boolean), ...killerAddons, ...killerPowers];
+  const toys = Object.values(manifest.killerPowerComponents);
+  assert.equal(killerAddons.length, 900);
+  assert.equal(killerPowers.length, 38);
+  assert.equal(toys.length, 5);
+  assert.equal(Object.values(manifest.killerPowers).filter(value => value === null).length, 7);
+  const assets = [...Object.values(manifest.perks).filter(Boolean), ...killerAddons, ...killerPowers, ...toys];
   const decoded = await page.evaluate(async assets => Promise.all(assets.map(async asset => {
     const img = new Image(); img.src = asset.path.split('/').map(encodeURIComponent).join('/');
     try { await img.decode(); return { path: asset.path, width: img.naturalWidth, height: img.naturalHeight }; }
     catch { return { path: asset.path, width: 0, height: 0 }; }
   })), assets);
-  assert.equal(decoded.length, 1244);
+  assert.equal(decoded.length, 1270);
   for (const [index, image] of decoded.entries()) {
     const asset = assets[index];
     assert.equal(image.width, asset.width, image.path); assert.equal(image.height, asset.height, image.path);
   }
+  await page.goto(origin + '/#character/the-terrifier/power-addons');
+  assert.equal(await page.locator('[data-killer-addon-art][data-terrifier-rarity]').count(), 20);
+  assert.equal(await page.locator('#killer-addon-rarity option[value="Ultra Rare"]').textContent(), 'Visceral');
+  await page.getByRole('button', { name: 'Power Details', exact: true }).click();
+  assert.deepEqual(await page.locator('[data-power-component-art]').evaluateAll(images => images.map(image => decodeURI(image.getAttribute('src')))),
+    toys.map(toy => toy.path));
+  await page.getByRole('button', { name: 'Close details', exact: true }).click();
   for (const [route, id, search] of [
     ['survivor-perks', 'a-place-for-us', 'A Place for Us'],
     ['killer-perks', 'deadlock', 'Deadlock'],

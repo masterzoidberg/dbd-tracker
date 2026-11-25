@@ -106,9 +106,10 @@ the same freshly generated manifest to stage and verify all referenced portraits
 fallbacks and 500/700/900/1440 layouts in disposable storage.
 
 Killer artwork uses the explicit canonical paths under `images/Powers and Add-ons/`:
-843 EXACT and 74 REVIEW mappings resolve normally; seven null Power mappings use
+864 EXACT and 74 REVIEW mappings resolve normally; seven null Power mappings use
 an accessible fallback. Invalid explicit mappings fail generation. Artwork browser
-checks decode all 880 Add-ons and 37 mapped Powers and compare manifest dimensions.
+checks decode all 900 Add-ons, 38 mapped Powers and the five Terrifier Toy icons
+and compare manifest dimensions.
 
 ## Use
 
@@ -118,7 +119,7 @@ stay expanded, including zero stock. Power Details and Add-on Details open the
 gameplay explanation and effects. Quantities save on valid Enter/blur or +/−;
 zero removes the stored key, and invalid or failed edits retain their text.
 Reader windows can open Details while quantities remain disabled. The 44-Killer,
-880-Add-on catalog and artwork through backend patch 10.2.2b are bundled for offline use. Layout
+900-Add-on catalog and artwork through patch 10.3.0 are bundled for offline use. Layout
 checks cover 320/500/760/1100/1440/1600px, with 44px quantity/action targets.
 
 Click an owned character’s name or Prestige badge to be offered initial character setup. Enter its Bloodweb level, then record personal acquisitions and upgrades. Native perks start automatically at I, while Prestige, Legacy, and Shrine unlocks provide account-wide minimums. General perks start unselected unless personally acquired. Selecting one defaults to Tier I. Finish saves additions/upgrades and completion for that character; subsequent clicks open its normal details without asking again. Edit Bloodweb setup lets you revisit it.

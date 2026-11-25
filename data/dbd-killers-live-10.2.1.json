@@ -73394,27 +73394,32 @@
           {
             "name": "Acid Bottle",
             "type": "Toy",
-            "description": "Thrown acid leaves a puddle for 1.5 seconds. On walls the puddle forms at the base if the impact is below 8 metres."
+            "description": "Thrown acid leaves a puddle for 1.5 seconds. On walls the puddle forms at the base if the impact is below 8 metres.",
+            "imagePath": "images/Powers and Add-ons/Terrifier/power/acid-bottle.png"
           },
           {
             "name": "Flamethrower",
             "type": "Toy",
-            "description": "Flames can persist for up to 6 seconds on the environment and for 6 seconds on Generators, Windows and dropped Pallets. Survivors have 8 seconds of flame immunity after being unhooked or escaping the Killer’s grasp."
+            "description": "Flames can persist for up to 6 seconds on the environment and for 6 seconds on Generators, Windows and dropped Pallets. Survivors have 8 seconds of flame immunity after being unhooked or escaping the Killer’s grasp.",
+            "imagePath": "images/Powers and Add-ons/Terrifier/power/flamethrower.png"
           },
           {
             "name": "Handgun",
             "type": "Toy",
-            "description": "Aim and fire one round. Movement while charging and holding it is 1 metre per second."
+            "description": "Aim and fire one round. Movement while charging and holding it is 1 metre per second.",
+            "imagePath": "images/Powers and Add-ons/Terrifier/power/handgun.png"
           },
           {
             "name": "Flail",
             "type": "Toy",
-            "description": "Strikes up to 5 metres away and reaches over Windows, Pallets and low obstacles."
+            "description": "Strikes up to 5 metres away and reaches over Windows, Pallets and low obstacles.",
+            "imagePath": "images/Powers and Add-ons/Terrifier/power/flail.png"
           },
           {
             "name": "Bike Horn",
             "type": "Toy",
-            "description": "Detects Survivors in a 6-metre radius and at unlimited distance forward. Detected Survivors give a loud noise notification. Detecting multiple Survivors increases the Horn’s Deadliness and also applies Oblivious and reveals them with Killer Instinct. Detection refreshes existing Torture. A maxed Horn interrupts repairing and healing and removes 5% progress from the interrupted action."
+            "description": "Detects Survivors in a 6-metre radius and at unlimited distance forward. Detected Survivors give a loud noise notification. Detecting multiple Survivors increases the Horn’s Deadliness and also applies Oblivious and reveals them with Killer Instinct. Detection refreshes existing Torture. A maxed Horn interrupts repairing and healing and removes 5% progress from the interrupted action.",
+            "imagePath": "images/Powers and Add-ons/Terrifier/power/bike-horn.png"
           }
         ],
         "mechanics": [
@@ -73461,8 +73466,8 @@
           }
         ],
         "artwork": {
-          "path": null,
-          "confidence": "MISSING"
+          "path": "images/Powers and Add-ons/Terrifier/power/bag-of-toys.png",
+          "confidence": "EXACT"
         }
       },
       "addons": [
@@ -73487,8 +73492,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/common/allies-scalp.png",
+            "confidence": "EXACT"
           }
         },
         {
@@ -73512,8 +73517,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/common/blackened-heart.png",
+            "confidence": "EXACT"
           }
         },
         {
@@ -73537,8 +73542,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/common/bottle-of-bleach.png",
+            "confidence": "EXACT"
           }
         },
         {
@@ -73562,8 +73567,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/common/mikes-phone.png",
+            "confidence": "EXACT"
           }
         },
         {
@@ -73587,8 +73592,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/uncommon/bloodstained-bullet.png",
+            "confidence": "EXACT"
           }
         },
         {
@@ -73612,8 +73617,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/uncommon/brookes-pustule.png",
+            "confidence": "EXACT"
           }
         },
         {
@@ -73637,8 +73642,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/uncommon/burnt-wings.png",
+            "confidence": "EXACT"
           }
         },
         {
@@ -73662,8 +73667,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/uncommon/shiny-tricycle.png",
+            "confidence": "EXACT"
           }
         },
         {
@@ -73687,8 +73692,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/uncommon/siennas-flesh.png",
+            "confidence": "EXACT"
           }
         },
         {
@@ -73712,8 +73717,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/rare/candy-head-bowl.png",
+            "confidence": "EXACT"
           }
         },
         {
@@ -73737,8 +73742,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/rare/dead-opossum.png",
+            "confidence": "EXACT"
           }
         },
         {
@@ -73762,8 +73767,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/rare/emily.png",
+            "confidence": "EXACT"
           }
         },
         {
@@ -73787,8 +73792,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/rare/thornton-salt.png",
+            "confidence": "EXACT"
           }
         },
         {
@@ -73812,8 +73817,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/rare/victorias-eye.png",
+            "confidence": "EXACT"
           }
         },
         {
@@ -73837,8 +73842,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/very-rare/art-crispies.png",
+            "confidence": "EXACT"
           }
         },
         {
@@ -73862,8 +73867,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/very-rare/explosive-gift.png",
+            "confidence": "EXACT"
           }
         },
         {
@@ -73887,8 +73892,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/very-rare/jonathans-skull.png",
+            "confidence": "EXACT"
           }
         },
         {
@@ -73912,8 +73917,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/very-rare/wacky-jacks.png",
+            "confidence": "EXACT"
           }
         },
         {
@@ -73937,8 +73942,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/visceral/duct-tape.png",
+            "confidence": "EXACT"
           }
         },
         {
@@ -73962,8 +73967,8 @@
             }
           ],
           "artwork": {
-            "path": null,
-            "confidence": "MISSING"
+            "path": "images/Powers and Add-ons/Terrifier/visceral/the-ninth-circle.png",
+            "confidence": "EXACT"
           }
         }
       ]

@@ -21,12 +21,20 @@ test('all explicit Killer Power and Add-on artwork mappings resolve with confide
  const killerAddons=Object.values(inventoryEntityById).filter(entity=>entity.kind==='killer-addon');
  assert.equal(killerAddons.length,900);
  assert.equal(Object.keys(manifest.killerPowers).length,45);
- assert.equal(Object.values(manifest.inventory).filter(asset=>asset&&asset.path.startsWith('images/Powers and Add-ons/')).length,880);
+ assert.equal(Object.values(manifest.inventory).filter(asset=>asset&&asset.path.startsWith('images/Powers and Add-ons/')).length,900);
  const mappings=[...killerAddons.map(entity=>entity.artworkConfidence),...Object.values(killerPowerByCharacterId).map(power=>power.artwork.confidence)].filter(confidence=>confidence!=='MISSING');
- assert.equal(mappings.length,917);
- assert.equal(mappings.filter(confidence=>confidence==='EXACT').length,843);
+ assert.equal(mappings.length,938);
+ assert.equal(mappings.filter(confidence=>confidence==='EXACT').length,864);
  assert.equal(mappings.filter(confidence=>confidence==='REVIEW').length,74);
- assert.equal(Object.values(killerPowerByCharacterId).filter(power=>power.artwork.path===null).length,8);
+ assert.equal(Object.values(killerPowerByCharacterId).filter(power=>power.artwork.path===null).length,7);
+ const toys=killerPowerByCharacterId['the-terrifier'].components;
+ assert.equal(toys.length,5);
+ assert.deepEqual(Object.keys(manifest.killerPowerComponents),toys.map(toy=>toy.imagePath));
+ for(const {imagePath} of toys) {
+  assert.equal(manifest.killerPowerComponents[imagePath].path,imagePath);
+  assert.equal(manifest.killerPowerComponents[imagePath].width,128);
+  assert.equal(manifest.killerPowerComponents[imagePath].height,128);
+ }
  for(const entity of killerAddons) {
   const asset=manifest.inventory[entity.id];
   assert.equal(asset?.path??null,entity.imagePath,entity.id);

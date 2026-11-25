@@ -2517,6 +2517,20 @@ footer span {
 .addon-rarity-order-control { display:flex; align-items:center; gap:9px; color:var(--muted); font-size:10px; }
 .addon-rarity-order-control select { min-height:44px; }
 .killer-addon-card [data-killer-stock-error] { min-height:1.5em; font-size:12px; }
+[data-terrifier-rarity="common"] { --terrifier-rarity-color:#996344; }
+[data-terrifier-rarity="uncommon"] { --terrifier-rarity-color:#448855; }
+[data-terrifier-rarity="rare"] { --terrifier-rarity-color:#377fc0; }
+[data-terrifier-rarity="very-rare"] { --terrifier-rarity-color:#8756a8; }
+[data-terrifier-rarity="ultra-rare"] { --terrifier-rarity-color:#c04e82; }
+img[data-terrifier-rarity] {
+  background:repeating-linear-gradient(153deg,transparent 0 14px,#0002 15px 16px),
+    radial-gradient(at top,var(--terrifier-rarity-color),color-mix(in srgb,var(--terrifier-rarity-color) 40%,#0b0a0b));
+  border-radius:4px;
+  box-shadow:inset 0 0 0 1px #ffffff20;
+}
+.inventory-rarity-badge[data-terrifier-rarity] { --inventory-rarity-accent:var(--terrifier-rarity-color); }
+.killer-power-component-art { float:left; object-fit:contain; margin:0 12px 5px 0; }
+.killer-power-entry:has(.killer-power-component-art) { display:flow-root; }
 @media(max-width:760px) {
   .killer-power-panel { grid-template-columns:minmax(0,1fr); gap:16px; }
 }

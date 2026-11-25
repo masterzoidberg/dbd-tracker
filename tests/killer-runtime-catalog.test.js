@@ -95,8 +95,8 @@ test('Power projection retains gameplay details and strips research metadata at 
   assert.deepEqual(rows.reduce((counts, row) => {
     counts[row.artwork.confidence] = (counts[row.artwork.confidence] ?? 0) + 1;
     return counts;
-  }, {}), { EXACT: 843, REVIEW: 74, MISSING: 28 });
-  assert.equal(result.killers.filter(k => k.power.artwork.path === null).length, 8);
+  }, {}), { EXACT: 864, REVIEW: 74, MISSING: 7 });
+  assert.equal(result.killers.filter(k => k.power.artwork.path === null).length, 7);
 });
 
 test('projection rejects malformed data duplicate identities ownership and rarity/count violations', () => {
