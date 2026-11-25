@@ -391,7 +391,7 @@
       "name": "Batteries Included",
       "slug": "batteries-included",
       "source_killer": "The Good Guy",
-      "is_general_perk": false,
+      "is_general_perk": true,
       "tier_1_values": {
         "completed_generator_range_m": 16,
         "haste_percent": 5,
@@ -2233,7 +2233,7 @@
       "name": "Friends 'til the End",
       "slug": "friends-til-the-end",
       "source_killer": "The Good Guy",
-      "is_general_perk": false,
+      "is_general_perk": true,
       "tier_1_values": {
         "obsession_aura_reveal_seconds": 6,
         "exposed_duration_seconds": 20,
@@ -3736,7 +3736,7 @@
       "name": "Hex: Two Can Play",
       "slug": "hex-two-can-play",
       "source_killer": "The Good Guy",
-      "is_general_perk": false,
+      "is_general_perk": true,
       "tier_1_values": {
         "stuns_or_blinds_to_activate": 4,
         "blind_duration_seconds": 1.5,

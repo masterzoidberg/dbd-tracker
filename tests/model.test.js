@@ -328,12 +328,31 @@ test('catalog IDs are unique and native relationships resolve to the correct rol
   assert.equal(new Set(characters.map(c => c.id)).size, characters.length);
   assert.equal(new Set(perks.map(p => p.id)).size, perks.length);
   for (const c of characters) {
-    assert.equal(c.nativePerkIds.length, 3);
+    assert.equal(c.nativePerkIds.length, c.id === 'the-good-guy' ? 0 : 3);
     for (const id of c.nativePerkIds) {
       assert.equal(perkById[id].sourceCharacterId, c.id);
       assert.equal(perkById[id].role, c.role);
     }
   }
+});
+test('The Good Guy’s former native perks are General and grant no Prestige or native tier', () => {
+  const save = freshSave();
+  save.characters['the-good-guy'].owned = true;
+  save.characters['the-good-guy'].prestige = 3;
+  for (const id of ['batteries-included', 'friends-til-the-end', 'hex-two-can-play']) {
+    const perk = perkById[id];
+    assert.equal(perk.general, true);
+    assert.equal(perk.sourceCharacterId, null);
+    assert.equal(globalTier(save, perk), 0);
+    assert.equal(unlockSource(save, perk), 'General');
+    for (const killerId of ['the-good-guy', 'the-trapper']) {
+      assert.equal(automaticTier(save, killerId, perk), 0);
+      assert.equal(bloodwebNextTier(save, killerId, perk), 1);
+    }
+  }
+  save.characters['the-trapper'].perks['batteries-included'] = 2;
+  const reloaded = parseSave(JSON.stringify(save)).save;
+  assert.equal(inventoryTier(reloaded, 'the-trapper', 'batteries-included'), 2);
 });
 test('JSON catalog includes all supplied perks and preserves IDs for existing saves', () => {
   assert.equal(perks.filter(p => p.role === 'survivor').length, 179);

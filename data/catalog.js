@@ -106,6 +106,8 @@ for (const id of characters.find(c => c.id === 'laurie-strode').nativePerkIds) {
   perk.sourceCharacterId = 'laurie-strode';
   perk.sourceCharacterName = 'Laurie Strode';
 }
+// The Good Guy remains playable after his former native perks move to the General pool.
+characters.push({ id: 'the-good-guy', name: 'The Good Guy', role: 'killer', nativePerkIds: [] });
 characters.sort((a, b) => a.name.localeCompare(b.name));
 export const characterById = Object.fromEntries(characters.map(c => [c.id, c]));
 export const perkById = Object.fromEntries(perks.map(p => [p.id, p]));

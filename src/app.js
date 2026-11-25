@@ -341,7 +341,7 @@ function characterCollectionCard(c) {
     const access = isAvailable(save, perk) ? (tier ? `Tier ${roman[tier]}` : 'General · available') : 'Not unlocked';
     return `<div class="native-row"><span>${name}</span><span class="native-access">${esc(access)}</span></div>`;
   }).join('');
-  const nativeSection = `<section class="native-perks" data-native-perks aria-label="Native perks, account access"><h3>Native perks <span>Account access</span></h3>${nativeRows}</section>`;
+  const nativeSection = `<section class="native-perks" data-native-perks aria-label="Native perks, account access"><h3>Native perks <span>Account access</span></h3>${nativeRows || '<p class="muted">No native perks. Former perks are General.</p>'}</section>`;
   const power = survivor ? null : killerPowerByCharacterId[c.id];
   const powerArtwork = power?.artwork.confidence === 'EXACT' ? killerPowerIconPath(c.id, assetManifest) : null;
   const powerIdentity = survivor ? '' : `<div class="killer-power-identity" data-killer-power>${powerArtwork ? `<img data-killer-power-art src="${esc(artworkUrl(powerArtwork))}" alt="" aria-hidden="true" loading="lazy" decoding="async">` : ''}<div><span>Power</span><strong data-power-name>${esc(power.powerName)}</strong></div></div>`;
@@ -803,7 +803,7 @@ function characterOverview(id) {
     : '';
   return '<div class="character-overview">'
     + killerPowerIdentity + '<div class="character-overview-grid">'
-    + '<section class="character-overview-section overview-native" data-overview-section="native-perks"><div class="section-title"><h2>Native Perks</h2></div><div class="overview-native-grid">' + nativeCards + '</div></section>'
+    + '<section class="character-overview-section overview-native" data-overview-section="native-perks"><div class="section-title"><h2>Native Perks</h2></div><div class="overview-native-grid">' + (nativeCards || '<p class="muted">Former native perks are available in the General Bloodweb pool.</p>') + '</div></section>'
     + setup
     + '<section class="character-overview-summary" data-overview-section="perks"><div><div class="eyebrow">PERKS</div><h2>Perk inventory</h2></div>'
       + '<div class="overview-summary-number"><strong>' + stats.owned + '</strong><span>effective owned</span></div><div class="overview-summary-number"><strong>' + stats.tier3 + '</strong><span>Tier III</span></div>'

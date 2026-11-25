@@ -47,8 +47,8 @@ test('candidate pool uses the relevant union once and applies Personal, General,
 test('approved Doctor and Cenobite fixture audits keep exact category counts', () => {
   const save = parseSave(readFileSync(new URL('./fixtures/character-inventory-audit.json', import.meta.url), 'utf8')).save;
   const expected = {
-    'the-doctor': { total: 24, personal: 3, general: 19, unlocked: 2, retained: 0 },
-    'the-cenobite': { total: 22, personal: 3, general: 16, unlocked: 3, retained: 0 },
+    'the-doctor': { total: 27, personal: 3, general: 22, unlocked: 2, retained: 0 },
+    'the-cenobite': { total: 25, personal: 3, general: 19, unlocked: 3, retained: 0 },
   };
   for (const [characterId, counts] of Object.entries(expected)) {
     const rows = characterInventoryCandidatePool(save, characterId);
