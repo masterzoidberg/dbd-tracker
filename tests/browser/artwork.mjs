@@ -41,7 +41,7 @@ export async function artworkRegression(page, origin, manifest) {
     try { await img.decode(); return { path: asset.path, width: img.naturalWidth, height: img.naturalHeight }; }
     catch { return { path: asset.path, width: 0, height: 0 }; }
   })), assets);
-  assert.equal(decoded.length, 1238);
+  assert.equal(decoded.length, 1244);
   for (const [index, image] of decoded.entries()) {
     const asset = assets[index];
     assert.equal(image.width, asset.width, image.path); assert.equal(image.height, asset.height, image.path);
@@ -51,6 +51,12 @@ export async function artworkRegression(page, origin, manifest) {
     ['killer-perks', 'deadlock', 'Deadlock'],
     ['killer-perks', 'hex-plaything', 'Plaything'],
     ['killer-perks', 'scourge-hook-gift-of-pain', 'Gift of Pain'],
+    ['survivor-perks', 'best-gift-ever', "Best Gift Ever"],
+    ['survivor-perks', 'shared-trauma', "Shared Trauma"],
+    ['survivor-perks', 'valkyries-rage', "Valkyrie's Rage"],
+    ['killer-perks', 'funny-business', "Funny Business"],
+    ['killer-perks', 'kill-spree', "Kill Spree"],
+    ['killer-perks', 'laughingstock', "Laughingstock"],
   ]) {
     await page.goto(origin + '/#' + route);
     await page.locator('#search').fill(search);

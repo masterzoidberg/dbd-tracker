@@ -22,15 +22,28 @@ async function put(root, path, bytes = png) {
   await writeFile(join(root, path), bytes);
 }
 
-test('current tree has 321 mapped perk icons and all 327 perk entries, with sorted repeatable output', async () => {
+test('current tree maps all 327 perk icons with sorted repeatable output', async () => {
   const manifest = await generatePerkManifest(project);
   assert.equal(Object.keys(manifest.perks).length, 327);
-  assert.equal(Object.values(manifest.perks).filter(Boolean).length, 321);
-  assert.equal(Object.values(manifest.perks).filter(value => value === null).length, 6);
+  assert.equal(Object.values(manifest.perks).filter(Boolean).length, 327);
   assert.deepEqual(Object.keys(manifest.perks), perks.map(p => p.id).sort());
   assert.deepEqual(await generatePerkManifest(project), manifest);
+  const chapterIcons = new Map([
+    ['best-gift-ever', 'images/survivor-perks/sienna-shaw/best-gift-ever.png'],
+    ['shared-trauma', 'images/survivor-perks/sienna-shaw/shared-trauma.png'],
+    ['valkyries-rage', 'images/survivor-perks/sienna-shaw/valkyries-rage.png'],
+    ['funny-business', 'images/killer-perks/terrifier/funny-business.png'],
+    ['kill-spree', 'images/killer-perks/terrifier/kill-spree.png'],
+    ['laughingstock', 'images/killer-perks/terrifier/laughingstock.png'],
+  ]);
+  for (const [id, path] of chapterIcons) {
+    assert.equal(manifest.perks[id].path, path);
+    assert.equal(manifest.perks[id].width, 256);
+    assert.equal(manifest.perks[id].height, 256);
+  }
+  const chapterPaths = new Set(chapterIcons.values());
   for (const value of Object.values(manifest.perks).filter(Boolean)) {
-    if (value.path.includes('/supplied/') && !['images/killer-perks/supplied/deadlock.png', 'images/killer-perks/supplied/scourge-hook-gift-of-pain.png'].includes(value.path)) {
+    if (chapterPaths.has(value.path) || (value.path.includes('/supplied/') && !['images/killer-perks/supplied/deadlock.png', 'images/killer-perks/supplied/scourge-hook-gift-of-pain.png'].includes(value.path))) {
       assert.equal(value.width, 256); assert.equal(value.height, 256);
     } else {
       assert.ok([96, 100].includes(value.width)); assert.equal(value.height, value.width);
